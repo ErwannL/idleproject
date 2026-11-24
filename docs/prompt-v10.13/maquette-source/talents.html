@@ -1,0 +1,53 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.modes{display:flex;gap:12px;margin:0 auto 16px;width:760px}
+.br{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.bc{border-radius:18px;border:2px solid var(--c);background:linear-gradient(#22305f,#121a36);overflow:hidden;display:flex;flex-direction:column}
+.bc .art{height:190px;background:radial-gradient(circle at 50% 60%,color-mix(in srgb,var(--c) 55%,#0000),#0b1124 70%);display:grid;place-items:center;position:relative}
+.bc .art img{width:120px;height:120px}
+.bc .art .t{position:absolute;left:14px;top:12px;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000}
+.bc .art .p{position:absolute;right:14px;top:14px;font-weight:900;background:#000a;border:1px solid var(--c);border-radius:8px;padding:2px 9px}
+.bc .body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.track{display:flex;gap:5px}.track i{flex:1;height:12px;border-radius:4px;background:#0b1124;border:1px solid #2c3a66}.track i.f{background:var(--c);border-color:var(--c)}
+.next{display:flex;gap:12px;align-items:center;background:#18223f;border-radius:12px;padding:10px}
+.next .tile{width:60px;height:60px}.next .tile img{width:36px;height:36px}
+.ph{display:grid;grid-template-columns:420px 1fr;gap:20px}
+.phart{border-radius:18px;border:2px solid #ff8a3a;background:radial-gradient(circle at 50% 55%,#ff7a2a66,#1a0d10 70%),url(a/cursed_far.png) bottom/cover;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative}
+.phart img{width:250px;height:250px}
+.phart .n{font-size:30px;font-weight:900;color:#ffd28a;text-shadow:0 3px 0 #000}
+.big{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;background:#18223f;border-radius:16px;padding:18px;text-align:center}
+.big b{font-size:40px;font-weight:900}
+.gets{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.get{border-radius:14px;border:2px solid #34447c;background:#1a2448;padding:12px;display:flex;align-items:center;gap:12px}
+.get .tile{width:64px;height:64px}.get .tile img{width:40px;height:40px}
+.get b{font-size:24px;display:block}
+.chk{display:flex;gap:10px;align-items:center;font-size:16px;padding:8px 12px;border-radius:10px;background:#132a1e;border:1px solid #2f9a54}
+</style></head><body>
+<div class="mini"></div>
+<div class="top"><div class="tab"><img src="a/icon_bag.png">Équipement</div><div class="tab"><img src="a/icon_upgrade.png">Améliorations</div><div class="tab"><img src="a/icon_bolt.png">Compétences</div><div class="tab on"><img src="a/icon_star.png">Talents</div><div class="tab"><img src="a/icon_anvil.png">Forge</div></div>
+<div class="frame"><div class="cart"><img src="a/icon_star.png">Talents</div><div class="help">?</div>
+<div style="position:absolute;left:24px;top:22px"><span class="pill" style="background:#18223f;border:1px solid var(--gold);font-size:16px;padding:6px 14px"><img src="a/icon_fragment.png" style="width:18px;vertical-align:-3px"> Fragments : <b style="color:var(--gold2)">12</b></span></div>
+<div class="modes"><div class="mode" id="m1"><img src="a/icon_star.png">Talents</div><div class="mode" id="m2"><img src="a/icon_tree.png">Arbre avancé</div><div class="mode" id="m3"><img src="a/icon_rebirth.png">Renaissance</div></div>
+<div id="c"></div></div>
+<script>
+const m=(location.hash||'#t').slice(1);document.getElementById(m=='r'?'m3':'m1').classList.add('on');
+const card=(c,ic,t,p,n,f,cost)=>`<div class="bc" style="--c:${c}"><div class="art"><span class="t">${t}</span><span class="p">Palier ${p}/15</span><img src="a/${ic}.png"></div><div class="body">
+<div class="track">${Array.from({length:15},(_,i)=>`<i class="${i<p?'f':''}"></i>`).join('')}</div>
+<div class="next"><div class="tile" style="--c:${c}"><img src="a/${ic}.png"></div><div><div class="s" style="font-size:13px">Prochain talent</div><b style="font-size:18px">${n}</b><div class="g" style="font-size:15px">${f}</div></div></div>
+<div style="display:flex;align-items:center;gap:12px;margin-top:auto"><div class="cost" style="width:auto;flex-direction:row;font-size:18px"><img src="a/icon_fragment.png" style="width:24px">${cost}</div><div class="${p==3?'gold-btn':'btn2'}" style="flex:1;height:54px;font-size:19px">Apprendre</div></div></div></div>`;
+document.getElementById('c').innerHTML = m=='r' ? `<div class="ph" style="height:790px">
+<div class="phart"><img src="a/phoenix_rebirth.png"><div class="n">Renaissance</div><div class="s">2 déjà faites · prestige actuel <b class="g">×1,90</b></div></div>
+<div style="display:flex;flex-direction:column;gap:16px">
+<div class="big"><div><div class="s">Puissance avant</div><b>39,2 T</b></div><div style="font-size:34px;color:var(--gold2)">»</div><div><div class="s">Après</div><b class="g">58,8 T</b></div></div>
+<div class="sec" style="font-weight:900;color:var(--gold2);letter-spacing:1.5px">CE QUE TU GAGNES</div>
+<div class="gets"><div class="get"><div class="tile ep"><img src="a/icon_fragment.png"></div><div><b>+91</b><span class="s">fragments</span></div></div><div class="get"><div class="tile lg"><img src="a/icon_damage.png"></div><div><b>×1,50</b><span class="s">pour toujours</span></div></div><div class="get"><div class="tile ra"><img src="a/icon_bolt.png"></div><div><b>1</b><span class="s">pouvoir gardé</span></div></div></div>
+<div class="sec" style="font-weight:900;color:var(--gold2);letter-spacing:1.5px">CE QUI SE PASSE</div>
+<div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:16px"><div>↺ Retour à l'étape 1</div><div>⏱ Retour à 6-15 en ≈ 5 h 46</div><div class="g">✓ Compagnons, talents, ensembles gardés</div><div class="r">✕ Or et améliorations remis à zéro</div></div>
+<div class="chk">✓ <b>Rentable maintenant</b> · tu bloques depuis 8 h et le gain dépasse ×1,25 <span class="s" style="margin-left:auto">+10 étapes : +95</span></div>
+<div class="gold-btn" style="margin-top:auto;height:72px;font-size:26px"><img src="a/icon_rebirth.png" style="width:34px">Renaître · +91 <img src="a/icon_fragment.png" style="width:26px"></div>
+<div class="btn2">Bonus éternels et stellaires ›</div></div></div>`
+: `<div class="br">${card('#ff5a5a','icon_damage','Attaque',3,'Cœur du chevalier','+3 % dégâts · +3 % PV','4')}${card('#ffc040','icon_gold','Or et butin',0,'Bourse pleine','+5 % or gagné','1')}${card('#4ddc7a','icon_heart','Survie',0,'Peau de pierre','+4 % PV','1')}</div>
+<div class="card" style="margin-top:18px"><div style="font-weight:900;color:var(--gold2);letter-spacing:1.5px;margin-bottom:12px">CE QUE TES TALENTS TE DONNENT DÉJÀ</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">${[['icon_damage','+9 %','dégâts'],['icon_heart','+9 %','PV'],['icon_gold','+0 %','or'],['icon_crit','+2 %','critique'],['icon_shield','+0 %','défense'],['icon_xp','+5 %','expérience']].map(x=>`<div class="get" style="flex-direction:column;gap:4px;text-align:center"><img src="a/${x[0]}.png" style="width:32px;height:32px"><b style="font-size:22px">${x[1]}</b><span class="s">${x[2]}</span></div>`).join('')}</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px"><div class="btn2" style="height:56px">🌳 Voir l'arbre complet (3 autres branches) ›</div><div class="btn2" style="height:56px">✦ Apprendre le meilleur (1 fragment)</div></div>`;
+</script></body></html>

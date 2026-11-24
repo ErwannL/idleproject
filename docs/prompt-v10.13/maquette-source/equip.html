@@ -1,0 +1,103 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.cols{display:grid;grid-template-columns:380px 400px minmax(0,1fr);gap:18px;height:100%}
+.who{display:flex;gap:10px;margin-bottom:12px}
+.who .tile{width:62px;height:62px}.who .tile img{width:52px;height:52px}
+.who .tile.sel{outline:3px solid var(--gold2);outline-offset:2px}
+.hero{display:grid;grid-template-columns:150px 1fr;gap:14px;height:200px}
+.portrait{border-radius:14px;background:radial-gradient(circle at 50% 70%,#3b4c8f,#141d3a 70%);border:2px solid #34447c;display:grid;place-items:end center;overflow:hidden}
+.portrait img{width:168px;height:168px;object-fit:contain}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+.slots .tile{height:96px}.slots .tile img{width:72px;height:72px}
+.slotname{text-align:center;font-size:13px;color:var(--soft);margin-top:4px;font-weight:700}
+.st4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st4 .stat{background:#131b36;border-radius:10px;padding:10px}
+.bag .head{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-weight:900;font-size:18px}
+.bag .head .btn2{height:40px;padding:0 14px;font-size:14px;margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(5,64px);gap:12px 12px;justify-content:space-between}
+.grid .tile{width:64px;height:64px}.grid .tile img{width:52px;height:52px}
+.grid .tile.sel{outline:3px solid #fff;outline-offset:2px}
+.det .hd{display:grid;grid-template-columns:110px minmax(0,1fr) 50px;gap:16px;align-items:start}
+.det .hd .tile{width:110px;height:110px}.det .hd .tile img{width:100px;height:100px}
+.name{font-size:27px;font-weight:900;color:#d9a8ff;text-shadow:0 2px 0 #000}
+.bar{height:10px;border-radius:6px;background:#0b1124;border:1px solid #2c3a66;overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#e0a21f,#ffe27a)}
+.lock{width:48px;height:48px;border-radius:12px;border:2px solid var(--gold);display:grid;place-items:center;background:#1a2448}.lock img{width:26px;height:26px}
+.more{margin-top:10px;width:48px;height:40px;border-radius:12px;border:2px solid #3a4a80;display:grid;place-items:center;font-weight:900;background:#1a2448}
+.oldtag{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#3a2410;border:1px solid #c98a2a;color:#ffcf7a;border-radius:8px;padding:4px 10px;font-size:14px;font-weight:800;margin-top:8px}
+.setb{display:flex;gap:12px;align-items:center}.setb img{width:44px;height:44px}
+.arrow{width:0;height:0;border:12px solid transparent;border-bottom-color:var(--gold2);margin:-2px 0 0 calc(var(--ax) - 12px)}
+.act{border:2px solid var(--gold);border-radius:16px;background:#121a36;padding:16px}
+.lvl{display:flex;justify-content:center;gap:18px;align-items:center;font-size:30px;font-weight:900;margin-bottom:12px}
+.cmp{display:flex;align-items:center;gap:12px;background:#18223f;border-radius:12px;padding:10px 14px;font-size:18px;margin-bottom:8px}.cmp img{width:24px;height:24px}.cmp b{margin-left:auto}
+.costs{display:flex;justify-content:center;gap:40px;margin:14px 0}
+.rf{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rcard{border:2px solid #34447c;border-radius:14px;background:linear-gradient(#1e2a56,#141c3b);padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.rcard .art{width:100%;height:110px;border-radius:10px;background:#0c1230 center/cover;image-rendering:pixelated;display:grid;place-items:center;position:relative;overflow:hidden}
+.rcard .art img{width:72px;height:72px}
+.rcard b{font-size:17px}.rcard small{font-size:13px;color:var(--soft);min-height:34px}
+.rcard .btn2{width:100%}
+.rcard.main{border-color:var(--gold2);box-shadow:0 0 14px #f3d27a44}
+.fx{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.fxl{display:flex;gap:8px;align-items:center;background:#231a40;border:1px solid #6b2fb3;border-radius:10px;padding:8px 12px;font-size:16px}
+</style></head><body>
+<div class="mini"></div>
+<div class="top">
+<div class="tab on"><img src="a/icon_bag.png">Équipement</div><div class="tab"><img src="a/icon_upgrade.png">Améliorations</div><div class="tab"><img src="a/icon_bolt.png">Compétences</div><div class="tab"><img src="a/icon_star.png">Talents</div><div class="tab"><img src="a/icon_anvil.png">Forge</div></div>
+<div class="frame">
+<div class="cart"><img src="a/icon_bag.png">Équipement</div><div class="help">?</div>
+<div class="cols">
+<!-- personnage -->
+<div>
+<div class="who"><div class="tile co"><img src="a/hero_idle.png"></div><div class="tile ep"><img src="a/hero_knight.png"></div><div class="tile lg sel"><img src="a/ally_ice_empress.png"></div><div class="tile ep" style="position:relative"><img src="a/hero_knight.png"><span class="badge">!</span></div></div>
+<div class="hero"><div class="portrait"><img src="a/ally_ice_empress.png"></div>
+<div><div style="font-size:21px;font-weight:900">Impératrice des glaces</div><span class="pill" style="background:#7a4a00;color:#ffd77a;margin-top:6px">Légendaire</span>
+<div style="margin-top:12px;font-weight:800">Niv. 20 <span class="s" style="font-size:13px">/ 40</span></div><div class="bar"><i style="width:50%"></i></div>
+<div class="card" style="margin-top:12px;padding:10px;display:flex;align-items:center;gap:10px"><img src="a/icon_crown.png" style="width:28px"><div><div class="s" style="font-size:13px">Puissance</div><div style="font-size:28px;font-weight:900;color:var(--gold2)">492</div></div></div></div></div>
+<div class="slots">
+<div><div class="tile ep"><img src="a/item_weapon_dagger.png"><span class="pl">+3</span></div><div class="slotname">Arme</div></div>
+<div><div class="tile lg"><img src="a/item_helmet_circlet.png" style="width:76px;height:76px"><span class="pl">+1</span></div><div class="slotname">Diadème</div></div>
+<div><div class="tile lg"><img src="a/item_ring_signet.png" style="width:76px;height:76px"></div><div class="slotname">Chevalière</div></div>
+</div>
+<div class="st4"><div class="stat"><img src="a/icon_damage.png">Attaque<b>442</b></div><div class="stat"><img src="a/icon_heart.png">PV<b>5,6 K</b></div><div class="stat"><img src="a/icon_shield.png">Défense<b>119</b></div><div class="stat"><img src="a/icon_timer.png">Recharge<b>−12 %</b></div></div>
+<div style="display:flex;gap:10px;margin-top:14px"><div class="btn2" style="flex:1">⇄ Équipement rapide</div><div class="btn2" style="flex:1"><img src="a/set_forest.png" style="width:22px"> Ensembles 2/3</div></div>
+</div>
+<!-- sac -->
+<div class="card bag"><div class="head"><img src="a/icon_bag.png" style="width:26px"><span style="white-space:nowrap">Sac 50/100</span><div class="btn2">Armes ▾</div><div class="btn2" style="margin-left:0">Rareté ▾</div></div>
+<div class="grid" id="grid"></div>
+<div class="btn2" style="margin-top:18px">♻ Recycler les objets inutiles (0)</div></div>
+<!-- détails -->
+<div class="card det" style="padding:16px;min-width:0">
+<div style="text-align:center;font-weight:900;font-size:16px;color:var(--gold2);letter-spacing:2px;margin-bottom:12px">DÉTAILS DE L'ÉQUIPEMENT</div>
+<div class="hd"><div><div class="tile ep"><img src="a/item_weapon_dagger.png"><span class="pl" style="font-size:18px">+3</span></div><div class="pips ep"><i></i><i></i><i></i></div></div>
+<div><div class="name">Croc de l'Alpha</div><div style="display:flex;gap:8px;margin-top:6px"><span class="pill" style="background:var(--epic2);color:#f0dcff">Épique</span><span class="pill" style="background:#2a2f55">Arme</span><span class="pill" style="background:#3d2f10;color:#ffd77a">Ancestral</span></div>
+<div style="margin-top:10px;font-weight:800">Renfort +3 <span class="s">/ 13</span></div><div class="bar"><i style="width:23%"></i></div>
+<div class="oldtag">⚠ Niv. 310 · ton étape : 325 <u style="color:#fff;margin-left:6px">Trouver mieux ›</u></div></div>
+<div><div class="lock"><img src="a/icon_lock.png"></div><div class="more">⋯</div></div></div>
+<div style="margin-top:14px"><div class="stat big"><img src="a/icon_damage.png" style="width:28px;height:28px">Dégâts<b>+134,8 K</b></div>
+<div class="stat"><img src="a/icon_bolt.png">Vitesse d'attaque<b class="g">+43,7 %</b></div>
+<div class="fx"><div class="fxl">✦ +22,4 % de dégâts contre les ennemis ordinaires</div></div>
+<div class="stat s" style="font-size:14px"><img src="a/icon_trophy.png" style="display:none">Exposé au Musée : bonus gardé même sans être porté<b class="g" style="font-size:14px">+5,5 % puissance</b></div></div>
+<div style="display:flex;gap:12px;margin-top:12px" id="modes"><div class="mode" id="m1"><img src="a/icon_upgrade.png">Améliorer</div><div class="mode" id="m2"><img src="a/icon_anvil.png">Reforger</div><div class="mode" id="m3"><img src="a/icon_bag.png">Changer</div></div>
+<div class="arrow" id="arr"></div>
+<div class="act" id="act"></div>
+</div></div></div>
+<script>
+const items=[['ep','weapon_dagger','+3','310'],['lg','weapon_axe','','112'],['lg','weapon_sword','+1','91'],['ep','weapon_halberd','','313'],['lg','weapon_sword','','289'],['lg','weapon_crossbow','','239'],['ra','weapon_greatsword','','188'],['lg','weapon_dagger','','175'],['lg','weapon_dagger','','112'],['lg','weapon_sword','','10'],['ep','weapon_hammer','','445'],['ep','weapon_hammer','','317'],['ep','weapon_sword','','312'],['ep','weapon_dagger','','225'],['ep','weapon_crossbow','','204'],['ep','weapon_hammer','','202'],['ep','weapon_axe','','105'],['ep','weapon_sword','','100'],['ep','weapon_greatsword','','100'],['ep','weapon_dagger','','40'],['ra','weapon_crossbow','','364']];
+document.getElementById('grid').innerHTML=items.map((t,i)=>`<div class="tile ${t[0]}${i==0?' sel':''}"><img src="a/item_${t[1]}.png">${t[2]?`<span class="pl" style="top:2px;left:5px;right:auto;bottom:auto">${t[2]}</span>`:''}${t[3]=='445'?'<span class="gain">+18 %</span>':''}<span class="lv">Niv. ${t[3]}</span></div>`).join('');
+const mode=(location.hash||'#up').slice(1);
+document.getElementById(mode=='rf'?'m2':'m1').classList.add('on');
+document.getElementById('arr').style.setProperty('--ax',mode=='rf'?'50%':'16.5%');
+document.getElementById('act').innerHTML= mode=='rf' ? `
+<div style="font-weight:900;font-size:18px;margin-bottom:10px">Reforger <span class="s" style="font-size:14px;font-weight:600">· tu as <img src="a/icon_shard.png" style="width:16px;vertical-align:-3px"> 116,3 K éclats</span></div>
+<div class="rf">
+<div class="rcard main"><div class="art" style="background-image:url(a/forge_step_fuse.png)"><img src="a/icon_stars.png" style="display:none"></div><b>Changer l'effet</b><small>Tire au hasard un nouvel effet ✦</small><div class="cost" style="width:auto;flex-direction:row"><img src="a/icon_shard.png" style="width:20px">20</div><div class="gold-btn" style="height:48px;font-size:17px;width:100%">Changer</div></div>
+<div class="rcard"><div class="art" style="background-image:url(a/forge_step_upgrade.png)"></div><b>Relance orientée</b><small>Tu choisis la famille : Dégâts, Survie ou Or</small><div class="cost" style="width:auto;flex-direction:row"><img src="a/icon_shard.png" style="width:20px">60</div><div class="btn2">Choisir…</div></div>
+<div class="rcard"><div class="art" style="background-image:url(a/forge_step_craft.png)"></div><b>Changer le type</b><small>Garde le niveau, change l'arme (dague → épée…)</small><div class="cost" style="width:auto;flex-direction:row"><img src="a/icon_shard.png" style="width:20px">40</div><div class="btn2">Changer</div></div>
+</div>
+<div class="s" style="font-size:13px;margin-top:10px;text-align:center">Effet actuel : ✦ +22,4 % contre les ennemis ordinaires → le nouveau s'affiche avant de le garder.</div>`
+: `<div class="lvl"><span>+3</span><span style="color:var(--gold2)">»</span><span class="g">+4</span></div>
+<div class="cmp"><img src="a/icon_damage.png">Dégâts<b>134,8 K <span style="color:var(--gold2)">»</span> <span class="g">149,3 K</span></b></div>
+<div class="cmp"><img src="a/icon_crown.png">Puissance<b>39,2 T <span style="color:var(--gold2)">»</span> <span class="g">+0,4 %</span></b></div>
+<div class="costs"><div class="cost"><div class="tile ep t"><img src="a/icon_shard.png"></div><span class="g">116,3 K / 8</span></div><div class="cost"><div class="tile lg t"><img src="a/icon_gold.png"></div><span class="g">28 Qa / 216,5 B</span></div></div>
+<div class="gold-btn"><img src="a/icon_upgrade.png" style="width:30px">Améliorer</div>`;
+</script></body></html>

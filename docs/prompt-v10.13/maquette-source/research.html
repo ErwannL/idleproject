@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:18px;height:100%}
+.head{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.br{flex:1;height:78px;border-radius:14px;border:2px solid #34447c;background:linear-gradient(#22305f,#161f40);display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:900;font-size:19px;color:var(--soft)}
+.br img{width:52px;height:52px}.br small{display:block;font-size:13px;font-weight:700;color:var(--soft)}
+.br.on{border-color:var(--gold2);color:#fff;box-shadow:0 0 16px #f3d27a55}
+.tiers{display:flex;gap:8px;margin-bottom:14px}
+.tier{flex:1;height:42px;border-radius:10px;border:2px solid #34447c;background:#18223f;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:15px;color:var(--soft)}
+.tier.on{border-color:var(--gold);color:var(--gold2);background:#2b3666}
+.tier .d{font-size:12px;color:var(--good)}
+.book{position:relative;height:700px;border-radius:16px;border:3px solid #8a6a3a;background:linear-gradient(#f4e3bd,#e5cc95);box-shadow:inset 0 0 40px #8a5a2a88;overflow:hidden}
+.book:before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;background:#b08a50;opacity:.35}
+.node{position:absolute;width:190px;text-align:center;color:#3a2410}
+.node .c{width:112px;height:112px;margin:0 auto;border-radius:50%;border:4px solid var(--c);background:radial-gradient(#fff7e0,#e4c98e);display:grid;place-items:center;box-shadow:0 4px 0 #8a6a3a,0 0 0 4px #f4e3bd,0 0 18px color-mix(in srgb,var(--c) 70%,#0000);position:relative}
+.node .c img{width:76px;height:76px}
+.node .lv{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);background:#3a2410;color:#ffe9b0;border-radius:8px;padding:1px 10px;font-weight:900;font-size:14px;white-space:nowrap}
+.node b{display:block;font-size:18px;margin-top:18px}.node span{font-size:14px;font-weight:700;color:#6a4a20}
+.node.lock .c{filter:grayscale(1) opacity(.55)}
+.node.lock b{color:#7a6a50}
+.node .ic{position:absolute;right:26px;top:-4px;width:30px;height:30px;border-radius:50%;background:#3a2410;display:grid;place-items:center}
+.node .ic img{width:18px;height:18px}
+.node.sel .c{border-color:#e0a21f;box-shadow:0 4px 0 #8a6a3a,0 0 0 4px #f4e3bd,0 0 0 9px #ffd45a,0 0 30px #ffd45a}
+svg{position:absolute;inset:0}
+.gate{position:absolute;left:20px;right:20px;top:16px;height:64px;border-radius:12px;background:#3a2410ee;border:2px solid #e0a21f;display:flex;align-items:center;gap:14px;padding:0 14px;color:#ffe9b0;font-size:17px;font-weight:800;z-index:2}
+.gate img{width:44px;height:44px}
+.det .art{height:210px;border-radius:14px;border:2px solid var(--gold);background:radial-gradient(circle at 50% 55%,#ffcf7a55,#0b1124 70%),url(a/research_tree_bg.png) center/cover;display:grid;place-items:center;position:relative}
+.det .art img{width:150px;height:150px}
+.cmp{display:flex;align-items:center;gap:12px;background:#18223f;border-radius:12px;padding:12px 14px;font-size:18px;margin-bottom:8px}.cmp img{width:24px;height:24px}.cmp b{margin-left:auto}
+.costs{display:flex;gap:14px;justify-content:center;margin:14px 0}
+.q{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.q div{height:70px;border-radius:12px;border:2px dashed #3a4a80;background:#121a36;display:grid;place-items:center;font-size:12px;color:var(--soft);text-align:center}
+.q div.w{border:2px solid #5be37d;background:#132a1e;color:#cfe}
+.q img{width:30px;height:30px}
+</style></head><body>
+<div class="mini"></div>
+<div class="top"><div class="tab"><img src="a/icon_paw.png">Compagnons</div><div class="tab on"><img src="a/icon_map.png">Bastion</div><div class="tab"><img src="a/icon_map.png">Expéditions</div></div>
+<div class="frame"><div class="cart"><img src="a/research_node_book.png">Recherches</div><div class="help">?</div>
+<div style="position:absolute;left:24px;top:20px;display:flex;gap:8px"><span class="btn2" style="height:40px;padding:0 14px">‹ Carte du Bastion</span></div>
+<div style="position:absolute;right:76px;top:20px;display:flex;gap:8px"><span class="pill" style="background:#18223f;border:1px solid var(--gold);padding:7px 12px"><img src="a/icon_gold.png" style="width:18px;vertical-align:-3px"> 1×10⁶⁰</span><span class="pill" style="background:#18223f;border:1px solid var(--gold);padding:7px 12px"><img src="a/icon_shard.png" style="width:18px;vertical-align:-3px"> 6 K</span></div>
+<div class="cols"><div>
+<div class="head">
+<div class="br on"><img src="a/research_branch_combat.png"><div>Combat<small>Dégâts, PV, critique · 0/57</small></div></div>
+<div class="br"><img src="a/research_branch_team.png"><div>Compagnons<small>Équipe et familiers · 0/48</small></div></div>
+<div class="br"><img src="a/research_branch_economy.png"><div>Économie<small>Or, butin, temps · 0/52</small></div></div></div>
+<div class="tiers"><div class="tier on">Palier I <span class="d">0/57</span></div><div class="tier">Palier II</div><div class="tier">Palier III</div><div class="tier">Palier IV</div><div class="tier" style="opacity:.6">🔒 Palier V</div></div>
+<div class="book">
+<div class="gate"><img src="a/research_node_book.png"><div>La Bibliothèque n'est pas construite.<div style="font-size:14px;color:#e8cf9a;font-weight:600">Construis-la au Bastion (1 ouvrier, 2 min) pour lancer tes recherches.</div></div><div class="gold-btn" style="margin-left:auto;height:46px;font-size:17px;padding:0 18px">Construire ›</div></div>
+<svg width="100%" height="100%"><g stroke="#8a6a3a" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="round" fill="none">
+<path d="M215 210 H 400"/><path d="M545 210 H 730"/><path d="M215 520 H 400"/><path d="M545 520 H 730"/><path d="M135 330 V 450"/></g></svg>
+<div class="node sel" style="--c:#e0a21f;left:40px;top:150px"><div class="c"><img src="a/research_node_sword.png"><span class="lv">0 / 15</span></div><b>Lames aiguisées</b><span>+2 % dégâts par niveau</span></div>
+<div class="node lock" style="--c:#8a6a3a;left:40px;top:460px"><div class="ic"><img src="a/icon_lock.png"></div><div class="c"><img src="a/research_node_shield.png"><span class="lv">0 / 5</span></div><b>Garde haute</b><span>Lames aiguisées 5</span></div>
+<div class="node lock" style="--c:#8a6a3a;left:375px;top:150px"><div class="ic"><img src="a/icon_lock.png"></div><div class="c"><img src="a/research_node_steelheart.png"><span class="lv">0 / 15</span></div><b>Peau d'acier</b><span>Lames aiguisées 3</span></div>
+<div class="node lock" style="--c:#8a6a3a;left:375px;top:460px"><div class="ic"><img src="a/icon_lock.png"></div><div class="c"><img src="a/research_node_breath.png"><span class="lv">0 / 5</span></div><b>Second souffle</b><span>Garde haute 3</span></div>
+<div class="node lock" style="--c:#8a6a3a;left:710px;top:150px"><div class="ic"><img src="a/icon_lock.png"></div><div class="c"><img src="a/research_node_skull.png"><span class="lv">0 / 5</span></div><b>Coup fatal</b><span>Peau d'acier 5</span></div>
+<div class="node lock" style="--c:#8a6a3a;left:710px;top:460px"><div class="ic"><img src="a/icon_lock.png"></div><div class="c"><img src="a/research_node_banner.png"><span class="lv">0 / 12</span></div><b>Art de la guerre</b><span>Second souffle 5</span></div>
+</div></div>
+<div class="card det" style="padding:16px;display:flex;flex-direction:column">
+<div class="art"><img src="a/research_node_sword.png"><span class="pill" style="position:absolute;left:10px;top:10px;background:#000b;border:1px solid var(--gold)">Combat · Palier I</span></div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-top:12px"><b style="font-size:26px">Lames aiguisées</b><span class="s" style="margin-left:auto">Niv. 0 / 15</span></div>
+<div class="s" style="font-size:15px;margin:4px 0 12px">Tes forgerons affûtent toutes les lames de l'équipe.</div>
+<div class="cmp"><img src="a/icon_damage.png">Dégâts<b>+0 % <span style="color:var(--gold2)">»</span> <span class="g">+2 %</span></b></div>
+<div class="costs"><div class="cost"><div class="tile lg t"><img src="a/icon_gold.png"></div>29,1 Qi</div><div class="cost"><div class="tile ra t"><img src="a/icon_shard.png"></div>30</div><div class="cost"><div class="tile ep t"><img src="a/icon_timer.png"></div>8 min</div></div>
+<div class="r" style="font-size:15px;text-align:center;margin-bottom:8px">🔒 Il faut d'abord la Bibliothèque</div>
+<div class="gold-btn" style="height:64px">Construire la Bibliothèque ›</div>
+<div class="s" style="font-size:13px;text-align:center;margin-top:8px">✓ Les recherches sont gardées après chaque Renaissance</div>
+<div style="font-weight:900;color:var(--gold2);letter-spacing:1.5px;margin-top:auto">EN COURS · 0 / 5 OUVRIERS</div>
+<div class="q"><div class="w"><img src="a/icon_upgrade.png">Libre</div><div class="w"><img src="a/icon_upgrade.png">Libre</div><div class="w"><img src="a/icon_upgrade.png">Libre</div><div class="w"><img src="a/icon_upgrade.png">Libre</div><div class="w"><img src="a/icon_upgrade.png">Libre</div></div>
+</div></div></div></body></html>

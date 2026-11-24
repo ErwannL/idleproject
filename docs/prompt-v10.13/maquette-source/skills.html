@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+.cols{display:grid;grid-template-columns:340px minmax(0,1fr) 470px;gap:18px;height:100%}
+.bar{height:10px;border-radius:6px;background:#0b1124;border:1px solid #2c3a66;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#e0a21f,#ffe27a)}
+.hero{height:230px;border-radius:14px;border:2px solid #34447c;background:url(a/cursed_far.png) center bottom/cover;position:relative;overflow:hidden;display:grid;place-items:end center}
+.hero img{width:150px;height:150px;margin-bottom:6px}
+.hero .lbl{position:absolute;left:10px;top:10px;font-weight:900;font-size:18px;text-shadow:0 2px 0 #000}
+.slots{display:flex;gap:10px;justify-content:center;margin-top:-34px;position:relative}
+.slot{width:78px;height:78px;border-radius:50%;border:3px solid var(--gold);background:radial-gradient(#2a3670,#0d1430);display:grid;place-items:center;box-shadow:0 0 12px #f3d27a55;position:relative}
+.slot img{width:52px;height:52px;border-radius:8px}
+.slot.empty{border-style:dashed;border-color:#5a6aa0;box-shadow:none;color:#8a9ad0;font-size:30px;font-weight:900}
+.slot .k{position:absolute;bottom:-6px;right:-4px;background:#000c;border:1px solid var(--gold);border-radius:6px;font-size:12px;font-weight:900;padding:0 5px}
+.boosts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.boost{border-radius:12px;border:2px solid #34447c;background:#18223f;display:flex;flex-direction:column;align-items:center;padding:6px 2px;font-size:12px;font-weight:800;color:var(--soft)}
+.boost img{width:36px;height:36px}
+.sec{font-weight:900;font-size:15px;color:var(--gold2);letter-spacing:1.5px;margin:16px 0 8px}
+.modes{display:flex;gap:12px;margin-bottom:14px}
+.tog{margin-left:6px;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#cfe;background:#0e1630;border-radius:999px;padding:2px 8px}
+.tog i{width:30px;height:16px;border-radius:9px;background:#2f9a54;position:relative}.tog i:after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sc{border-radius:16px;border:2px solid #34447c;background:linear-gradient(#22305f,#141c3b);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.sc .ic{width:104px;height:104px;border-radius:14px;border:3px solid var(--c);background:radial-gradient(circle,color-mix(in srgb,var(--c) 40%,#0000),#0d1430 75%);display:grid;place-items:center}
+.sc .ic img{width:80px;height:80px}
+.sc b{font-size:17px}.sc small{font-size:13px;color:var(--soft)}
+.sc .lv{position:absolute;top:8px;right:10px;font-weight:900;font-size:13px;background:#000a;border:1px solid var(--gold);border-radius:8px;padding:1px 7px;color:var(--gold2)}
+.sc .on{position:absolute;top:8px;left:10px;font-weight:900;font-size:12px;background:#1d7a3a;border:1px solid #5be37d;border-radius:8px;padding:1px 7px}
+.sc.sel{border-color:var(--gold2);box-shadow:0 0 18px #f3d27a55}
+.pips{display:flex;gap:4px}.pips i{width:16px;height:6px;border-radius:3px;background:#2c3a66}.pips i.f{background:var(--gold2)}
+.tag{font-size:12px;font-weight:900;border-radius:999px;padding:2px 9px;background:#5a2a8a}
+.prev{height:220px;border-radius:14px;border:2px solid var(--gold);background:url(a/cursed_far.png) center bottom/cover;position:relative;overflow:hidden}
+.prev .h{position:absolute;left:60px;bottom:22px;width:110px;height:110px}
+.prev .m{position:absolute;bottom:26px;width:64px;height:64px}
+.prev .fx{position:absolute;left:150px;bottom:60px;width:230px;height:100px;opacity:.95}
+.prev .play{position:absolute;left:10px;top:10px;background:#000b;border:1px solid var(--gold);border-radius:8px;padding:3px 10px;font-weight:900;font-size:13px}
+.lvl{display:flex;justify-content:center;gap:18px;align-items:center;font-size:28px;font-weight:900;margin:10px 0}
+.cmp{display:flex;align-items:center;gap:12px;background:#18223f;border-radius:12px;padding:10px 14px;font-size:17px;margin-bottom:8px}.cmp img{width:22px;height:22px}.cmp b{margin-left:auto}
+</style></head><body>
+<div class="mini"></div>
+<div class="top"><div class="tab"><img src="a/icon_bag.png">Équipement</div><div class="tab"><img src="a/icon_upgrade.png">Améliorations</div><div class="tab on"><img src="a/icon_bolt.png">Compétences</div><div class="tab"><img src="a/icon_star.png">Talents</div><div class="tab"><img src="a/icon_anvil.png">Forge</div></div>
+<div class="frame"><div class="cart"><img src="a/icon_bolt.png">Compétences</div><div class="help">?</div>
+<div style="position:absolute;left:24px;top:22px;display:flex;gap:10px"><span class="pill" style="background:#18223f;border:1px solid var(--gold);font-size:16px;padding:6px 14px">✦ Points : <b style="color:var(--gold2)">0</b> <span class="s" style="font-size:12px">(+1 par niveau du héros)</span></span></div>
+<div class="cols">
+<div>
+<div class="hero"><span class="lbl">Ta barre de combat</span><img src="a/class_assassin.png"></div>
+<div class="slots"><div class="slot"><img src="a/skill_assassin_quick.png"><span class="k">1</span></div><div class="slot"><img src="a/skill_assassin_whirl.png"><span class="k">2</span></div><div class="slot"><img src="a/skill_assassin_1.png"><span class="k">3</span></div></div>
+<div class="s" style="text-align:center;font-size:13px;margin-top:10px">3 attaques actives sur 3 · elles partent seules</div>
+<div class="sec">BOOSTS ACTIFS</div>
+<div class="boosts"><div class="boost"><img src="a/boost_rage.png">Q · 8 s</div><div class="boost"><img src="a/boost_frenzy.png">W · 8 s</div><div class="boost"><img src="a/boost_midas.png">E · 8 s</div><div class="boost"><img src="a/boost_hunter.png">R · 8 s</div><div class="boost"><img src="a/boost_phantom.png">T · 6 s</div></div>
+<div class="btn2" style="margin-top:16px">↺ Répartir les points</div>
+</div>
+<div>
+<div class="modes"><div class="mode on"><img src="a/skill_assassin_quick.png">Attaques <span class="tog"><i></i>Auto</span></div><div class="mode"><img src="a/boost_frenzy.png">Boosts <span class="tog"><i></i>Auto</span></div></div>
+<div class="sgrid">
+<div class="sc" style="--c:#ff5a5a"><span class="on">Active 1</span><span class="lv">Nv 6</span><div class="ic"><img src="a/skill_assassin_quick.png"></div><b>Coup vif</b><span class="tag" style="background:#8a2a2a">Coup unique</span><small>×1,8 · toutes les 5 s</small><div class="pips"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
+<div class="sc" style="--c:#ffa040"><span class="lv">Nv 6</span><div class="ic"><img src="a/skill_assassin_1.png"></div><b>Éventail de dagues</b><span class="tag" style="background:#8a5a1a">Zone</span><small>×2,1 · toutes les 9 s</small><div class="pips"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
+<div class="sc" style="--c:#ffd040"><span class="lv">Nv 6</span><div class="ic"><img src="a/skill_assassin_cry.png"></div><b>Ombre furtive</b><span class="tag" style="background:#3a4a8a">Soutien</span><small>+30 % critique · 8 s</small><div class="pips"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
+<div class="sc" style="--c:#40b0ff"><span class="lv">Nv 6</span><div class="ic"><img src="a/skill_assassin_holy.png"></div><b>Lame bénie</b><span class="tag" style="background:#1a5a8a">Lumière</span><small>×2,6 · toutes les 11 s</small><div class="pips"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
+<div class="sc" style="--c:#ff4080"><span class="on">Active 3</span><span class="lv">Nv 5</span><div class="ic"><img src="a/skill_assassin_2.png"></div><b>Lame cachée</b><span class="tag" style="background:#8a2a5a">Coup unique</span><small>×3,0 · toutes les 10 s</small><div class="pips"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div></div>
+<div class="sc sel" style="--c:#c070ff"><span class="on">Active 2</span><span class="lv">Nv 5</span><div class="ic"><img src="a/skill_assassin_whirl.png"></div><b>Lames tourbillonnantes</b><span class="tag">Zone</span><small>×3,4 · toutes les 12,4 s</small><div class="pips"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div></div>
+</div></div>
+<div class="card" style="padding:16px">
+<div class="prev"><span class="play">▶ Aperçu en combat</span><img class="h" src="a/class_assassin.png"><img class="fx" src="a/fx_whirl1.png"><img class="m" src="a/imp.png" style="left:300px"><img class="m" src="a/goblin.png" style="left:370px"></div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:12px"><b style="font-size:24px">Lames tourbillonnantes</b><span class="tag">Zone</span></div>
+<div class="s" style="font-size:15px;margin-top:4px">Des lames tournent autour du héros et frappent tous les ennemis.</div>
+<div class="lvl"><span>Nv 5</span><span style="color:var(--gold2)">»</span><span class="g">Nv 6</span></div>
+<div class="cmp"><img src="a/icon_damage.png">Dégâts à tous<b>×3,4 <span style="color:var(--gold2)">»</span> <span class="g">×3,7</span></b></div>
+<div class="cmp"><img src="a/icon_timer.png">Recharge<b>12,4 s <span style="color:var(--gold2)">»</span> <span class="g">12,0 s</span></b></div>
+<div style="display:flex;gap:14px;align-items:center;margin:12px 0"><div class="cost" style="width:auto"><div class="tile ep t" style="width:64px;height:64px"><b style="font-size:22px;color:var(--gold2)">✦</b></div><span class="r">0 / 1 pt</span></div><div class="s" style="font-size:14px">Il manque 1 point.<br>Le prochain arrive au <b style="color:#fff">niveau 152</b> du héros.</div></div>
+<div class="gold-btn" style="filter:grayscale(.75) brightness(.8)">Améliorer · 1 pt</div>
+<div class="btn2" style="margin-top:10px">Retirer de la barre (place 2)</div>
+</div></div></div></body></html>

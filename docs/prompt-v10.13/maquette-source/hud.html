@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="kit.css">
+<style>
+body{height:1245px;background:#000}
+.scene{position:absolute;left:0;right:0;top:50px;height:1065px;background:url(a/cursed_far.png) center 75%/100% auto no-repeat,linear-gradient(#3a0f18,#7a2a1a 70%,#2a0d12)}
+.ground{position:absolute;left:0;right:0;top:820px;bottom:0;background:url(a/cursed_ground.png) top/auto 100% repeat-x;filter:brightness(.8)}
+.topbar{position:absolute;left:0;right:0;top:0;height:50px;background:linear-gradient(#1d2850,#111833);border-bottom:2px solid #2c3a66;display:flex;align-items:center;gap:12px;padding:0 10px}
+.res{height:32px;border-radius:9px;background:#0b1124;border:1px solid #3a4a80;display:flex;align-items:center;gap:6px;padding:0 10px;font-weight:900}
+.res img{width:20px}
+.nav{position:absolute;left:0;right:0;bottom:0;height:80px;background:linear-gradient(#1a2448,#0e1530);border-top:2px solid #2c3a66;display:flex;justify-content:center;gap:10px;padding-top:8px}
+.nav div{width:190px;height:64px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;color:var(--soft)}
+.nav div.on{border:2px solid var(--gold);color:#fff;background:#22305f}
+.nav img{width:28px}
+/* zone */
+.zone{position:absolute;left:12px;top:64px;width:360px;border-radius:14px;border:2px solid var(--gold);background:linear-gradient(#2a1a26ee,#160d18ee);padding:10px 12px}
+.zone .t{display:flex;align-items:center;gap:8px;font-weight:900;font-size:17px}
+.zone .t .x{margin-left:auto;font-size:13px;background:#5a1a2a;border:1px solid #ff6b8a;border-radius:7px;padding:1px 7px}
+.track{display:flex;align-items:center;gap:5px;margin:10px 0 8px}
+.track i{flex:1;height:10px;border-radius:5px;background:#3a2a3a}.track i.f{background:#5be37d}.track i.c{background:#ffd45a;box-shadow:0 0 8px #ffd45a}
+.track img{width:26px;height:26px}
+.chips{display:flex;gap:8px}
+.chips span{flex:1;height:30px;border-radius:8px;background:#0008;border:1px solid #6a4a6a;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:900;font-size:14px}
+.chips img{width:18px}
+.quest{position:absolute;left:12px;width:360px;border-radius:14px;border:2px solid #c9a14a;background:linear-gradient(#2a1a26ee,#160d18ee);padding:10px 12px}
+.qrow{display:flex;align-items:center;gap:10px;height:44px;border-radius:10px;background:#ffffff10;border:1px solid #ffffff1a;padding:0 10px;margin-top:6px;font-weight:800;font-size:15px}
+.qrow img{width:28px}.qrow b{margin-left:auto;color:var(--gold2)}
+.qrow.done{background:#1d7a3a55;border-color:#5be37d}.qrow.done b{color:var(--good)}
+/* events */
+.ev{position:absolute;right:12px;top:64px;display:flex;gap:10px;padding:10px 12px 8px;border-radius:16px;border:2px solid var(--gold);background:linear-gradient(#2a1a26ee,#160d18ee)}
+.e{width:82px;text-align:center;position:relative}
+.e .f{width:76px;height:76px;margin:0 auto;border-radius:14px;border:2px solid #e8b86a;background:radial-gradient(#4a2a40,#1a0d1a);display:grid;place-items:center;box-shadow:inset 0 0 10px #000a}
+.e .f img{width:58px;height:58px;object-fit:contain}
+.e .tm{display:inline-block;margin-top:-10px;position:relative;background:#000d;border:1px solid #e8b86a;border-radius:7px;font-size:11px;font-weight:900;padding:0 6px}
+.e b{display:block;font-size:13px;margin-top:2px}
+.e .badge{top:-6px;right:0}
+.e.ready .f{border-color:#5be37d;box-shadow:0 0 12px #5be37d88}
+.e.ready .tm{border-color:#5be37d;color:#5be37d}
+.boost{position:absolute;right:12px;top:200px;display:flex;gap:8px}
+.boost div{width:58px;height:58px;border-radius:12px;border:2px solid var(--gold);background:#0b1124cc;display:grid;place-items:center;position:relative}
+.boost img{width:40px}.boost span{position:absolute;left:3px;top:0;font-size:11px;font-weight:900}
+/* console */
+.con{position:absolute;left:14px;right:14px;bottom:92px;height:178px;border-radius:18px;border:2px solid var(--gold);background:linear-gradient(#24182aee,#120a16f2);box-shadow:0 -6px 24px #000a;display:grid;grid-template-columns:300px minmax(0,1fr) 440px;gap:18px;padding:14px 18px}
+.con:before,.con:after{content:"";position:absolute;width:14px;height:14px;background:var(--gold2);transform:rotate(45deg);top:-8px;left:-8px}
+.con:after{left:auto;right:-8px}
+.sp{display:flex;gap:10px;align-items:flex-start}
+.slot{width:84px;height:84px;border-radius:14px;border:3px solid var(--gold);background:radial-gradient(#3a2a50,#120a16);display:grid;place-items:center;position:relative}
+.slot img{width:60px}
+.slot .k{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:#000;border:1px solid var(--gold);border-radius:6px;font-size:12px;font-weight:900;padding:0 6px}
+.slot .cd{position:absolute;inset:0;border-radius:11px;background:conic-gradient(#000a 0 40%,#0000 0)}
+.lbl{font-size:12px;font-weight:900;color:var(--gold2);letter-spacing:1.2px;margin-bottom:6px}
+.wave{height:30px;border-radius:9px;background:#0b0610;border:1px solid #6a4a6a;position:relative;overflow:hidden}
+.wave i{position:absolute;left:0;top:0;bottom:0;width:40%;background:linear-gradient(90deg,#2f9a54,#5be37d)}
+.wave b{position:relative;display:block;text-align:center;line-height:30px;font-size:17px}
+.hp{height:22px;border-radius:7px;background:#0b0610;border:1px solid #6a4a6a;position:relative;overflow:hidden;margin-top:8px}
+.hp i{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#b02a3a,#ff5a6a)}
+.hp b{position:relative;display:block;text-align:center;line-height:22px;font-size:13px}
+.tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tag{height:30px;border-radius:8px;display:flex;align-items:center;gap:6px;padding:0 10px;font-weight:800;font-size:14px;background:#0008;border:1px solid #6a4a6a}
+.tag img{width:18px}
+.tag.bad{border-color:#ff6b8a;color:#ffb0c0}
+.tag.info{color:var(--soft)}
+.right{display:flex;gap:14px;align-items:center}
+.collect{flex:1;height:96px;border-radius:16px;border:2px solid #ffe7a0;background:linear-gradient(#ffd45a,#e0a21f);color:#3a2300;display:flex;flex-direction:column;justify-content:center;padding:0 18px;box-shadow:0 5px 0 #8a5a0a}
+.collect b{font-size:22px;white-space:nowrap}.collect span{font-size:13px;font-weight:700;white-space:nowrap}
+.chest{width:110px;height:110px;border-radius:16px;border:2px solid #e8b86a;background:radial-gradient(#4a2a40,#1a0d1a);display:grid;place-items:center;position:relative}
+.chest img{width:80px}
+.chest small{position:absolute;bottom:4px;font-size:11px;font-weight:900}
+.note2{position:absolute;font-size:15px;font-weight:900;color:#000;background:#ffe27a;border-radius:8px;padding:4px 10px;box-shadow:0 2px 8px #000a}
+</style></head><body>
+<div class="scene"></div><div class="ground"></div>
+<img src="a/hero_knight.png" style="position:absolute;left:760px;top:690px;width:150px;image-rendering:pixelated">
+<img src="a/ally_archangel.png" style="position:absolute;left:600px;top:700px;width:130px">
+<img src="a/ally_ice_empress.png" style="position:absolute;left:470px;top:705px;width:120px">
+<img src="a/imp.png" style="position:absolute;left:1050px;top:740px;width:90px"><img src="a/goblin.png" style="position:absolute;left:1150px;top:740px;width:90px">
+<div class="topbar"><div class="res" style="width:44px;justify-content:center">☰</div><div class="res">Niv. 153</div><div class="res"><img src="a/icon_gold.png">323,6 Qi</div><div class="res"><img src="a/icon_gem.png">3,7 K</div></div>
+<div class="zone"><div class="t"><img src="a/icon_skull.png" style="width:22px">Terres maudites 6-13<span class="x">×2 ☾</span></div>
+<div class="track"><i class="f"></i><i class="f"></i><i class="f"></i><i class="c"></i><i></i><i></i><i></i><img src="a/icon_skull.png"></div>
+<div class="chips"><span><img src="a/icon_crown.png">3/3</span><span><img src="a/icon_shield.png">0/3</span><span><img src="a/icon_trophy.png">0/1</span></div></div>
+<div class="quest" style="top:205px"><div class="lbl">CHEMIN DU HÉROS · CH. 4</div><div style="display:flex;gap:10px;align-items:center"><img src="a/hud_quest_chapter_4.png" style="width:56px;border-radius:10px;border:2px solid var(--gold)"><div style="flex:1"><b style="font-size:16px">Franchis 5 étages d'Arène</b><div class="hp" style="height:10px;margin-top:6px"><i style="width:30%;background:#ffd45a"></i></div></div><div class="gold-btn" style="height:40px;font-size:15px;padding:0 12px">Y aller</div></div></div>
+<div class="quest" style="top:330px"><div class="lbl">CARNET DU JOUR · 4 / 8 ›</div><div class="qrow"><img src="a/icon_trophy.png">Missions du jour<b>2/5</b></div><div class="qrow"><img src="a/icon_trophy.png">Arène<b>0/1</b></div><div class="qrow done"><img src="a/icon_skull.png">Titan des Braises<b>✓ 1/1</b></div></div>
+<div class="ev">
+<div class="e"><div class="f"><img src="a/hud_event_market.png"></div><span class="tm">6 j</span><b>Marché</b></div>
+<div class="e ready"><span class="badge">1</span><div class="f"><img src="a/hud_event_bounty.png"></div><span class="tm">prête</span><b>Prime</b></div>
+<div class="e"><span class="badge">1</span><div class="f"><img src="a/hud_event_rift.png"></div><span class="tm">4 h 40</span><b>Faille</b></div>
+<div class="e"><span class="badge">1</span><div class="f"><img src="a/hud_event_wheel.png"></div><span class="tm">4 h 40</span><b>Roue</b></div>
+<div class="e"><span class="badge">1</span><div class="f"><img src="a/hud_event_arena.png"></div><span class="tm">0/1</span><b>Arène</b></div>
+<div class="e"><span class="badge">1</span><div class="f"><img src="a/hud_event_bastion.png"></div><span class="tm">2 libres</span><b>Bastion</b></div>
+<div class="e ready"><div class="f"><img src="a/hud_event_daily_chest.png"></div><span class="tm">prêt</span><b>Coffre</b></div></div>
+<div class="boost"><div><span>Q</span><img src="a/boost_rage.png"></div><div><span>W</span><img src="a/boost_frenzy.png"></div><div><span>E</span><img src="a/boost_midas.png"></div><div style="width:auto;padding:0 10px;font-weight:900;color:var(--gold2)">⚡ ×1,7 · 1 h 55</div></div>
+<div class="con">
+<div><div class="lbl">ATTAQUES ET ULTIME</div><div class="sp"><div class="slot"><img src="a/skill_assassin_quick.png"><span class="k">1</span></div><div class="slot"><img src="a/skill_assassin_whirl.png"><span class="cd"></span><span class="k">2</span></div><div class="slot" style="border-color:#ff8a3a;box-shadow:0 0 14px #ff8a3a"><img src="a/fx_slash_crit.png"><span class="k">Ult.</span></div></div></div>
+<div><div class="lbl">VAGUE ET HÉROS</div><div class="wave"><i></i><b>Vague 2 / 5 · Boss dans 3 étapes</b></div><div class="hp"><i></i><b>♥ 620,5 B / 620,5 B</b></div>
+<div class="tags"><span class="tag bad"><img src="a/icon_skull.png">Malédiction : −8 % dégâts</span><span class="tag"><img src="a/icon_gem.png">Première Renaissance : +25 gemmes</span><span class="tag info">↺ Le héros refait l'étape précédente puis retente</span></div></div>
+<div class="right"><div class="collect"><b>✦ Tout récupérer (24)</b><span>2,3 K gemmes et 23 autres récompenses</span></div><div class="chest"><span class="badge">1</span><img src="a/hud_event_daily_chest.png"><small>Butin</small></div></div>
+</div>
+<div class="nav"><div><img src="a/icon_crown.png">Héros</div><div><img src="a/icon_paw.png">Équipe</div><div class="on"><img src="a/icon_damage.png">Combat</div><div><img src="a/icon_stars.png">Invocation</div><div><img src="a/icon_gem.png">Boutique</div></div>
+</body></html>
