@@ -1,6 +1,21 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.13.0 — Le PC passe au style « vrai jeu »
+## Ascendrya v10.13.1 — Le téléphone illustré comme la Forge
+
+Sur téléphone, les écrans prennent le même style que la Forge. **Le PC ne change pas.**
+
+- **Fiche d'objet** : grande case de l'objet, effets avec leur icône, « Objet dépassé · Trouver mieux › », Améliorer avec « +3 » +4 » et ses coûts ; Reforger montre directement ses 3 cartes illustrées, avec Avant / Après, Garder ou Revenir.
+- **Compétences** : ta barre de combat (3 places rondes) sur le décor, les compétences en cartes, le détail et « Améliorer · 1 pt » dessous.
+- **Talents et Renaissance** : 3 branches illustrées avec leur piste et leur prochain talent ; Renaissance avec le phénix, la Puissance avant » après et ce qui est gardé ou remis à zéro.
+- **Compagnons** : bandeau « Ton équipe » sur le décor, « Meilleure équipe » en doré, grille de portraits, fiche avec « Mettre dans l'équipe » et « Objets portés › ».
+- **Recherches** : livre en parchemin, une recherche par ligne avec son nom lisible, les ouvriers dessous ; un bandeau quand la Bibliothèque manque.
+- **Écran de combat** : carte de zone sur 3 lignes, événements dans leur cadre, Carnet du jour, et une seule console en bas (sorts, « Tout récupérer », vague, PV, Boosts).
+- **Petite scène des onglets** : pleine largeur, personnages entiers.
+- **Un seul bouton doré par écran** partout (Améliorations, Donjons…), plus aucun texte coupé ni trop petit.
+- **Android** : l'application s'appelle maintenant com.ascendrya.app (Google Play).
+- **Nouveau** : versions Linux (AppImage) et Mac, et un script `ascendrya.sh` qui installe et lance le jeu sur Linux et Mac.
+
+<details><summary>Ascendrya v10.13.0 — Le PC passe au style « vrai jeu »</summary>
 
 Sur PC, chaque écran suit maintenant le modèle de la Forge : un grand cadre doré avec son titre, une illustration pour chaque chose qu'on choisit, « avant » après » en gros, les coûts en cases et un seul gros bouton doré.
 
@@ -15,6 +30,8 @@ Sur PC, chaque écran suit maintenant le modèle de la Forge : un grand cadre do
 - **Joueur neuf** : un conseil revient dès que de l'or attend ; le doigt et le Sceau montrent toujours la même chose.
 
 **Ce qui ne change pas** : les règles du jeu, les coûts et les gains (seule exception : « Remettre au niveau » est retiré) ; le téléphone garde son affichage 10.12 ; ta partie garde toute sa puissance.
+
+</details>
 
 <details><summary>Ascendrya v10.12.1 — Téléphone, finitions</summary>
 
