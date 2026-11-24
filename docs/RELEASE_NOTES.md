@@ -1,6 +1,15 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.12.0 — Un vrai jeu mobile
+## Ascendrya v10.12.1 — Téléphone, finitions
+
+- **Talents › Arbre avancé** : sur téléphone, un arbre vertical par région (puces de région, nœuds ronds reliés, ▲ quand on peut apprendre), une fiche par talent avec « Apprendre » et « Max ».
+- **Bastion** : noms des bâtiments lisibles sur la carte, raison du verrou affichée (« Étape 55 », « Âge III »), « + Ouvrier » sur le bâtiment, minuteurs au-dessus des toits.
+- **Recherches** : emplacements en cours, paliers, branches et chemin de nœuds ; fiche avec « Lancer » puis « Améliorer », et la raison quand on ne peut pas.
+- **« Tout améliorer »** : le bouton n'est actif que s'il fait vraiment quelque chose, dit pourquoi il est grisé, et affiche le résultat (renforcements, Puissance avant → après).
+- **Encyclopédie, Boss, Paramètres** : fiches refaites dans le même style que le reste ; bouton « Choisir un fichier… » en français pour importer une sauvegarde.
+- Correction : la version Windows de 10.12.0 ne se construisait pas.
+
+<details><summary>Ascendrya v10.12.0 — Un vrai jeu mobile</summary>
 
 Sur téléphone, tous les onglets ont été refaits sur un même modèle, celui d'un jeu mobile : un grand cadre sombre à bord doré, un cartouche de titre, des onglets et des modes avec icône et nom, de grosses cases d'objet aux couleurs de la rareté, et un seul gros bouton doré pour l'action principale. Le PC ne change pas.
 
@@ -9,6 +18,8 @@ Sur téléphone, tous les onglets ont été refaits sur un même modèle, celui 
 - **Améliorations** : les 3 familles deviennent 3 modes, une ligne par amélioration, « Tout acheter » en haut.
 - **Compétences, Talents, Forge, Compagnons, Bastion, Expéditions, Carte, Donjons, Arène, Défis, Événement, Invocation, Boutique, Carnet, Missions, Encyclopédie, Apparences, Boss, Classement, Guilde, Statistiques, Paramètres** : même cadre, mêmes boutons, fiches en plein écran, plus aucune liste déroulante, des boutons d'au moins 44 px.
 - Un contrôle automatique vérifie chaque onglet sur deux tailles de téléphone (aucun défilement de côté, aucun bouton qui en chevauche un autre, aucun mot coupé).
+
+</details>
 
 <details><summary>Ascendrya v10.11.4 — Téléphone, 2e tour</summary>
 
