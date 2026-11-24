@@ -22,3 +22,6 @@
 /* Cartouche des pages à « ? » et « ✕ » : le titre tient en 390 px. */
 #app.m-phone .m-title:has(.m-help + .m-close) b { font-size: 20px; }
 @media (max-width: 400px) { #app.m-phone .mp-frame .m-title b { font-size: 20px; } }
+
+/* 10.13.1 : icône d'élément des cartes compagnons au moins à 11 px */
+#app.m-phone .elem-badge.elem-icon { font-size: 11px; }
