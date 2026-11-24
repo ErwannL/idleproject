@@ -200,7 +200,7 @@ function bossDetailPhone(ui, state, bossId) {
 // ---------- v10.12 : Boss / Pouvoirs sur téléphone (kit mobile) ----------
 // Grille de 3 cases (silhouettes tant qu'un boss n'est pas vaincu), « couronnes » dans la tête, fiche du boss dans une .m-sheet.
 const TIER_RARITY = { mini: 'common', mid: 'rare', hard: 'epic', dungeon: 'rare' };
-function bossPhone(ui, state) {
+function bossPhone(ui, state, phone = true) {
   const order = bossesInOrder();
   const known = order.filter((id) => state.powers[id]).length;
   const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);
@@ -215,13 +215,16 @@ function bossPhone(ui, state) {
     const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
     const src = seen ? icon(sprite, 1, boss.palette ? { colors: boss.palette } : {}) : icon(sprite, 1, { tint: { color: '#4a5a78', alpha: 1 } });
     const crowns = entry?.masteryClaimed ?? 0;
-    return mTile({ name: seen ? boss.name : '???', rarity: seen ? (TIER_RARITY[boss.tier] ?? 'legendary') : 'common' }, { size: 80, action: 'boss-sel', value: id, src, label: seen ? boss.name : '???', pips: false, plus: crowns ? `♛${crowns}` : '' });
+    return mTile({ name: seen ? boss.name : '???', rarity: seen ? (TIER_RARITY[boss.tier] ?? 'legendary') : 'common' }, { size: phone ? 80 : 72, action: 'boss-sel', value: id, src, label: seen ? boss.name : '???', pips: false, plus: crowns ? `♛${crowns}` : '', selected: !phone && id === sel });
   });
-  const open = ui.view.sheetOpen === 'boss';
+  const open = phone && ui.view.sheetOpen === 'boss';
   const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
   const entry = state.powers[sel];
   const sheet = open ? mSheet(entry ? BOSSES[sel].name : '???', `${bossDetailPhone(ui, state, sel)}
       ${mpFold(ui, 'boss-families', 'Bonus de famille', `<div class="m-card"><div class="mp-note">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div></div>`, synergies.length ? `<span class="good">${synergies.join(', ')}</span>` : '')}`, { close: 'close-sheet', back: 'close-sheet', id: 'boss-sheet' }) : '';
+  // PC : la fiche du boss choisi reste affichée sous la grille (plus de fenêtre à ouvrir) ; téléphone : fiche en feuille.
+  const families = mpFold(ui, 'boss-families', 'Bonus de famille', `<div class="m-card"><div class="mp-note">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div></div>`, synergies.length ? `<span class="good">${synergies.join(', ')}</span>` : '');
+  if (!phone) return mpFrame('icon_boss', 'Boss', `${head}${mGrid(tiles, 4)}<div class="mp-sub">${entry ? escapeHtml(BOSSES[sel].name) : '???'}</div><div class="mp-detail">${bossDetailPhone(ui, state, sel)}${families}</div>`);
   return `${mpFrame('icon_boss', 'Boss', `${head}${mGrid(tiles, 3)}`, true, open)}${sheet}`;
 }
 
@@ -231,7 +234,8 @@ export default {
   icon: 'icon_boss',
   extra: (ui, state) => `Pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}`,
   render(ui, state) {
-    if (isMPhone(ui)) return bossPhone(ui, state);
+    // v10.13 : le PC aussi en kit (cadre, cartouche, puces, fiche latérale) ; isMPhone ne sert plus qu'à la mise en page.
+    return bossPhone(ui, state, isMPhone(ui));
     const order = bossesInOrder();
     const known = order.filter((id) => state.powers[id]).length;
     const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);

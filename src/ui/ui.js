@@ -162,7 +162,8 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
-import { interfaceExtraPhone } from './panels/profile-m.js'; // v10.12
+import { interfaceExtraPhone, mpFold } from './panels/profile-m.js'; // v10.12 (mpFold : v10.13)
+import { mBtn } from './mobile-kit.js'; // v10.13
 import { mountShowcase } from './showcase.js';
 import { showHowTo } from './learn.js'; // v10.1
 import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
@@ -562,32 +563,13 @@ export class UI {
 
   // Paramètres › Interface : réglages propres à cet appareil (mode compact, combat, animations, taille…).
   interfaceExtra() {
-    if (this.root.classList.contains('m-phone')) return interfaceExtraPhone(pref); // v10.12 : version kit mobile
-    const selBox = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-    // v10.12 : sur téléphone, plus de <select> : une rangée de puces (même action, via mp-pick)
-    const sel = (name, options) => (this.root.classList.contains('m-phone')
-      ? `<div class="m-chips mp-chips" role="group" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<button type="button" class="m-chip${String(pref(name)) === String(v) ? ' on' : ''}" aria-pressed="${String(pref(name)) === String(v)}" data-action="mp-pick" data-for="device-pref" data-key="${name}" data-value="${v}">${l}</button>`).join('')}</div>`
-      : selBox(name, options));
-    const check = (name, label) => `<label class="toggle"><input type="checkbox" data-action="device-pref" data-key="${name}" ${pref(name) === true ? 'checked' : ''}> ${label}</label>`;
-    const keys = Object.keys(KEY_LABELS).map((action) => `<div class="key-row"><span>${KEY_LABELS[action]}</span>
-      <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuie sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
-    return `<div class="card"><div class="section-title">Cet appareil</div>
-        <div class="muted">Ces réglages restent sur cet appareil (PC ou téléphone), hors de la sauvegarde.</div>
-        <div class="pref-grid">
-          <span>Combat</span>${sel('combat', { label: 'Combat', items: [['simple', 'Simple (l\'essentiel)'], ['full', 'Complet (tout afficher)']] })}
-          <span>Animations</span>${sel('motion', { label: 'Réduire les animations', items: [['auto', 'Auto (réglage du système)'], ['reduce', 'Réduites'], ['full', 'Complètes']] })}
-          <span>Taille de l'interface</span>${sel('uiScale', { label: 'Taille de l\'interface', items: [['auto', 'Auto'], [100, '100 %'], [125, '125 %'], [150, '150 %'], [200, '200 %']] })}
-        </div>
-        ${check('compact', '<b>Mode compact</b> : listes serrées, sans descriptions (joueurs expérimentés)')}
-        ${check('qtyMenu', '<b>Quantité en un bouton</b> (essai) : Max, ×100, ×10, ×1 se déplient d\'un bouton dans Améliorations')}
-        ${check('skillGrid', '<b>Compétences en grille</b> (essai) : 9 icônes avec niveau et +, le texte au toucher')}
-        ${check('bossFocus', '<b>Mode boss réduit</b> (essai) : pendant un boss, les boutons autour de la scène s\'estompent (complet au méga boss)')}
-        ${check('panelFold', '<b>Panneau à deux hauteurs</b> (essai) : ▼ rétracte le panneau pour agrandir la scène, choix mémorisé par écran')}
-        ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
-        ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
-      </div>
-      ${isPhone() ? '' : fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Clique une touche puis appuie sur la nouvelle. Une touche déjà utilisée est refusée.</div>
-        <div class="key-grid">${keys}</div><button class="btn small" data-action="reset-keys">Touches par défaut</button>`)}`;
+    // v10.13 (lot profil) : le PC aussi en kit (puces et interrupteurs, plus de liste déroulante) ; mêmes réglages, mêmes actions (device-pref via mp-pick).
+    const base = interfaceExtraPhone(pref);
+    if (this.root.classList.contains('m-phone') || isPhone()) return base;
+    const keys = Object.keys(KEY_LABELS).map((action) => `<div class="mp-key"><span>${KEY_LABELS[action]}</span>
+      ${mBtn(this.view.keyCapture === action ? 'Appuie sur une touche…' : keyLabel(action), { action: 'capture-key', value: action, cls: `auto mp-keybtn${this.view.keyCapture === action ? ' armed' : ''}` })}</div>`).join('');
+    return `${base}${mpFold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="m-card"><div class="mp-note">Clique une touche puis appuie sur la nouvelle. Une touche déjà utilisée est refusée.</div>
+        <div class="mp-keys">${keys}</div>${mBtn('Touches par défaut', { action: 'reset-keys' })}</div>`)}`;
   }
 
   openSearch() {

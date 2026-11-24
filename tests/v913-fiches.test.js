@@ -117,15 +117,20 @@ test('v9.3.4 : popup du compagnon — 3 compétences en icônes, bulle au touche
   assert.ok(!/niv\. \d+ · \d★/.test(grid), 'plus de « niv. 10 · 2★ » sur les cartes');
 });
 
-test('boss : fiche en feuille du bas, histoire, récompenses et familles repliées', () => {
+test('boss : fiche en feuille sur téléphone, fiche toujours affichée sur PC (10.13) ; histoire, récompenses et familles repliées', () => {
   const s = createNewState(NOW);
   const id = bossesInOrder()[0];
   recordBossVictory(s, id, new Rng(2));
-  const html = boss.render(uiWith({ bossSel: id, sheetOpen: 'boss' }), s);
-  assert.match(html, /codex-detail sheet sheet-open/);
+  const phone = { classList: { contains: (c) => c === 'm-phone' } };
+  const html = boss.render({ ...uiWith({ bossSel: id, sheetOpen: 'boss' }), root: phone }, s);
+  assert.match(html, /m-sheet/);
   assert.ok(html.includes('data-action="close-sheet"'));
   for (const f of ['boss-lore', 'boss-rewards', 'boss-families']) assert.ok(html.includes(`data-value="${f}"`), f);
   assert.ok(!html.includes('class="lore"'), 'histoire repliée');
+  const pc = boss.render(uiWith({ bossSel: id }), s); // PC : la fiche du boss choisi reste sous la grille (plus de fenêtre à ouvrir)
+  assert.match(pc, /mp-detail/);
+  assert.ok(!pc.includes('m-sheet'), 'pas de fiche flottante sur PC');
+  for (const f of ['boss-lore', 'boss-rewards', 'boss-families']) assert.ok(pc.includes(`data-value="${f}"`), `PC : ${f}`);
 });
 
 test('donjons : plus de « Compagnons conseillés »', () => {

@@ -1,0 +1,360 @@
+/* v10.13 (lot « profil » PC) : Paramètres, Classement, Guilde, Statistiques, Boss, Encyclopédie en KIT sur PC.
+   Mêmes composants que le téléphone (mp-*, m-*) : ce fichier leur donne leurs tailles PC (texte 14 px au moins, cartes de 56 px,
+   boutons de 46 px). PC SEULEMENT : toute règle commence par `#app:not(.m-phone)`. Chargé après desk-kit.css. */
+
+/* ---------- Habillage : l'écran = un cadre ; plus de bannière illustrée ni de phrase d'accroche au-dessus ---------- */
+#app:not(.m-phone) #panel-body:has(.mp-frame) > .art-banner-wrap, #app:not(.m-phone) #panel-body:has(.mp-frame) > .tab-lead,
+#app:not(.m-phone) #panel-body:has(.mp-frame) > .intro-card { display: none; }
+#app:not(.m-phone) #panel:has(.mp-frame) #panel-extra { display: none; }
+#app:not(.m-phone) .mp-frame { overflow: hidden; }
+#app:not(.m-phone) .mp-frame .m-title b { font-size: 21px; }
+
+/* ---------- Lignes 64 px : icône · nom + barre · bouton ---------- */
+#app:not(.m-phone) .mp-row { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 10px; }
+#app:not(.m-phone) .mp-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border-radius: 10px; background: var(--m-bg2); border: 1px solid var(--m-card-line); }
+#app:not(.m-phone) .mp-ico img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-ico.big { width: 56px; height: 56px; border: 2px solid var(--m-gold); }
+#app:not(.m-phone) .mp-ico.big img { width: 40px; height: 40px; }
+#app:not(.m-phone) .mp-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#app:not(.m-phone) .mp-name { display: block; font-size: 14px; font-weight: 800; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; word-break: normal; hyphens: none; }
+#app:not(.m-phone) .mp-main small { font-size: 12px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-barline { display: flex; align-items: center; gap: 8px; }
+#app:not(.m-phone) .mp-barline .m-bar { flex: 1 1 auto; }
+#app:not(.m-phone) .mp-n { flex: none; font-size: 12px; font-weight: 800; color: var(--m-soft); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .mp-row > .m-btn, #app:not(.m-phone) .mp-row > .m-btn-gold, #app:not(.m-phone) .mp-head > .m-btn, #app:not(.m-phone) .mp-head > .m-btn-gold { flex: none; }
+#app:not(.m-phone) .mp-row button.m-btn.auto, #app:not(.m-phone) .mp-head button.m-btn.auto, #app:not(.m-phone) .mp-claimbar button.m-btn.auto { width: auto; min-width: 84px; padding: 0 12px; }
+#app:not(.m-phone) .mp-row .m-btn-gold.auto, #app:not(.m-phone) .mp-head .m-btn-gold.auto { width: auto; min-width: 96px; padding: 0 14px; }
+#app:not(.m-phone) .mp-row.done { opacity: .72; border-color: var(--m-ok); }
+#app:not(.m-phone) .mp-row.dormant { opacity: .6; }
+#app:not(.m-phone) .mp-row.ready { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app:not(.m-phone) .mp-ok { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; font-size: 22px; font-weight: 900; color: var(--m-ok); }
+#app:not(.m-phone) .mp-list { display: flex; flex-direction: column; }
+#app:not(.m-phone) button.m-btn.ready { border-color: var(--m-gold-hi); color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app:not(.m-phone) .mp-main .rw-icons, #app:not(.m-phone) .mp-main .rw { font-size: 12px; }
+#app:not(.m-phone) .mp-main .rw-icons { display: inline; }
+#app:not(.m-phone) .mp-main .rw img { width: 14px; height: 14px; }
+
+/* ---------- En-tête à hauteur fixe (Carnet, Boss, Encyclopédie, Apparences…) ---------- */
+#app:not(.m-phone) .mp-head { display: flex; align-items: center; gap: 10px; height: 88px; padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+#app:not(.m-phone) .mp-head-line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#app:not(.m-phone) .mp-head-line b { font-size: 20px; font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-head-line small { font-size: 12px; color: var(--m-soft); text-align: right; }
+#app:not(.m-phone) .mp-head-rw { min-height: 16px; }
+#app:not(.m-phone) .mp-head-rw .rw-icons, #app:not(.m-phone) .mp-head-rw .rw { font-size: 12px; }
+#app:not(.m-phone) .mp-head-rw .rw img { width: 14px; height: 14px; }
+
+/* ---------- Carnet de l'Apprenti, « Ça dort », Bastion ---------- */
+#app:not(.m-phone) .mp-fw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+#app:not(.m-phone) .mp-fw-head b { font-size: 15px; font-weight: 900; }
+#app:not(.m-phone) .mp-fw-head small { font-size: 12px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-fw .fw-steps { list-style: none; margin: 6px 0; padding: 0; font-size: 13px; color: var(--m-text); }
+#app:not(.m-phone) .mp-fw .fw-steps li { padding: 3px 0; overflow-wrap: normal; }
+#app:not(.m-phone) .mp-fw .fw-steps li.fw-done { color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-fw-claim { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; }
+#app:not(.m-phone) .mp-fw .fw-prize { display: flex; gap: 6px; margin: 6px 0; }
+#app:not(.m-phone) .mp-fw .fw-prize-c { flex: 1 1 0; min-width: 0; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; border-radius: 10px; background: var(--m-bg2); border: 1px solid var(--m-card-line); color: var(--m-text); }
+#app:not(.m-phone) .mp-fw .fw-prize-c small { font-size: 11px; }
+#app:not(.m-phone) .mp-fw .m-chips { padding: 8px 2px; }
+#app:not(.m-phone) .mp-sleep { margin: 0 0 4px; }
+#app:not(.m-phone) .mp-sleep > small { display: block; padding: 0 4px; font-size: 12px; font-weight: 800; color: var(--m-soft); }
+#app:not(.m-phone) .mp-sleep .m-chips { margin-bottom: 4px; }
+#app:not(.m-phone) .mp-bastion .mp-ico img { width: 40px; height: 40px; }
+#app:not(.m-phone) .mp-frame .m-chips .m-chip { flex: none; }
+
+/* ---------- Missions ---------- */
+#app:not(.m-phone) .mp-claimbar { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-claimbar .m-btn-gold { flex: 1 1 auto; width: auto; }
+#app:not(.m-phone) .mp-claimbar button.m-btn { flex: none; width: auto; min-width: 104px; }
+#app:not(.m-phone) .mp-claimbar button.m-btn:only-child { flex: 1 1 auto; }
+#app:not(.m-phone) .mp-reset { margin: 2px 4px 8px; font-size: 12px; font-weight: 700; color: var(--m-soft); }
+#app:not(.m-phone) .mp-sub { margin: 10px 4px 6px; font-size: 14px; font-weight: 900; color: var(--m-gold-hi); display: flex; align-items: center; gap: 6px; }
+#app:not(.m-phone) .mp-pill { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 9px; background: #ff3b4e; color: #fff; font: 900 11px/16px system-ui, sans-serif; text-align: center; font-style: normal; }
+#app:not(.m-phone) .mp-rw { display: block; font-size: 12px; line-height: 1.5; color: var(--m-soft); }
+#app:not(.m-phone) .mp-list > button.m-btn { margin: 0 0 8px; }
+#app:not(.m-phone) .mp-list .contract-title { display: block; font-size: 12px; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .mp-list .contract-title.rare { color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-claimbar .m-btn-gold { font-size: 16px; white-space: nowrap; padding: 0 10px; }
+#app:not(.m-phone) .mp-claimbar button.m-btn { min-width: 84px; }
+
+/* ---------- Modes qui défilent : chaque mode prend la largeur de son nom ---------- */
+#app:not(.m-phone) .mp-frame .m-modes .m-mode { flex: 1 0 auto; min-width: 76px; padding: 4px 8px 3px; }
+#app:not(.m-phone) .mp-gap { height: 8px; }
+
+/* ---------- Grille de cartes (Encyclopédie, Boss…) : 3 colonnes, nom sur 2 lignes sans coupure de mot ---------- */
+#app:not(.m-phone) .mp-cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-cell {
+  --m-rc: var(--m-card-line); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; width: 100%; min-width: 0; height: 112px; margin: 0; padding: 8px 4px 6px;
+  font: inherit; color: var(--m-text); cursor: pointer; border: 1.5px solid var(--m-rc); overflow: hidden; -webkit-tap-highlight-color: transparent;
+}
+#app:not(.m-phone) .mp-cell.r-common { --m-rc: var(--m-r-common); } #app:not(.m-phone) .mp-cell.r-rare { --m-rc: var(--m-r-rare); } #app:not(.m-phone) .mp-cell.r-epic { --m-rc: var(--m-r-epic); }
+#app:not(.m-phone) .mp-cell.r-legendary { --m-rc: var(--m-r-legendary); } #app:not(.m-phone) .mp-cell.r-mythic { --m-rc: var(--m-r-mythic); } #app:not(.m-phone) .mp-cell.r-astral { --m-rc: var(--m-r-astral); } #app:not(.m-phone) .mp-cell.r-ascendant { --m-rc: var(--m-r-ascendant); }
+#app:not(.m-phone) .mp-cell.unknown { --m-rc: var(--m-card-line); }
+#app:not(.m-phone) .mp-cell-pic { flex: none; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 60px; }
+#app:not(.m-phone) .mp-cell-pic img { max-width: 56px; max-height: 52px; width: auto; height: auto; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots { display: flex; gap: 2px; margin-top: 2px; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots i { width: 6px; height: 6px; border-radius: 50%; background: #2c3a66; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots i.on { background: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-cell-name {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; width: 100%; max-height: 2.5em; font-size: 12px; font-weight: 800; line-height: 1.25; text-align: center;
+  hyphens: none; overflow-wrap: normal; word-break: normal; color: var(--m-text);
+}
+#app:not(.m-phone) .mp-cell.unknown .mp-cell-name { color: var(--m-soft); }
+#app:not(.m-phone) .mp-art { display: block; width: 56px; height: 52px; background: center / contain no-repeat; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-art.silhouette { background: #2c3a66; clip-path: polygon(50% 0, 90% 30%, 80% 100%, 20% 100%, 10% 30%); opacity: .6; }
+#app:not(.m-phone) .mp-art.big { margin: 0 auto 8px; }
+
+/* ---------- Barre de paliers unique (repères par palier) ---------- */
+#app:not(.m-phone) .mp-track { position: relative; height: 10px; border-radius: 5px; background: var(--m-bg2); border: 1px solid #000; margin: 3px 0; box-sizing: content-box; }
+#app:not(.m-phone) .mp-track > i { display: block; height: 100%; width: var(--pct, 0%); border-radius: 5px; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); }
+#app:not(.m-phone) .mp-track > span { position: absolute; top: -3px; width: 3px; height: 16px; margin-left: -1px; border-radius: 1px; background: #4a5a90; }
+#app:not(.m-phone) .mp-track > span.got { background: var(--m-ok); } #app:not(.m-phone) .mp-track > span.ready { background: #fff; box-shadow: 0 0 6px var(--m-gold-hi); }
+
+/* ---------- Fiche (contenu hérité : sombre, lisible) ---------- */
+#app:not(.m-phone) .mp-detail { display: block; }
+#app:not(.m-phone) .mp-detail > .enc-card, #app:not(.m-phone) .mp-detail .enc-card { background: transparent; border: 0; padding: 0; box-shadow: none; color: var(--m-text); }
+#app:not(.m-phone) .mp-detail p { margin: 6px 0; font-size: 13px; line-height: 1.4; color: var(--m-text); }
+#app:not(.m-phone) .mp-detail .muted { color: var(--m-soft); }
+#app:not(.m-phone) .mp-detail .enc-title { font-size: 18px; font-weight: 900; margin: 6px 0; }
+#app:not(.m-phone) .mp-detail .enc-portrait { display: flex; justify-content: center; align-items: center; min-height: 80px; }
+#app:not(.m-phone) .mp-detail .enc-stat { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 14px; }
+#app:not(.m-phone) .mp-detail .section-title { margin: 10px 0 4px; font-size: 14px; font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-detail .enc-item { min-width: 44px; min-height: 44px; }
+#app:not(.m-phone) .m-sheet .btn { min-height: 44px; }
+#app:not(.m-phone) .m-sheet .m-btn, #app:not(.m-phone) .m-sheet .m-btn-gold { margin-bottom: 8px; }
+
+/* ---------- Apparences ---------- */
+#app:not(.m-phone) .mp-look-head { gap: 12px; }
+#app:not(.m-phone) .mp-look-pic { flex: none; position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--m-gold); border-radius: 12px; background: var(--m-bg2); overflow: hidden; }
+#app:not(.m-phone) .mp-look-pic > * { max-width: 100%; max-height: 100%; }
+#app:not(.m-phone) .mp-look-pic img { image-rendering: pixelated; }
+#app:not(.m-phone) .mp-look-meta { display: flex; gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-pill2 { padding: 4px 10px; border-radius: 12px; border: 1px solid var(--m-btn-line); background: #141c38; font-size: 12px; font-weight: 800; color: var(--m-soft); }
+#app:not(.m-phone) .mp-pill2.on { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; }
+#app:not(.m-phone) .mp-look-fx { margin: 8px 0 0; font-size: 13px; }
+#app:not(.m-phone) .mp-frame .m-grid { margin: 0 0 8px; }
+
+/* ---------- Classement ---------- */
+#app:not(.m-phone) .mp-rank-chips { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; padding: 6px 2px; }
+#app:not(.m-phone) .mp-rank-chips .m-chip { min-width: 120px; height: 36px; font-size: 14px; }
+#app:not(.m-phone) .mp-rklist { padding: 4px 10px; }
+#app:not(.m-phone) .mp-rk { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 4px 2px; border-bottom: 1px solid var(--m-card-line); font-size: 14px; }
+#app:not(.m-phone) .mp-rk:last-child { border-bottom: 0; }
+#app:not(.m-phone) .mp-rk.head { min-height: 32px; font-size: 12px; color: var(--m-soft); font-weight: 800; }
+#app:not(.m-phone) .mp-rk.me { background: rgba(243, 210, 122, .12); border-radius: 8px; }
+#app:not(.m-phone) .mp-rk-rank { flex: none; width: 32px; text-align: center; font-weight: 900; font-size: 16px; color: var(--m-gold-hi); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .mp-rk-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; overflow-wrap: anywhere; }
+#app:not(.m-phone) .mp-rk-name small { font-size: 12px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-rk-val { flex: none; font-variant-numeric: tabular-nums; text-align: right; color: var(--m-text); }
+#app:not(.m-phone) .mp-rk-gap { text-align: center; color: var(--m-soft); }
+#app:not(.m-phone) .mp-crit { display: flex; flex-direction: column; gap: 8px; }
+#app:not(.m-phone) .mp-crit button.m-btn { margin: 0; }
+#app:not(.m-phone) .mp-addfriend { display: flex; gap: 8px; align-items: center; }
+#app:not(.m-phone) .mp-input { flex: 1 1 auto; min-width: 0; height: 44px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--m-btn-line); background: var(--m-bg2); color: var(--m-text); font: 700 15px system-ui, sans-serif; }
+#app:not(.m-phone) .m-empty .m-btn-gold img, #app:not(.m-phone) .m-empty button.m-btn img { width: 24px; height: 24px; }
+#app:not(.m-phone) .mp-frame .m-mode:disabled { opacity: .45; cursor: default; }
+
+/* ---------- Guilde ---------- */
+#app:not(.m-phone) .mp-perks { display: flex; justify-content: center; gap: 10px; width: 100%; margin: 4px 0 8px; }
+#app:not(.m-phone) .mp-perk { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#app:not(.m-phone) .mp-perk b { font-size: 12px; font-weight: 800; line-height: 1.2; color: var(--m-text); text-align: center; overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .mp-perk .mp-ico img { width: 40px; height: 40px; }
+#app:not(.m-phone) .m-empty .mp-perks .mp-ico { width: 64px; height: 64px; }
+#app:not(.m-phone) .mp-guild-head { height: auto; min-height: 88px; }
+#app:not(.m-phone) .mp-log { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+#app:not(.m-phone) .mp-log li { padding: 4px 0; border-bottom: 1px solid var(--m-card-line); }
+#app:not(.m-phone) .mp-emblems { flex-wrap: wrap; margin-top: 8px; }
+#app:not(.m-phone) .mp-emblems .m-chip { min-width: 44px; padding: 0 10px; }
+#app:not(.m-phone) .mp-check { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }
+#app:not(.m-phone) .mp-check input { width: 22px; height: 22px; }
+
+/* ---------- Statistiques ---------- */
+#app:not(.m-phone) .mp-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 104px; margin: 0; padding: 8px 6px; text-align: center; overflow: hidden; }
+#app:not(.m-phone) .mp-stat img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-stat b { font-size: 20px; font-weight: 900; line-height: 1.1; color: var(--m-gold-hi); font-variant-numeric: tabular-nums; max-width: 100%; overflow-wrap: normal; }
+#app:not(.m-phone) .mp-stat small { font-size: 12px; font-weight: 700; color: var(--m-soft); line-height: 1.15; overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .mp-tbars { padding: 4px 10px; }
+#app:not(.m-phone) .mp-tbar { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 4px 0; margin: 0; box-sizing: border-box; background: none; border: 0; border-bottom: 1px solid var(--m-card-line); color: var(--m-text); font: 700 13px system-ui, sans-serif; text-align: left; }
+#app:not(.m-phone) .mp-tbar:last-child { border-bottom: 0; }
+#app:not(.m-phone) .mp-tb-label { flex: 0 0 38%; min-width: 0; overflow-wrap: normal; hyphens: none; line-height: 1.2; }
+#app:not(.m-phone) .mp-tb-track { flex: 1 1 auto; height: 8px; border-radius: 4px; background: var(--m-bg2); overflow: hidden; }
+#app:not(.m-phone) .mp-tb-track i { display: block; height: 100%; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); }
+#app:not(.m-phone) .mp-tb-val { flex: none; display: flex; flex-direction: column; align-items: flex-end; min-width: 56px; font-variant-numeric: tabular-nums; font-weight: 800; }
+#app:not(.m-phone) .mp-tb-val small { font-size: 11px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-curve-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--m-soft); }
+#app:not(.m-phone) .st-curve svg { width: 100%; height: auto; display: block; }
+
+/* ---------- Paramètres (touche légère : cadre, modes, puces à la place des listes) ---------- */
+#app:not(.m-phone) .mp-frame .pref-grid { display: flex; flex-direction: column; gap: 4px; }
+#app:not(.m-phone) .mp-frame .pref-grid > span { font-weight: 800; margin-top: 6px; }
+#app:not(.m-phone) .mp-frame .card.row-between { flex-wrap: wrap; gap: 6px; }
+#app:not(.m-phone) .mp-frame .mp-chips { flex-wrap: wrap; width: 100%; margin: 0; }
+#app:not(.m-phone) .mp-frame .row-between > .mp-chips { flex: 1 1 100%; }
+
+/* Le corps du panneau a déjà 8 px de marge de chaque côté : le cadre n'en rajoute pas (sinon 16 px de défilement horizontal). */
+#app:not(.m-phone) #panel-body > .mp-frame { margin-left: 0; margin-right: 0; width: 100%; min-width: 0; }
+#app:not(.m-phone) .mp-tilebtn { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; color: var(--m-soft); font: 700 11px/1.15 system-ui, sans-serif; text-align: center; cursor: pointer; }
+#app:not(.m-phone) .mp-tilebtn small { max-width: 100%; overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .mp-art:not(.silhouette) { background-size: auto 100%; background-position: left center; }
+#app:not(.m-phone) .mp-art.big { background-size: auto 100%; background-position: left center; width: 120px; height: 120px; }
+
+/* ---------- Corrections des contrôles : récompenses en ligne, puces de la vitrine, mots du lexique ---------- */
+#app:not(.m-phone) .mp-frame .rw, #app:not(.m-phone) .m-sheet .rw { display: inline; white-space: nowrap; }
+#app:not(.m-phone) .mp-frame .rw img, #app:not(.m-phone) .m-sheet .rw img { vertical-align: middle; margin-right: 2px; }
+#app:not(.m-phone) .mp-frame .rw { margin-right: 8px; }
+#app:not(.m-phone) .m-sheet .sc-chips { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
+#app:not(.m-phone) .m-sheet .sc-chips::-webkit-scrollbar { display: none; }
+#app:not(.m-phone) .m-sheet .sc-chip { flex: none; min-height: 44px; padding: 0 12px; }
+#app:not(.m-phone) .m-sheet .sc-play { min-height: 44px; min-width: 88px; }
+#app:not(.m-phone) .m-sheet .lex { display: inline-block; min-height: 44px; line-height: 44px; vertical-align: middle; }
+#app:not(.m-phone) .mp-frame .mp-chips.mp-scroll { flex-wrap: nowrap; }
+
+/* ==========================================================================================================================
+   Rattrapage : Paramètres, fiches de l'Encyclopédie et fiche Boss entièrement en kit (plus de HTML d'origine sombri)
+   ========================================================================================================================== */
+/* ---------- Interrupteurs (.m-switch, comme Compétences) et cartes de réglage ---------- */
+#app:not(.m-phone) .mp-sw { position: relative; display: flex; align-items: center; gap: 10px; min-height: 56px; margin: 0 0 8px; padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#app:not(.m-phone) .mp-sw-t { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+#app:not(.m-phone) .mp-sw-t b { font-size: 15px; font-weight: 800; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; word-break: normal; hyphens: none; }
+#app:not(.m-phone) .mp-sw-t small, #app:not(.m-phone) .mp-field-h small { font-size: 12px; line-height: 1.25; color: var(--m-soft); font-weight: 600; }
+#app:not(.m-phone) .mp-sw .m-switch { position: static; flex: none; display: inline-flex; align-items: center; }
+#app:not(.m-phone) .mp-sw .m-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+#app:not(.m-phone) .mp-sw .m-sw { position: relative; flex: none; width: 50px; height: 28px; border-radius: 14px; background: #0b1124; border: 2px solid var(--m-btn-line); box-sizing: border-box; transition: background .15s; }
+#app:not(.m-phone) .mp-sw .m-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--m-soft); transition: transform .15s, background .15s; }
+#app:not(.m-phone) .mp-sw input:checked + .m-sw { background: #1f6b34; border-color: var(--m-ok); }
+#app:not(.m-phone) .mp-sw input:checked + .m-sw::after { transform: translateX(22px); background: #d8ffe0; }
+#app:not(.m-phone) .mp-sw input:focus-visible + .m-sw { outline: 2px solid var(--m-gold-hi); outline-offset: 2px; }
+#app:not(.m-phone) .mp-field { padding: 10px 12px 4px; }
+#app:not(.m-phone) .mp-field-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#app:not(.m-phone) .mp-field-h b { font-size: 15px; font-weight: 800; color: var(--m-text); }
+#app:not(.m-phone) .mp-field .m-chips { margin: 4px 0 0; padding: 6px 0 8px; }
+#app:not(.m-phone) .mp-btnrow { display: grid; gap: 8px; margin: 8px 0 0; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); }
+#app:not(.m-phone) .mp-btnrow.n1 { --n: 1; } #app:not(.m-phone) .mp-btnrow.n3 { --n: 3; }
+#app:not(.m-phone) .mp-btnrow > .m-btn, #app:not(.m-phone) .mp-btnrow > .m-btn-gold { width: 100%; min-width: 0; padding: 0 6px; font-size: 14px; }
+#app:not(.m-phone) .mp-frame .m-card > .m-btn-gold, #app:not(.m-phone) .mp-frame .m-card > .m-btn { margin-top: 8px; }
+#app:not(.m-phone) .mp-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; font-size: 14px; color: var(--m-text); }
+#app:not(.m-phone) .mp-between > b { font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-note { font-size: 13px; line-height: 1.4; color: var(--m-soft); margin: 4px 0; }
+#app:not(.m-phone) .mp-msg { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--m-ok); } #app:not(.m-phone) .mp-msg.bad { color: var(--m-ko); }
+#app:not(.m-phone) .mp-form { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; }
+#app:not(.m-phone) .mp-in, #app:not(.m-phone) .mp-frame .m-card .mp-form input[type=text], #app:not(.m-phone) .mp-frame .m-card .mp-form input[type=password] { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--m-btn-line); background: #0b1124; color: var(--m-text); font: 700 15px/1.3 system-ui, sans-serif; }
+#app:not(.m-phone) textarea.mp-in { margin: 8px 0 0; resize: vertical; font-size: 13px; } #app:not(.m-phone) input[type=file].mp-in { margin: 8px 0 0; font-size: 13px; }
+#app:not(.m-phone) .mp-in::placeholder { color: var(--m-soft); font-weight: 600; }
+#app:not(.m-phone) .mp-in:focus-visible { outline: 2px solid var(--m-gold-hi); outline-offset: 1px; }
+#app:not(.m-phone) .mp-det { padding: 0 12px; } #app:not(.m-phone) .mp-det > summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; font-weight: 800; color: var(--m-text); cursor: pointer; }
+#app:not(.m-phone) .mp-det[open] { padding-bottom: 10px; } #app:not(.m-phone) .mp-det pre { white-space: pre-wrap; font-size: 12px; color: var(--m-soft); margin: 6px 0 0; }
+#app:not(.m-phone) .mp-det > .m-btn { margin-top: 8px; }
+#app:not(.m-phone) button.m-btn.mp-danger { color: #ffb4bc; border-color: #8a2a36; background: #2a1119; }
+#app:not(.m-phone) .mp-dz { border-color: #6a2230; }
+#app:not(.m-phone) .cheat-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; }
+#app:not(.m-phone) .cheat-row .grow { flex: 1 1 100%; }
+#app:not(.m-phone) .cheat-row .m-btn { width: auto; min-width: 84px; padding: 0 10px; }
+#app:not(.m-phone) .mp-vol { display: flex; flex-direction: column; gap: 4px; min-height: 64px; padding: 8px 12px; }
+#app:not(.m-phone) .mp-vol b { font-size: 15px; font-weight: 800; }
+#app:not(.m-phone) .mp-vol input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--m-gold-hi); }
+
+/* ---------- Replis (« ? » / Détails) : une carte de 48 px qui s'ouvre ---------- */
+#app:not(.m-phone) .mp-fold { margin: 0 0 8px; }
+#app:not(.m-phone) .mp-fold > .fold-head { width: 100%; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--m-card-line); background: var(--m-card); color: var(--m-text); font: 800 15px/1.2 system-ui, sans-serif; text-align: left; cursor: pointer; }
+#app:not(.m-phone) .mp-fold > .fold-head .fold-title { flex: 1 1 auto; min-width: 0; }
+#app:not(.m-phone) .mp-fold > .fold-head .fold-extra { flex: none; font-size: 13px; font-weight: 700; color: var(--m-soft); }
+#app:not(.m-phone) .mp-fold > .fold-head .fold-arrow { color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-fold > .fold-body { margin-top: 8px; }
+#app:not(.m-phone) .mp-fold.open > .fold-head { border-color: var(--m-gold); }
+#app:not(.m-phone) .mp-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#app:not(.m-phone) .mp-theme { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; min-height: 64px; padding: 8px 10px; border-radius: 12px; border: 1.5px solid var(--m-card-line); background: var(--m-card); color: var(--m-text); font: inherit; text-align: left; cursor: pointer; }
+#app:not(.m-phone) .mp-theme.on { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app:not(.m-phone) .mp-theme b { font-size: 14px; font-weight: 800; } #app:not(.m-phone) .mp-theme small { font-size: 12px; color: var(--m-soft); display: flex; align-items: center; gap: 4px; }
+#app:not(.m-phone) .mp-theme small img { width: 14px; height: 14px; }
+#app:not(.m-phone) .mp-theme .theme-swatches { display: flex; gap: 3px; } #app:not(.m-phone) .mp-theme .theme-swatches i { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #0006; }
+#app:not(.m-phone) .mp-fold { background: none; border: 0; padding: 0; box-shadow: none; border-radius: 0; }
+#app:not(.m-phone) .mp-field .m-chips { flex-wrap: wrap; overflow: visible; }
+
+/* ---------- Fiche du boss (kit) ---------- */
+#app:not(.m-phone) .mp-bhero { display: flex; align-items: center; gap: 12px; }
+#app:not(.m-phone) .mp-bpic { flex: none; width: 104px; height: 104px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--m-gold); border-radius: 12px; background: var(--m-bg2); overflow: hidden; }
+#app:not(.m-phone) .mp-bpic > * { max-width: 100%; max-height: 100%; } #app:not(.m-phone) .mp-bpic img { image-rendering: pixelated; object-fit: contain; }
+#app:not(.m-phone) .mp-bmeta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+#app:not(.m-phone) .mp-bname { font-size: 18px; font-weight: 900; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .mp-bmeta small { font-size: 12px; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .m-chip.mp-static { cursor: default; pointer-events: none; min-height: 28px; height: 28px; padding: 0 10px; font-size: 12px; }
+#app:not(.m-phone) .mp-trait { display: flex; flex-direction: column; gap: 3px; border-left: 4px solid var(--trait, var(--m-gold)); }
+#app:not(.m-phone) .mp-trait b { font-size: 14px; font-weight: 900; color: var(--trait, var(--m-gold-hi)); }
+#app:not(.m-phone) .mp-trait small { font-size: 12.5px; line-height: 1.35; color: var(--m-text); } #app:not(.m-phone) .mp-trait .mp-counter { color: var(--m-soft); }
+#app:not(.m-phone) .mp-sub0 { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-pname { display: block; margin: 2px 0 6px; font-size: 17px; font-weight: 900; color: var(--m-text); }
+#app:not(.m-phone) .mp-pmeta { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
+#app:not(.m-phone) .mp-peff { font-size: 14px; line-height: 1.4; color: var(--m-text); }
+#app:not(.m-phone) .mp-power { border-left: 4px solid var(--rarity, var(--m-gold)); }
+#app:not(.m-phone) .mp-center { text-align: center; }
+#app:not(.m-phone) .mp-rwrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+#app:not(.m-phone) .mp-rwi { width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--rarity, var(--m-card-line)); background: var(--m-bg2); }
+#app:not(.m-phone) .mp-rwi img { width: 32px; height: 32px; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-steps { display: flex; justify-content: space-between; gap: 6px; margin-top: 10px; }
+#app:not(.m-phone) .mp-step { flex: 1 1 0; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 10px; border: 1.5px solid var(--m-card-line); background: var(--m-bg2); color: var(--m-text); font: inherit; }
+#app:not(.m-phone) .mp-step small { font-size: 12px; font-weight: 800; color: var(--m-soft); } #app:not(.m-phone) .mp-stepi { font-size: 18px; font-weight: 900; } #app:not(.m-phone) .mp-stepi img { width: 22px; height: 22px; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-step.got { border-color: var(--m-ok); color: var(--m-ok); }
+#app:not(.m-phone) button.mp-step.ready { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; color: var(--m-gold-hi); cursor: pointer; }
+#app:not(.m-phone) .mp-fold .fold-extra .good { color: var(--m-ok); }
+
+/* ---------- Fiches de l'Encyclopédie (kit) ---------- */
+#app:not(.m-phone) .mp-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+#app:not(.m-phone) .mp-srows { padding: 6px 8px; }
+#app:not(.m-phone) .mp-srows .m-stat + .m-stat { border-top: 1px solid rgba(255, 255, 255, .06); border-radius: 0; }
+#app:not(.m-phone) .mp-srows .m-stat .m-v { font-size: 14px; }
+#app:not(.m-phone) .mp-srows .mp-sub0 { padding: 4px 6px 2px; }
+#app:not(.m-phone) .mp-showcase { padding: 8px; overflow: hidden; }
+#app:not(.m-phone) .mp-showcase .mp-sub0 { margin: 0 0 6px 2px; }
+#app:not(.m-phone) .mp-rpic { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 100%; border-radius: 10px; border: 2px solid var(--m-rc, var(--m-card-line)); box-sizing: border-box; }
+#app:not(.m-phone) .mp-rpic img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-rpic.r-common, #app:not(.m-phone) .mp-rbtn.r-common { --m-rc: var(--m-r-common); } #app:not(.m-phone) .mp-rpic.r-rare, #app:not(.m-phone) .mp-rbtn.r-rare { --m-rc: var(--m-r-rare); }
+#app:not(.m-phone) .mp-rpic.r-epic, #app:not(.m-phone) .mp-rbtn.r-epic { --m-rc: var(--m-r-epic); } #app:not(.m-phone) .mp-rpic.r-legendary, #app:not(.m-phone) .mp-rbtn.r-legendary { --m-rc: var(--m-r-legendary); }
+#app:not(.m-phone) .mp-rpic.r-mythic, #app:not(.m-phone) .mp-rbtn.r-mythic { --m-rc: var(--m-r-mythic); } #app:not(.m-phone) .mp-rpic.r-astral, #app:not(.m-phone) .mp-rbtn.r-astral { --m-rc: var(--m-r-astral); }
+#app:not(.m-phone) .mp-rpic.r-ascendant, #app:not(.m-phone) .mp-rbtn.r-ascendant { --m-rc: var(--m-r-ascendant, #ff6b6b); }
+#app:not(.m-phone) .mp-rars { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+#app:not(.m-phone) .mp-rbtn { width: 48px; height: 48px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--m-rc, var(--m-card-line)); background: var(--m-bg2); cursor: pointer; }
+#app:not(.m-phone) .mp-rbtn.selected { box-shadow: 0 0 0 2px var(--m-gold-hi); } #app:not(.m-phone) .mp-rbtn.unknown { opacity: .6; }
+#app:not(.m-phone) .mp-rbtn img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-bpic .mp-art.big { margin: 0; width: 88px; height: 88px; }
+#app:not(.m-phone) .mp-bpic .enc-mutant-real { max-width: 96px; max-height: 96px; }
+#app:not(.m-phone) .mp-skills { padding: 8px 10px; }
+#app:not(.m-phone) .mp-skill { padding: 6px 0; border-top: 1px solid rgba(255, 255, 255, .06); }
+#app:not(.m-phone) .mp-skill:first-of-type { border-top: 0; }
+#app:not(.m-phone) .mp-skill b { font-size: 14px; font-weight: 800; color: var(--m-text); } #app:not(.m-phone) .mp-skill small { display: block; font-size: 12.5px; color: var(--m-soft); margin-top: 2px; }
+#app:not(.m-phone) .mp-skill.locked b { color: var(--m-soft); } #app:not(.m-phone) .mp-skill .m-chip { margin-left: 6px; vertical-align: middle; }
+#app:not(.m-phone) .mp-env { display: flex; flex-direction: column; gap: 3px; } #app:not(.m-phone) .mp-env b { font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 6px; color: var(--m-text); }
+#app:not(.m-phone) .mp-env b img { width: 20px; height: 20px; } #app:not(.m-phone) .mp-env small { font-size: 12.5px; line-height: 1.35; color: var(--m-text); } #app:not(.m-phone) .mp-env .mp-counter { color: var(--m-soft); }
+#app:not(.m-phone) .mp-env.unseen { opacity: .6; min-height: 44px; justify-content: center; }
+#app:not(.m-phone) .mp-srows .good { color: var(--m-ok); } #app:not(.m-phone) .mp-srows .muted { color: var(--m-soft); }
+#app:not(.m-phone) .mp-srows .v-normal { color: var(--m-text); } #app:not(.m-phone) .mp-srows .v-elite { color: #ffd36b; } #app:not(.m-phone) .mp-srows .v-mutant { color: #c78bff; }
+#app:not(.m-phone) .mp-note .v-normal, #app:not(.m-phone) .mp-note b { color: var(--m-text); }
+#app:not(.m-phone) .m-sheet .sc-chip, #app:not(.m-phone) .m-sheet .sc-chip .sc-ico, #app:not(.m-phone) .m-sheet .sc-chip span { font-size: 13px; }
+#app:not(.m-phone) .mp-bname .rarity-text.r-common { color: var(--m-text); }
+#app:not(.m-phone) input[type=file].mp-in::file-selector-button { min-height: 32px; margin-right: 10px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--m-btn-line); background: #141c38; color: var(--m-text); font: 700 13px system-ui, sans-serif; }
+#app:not(.m-phone) .mp-bpic .enc-mutant-real { width: 88px; height: 88px; max-width: none; max-height: none; object-fit: contain; }
+#app:not(.m-phone) .mp-file { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 8px 0; padding: 0 12px; border: 1px dashed rgba(255, 210, 120, .55); border-radius: 10px; background: rgba(255, 255, 255, .04); color: #f3e6c4; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+#app:not(.m-phone) .mp-file::before { content: '📂'; }
+
+/* ==========================================================================================================================
+   PC : le panneau latéral porte un cadre du kit. L'en-tête du panneau ne garde que ⤢ et ✕ (le titre et le « ? » sont dans le cartouche).
+   ========================================================================================================================== */
+#app:not(.m-phone) #panel:has(.mp-frame) > header { min-height: 0; height: 44px; padding: 4px 12px; justify-content: flex-end; gap: 8px; }
+#app:not(.m-phone) #panel:has(.mp-frame) > header #panel-icon, #app:not(.m-phone) #panel:has(.mp-frame) > header #panel-title,
+#app:not(.m-phone) #panel:has(.mp-frame) > header #panel-crest, #app:not(.m-phone) #panel:has(.mp-frame) > header #panel-extra,
+#app:not(.m-phone) #panel:has(.mp-frame) > header #panel-help { display: none !important; }
+
+/* ---------- Ajustements PC (panneau latéral de ~600 px de large) ---------- */
+#app:not(.m-phone) .mp-frame .m-modes { flex-wrap: wrap; overflow: visible; }
+#app:not(.m-phone) .mp-frame .m-modes .m-mode { flex: 1 1 130px; }
+#app:not(.m-phone) .mp-frame .m-modes.s64 .m-mode { flex: 1 1 0; }
+#app:not(.m-phone) .mp-frame .m-modes.s64 .m-mode img { width: 28px; height: 28px; }
+#app:not(.m-phone) .mp-frame .mp-chips.mp-scroll { flex-wrap: wrap; overflow: visible; }
+#app:not(.m-phone) .mp-frame .mp-sorts { margin-bottom: 4px; }
+#app:not(.m-phone) .mp-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 14px; margin: 8px 0; }
+#app:not(.m-phone) .mp-key { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--m-text); }
+#app:not(.m-phone) .mp-key .m-btn { min-width: 72px; padding: 0 12px; font-size: 14px; }
+#app:not(.m-phone) .mp-key .m-btn.armed { border-color: var(--m-gold-hi); color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-frame .m-modes { justify-content: center; }
+#app:not(.m-phone) .mp-frame .m-modes .m-mode { flex: 1 1 118px; max-width: calc(33.34% - 7px); min-width: 118px; font-size: 15px; }
+#app:not(.m-phone) .mp-frame .m-modes .m-mode span { white-space: normal; overflow-wrap: normal; text-wrap: balance; line-height: 1.12; }
+#app:not(.m-phone) .mp-frame .m-modes.s64 .m-mode { flex: 1 1 0; max-width: none; min-width: 0; font-size: 16px; }

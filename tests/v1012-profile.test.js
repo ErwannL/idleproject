@@ -50,7 +50,7 @@ test('10.12 (profil) : plus de <select> sur téléphone (Classement, Statistique
   for (const id of ['ranking', 'stats', 'encyclopedia', 'options']) assert.match(src(`src/ui/panels/${id}.js`), /mpChips\(|selectOr\(/, id);
   const ui = src('src/ui/ui.js');
   assert.match(ui, /case 'mp-pick'/); assert.match(ui, /case 'mp-open'/); assert.match(ui, /case 'mp-shut'/);
-  assert.match(ui, /m-chips mp-chips/, 'Paramètres › Interface (Cet appareil) : puces sur téléphone');
+  assert.match(src('src/ui/panels/profile-m.js'), /m-chips mp-chips/, 'Paramètres › Interface (Cet appareil) : puces (téléphone, et PC depuis la 10.13)');
 });
 
 test('10.12 (profil) : les actions existantes sont conservées (Carnet, Missions, Classement, Guilde, Boss, Encyclopédie)', () => {
