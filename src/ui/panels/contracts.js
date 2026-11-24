@@ -15,7 +15,8 @@ import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment 
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
 import { mBar, mBtn, mBtnGold, mModes } from '../mobile-kit.js'; // v10.12
 import { SESSION_CHEST, goalProgress, sessionDone } from '../../core/session-goals.js';
-import { esc, isMPhone, mpFrame, mpRow } from './profile-m.js';
+import { esc, mpFrame, mpRow } from './profile-m.js';
+const isMPhone = () => true; // v10.13 : le PC emploie le même kit que le téléphone (desk-activities.css)
 import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
 
 // Hauts faits (v8.3) : défis permanents, gemmes à réclamer et bonus permanent par haut fait obtenu.
@@ -250,7 +251,7 @@ function mAchievements(state) {
     const right = g.allDone ? '<span class="mp-ok" role="img" aria-label="Obtenu">✔</span>'
       : mBtn(`+${a.gems}`, { action: 'claim-achievement', value: a.id, disabled: !g.ready, cls: `auto${g.ready ? ' ready' : ''}`, icon: 'icon_gem', attrs: `aria-label="${g.ready ? 'Récupérer' : 'Verrouillé'} : +${a.gems} gemmes"` });
     return mpRow({ icon: img(g.ready || g.allDone ? 'icon_trophy' : 'icon_lock'), title: esc(a.name), sub: `<small>${esc(a.label)} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : Math.min(g.claimedCount + 1, g.tiers.length)}</small>`,
-      bar: Math.min(1, p.ratio), n: `${formatNumber(Math.min(p.value, a.target))}/${formatNumber(a.target)}`, right, cls: g.allDone ? 'done' : g.ready ? 'ready' : '' });
+      bar: Math.min(1, p.ratio), n: `${formatNumber(Math.min(p.value, a.target))}/${formatNumber(a.target)}`, right, cls: g.allDone ? 'done' : g.ready ? 'ready' : '', attrs: 'data-ach' });
   }).join('');
   return `<div class="mp-reset">${n}/${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or</div>${rows}`;
 }

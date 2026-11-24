@@ -15,7 +15,7 @@ import { envLine, environmentFor } from '../../core/environment.js'; // v9.2.1
 import { elementBadge, elementWheel, zoneElement, wheelShown } from '../../core/elements.js'; // v9.5.1
 import { attachMap, pulse } from '../ui-vfx.js'; // v9.2.6
 import { mBar, mBtn, mBtnGold, mChip, mTitle } from '../mobile-kit.js'; // v10.12
-import { isPhoneUi } from './combat-phone.js';
+const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 // v9.0.6 : écran Aventure — « où j'en suis » en un coup d'œil : monde et étape, prochain boss, prévision,
 // avance automatique et la prochaine chose utile à faire (un clic ouvre le bon écran).

@@ -12,7 +12,8 @@ import { challengeCard } from './dungeons.js';
 import { bossTrait, TRAITS } from '../../core/boss-traits.js';
 import { CHALLENGE, challengeWeek, modifierById, weeklySetup } from '../../core/challenge.js';
 import { mBtn, mBtnGold, mEmpty, mModes, mSheet, mStat, mTitle } from '../mobile-kit.js'; // v10.12
-import { isPhoneUi } from './combat-phone.js';
+import { isPhoneUi as isRealPhone } from './combat-phone.js';
+const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 import { ZONES } from '../../data/zones.js';
 
 const bossName = (floor) => BOSSES[towerBoss(floor)]?.name ?? '?';
@@ -61,7 +62,7 @@ export default {
     const tab = forced ?? (parts.some(([id]) => id === ui.view.defiTab) ? ui.view.defiTab : (towerUnlocked(state) ? 'tower' : chOpen ? 'challenge' : 'tower'));
     const seg = parts.length > 1 ? segment(parts.map(([id, l, ic]) => [id, id === 'challenge' && !state.challenge ? `${l} (${challengeTriesLeft(state)})` : l, ic]), 'defi-tab', tab) : '';
     const tile = arenaUnlocked(state) ? `<button class="arena-tile" data-action="open-tab" data-value="arena" style="background-image:url(assets/ui/art101/arena_tile.png)"><b>Arène à cartes</b><span>Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></button>` : '';
-    if (isPhoneUi(ui)) return phoneView(ui, state, parts, tab);
+    if (isPhoneUi(ui)) return phoneView(ui, state, parts, tab, isRealPhone(ui) ? '' : tile); // PC : la tuile illustrée qui mène à l'Arène (le téléphone la trouve dans la Carte)
     if (tab === 'challenge') return `${seg}${tile}<div class="card">${challengeCard(state)}</div>`;
     return seg + tile + towerBody(ui, state);
   },
@@ -106,11 +107,11 @@ const MOD_ICON = { tough: 'icon_heart', fierce: 'icon_damage', swift: 'icon_bolt
 const traitIcon = (trait) => TRAIT_ICON[Object.keys(TRAITS).find((k) => TRAITS[k] === trait)] ?? 'icon_boss';
 const rule = (ic, label) => `<button type="button" class="cb-rule" data-action="tower-info" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">${img(ic)}</button>`;
 
-function phoneView(ui, state, parts, tab) {
+function phoneView(ui, state, parts, tab, tile = '') {
   const modes = parts.map(([id, l, ic]) => ({ id, label: id === 'challenge' ? 'Défi de la semaine' : l, icon: ic, action: 'defi-tab', value: id }));
   const body = tab === 'challenge' ? phoneChallenge(state) : phoneTower(ui, state);
   const sheet = ui.view.towerInfo ? phoneSheet(state, tab) : '';
-  return `<div class="m-frame cb-frame">${mTitle('icon_tower', 'Défis', true)}${modes.length > 1 ? mModes(modes, tab, { size: 64 }) : ''}${body}${sheet}</div>`;
+  return `<div class="m-frame cb-frame">${mTitle('icon_tower', 'Défis', true)}${modes.length > 1 ? mModes(modes, tab, { size: 64 }) : ''}${tile}${body}${sheet}</div>`;
 }
 
 function phoneTower(ui, state) {

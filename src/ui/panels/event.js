@@ -12,7 +12,7 @@ const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
 import { mBar, mBtn, mBtnGold, mEmpty, mStat, mTitle } from '../mobile-kit.js'; // v10.12
-import { isPhoneUi } from './combat-phone.js';
+const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
 const give = (g) => Object.entries(g).map(([k, v]) => `<span class="shop-give">${walletIcon(k)}<b class="num">${v}</b></span>`).join('');

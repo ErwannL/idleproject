@@ -45,7 +45,7 @@ test('A8 : hauts faits par métrique, palier prêt le plus bas, claimed par id, 
   assert.equal(g3.tier.id, 'kills3');
   assert.equal(g3.ready, false);
   const html = contracts.render(uiWith({ missionTab: 'achievements' }), s);
-  assert.equal((html.match(/class="ach[ "]/g) ?? []).length, groups.length);
+  assert.equal((html.match(/data-ach/g) ?? []).length, groups.length); // 10.13 : une ligne du kit (data-ach) par métrique
   assert.match(html, /Fléau des monstres/);
 });
 
@@ -78,10 +78,11 @@ test('Expéditions : une ligne par place, durée commune, plus de formulaire ré
   const html = expeditions.render(uiWith(), s);
   assert.equal((html.match(/data-action="start-expedition"/g) ?? []).length, s.expeditions.slots.length);
   // v9.3.5 (bug 2) : chaque place propose un compagnon différent.
-  const picks = [...html.matchAll(/<option value="([a-z_]+)" selected>/g)].map((m) => m[1]);
+  // 10.13 : plus de <select> ; le compagnon de chaque place est dans la valeur du bouton « Envoyer » (compagnon|durée|place).
+  const picks = [...html.matchAll(/data-action="start-expedition" data-value="([a-z_]+)\|[a-z_]+\|\d"/g)].map((m) => m[1]);
   assert.equal(new Set(picks).size, picks.length, picks.join());
-  assert.ok(!/exp-dur-sel/.test(html));
-  assert.match(expeditions.render(uiWith({ expPerSlot: true, expDur: 'journey' }), s), /exp-dur-sel[\s\S]*\|journey\|/);
+  assert.ok(!/exp-dur-sel|<select/.test(html));
+  assert.match(expeditions.render(uiWith({ expPerSlot: true, expDur: 'journey' }), s), /data-action="start-expedition" data-value="[a-z_]+\|journey\|\d"/);
 });
 
 test('Défis : le Défi de la semaine est jouable avant la Tour ; Donjons ne l\'affiche plus', () => {
