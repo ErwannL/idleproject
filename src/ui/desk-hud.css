@@ -9,13 +9,15 @@
   --hud-card: linear-gradient(#2a1a26ee, #160d18ee);
 }
 #app:not(.m-phone) #stage-area { --zone-h: 82px; --ev-h: 126px; }
-#app:not(.m-phone) #stage-area:has(#goals-pill:not(.hidden)) { --zone-h: 120px; }
+#app:not(.m-phone) #stage-area:has(#goals-pill:not(.hidden)) { --zone-h: 128px; }
 
 /* ---------- 1. Carte de zone : titre, piste des étapes, compteurs (chacun sur sa ligne) ---------- */
-#app:not(.m-phone) #zone-card { top: 8px !important; left: 12px !important; width: 360px; min-width: 0 !important; height: var(--zone-h); box-sizing: border-box; padding: 10px 12px;
+#app:not(.m-phone) #zone-card { top: 8px !important; left: 12px !important; width: 360px; min-width: 0 !important; height: 82px; box-sizing: border-box; padding: 10px 14px;
   display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 8px; text-align: left;
-  border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; color: var(--hud-text); }
-#app:not(.m-phone) #zone-card:hover { border-color: var(--hud-gold2); }
+  color: var(--hud-text); }
+/* Le cadre doré est dessiné par ::before (il descend sous la carte quand les compteurs sont là) : la carte et les compteurs ne se touchent pas. */
+#app:not(.m-phone) #zone-card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: var(--zone-h); box-sizing: border-box; z-index: -1; pointer-events: none; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; }
+#app:not(.m-phone) #zone-card:hover::before { border-color: var(--hud-gold2); }
 #app:not(.m-phone) #zone-name { display: flex; align-items: center; gap: 8px; height: 24px; font-size: 17px; font-weight: 900; color: var(--hud-text); text-shadow: 0 1px 0 #000; min-width: 0; }
 #app:not(.m-phone) #zone-name .zn-skull { width: 22px; height: 22px; flex: none; }
 #app:not(.m-phone) #zone-name .zn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -29,7 +31,7 @@
 #app:not(.m-phone) #stage-pips .pip-boss.current { opacity: 1; }
 #app:not(.m-phone) #wave-frieze { display: none; } /* remplacée par la piste */
 /* Compteurs : leur propre rangée, 3 cases égales, juste sous la piste (la carte garde une hauteur fixe : rien ne se chevauche). */
-#app:not(.m-phone) #goals-pill { position: absolute !important; z-index: 4; left: 26px !important; top: 86px !important; right: auto !important; width: 332px; height: 30px; box-sizing: border-box; padding: 0;
+#app:not(.m-phone) #goals-pill { position: absolute !important; z-index: 4; left: 26px !important; top: 90px !important; right: auto !important; width: 332px; height: 30px; box-sizing: border-box; padding: 0;
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; border: 0; background: none; box-shadow: none; }
 #app:not(.m-phone) #goals-pill > span { display: flex; align-items: center; justify-content: center; gap: 5px; height: 30px; border-radius: 8px; background: #0008; border: 1px solid var(--hud-edge); font-weight: 900; font-size: 14px; color: var(--hud-text); }
 #app:not(.m-phone) #goals-pill > span img { width: 18px; height: 18px; flex: none; }
@@ -51,7 +53,7 @@
 #app:not(.m-phone) #hq-path .hq-reward { grid-area: reward; font-size: 13px; font-weight: 800; color: var(--hud-soft); gap: 6px; }
 #app:not(.m-phone) #hq-path .hq-reward img { width: 18px; height: 18px; }
 #app:not(.m-phone) #hq-path .hq-btn { grid-area: btn; align-self: center; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 12px; font-size: 15px; font-weight: 900; background: #2a1a30; color: var(--hud-gold2); border: 2px solid var(--hud-gold); box-shadow: 0 3px 0 #0008; }
-#app:not(.m-phone) #hq-path.ready .hq-btn { background: linear-gradient(#ffd45a, #e0a21f); color: #3a2300; border-color: #ffe7a0; box-shadow: 0 4px 0 #8a5a0a; }
+#app:not(.m-phone) #hq-path.ready .hq-btn { background: linear-gradient(#1f6a3a, #134a28); color: #d9ffe2; border-color: #5be37d; box-shadow: 0 3px 0 #0008; } /* un seul doré par écran : « Tout récupérer » */
 #app:not(.m-phone) #hq-path.ready { border-color: #ffd34d; box-shadow: 0 0 0 2px #ffd34d60, 0 4px 14px #0008; }
 /* Carnet du jour : titre en petites capitales dorées, lignes de 44 px avec icône, terminé en vert. */
 #app:not(.m-phone) #hud106 #hq-left > #hq-carnet:not(:has(.hq-carnet-done)):not(:has(.hq-carnet-chip)) { gap: 6px; }
@@ -193,8 +195,9 @@
 #app#app.hud-narrow #hq-events .hq-more-sign { font-size: 28px; font-weight: 900; color: var(--hud-gold2); line-height: 1; }
 
 /* ---------- Carte de zone à trois lignes ---------- */
-#app#app.hud-narrow #stage-area #zone-card { top: var(--ph-top) !important; left: 6px !important; width: min(270px, calc(100% - 138px)); max-width: none !important; min-width: 0 !important; height: var(--pzone-h); box-sizing: border-box; padding: 8px 10px !important;
-  display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px; text-align: left; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; color: var(--hud-text); }
+#app#app.hud-narrow #stage-area #zone-card { top: var(--ph-top) !important; left: 6px !important; width: min(270px, calc(100% - 138px)); max-width: none !important; min-width: 0 !important; height: 70px; box-sizing: border-box; padding: 8px 12px !important;
+  display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px; text-align: left; color: var(--hud-text); }
+#app#app.hud-narrow #stage-area #zone-card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: var(--pzone-h); box-sizing: border-box; z-index: -1; pointer-events: none; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; }
 #app#app.hud-narrow #zone-card #zone-name { display: flex !important; align-items: center; gap: 6px; height: 22px; font-size: 14px !important; font-weight: 900; color: var(--hud-text); min-width: 0; overflow: visible !important; }
 #app#app.hud-narrow #zone-name .zn-skull { width: 20px; height: 20px; flex: none; }
 #app#app.hud-narrow #zone-name .zn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -207,7 +210,7 @@
 #app#app.hud-narrow #stage-pips .pip-boss { flex: none; width: 22px; height: 22px; opacity: .85; }
 #app#app.hud-narrow #stage-pips .pip-boss.current { opacity: 1; }
 #app#app.hud-narrow #zone-card #wave-frieze { display: none !important; }
-#app#app.hud-narrow #stage-area #goals-pill { position: absolute !important; z-index: 4; left: 18px !important; top: calc(var(--ph-top) + 62px) !important; right: auto !important; width: calc(min(270px, 100% - 138px) - 24px); height: 26px; box-sizing: border-box; padding: 0;
+#app#app.hud-narrow #stage-area #goals-pill { position: absolute !important; z-index: 4; left: 18px !important; top: calc(var(--ph-top) + 70px) !important; right: auto !important; width: calc(min(270px, 100% - 138px) - 24px); height: 26px; box-sizing: border-box; padding: 0;
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; border: 0; background: none; box-shadow: none; }
 #app#app.hud-narrow #goals-pill > span { display: flex; align-items: center; justify-content: center; gap: 4px; height: 26px; border-radius: 8px; background: #0008; border: 1px solid var(--hud-edge); font-weight: 900; font-size: 12px; color: var(--hud-text); }
 #app#app.hud-narrow #goals-pill > span img { width: 16px; height: 16px; flex: none; }
@@ -233,7 +236,7 @@
 #app#app.hud-narrow #hq-path .hq-bar i { background: #ffd45a; }
 #app#app.hud-narrow #hq-path .hq-reward { display: none !important; }
 #app#app.hud-narrow #hq-path .hq-btn { grid-area: btn; align-self: center; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px !important; border-radius: 12px; font-size: 14px !important; font-weight: 900; background: #2a1a30; color: var(--hud-gold2); border: 2px solid var(--hud-gold); }
-#app#app.hud-narrow #hq-path.ready .hq-btn { background: linear-gradient(#ffd45a, #e0a21f); color: #3a2300; border-color: #ffe7a0; box-shadow: 0 3px 0 #8a5a0a; }
+#app#app.hud-narrow #hq-path.ready .hq-btn { background: linear-gradient(#1f6a3a, #134a28); color: #d9ffe2; border-color: #5be37d; box-shadow: 0 3px 0 #0008; }
 #app#app.hud-narrow #hud106.hq-phone #hq-left > #hq-carnet { position: relative !important; top: auto !important; right: auto !important; left: auto !important; align-self: flex-end; }
 #app#app.hud-narrow .hq-carnet-chip { min-height: 32px; box-sizing: border-box; padding: 0 12px; font-size: 13px; border: 2px solid var(--hud-gold); background: var(--hud-card); color: var(--hud-text); }
 #app#app.hud-narrow .hq-carnet-chip img { width: 20px; height: 20px; }

@@ -2113,3 +2113,8 @@ PATTERNS.unshift(...patterns108(lookup));
 import { EXACT_1013_TALENTS, patterns1013Talents } from './en-1013-talents.js';
 for (const [k, v] of Object.entries(EXACT_1013_TALENTS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1013Talents(lookup));
+// v10.13 (lot 8) : écran de combat (./en-1013-hud.js).
+import { EXACT_1013_HUD, OVERRIDE_1013_HUD, patterns1013Hud } from './en-1013-hud.js';
+Object.assign(EXACT, OVERRIDE_1013_HUD);
+for (const [k, v] of Object.entries(EXACT_1013_HUD)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1013Hud());
