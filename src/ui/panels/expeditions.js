@@ -8,6 +8,7 @@ import {
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, icon, progressBar, rewardIcons, segment } from '../common.js';
 import { animCanvas } from '../animator.js';
+import { mBar, mBtn, mBtnGold, mChip, mGrid, mSheet, mTile, mTitle } from '../mobile-kit.js'; // v10.12 : kit mobile (téléphone)
 
 export function companionPortrait(c, big = false) {
   if (c.kind === 'ally') return animCanvas(`foe:${c.sprite}`, 64, 56, big ? 2 : 1);
@@ -65,12 +66,65 @@ function slotHtml(ui, state, run, i, now, dur) {
     </div>`;
 }
 
+// ---------------------------------------------------------------- v10.12 : téléphone (kit mobile)
+export const isPhoneUi = (ui) => Boolean(ui.root?.classList.contains('m-phone')) || (ui.root?.clientWidth ?? 9999) <= 600;
+const e = escapeHtml;
+const starsOf = (state, c) => duplicates(state.companions.owned[c.id]);
+const tileOf = (c, o = {}) => mTile({ name: c.name, rarity: c.rarity }, { size: 56, pips: false, src: icon(c.sprite, c.kind === 'ally' ? 1 : 3), ...o });
+
+function phoneSlot(ui, state, run, i, now, dur) {
+  if (!run) {
+    const dp = defaultPicks(ui, state)[i];
+    if (!dp?.pick) return `<div class="m-card mt-slot free"><span class="mt-slot-pic">${mTile(null, { size: 56, label: 'Place vide' })}</span><span class="mt-slot-txt"><b>Place ${i + 1}</b><small>Aucun compagnon libre</small></span></div>`;
+    const c = companionById(dp.pick);
+    const type = EXPEDITION_TYPES.some((t) => t.id === ui.view.expDurSlot?.[i]) && ui.view.expPerSlot ? ui.view.expDurSlot[i] : dur;
+    return `<div class="m-card mt-slot free"><button type="button" class="mt-slot-main" data-action="exp-open" data-value="${i}" aria-label="Choisir le compagnon, place ${i + 1}">
+        <span class="mt-slot-pic">${tileOf(c)}</span>
+        <span class="mt-slot-txt"><b>${e(c.name)} <i class="mt-st">${starsOf(state, c)}★</i></b><span class="mt-gain">${rewardIcons(expeditionReward(state, dp.pick, type), '')}</span></span></button>
+      ${mBtn('Envoyer', { action: 'start-expedition', value: `${dp.pick}|${type}|${i}`, cls: 'auto' })}</div>`;
+  }
+  const c = companionById(run.companionId);
+  const type = expeditionType(run.type);
+  const done = expeditionDone(run, now);
+  const ratio = Math.min(1, (now - run.start) / (run.end - run.start));
+  return `<div class="m-card mt-slot${done ? ' done' : ''}"><span class="mt-slot-main static"><span class="mt-slot-pic">${tileOf(c)}</span>
+      <span class="mt-slot-txt"><b>${e(c.name)} <i class="mt-st">· ${type.hours} h</i></b>${mBar(done ? 1 : ratio)}<small>${done ? 'Terminée !' : `encore ${formatDuration((run.end - now) / 1000)}`}</small>
+        <span class="mt-gain">${rewardIcons(run.reward, '')}</span></span></span>
+    ${done ? mBtn('Récupérer', { action: 'claim-expedition', value: i, cls: 'auto' }) : mBtn('Rappeler', { action: 'recall-expedition', value: i, cls: 'auto' })}</div>`;
+}
+
+function phoneSheet(ui, state, dur) {
+  const i = ui.view.expSheet;
+  if (i === null || i === undefined) return '';
+  if (state.expeditions.slots[i]) { ui.view.expSheet = null; return ''; } // partie envoyée : la fiche ne revient pas quand la place se libère
+  const dp = defaultPicks(ui, state)[i];
+  if (!dp?.pick) return '';
+  const type = EXPEDITION_TYPES.some((t) => t.id === ui.view.expDurSlot?.[i]) && ui.view.expPerSlot ? ui.view.expDurSlot[i] : dur;
+  const tiles = dp.free.map((c) => tileOf(c, { size: 64, action: 'exp-pick-tile', value: `${i}|${c.id}`, selected: c.id === dp.pick, label: c.name, plus: `${starsOf(state, c)}★` }));
+  const body = `<div class="m-card mt-pick"><div class="mt-sub">Compagnons libres</div>${mGrid(tiles, 4)}</div>
+    <div class="m-card"><div class="mt-sub">Durée</div><div class="m-chips mt-center">${EXPEDITION_TYPES.map((t) => mChip(`${t.hours} h`, { action: 'exp-slot-dur', value: `${i}|${t.id}`, on: t.id === type })).join('')}</div>
+      <div class="mt-gain big"><small>Gains attendus</small> ${rewardIcons(expeditionReward(state, dp.pick, type), 'named')}</div></div>
+    ${mBtnGold('Envoyer', { action: 'start-expedition', value: `${dp.pick}|${type}|${i}`, icon: 'icon_expedition' })}`;
+  return mSheet(`Place ${i + 1}`, body, { id: 'exp-sheet', icon: 'icon_chest', back: 'exp-close', close: 'exp-close' });
+}
+
+function renderPhone(ui, state, now, ready, again, dur, map) {
+  const free = state.expeditions.slots.some((r) => !r) && availableForExpedition(state).length;
+  const slots = state.expeditions.slots.map((run, i) => phoneSlot(ui, state, run, i, now, dur)).join('');
+  return `<div class="m-frame mt-frame mt-exp">${mTitle('icon_chest', 'Expéditions', true)}
+    <div class="mt-exp-head">${map}</div>
+    <div class="m-chips mt-center" role="tablist" aria-label="Durée">${EXPEDITION_TYPES.map((t) => mChip(`${t.hours} h`, { action: 'exp-dur', value: t.id, on: t.id === dur })).join('')}${mChip('Par place', { action: 'exp-per-slot', on: Boolean(ui.view.expPerSlot) })}</div>
+    <div class="mt-exp-list">${slots}</div>
+    <div class="mt-pair">${mBtn(`Tout récupérer${ready ? ` (${ready})` : ''}`, { action: 'claim-all-expeditions', disabled: !ready })}${mBtn(`Repartir${again ? ` (${again})` : ''}`, { action: 'relaunch-expeditions', disabled: !again })}</div>
+    ${mBtnGold('Tout envoyer', { action: 'send-all-expeditions', value: dur, icon: 'icon_expedition', disabled: !free })}</div>${phoneSheet(ui, state, dur)}`;
+}
+
 export default {
   id: 'expeditions',
   title: 'Expéditions',
   icon: 'icon_chest',
   extra: (ui, state) => `${state.expeditions.slots.filter(Boolean).length}/${state.expeditions.slots.length}`,
-  render(ui, state) {
+  render(ui, state, opts = {}) {
     const now = Date.now();
     const ready = readyExpeditions(state, now);
     const again = relaunchable(state);
@@ -95,6 +149,7 @@ export default {
       return `<span class="exp-walker${p >= 1 ? ' back' : ''}" style="left:${8 + p * 78}%;top:${28 + (i % 3) * 22}%">${companionStill(c)}</span>`;
     }).join('');
     const map = `<div class="exp-map" style="background-image:url(assets/ui/art98/expedition_map.png)">${walkers || '<span class="exp-map-empty">Aucun compagnon en route : envoie-en un !</span>'}</div>`;
+    if (isPhoneUi(ui) && !opts.embed) return renderPhone(ui, state, now, ready, again, dur, map);
     return `<div class="card">${map}${actions}${durRow}${prefer}<div class="exp-list">${slots}</div></div>`;
   },
 };

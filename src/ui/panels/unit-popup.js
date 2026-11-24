@@ -17,6 +17,7 @@ import { skillTextAt } from '../../data/companion-skills.js';
 import { effectText, escapeHtml, formatNumber, hdArt, icon, img, rarityLabel } from '../common.js';
 import { showcaseSlot } from '../showcase.js';
 import { companionPortrait } from './expeditions.js';
+import { mBar, mModes, mSheet, mStat } from '../mobile-kit.js'; // v10.12 : fiche du compagnon sur téléphone
 
 const T = (s) => String(Math.round(s * 10) / 10).replace('.', ','); // v10.3 (8) : virgule décimale
 // Description courte (6 mots au plus) d'une compétence, d'après son type et sa recharge.
@@ -153,4 +154,42 @@ export function unitPopup(ui, state, c, { actions, gear }) {
     <div class="up-body">${body}</div>
     <div class="up-actions">${actions}</div>
   </div>`;
+}
+
+// v10.12 : fiche du compagnon sur téléphone, dans le gabarit du kit (.m-sheet) : portrait, nom, niveau, 4 statistiques, modes
+// (Compétences · Équipement · Histoire), puis les boutons. Mêmes actions que la fenêtre du PC (unit-tab, skill-pop, close-sheet…).
+// ctx : { actions (HTML des boutons du bas), gear (fonction → HTML de l'équipement), close (action de fermeture) }.
+export function unitSheetPhone(ui, state, c, { actions, gear, close = 'close-sheet' }) {
+  const owned = state.companions.owned[c.id];
+  const own = owned ?? { stars: 1, level: 1 };
+  const el = unitElement(c.id);
+  const role = COMPANION_ROLES[c.id];
+  const p = profile(state, c);
+  const hero = computeHeroStats(state);
+  const sub = { ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: own } } };
+  const skills = companionSkills(sub, c.id);
+  const mult = (sk) => companionSkillMultiplier(state, c, sk.type, false, undefined, own);
+  const dps = skills.filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((t, sk) => t + (hero.damage * sk.value * mult(sk)) / sk.every, 0);
+  const heal = skills.filter((sk) => sk.type === 'heal').reduce((t, sk) => t + (hero.maxHp * sk.value * companionSkillMultiplier(state, c, 'heal', false, undefined, own)) / 100 / sk.every, 0);
+  const guard = Math.round(Math.max(0, ...skills.filter((sk) => sk.type === 'shield').map((sk) => sk.value)));
+  const copies = Math.min(COMPANION_RULES.maxCopies, own.stars ?? 1);
+  const lvl = unitLevel(state, c.id);
+  const tab = ['skills', 'gear', 'story'].includes(ui.view.unitTab) && !(ui.view.unitTab === 'gear' && (c.kind !== 'ally' || !owned)) ? ui.view.unitTab : 'skills';
+  const modes = [{ id: 'skills', label: 'Compétences', icon: 'icon_star', action: 'unit-tab', value: 'skills' },
+    ...(owned && c.kind === 'ally' ? [{ id: 'gear', label: 'Équipement', icon: 'icon_helm', action: 'unit-tab', value: 'gear' }] : []),
+    { id: 'story', label: 'Histoire', icon: 'icon_book', action: 'unit-tab', value: 'story' }];
+  const awake = owned && isAwakened(state, c.id);
+  const art = awake ? `<img class="hd-art up-art px-hd awake-art" src="assets/hd/px/awake/ally_${c.id}.webp" alt="" loading="lazy">` : hdArt(c, 'up-art') || companionPortrait(c, true);
+  const body = tab === 'gear' && owned ? gear() : tab === 'story' ? historyTab(state, c) : `${skillIcons(ui, state, c, own)}${skillBubble(ui, state, c, own, Boolean(owned))}`;
+  const main = dps > 0 || (!heal && !guard) ? ['icon_damage', 'Dégâts/s', formatNumber(dps)] : !heal ? ['icon_shield', 'Dégâts reçus', `−${guard} %`] : ['icon_heart', 'Soin/s', formatNumber(heal)];
+  const pic = ui.view.unitShow === c.id ? showcaseSlot('unit', c.id) : `<button type="button" class="mt-portrait-btn" data-action="unit-show" data-value="${c.id}" aria-label="Voir l'animation">${owned ? art : `<span class="up-silhouette">${art}</span>`}</button>`;
+  const html = `<div class="mt-unit-head r-${c.rarity}"><div class="mt-portrait el-${el}" style="--ec:${ELEMENTS[el]?.color ?? '#5a6a90'}">${pic}</div>
+      <div class="mt-unit-id"><b class="mt-unit-name">${escapeHtml(c.name)}</b>
+        <span class="mt-unit-pills"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(el)}</span>
+        <span class="mt-unit-role">${role ? `${img(ROLES[role].icon)} ${ROLES[role].label}` : GEAR_CLASSES[gearClassOf(c)].label}</span>
+        <span class="mt-unit-lv">${owned ? `Niv. ${lvl}/${COMPANION_RULES.maxLevel}` : 'Pas encore obtenu'}</span>${owned ? mBar(lvl / COMPANION_RULES.maxLevel) : ''}
+        <span class="mt-unit-stars" aria-label="${copies} copies sur ${COMPANION_RULES.maxCopies}">${'★'.repeat(copies - 1)}<i>${'★'.repeat(COMPANION_RULES.maxCopies - copies)}</i></span></div></div>
+    <div class="m-stats2">${mStat(main[0], main[1], main[2])}${mStat('icon_heart', 'Vie (Arène)', formatNumber(p?.maxHp ?? 0))}${mStat('icon_bolt', 'Vitesse', `${T(1 / (p?.interval ?? 1))}/s`)}${mStat('icon_star', 'Copies', `${copies}/${COMPANION_RULES.maxCopies}`)}</div>
+    ${mModes(modes, tab, { size: 64 })}<div class="m-card mt-unit-body">${body}</div><div class="mt-unit-actions">${actions}</div>`;
+  return mSheet(c.name, html, { id: 'comp-sheet', icon: 'icon_paw', back: close, close });
 }

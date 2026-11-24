@@ -654,19 +654,25 @@ export class UI {
   // contient plus, la fiche déplacée disparaît. Une fiche doit donc faire partie du HTML rendu (état de vue), jamais être ajoutée à la main.
   watchSheets() {
     const body = this.$('panel-body');
+    if (!body || typeof MutationObserver === 'undefined') return;
+    // v10.12 : seul un rendu du corps (enfants directs) déplace les fiches ; un minuteur qui change un détail ne doit pas les fermer.
+    this.sheetObs = new MutationObserver((muts) => { if (muts.some((m) => m.target === body)) this.syncSheets(); });
+    this.sheetObs.observe(body, { childList: true, subtree: true });
+  }
+
+  // Déplace les fiches rendues dans le corps vers #panel et retire celles qui ne sont plus rendues (appelée après chaque rendu).
+  syncSheets() {
+    const body = this.$('panel-body');
     const panel = this.$('panel');
-    if (!body || !panel || typeof MutationObserver === 'undefined') return;
-    const obs = new MutationObserver(() => {
-      const fresh = [...body.querySelectorAll('.m-sheet')];
-      const old = [...panel.querySelectorAll(':scope > .m-sheet')];
-      if (!fresh.length && !old.length) return;
-      obs.disconnect();
-      const scroll = new Map(old.map((x) => [x.id || 'm', x.scrollTop]));
-      old.forEach((x) => x.remove());
-      fresh.forEach((x) => { panel.appendChild(x); const t = scroll.get(x.id || 'm'); if (t) x.scrollTop = t; });
-      obs.observe(body, { childList: true, subtree: true });
-    });
-    obs.observe(body, { childList: true, subtree: true });
+    if (!body || !panel) return;
+    const fresh = [...body.querySelectorAll('.m-sheet')];
+    const old = [...panel.querySelectorAll(':scope > .m-sheet')];
+    if (!fresh.length && !old.length) return;
+    this.sheetObs?.disconnect();
+    const scroll = new Map(old.map((x) => [x.id || 'm', x.scrollTop]));
+    old.forEach((x) => x.remove());
+    fresh.forEach((x) => { panel.appendChild(x); const t = scroll.get(x.id || 'm'); if (t) x.scrollTop = t; });
+    this.sheetObs?.observe(body, { childList: true, subtree: true });
   }
 
   updateLayout() {
@@ -1177,6 +1183,12 @@ export class UI {
       case 'claim-peek': local(() => { v.claimPeek = !v.claimPeek; }); break; // v9.2.5 : liste de « Tout récupérer »
       case 'exp-dur': local(() => { v.expDur = value; }); break; // v9.1.3 : durée commune des expéditions
       case 'exp-per-slot': local(() => { v.expPerSlot = !v.expPerSlot; }); break;
+      // v10.12 (téléphone) : la place d'expédition s'ouvre en fiche (compagnons libres en cases, durée en puces), plus de <select>.
+      case 'exp-open': local(() => { v.expSheet = Number(value); }); break;
+      case 'exp-close': local(() => { v.expSheet = null; }); break;
+      case 'exp-pick-tile': local(() => { const [sl, cid] = value.split('|'); v.expPick = { ...(v.expPick ?? {}), [sl]: cid }; }); break;
+      case 'exp-slot-dur': local(() => { const [sl, ty] = value.split('|'); v.expPerSlot = true; v.expDurSlot = { ...(v.expDurSlot ?? {}), [sl]: ty }; }); break;
+      case 'gear-filter-set': local(() => { const [k, val] = value.split('|'); v.gearFilter = { ...(v.gearFilter ?? { slot: 'all', rarity: 'all', compat: true }), [k]: k === 'compat' ? val === 'true' : val }; }); break; // v10.12 : filtres d'équipement de compagnon en puces
       case 'defi-tab': if (value === 'arena') { this.openTab('arena'); break; } local(() => { v.defiTab = value; }); break; // v9.1.3 : Défis › Tour / Défi de la semaine (v10.3 : l'Arène a son onglet)
       case 'lang': a.setLanguage(value); break;
       case 'theme': a.setTheme(value); break;
@@ -2890,6 +2902,7 @@ export class UI {
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;
+    this.syncSheets(); // v10.12 : fiches du kit mobile (déplacées dans #panel, ou retirées si le rendu n'en a plus)
     if (body.querySelector('canvas[data-vfx]')) startVignettes(); // v10.1 (P2) : vignettes animées
     for (const [id, value] of Object.entries(this.typed)) {
       const field = body.querySelector(`#${CSS.escape(id)}`);
