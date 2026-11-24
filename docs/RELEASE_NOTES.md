@@ -1,8 +1,17 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.11.2 — Logo du site
+## Ascendrya v10.11.3 — Passe téléphone
+
+- **Prologue en film d'action** : cartons de titre qui arrivent en force, éclairs et secousses, ralenti au moment d'agir (toucher n'importe où suffit, et l'action part seule au bout de 6 s : on ne reste jamais bloqué), « CRITIQUE ! », « SOIN ! », « FLAMMES ! ». Le bouton est au-dessus de la barre de gestes d'Android.
+- **Réincarnation** : le choix touché brille au lieu de délaver tout l'écran ; le champ du nom est clair.
+- **Équipement** : la fiche d'un objet ne fait plus sauter la page ; elle commence sous les cases, qui restent visibles, et Changer, Retirer et le cadenas sont de gros boutons.
+- **Écran de jeu** : la consigne de quête ne passe plus sur le nom de l'étape ; « ▶︎ Avance auto » s'affiche sur tous les téléphones ; les onglets ont un fond opaque (plus de texte du combat derrière).
+
+<details><summary>Ascendrya v10.11.2 — Logo du site</summary>
 
 - **Site** : le logo d'Ascendrya s'affiche maintenant dans l'onglet du navigateur, dans les résultats de Google et sur l'écran d'accueil du téléphone (icônes 48, 192 et 512 px, manifeste, logo dans les données du site).
+
+</details>
 
 <details><summary>Ascendrya v10.11.1 — Finitions de la 10.11</summary>
 
