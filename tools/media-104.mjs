@@ -107,8 +107,8 @@ for (const [size, tag] of [[PC, ''], [TALL, '-1116x993'], [WIDE, '-1716x1000']])
   await click(page, '[data-action="dungeon-sel"][data-value="crypt"]', 1200); await shot(page, `11-page-du-donjon${tag}`);
   await ev(page, () => { __idle.ui.dgSheet?.(''); __idle.ui.view.dungeonSheet = false; __idle.ui.closePanel(); }); await wait(page, 600);
   if (!tag) {
-    await skills(page); await click(page, '.sk2-cell:nth-of-type(2)'); await shot(page, '12-competences-vignette-160');
-    await click(page, '.sk2-cell:nth-of-type(5)'); await shot(page, '13-competences-autre-animation');
+    await skills(page); await click(page, '.dsk-card:nth-of-type(2)'); await shot(page, '12-competences-vignette-160');
+    await click(page, '.dsk-card:nth-of-type(5)'); await shot(page, '13-competences-autre-animation');
     for (const t of ['upgrades', 'contracts', 'shop', 'summon', 'stats']) { await tab(page, t); await shot(page, `14-illustrations-${t}`); }
     await ev(page, () => __idle.ui.closePanel()); await wait(page, 500);
     await chest(page); await wait(page, 1500); await shot(page, '15-coffre-vivant-et-tour-du-bastion');
@@ -179,7 +179,7 @@ if (want('v3')) {
   await click(page, '.dgp-diff [data-value="normal"], [data-action="dungeon-diff"][data-value="normal"]', 2000);
   await ev(page, () => { __idle.ui.dgSheet?.(''); __idle.ui.view.dungeonSheet = false; __idle.ui.invalidate(); }); await wait(page, 800);
   await skills(page); await wait(page, 1500);
-  for (let i = 1; i <= 6; i++) await click(page, `.sk2-cell:nth-of-type(${i})`, 2200);
+  for (let i = 1; i <= 6; i++) await click(page, `.dsk-card:nth-of-type(${i})`, 2200);
   await finish(ctx, page, '03-donjons-et-competences');
 }
 if (want('v4')) {

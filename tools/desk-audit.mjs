@@ -194,8 +194,14 @@ export async function runAudit(argv) {
   const app = await startApp();
   const report = []; // { game, size, view, tab, issues[], skipped }
   const record = async (g, game, w, h, tab, view, kind, shotName) => {
+<<<<<<< HEAD
     if (kind === 'tab') await g.page.waitForFunction(() => { const f = document.querySelector('#panel-body .m-frame'); return !f || Number(getComputedStyle(f).opacity) > 0.99; }, null, { timeout: 4000 }).catch(() => { /* fondu du panneau trop long : le contrôle le dira */ });
     await g.page.waitForFunction(() => [...document.images].every((i) => i.complete || i.loading === 'lazy' || !i.getClientRects().length), null, { timeout: 4000 }).catch(() => { /* image vraiment manquante : le contrôle 5 la signalera */ });
+=======
+    // Une fenêtre (récompense du jour, retour hors ligne…) peut s'ouvrir après le dernier closeAll : elle devient la « racine » du contrôle
+    // et le cartouche du panneau semble absent. On la referme juste avant de mesurer.
+    if (kind === 'tab') await closeAll(g.page);
+>>>>>>> worktree-agent-af683add7a504b07f
     const rec = { game, size: `${w}x${h}`, tab, view, issues: await g.page.evaluate(inPage, kind), skipped: null };
     report.push(rec);
     if (shots) await g.page.screenshot({ path: join(out, `${w}x${h}-${game === 'fresh' ? 'neuve-' : ''}${shotName}.jpg`), type: 'jpeg', quality: 70 });

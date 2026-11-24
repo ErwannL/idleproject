@@ -185,10 +185,9 @@ function skillFacts(state, c) {
   const at = (l) => ({ ...state, rushes: { ...state.rushes, levels: { ...state.rushes.levels, [rush.id]: l }, autoOn: {} } });
   const eff = (l) => (rush.id === 'phantom' ? `${dec(phantomHitPct(at(l), rush))} % × ${rush.hitsPerSecond}/s` : effectText(rushEffect(at(l), rush)));
   const dur = (l) => `${rushDuration(at(l), rush)} s`;
-  return { type: 'boost', desc: rush.id === 'phantom' ? 'Des coups fantômes en plus pendant quelques secondes.' : `${rush.text}.`, line: `${eff(lv)} · ${dur(lv)}`,
+  return { type: 'boost', desc: `${rush.id === 'phantom' ? 'Des coups fantômes en plus.' : `${rush.text}.`} Recharge ${Math.round((rush.cooldown / 60) * 10) / 10} min.`, line: `${eff(lv)} · ${dur(lv)}`,
     rows: [{ icon: 'icon_damage', label: 'Effet', now: eff(lv), next: c.maxed ? '' : eff(lv + 1) },
-      { icon: 'icon_timer', label: 'Durée', now: dur(lv), next: c.maxed ? '' : dur(lv + 1) },
-      { icon: 'icon_timer', label: 'Recharge', now: `${Math.round((rush.cooldown / 60) * 10) / 10} min`, next: '' }] };
+      { icon: 'icon_timer', label: 'Durée', now: dur(lv), next: c.maxed ? '' : dur(lv + 1) }] };
 }
 
 function deskCard(state, c, sel, activeIds) {
