@@ -1,0 +1,126 @@
+/* v10.13 (lot 8, § 8) : écran de combat sur téléphone (tout sous #app.m-phone ; le PC a desk-hud.css). Mêmes changements de fond que
+   sur PC, à la taille du téléphone :
+   - rangée d'événements : cadre 56 px, image 44 px (contain, centrée), minuteur en pastille SOUS le cadre, pastille rouge hors de l'image ;
+   - carte de zone à trois lignes (titre | piste | compteurs en 3 cases) ; Chemin du héros dessous ; Carnet en puce ;
+   - console du bas en deux lignes : (sorts + « Tout récupérer » + coffre) puis (vague, PV, étiquettes) ; la barre du bas 10.11.4 ne bouge pas ;
+   - « Avance auto » et les boosts à droite de la carte de zone. Aucun texte sous 12 px. */
+#app.m-phone { --hud-gold: #c9a14a; --hud-gold2: #f3d27a; --hud-edge: #6a4a6a; --hud-good: #5be37d; --hud-text: #eef2ff; --hud-soft: #9fb0d8; --hud-card: linear-gradient(#2a1a26f2, #160d18f2); }
+#app.m-phone #stage-area { --ph-top: 6px; --pzone-h: 70px; --pev-h: 100px; }
+#app.m-phone #stage-area:has(#hud106:not(.hidden) #hq-events:not(.hidden)) { --ph-top: 110px; }
+#app.m-phone #stage-area:has(#goals-pill:not(.hidden)) { --pzone-h: 104px; }
+
+/* ---------- Événements ---------- */
+#app#app.m-phone #hud106.hq-phone #hq-events { top: 4px !important; left: 6px !important; right: 6px !important; max-width: none !important; width: auto; height: var(--pev-h) !important; box-sizing: border-box; display: flex; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 4px;
+  padding: 8px 6px 6px !important; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; }
+#app#app.m-phone #hud106.hq-phone #hq-events.expanded-col { height: auto !important; min-height: var(--pev-h); flex-wrap: wrap; }
+#app.m-phone #hq-events .hq-ev { font-size: 12px; line-height: 16px; flex: none; width: 58px !important; height: 82px; display: block; position: relative; text-align: center; }
+#app.m-phone #hq-events .hq-ev-art { display: grid; place-items: center; box-sizing: border-box; width: 56px !important; height: 56px !important; margin: 0 auto; border-radius: 12px; border: 2px solid #e8b86a; background: radial-gradient(#4a2a40, #1a0d1a); box-shadow: inset 0 0 8px #000a; overflow: hidden; }
+#app.m-phone #hq-events .hq-ev-art img { width: 42px !important; height: 42px !important; max-width: none; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone #hq-events .hq-ev-timer { position: relative; z-index: 1; display: inline-block; margin-top: -8px; padding: 0 5px; border-radius: 7px; background: #000d; border: 1px solid #e8b86a; color: var(--hud-text); font-style: normal; font-size: 12px; font-weight: 900; line-height: 16px; transform: none; left: auto; bottom: auto; white-space: nowrap; }
+#app.m-phone #hq-events .hq-ev-timer.empty { visibility: hidden; }
+#app.m-phone #hq-events .hq-ev small { display: block; max-width: 58px; margin: 1px auto 0; font-size: 12px; font-weight: 800; line-height: 1.15; text-shadow: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app.m-phone #hq-events .hq-dot { top: -8px; right: -6px; min-width: 16px; height: 16px; line-height: 12px; padding: 0 3px; box-sizing: border-box; font-size: 12px; font-weight: 900; z-index: 2; transform: none; }
+#app.m-phone #hq-events .hq-ev.ready .hq-ev-art { border-color: var(--hud-good); box-shadow: inset 0 0 8px #000a, 0 0 10px #5be37d88; }
+#app.m-phone #hq-events .hq-ev.ready .hq-ev-timer { border-color: var(--hud-good); color: var(--hud-good); }
+#app.m-phone #hq-events .hq-more .hq-ev-art { background: #2a1830; }
+#app.m-phone #hq-events .hq-more-sign { font-size: 28px; font-weight: 900; color: var(--hud-gold2); line-height: 1; }
+
+/* ---------- Carte de zone à trois lignes ---------- */
+#app#app.m-phone #stage-area #zone-card { top: var(--ph-top) !important; left: 6px !important; width: min(270px, calc(100% - 138px)); max-width: none !important; min-width: 0 !important; height: 70px; box-sizing: border-box; padding: 8px 12px !important;
+  display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px; text-align: left; color: var(--hud-text); }
+#app#app.m-phone #stage-area #zone-card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: var(--pzone-h); box-sizing: border-box; z-index: -1; pointer-events: none; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; }
+#app.m-phone #zone-card #zone-name { display: flex !important; align-items: center; gap: 6px; height: 22px; font-size: 14px !important; font-weight: 900; color: var(--hud-text); min-width: 0; overflow: visible !important; }
+#app.m-phone #zone-name .zn-skull { width: 20px; height: 20px; flex: none; }
+#app.m-phone #zone-name .zn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app.m-phone #zone-name .zn-x { margin-left: auto; flex: none; font-style: normal; font-size: 12px; line-height: 18px; padding: 0 6px; border-radius: 7px; background: #5a1a2a; border: 1px solid #ff6b8a; color: #ffd6e0; }
+#app.m-phone #stage-pips { display: flex; align-items: center; gap: 4px; height: 22px; margin: 0; }
+#app.m-phone #stage-pips .pip { flex: 1 1 0; min-width: 0; width: auto; height: 8px; border: 0; border-radius: 4px; background: #3a2a3a; box-shadow: none; }
+#app.m-phone #stage-pips .pip.done { background: var(--hud-good); }
+#app.m-phone #stage-pips .pip.current { background: #ffd45a; box-shadow: 0 0 8px #ffd45a; }
+#app.m-phone #stage-pips .pip-link { display: none; }
+#app.m-phone #stage-pips .pip-boss { flex: none; width: 22px; height: 22px; opacity: .85; }
+#app.m-phone #stage-pips .pip-boss.current { opacity: 1; }
+#app.m-phone #zone-card #wave-frieze { display: none !important; }
+#app#app.m-phone #stage-area #goals-pill { position: absolute !important; z-index: 4; left: 18px !important; top: calc(var(--ph-top) + 70px) !important; right: auto !important; width: calc(min(270px, 100% - 138px) - 24px); height: 26px; box-sizing: border-box; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; border: 0; background: none; box-shadow: none; }
+#app.m-phone #goals-pill > span { display: flex; align-items: center; justify-content: center; gap: 4px; height: 26px; border-radius: 8px; background: #0008; border: 1px solid var(--hud-edge); font-weight: 900; font-size: 12px; color: var(--hud-text); }
+#app.m-phone #goals-pill > span img { width: 16px; height: 16px; flex: none; }
+#app.m-phone #goals-pill > span.done { border-color: var(--hud-good); color: var(--hud-good); }
+
+/* ---------- À droite de la carte de zone : « Avance auto » puis les boosts ---------- */
+#app#app.m-phone #stage-area #auto-toggle { top: var(--ph-top) !important; right: 6px !important; left: auto !important; width: auto; max-width: 134px; height: 32px; box-sizing: border-box; white-space: nowrap; font-size: 12px; font-weight: 800; z-index: 5; }
+#app#app.m-phone #play.phone-band #boost-group { top: calc(var(--ph-top) + 48px) !important; right: 6px !important; left: auto !important; bottom: auto !important; width: auto !important; transform: none !important; z-index: 6; flex-direction: row-reverse; align-items: flex-start; gap: 6px; }
+#app.m-phone #play.phone-band #boost-group #rush-bar { flex-wrap: nowrap; gap: 6px; }
+#app.m-phone #rush-bar .rush-btn { width: 52px; height: 52px; border-radius: 12px; border: 2px solid var(--hud-gold); background: #0b1124e6; }
+#app.m-phone #rush-bar .rush-btn img { width: 36px; height: 36px; }
+#app.m-phone #boost-group .boost-chip { height: 52px; box-sizing: border-box; padding: 0 8px; border-radius: 12px; border: 2px solid var(--hud-gold); background: #0b1124e6; color: var(--hud-gold2); font-size: 12px; font-weight: 900; white-space: nowrap; }
+
+/* ---------- Chemin du héros et Carnet ---------- */
+#app#app.m-phone #hud106.hq-phone #hq-left { top: calc(var(--ph-top) + var(--pzone-h) + 8px) !important; left: 6px; right: 6px; width: auto; gap: 6px; }
+#app.m-phone #hud106 #hq-left > #hq-path { box-sizing: border-box; padding: 6px 10px !important; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; color: var(--hud-text);
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "kick kick kick" "world title btn" "world bar btn"; column-gap: 8px; row-gap: 2px; align-items: center; min-height: 0; }
+#app.m-phone #hq-path .hq-main, #app.m-phone #hq-path .hq-foot { display: contents !important; position: static !important; transform: none !important; padding: 0 !important; }
+#app.m-phone #hq-path .hq-kicker { grid-area: kick; margin-bottom: 2px; font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--hud-gold2); }
+#app.m-phone #hq-path .hq-world { grid-area: world; width: 40px !important; height: 40px !important; border: 2px solid var(--hud-gold); border-radius: 9px; object-fit: cover; }
+#app.m-phone #hq-path .hq-title { grid-area: title; min-width: 0; font-size: 14px !important; font-weight: 900; line-height: 1.2; color: var(--hud-text); }
+#app.m-phone #hq-path .hq-bar { grid-area: bar; height: 8px; border-radius: 4px; background: #0b0610; border: 1px solid var(--hud-edge); }
+#app.m-phone #hq-path .hq-bar i { background: #ffd45a; }
+#app.m-phone #hq-path .hq-reward { display: none !important; }
+#app.m-phone #hq-path .hq-btn { grid-area: btn; align-self: center; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px !important; border-radius: 12px; font-size: 14px !important; font-weight: 900; background: #2a1a30; color: var(--hud-gold2); border: 2px solid var(--hud-gold); }
+#app.m-phone #hq-path.ready .hq-btn { background: linear-gradient(#1f6a3a, #134a28); color: #d9ffe2; border-color: #5be37d; box-shadow: 0 3px 0 #0008; }
+#app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet { position: relative !important; top: auto !important; right: auto !important; left: auto !important; align-self: flex-end; }
+#app.m-phone .hq-carnet-chip { min-height: 32px; box-sizing: border-box; padding: 0 12px; font-size: 13px; border: 2px solid var(--hud-gold); background: var(--hud-card); color: var(--hud-text); }
+#app.m-phone .hq-carnet-chip img { width: 20px; height: 20px; }
+#app.m-phone .hq-carnet-done { min-height: 32px; font-size: 12px; max-width: 100%; }
+#app#app.m-phone #hud106.hq-phone #hq-bounty { top: calc(var(--ph-top) + var(--pzone-h) + 100px); }
+
+/* ---------- Console du bas : deux lignes ---------- */
+#app.m-phone #combat-console { position: absolute; z-index: 5; left: 6px; right: 6px; bottom: 8px; box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "atk seal chest" "wave wave wave"; align-items: center; gap: 8px; padding: 8px 10px;
+  border: 2px solid var(--hud-gold); border-radius: 14px; background: linear-gradient(#24182af2, #120a16f8); box-shadow: 0 -4px 16px #000a; }
+#app.m-phone #combat-console .cc-gem { position: absolute; top: -6px; width: 10px; height: 10px; background: var(--hud-gold2); transform: rotate(45deg); pointer-events: none; }
+#app.m-phone #combat-console .cc-gem-l { left: -6px; } #app.m-phone #combat-console .cc-gem-r { right: -6px; }
+#app.m-phone #combat-console .cc-lbl { display: none; }
+#app.m-phone #combat-console .cc-attacks { grid-area: atk; min-width: 0; }
+#app.m-phone #combat-console .cc-attacks:has(#skill-bar.hidden) { display: none; }
+#app.m-phone #combat-console .cc-right { display: contents; }
+#app.m-phone #combat-console .cc-wave { grid-area: wave; min-width: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
+#app.m-phone #combat-console #skill-bar { position: static !important; transform: none !important; display: flex; align-items: center; gap: 6px; padding: 0; }
+#app.m-phone #combat-console #skill-bar .skill-btn.big { width: 54px; height: 54px; border: 2px solid var(--hud-gold); border-radius: 12px; overflow: visible; }
+#app.m-phone #combat-console #skill-bar .skill-btn.big img { width: 38px; height: 38px; position: relative; z-index: 1; }
+#app.m-phone #combat-console #skill-bar .skill-btn.big .cd { border-radius: 10px; }
+#app.m-phone #combat-console #skill-bar .ult-btn { width: 54px; height: 54px; border: 2px solid #ff8a3a; border-radius: 12px; box-shadow: 0 0 10px #ff8a3a; font-size: 12px; font-weight: 900; justify-content: center; }
+#app.m-phone #combat-console #skill-bar .guard-btn { height: 54px; min-width: 72px; border-radius: 12px; font-size: 13px; }
+#app.m-phone #combat-console #next-action { grid-area: seal; position: relative !important; left: auto !important; top: auto !important; bottom: auto !important; transform: none !important; width: auto; max-width: none !important; min-width: 0; min-height: 56px; height: 56px; box-sizing: border-box;
+  padding: 0 10px; gap: 8px; border-radius: 12px; border: 2px solid #ffe7a0; background: linear-gradient(#ffd45a, #e0a21f); color: #3a2300; box-shadow: 0 4px 0 #8a5a0a; text-align: left; justify-content: flex-start; }
+#app.m-phone #combat-console #next-action .na-icon { width: 24px; height: 24px; font-size: 16px; }
+#app.m-phone #combat-console #next-action #next-action-text { font-size: 15px; font-weight: 900; line-height: 1.1; -webkit-line-clamp: 2; }
+#app.m-phone #combat-console #next-action #next-action-why { font-size: 12px; font-weight: 700; -webkit-line-clamp: 1; }
+#app.m-phone #combat-console #loot-bag { grid-area: chest; position: relative !important; left: auto !important; top: auto !important; right: auto !important; bottom: auto !important; width: 56px !important; height: 56px !important; box-sizing: border-box; min-width: 0; min-height: 0;
+  border: 2px solid #e8b86a; border-radius: 12px; background: radial-gradient(#4a2a40, #1a0d1a); }
+#app.m-phone #combat-console #loot-bag > .lb-art { inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); }
+#app.m-phone #combat-console #loot-bag > .lb-name { display: none; }
+#app.m-phone #combat-console #loot-bag > .lb-count { top: -7px; right: -7px; }
+#app.m-phone #combat-console #loot-bag > .lb-up:not(.hidden) { top: -7px; left: -7px; }
+#app.m-phone #combat-console #hud { display: contents !important; }
+#app.m-phone #combat-console #progress { order: 1; flex: 1 1 100%; height: 24px; min-width: 0; box-sizing: border-box; border: 1px solid var(--hud-edge); border-radius: 8px; background: #0b0610; }
+#app.m-phone #combat-console #progress-fill { background: linear-gradient(90deg, #2f9a54, #5be37d); }
+#app.m-phone #combat-console #progress.boss #progress-fill { background: linear-gradient(90deg, #8e1f34, #ff5a6a); }
+#app.m-phone #combat-console #progress-text { font-size: 14px; font-weight: 900; line-height: 22px; }
+#app.m-phone #combat-console #scene-bottom { order: 2; position: static !important; flex: 1 1 100%; display: block; height: 20px; min-width: 0; width: auto; }
+#app.m-phone #combat-console #scene-bottom #level-badge, #app.m-phone #combat-console #scene-bottom #xp-bar { display: none; }
+#app.m-phone #combat-console #hp-chip { position: relative; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 20px; box-sizing: border-box; padding: 0; overflow: hidden; border: 1px solid var(--hud-edge); border-radius: 7px; background: #0b0610; }
+#app.m-phone #combat-console #hp-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: linear-gradient(90deg, #b02a3a, #ff5a6a); transition: width .15s; }
+#app.m-phone #combat-console #hp-chip img, #app.m-phone #combat-console #hp-chip #hp { position: relative; z-index: 1; }
+#app.m-phone #combat-console #hp-chip img { width: 12px; height: 12px; }
+#app.m-phone #combat-console #hp { font-size: 12px; font-weight: 900; text-shadow: 0 1px 2px #000; }
+#app.m-phone #combat-console #env-chip { order: 3; position: static !important; flex: 0 1 auto; max-width: 52%; display: inline-flex; align-items: center; gap: 4px; height: 24px; box-sizing: border-box; padding: 0 8px; border-radius: 8px; background: #0008; border: 1px solid #ff6b8a; color: #ffb0c0; font-size: 12px; font-weight: 800; overflow: hidden; white-space: nowrap; }
+#app.m-phone #combat-console #env-chip.countered { border-color: #3f7a4a; color: #9cf08a; }
+#app.m-phone #combat-console #news { order: 3; flex: 1 1 0; min-width: 0; display: flex; align-items: center; height: 24px; box-sizing: border-box; padding: 0 8px; border-radius: 8px; background: #0008; border: 1px solid var(--hud-edge); color: var(--hud-text); font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; -webkit-line-clamp: unset; }
+#app.m-phone #combat-console #news.empty { display: none; }
+#app.m-phone #combat-console #news-text { color: inherit; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app.m-phone #combat-console #advance-btn, #app.m-phone #combat-console #leave-mode { order: 3; }
+#app#app.m-phone.page-ui #combat-console { display: none !important; }
+#app.m-phone #rush-bar .rush-btn .rush-key, #app.m-phone #rush-bar .rush-btn .rush-name { font-size: 12px; }
+/* Bandeau de quête et puce « Faille du jour » (affichés quand la colonne de quêtes est cachée : donjon, Tour, Défi) : sous la carte de zone. */
+#app.m-phone #stage-area #quest-banner { top: calc(var(--ph-top) + var(--pzone-h) + 8px) !important; left: 6px !important; right: auto !important; width: min(270px, calc(100% - 138px)); max-width: none; box-sizing: border-box; }
+#app.m-phone #stage-area #rift-chip { top: calc(var(--ph-top) + 116px) !important; right: 6px !important; z-index: 5; }

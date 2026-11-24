@@ -19,12 +19,14 @@ test('10.13 (8) : desk-hud.css et mobile-hud.css sont liés, et chaque règle re
   for (const s of mob) assert.match(s, /^#app(#app)?\.m-phone/, `téléphone : ${s}`);
 });
 
-test('10.13 (8.1) : événements — cadre 76 px (PC) / 56 px (téléphone), image contain centrée, minuteur sous le cadre, rangée dans un cadre doré', () => {
+test('10.13 (8.1) : événements — cadre 76 px (PC) / 36 px en grille de 4 colonnes (téléphone, 10.13.1), image contain centrée, minuteur sous le cadre, rangée dans un cadre doré', () => {
   const d = css('src/ui/desk-hud.css'), m = css('src/ui/mobile-hud.css');
   assert.match(d, /#hq-events \.hq-ev-art \{[^}]*width: 76px; height: 76px/);
   assert.match(d, /#hq-events \.hq-ev-art img \{[^}]*width: 58px; height: 58px[^}]*object-fit: contain/);
   assert.match(d, /\.hq-ev-timer \{[^}]*margin-top: -8px/);
-  assert.match(m, /#hq-events \.hq-ev-art \{[^}]*width: 56px !important; height: 56px !important/);
+  assert.match(m, /#hq-events \.hq-ev-art \{[^}]*width: 36px !important; height: 36px !important/);
+  assert.match(m, /#hq-events \.hq-ev-art img \{[^}]*width: 28px !important; height: 28px !important/);
+  assert.match(m, /#hq-events \{[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(m, /#hq-events \.hq-ev-art img \{[^}]*object-fit: contain/);
   assert.match(d, /#hq-events \.hq-ev\.ready \.hq-ev-art \{[^}]*border-color: var\(--hud-good\)/);
   assert.match(d, /#hq-events \{[^}]*border: 2px solid var\(--hud-gold\)/);
@@ -86,11 +88,43 @@ test('10.13 (8.6) : la rangée d\'événements s\'affiche dès qu\'une partie es
   assert.match(h, /\(calm\.early && !advanced\)/);
 });
 
-test('10.13 (8) : scène étroite sur PC (panneau ouvert à côté) — même mise en page compacte que le téléphone, copiée de mobile-hud.css', () => {
-  const desk = src('src/ui/desk-hud.css'), mob = src('src/ui/mobile-hud.css');
+test('10.13 (8) : scène étroite sur PC (panneau ouvert à côté) — mise en page compacte du téléphone 10.13.0, FIGÉE (tools/hud-narrow-source.css) : le téléphone 10.13.1 (maquette t07) n\'y touche pas', () => {
+  const desk = src('src/ui/desk-hud.css'), mob = src('tools/hud-narrow-source.css');
   const block = desk.slice(desk.indexOf('/* >>> hud-narrow'), desk.indexOf('/* <<< hud-narrow */'));
   assert.ok(block.length > 2000, 'bloc hud-narrow présent');
   const expected = mob.replace(/^\/\*[\s\S]*?\*\/\n/, '').replace(/#app#app\.m-phone/g, '#app#app.hud-narrow').replace(/#app\.m-phone/g, '#app#app.hud-narrow').trimEnd();
   assert.ok(block.includes(expected), 'desk-hud.css est à jour : relancer node tools/sync-hud-narrow.mjs');
   assert.match(src('src/ui/ui.js'), /const narrow = !this\.root\.classList\.contains\('m-phone'\) && area\.clientWidth < 820;/);
+});
+
+test('10.13.1 (téléphone, t07) : mobile-hud.css n\'a plus à suivre la scène étroite du PC ; le bloc figé reste celui de 10.13.0', () => {
+  const m = src('src/ui/mobile-hud.css'), frozen = src('tools/hud-narrow-source.css');
+  assert.notEqual(m, frozen, 'le téléphone a sa propre mise en page (grille d\'événements, console)');
+  assert.match(frozen, /width: 58px !important; height: 82px/); // l'ancienne rangée d'événements (PC étroit)
+  assert.match(src('tools/sync-hud-narrow.mjs'), /hud-narrow-source\.css/);
+});
+
+test('10.13.1 (téléphone, t07) : carte de zone, événements, Carnet, console — les règles du téléphone', () => {
+  const m = css('src/ui/mobile-hud.css');
+  assert.match(m, /--evw: 178px/);
+  assert.match(m, /#zone-card \{[^}]*height: 76px/);
+  assert.match(m, /#zone-card::before \{[^}]*height: var\(--pzone-h\)/);
+  assert.match(m, /#hq-left > #hq-carnet \{[^}]*order: -1[^}]*border: 2px solid var\(--hud-gold\)/); // même cadre que la zone
+  assert.match(m, /#auto-toggle \{[^}]*width: var\(--evw\)/);
+  assert.match(m, /#combat-console #boost-group #boost-toggle/); // « Boosts » est une étiquette de la console
+  assert.match(m, /#skill-bar \.skill-btn\.big \.cd::after \{[^}]*counter\(sk\)/); // numéros 1, 2, 3
+  const h = src('src/ui/hud-quests.js');
+  assert.match(h, /if \(this\.mphone\) return 8;/);
+  assert.match(h, /hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour/);
+  const u = src('src/ui/ui.js'), c = src('src/ui/combat-console.js');
+  assert.match(u, /Boss dans \$\{n\} étape/);
+  assert.match(u, /placeBoostGroup\(this\)/);
+  assert.match(c, /export function placeBoostGroup/);
+  assert.match(c, /classList\.contains\('m-phone'\)/); // le PC ne bouge pas
+});
+
+test('10.13.1 (téléphone, § 7) : la mini-scène des onglets remplit la largeur (téléphone seulement)', () => {
+  const p = src('src/ui/page.js');
+  assert.match(p, /const fill = band && document\.getElementById\('app'\)\?\.classList\.contains\('m-phone'\)/);
+  assert.match(p, /fill \? Math\.min\(H \* 0\.3, W \* \(h \/ w\)\) : H \* 0\.3/);
 });
