@@ -15,6 +15,7 @@ import { setById } from '../../core/sets.js';
 import { slotIconName } from '../../render/pixel.js';
 import { coin, escapeHtml, formatDecimal, formatNumber, img, rarityLabel, shard } from '../common.js';
 import { costLines, helpQ, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
+import { mBar, mBtn, mBtnGold, mChip, mCost, mGrid, mModes, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
 
 export function uselessPreview(state) {
   const list = uselessItems(state);
@@ -177,11 +178,114 @@ function craftBody(ui, state) {
 
 const SEGS = ['recycle', 'upgrade', 'fuse', 'craft'];
 
+// v10.12 (lot 4, § 5) : Forge sur téléphone. Cadre + cartouche, ressources en tête, 4 modes (Recycler · Renforcer · Fusionner ·
+// Fabriquer), puis pour chaque mode : illustration de 120 px au plus, une phrase, la zone d'objets en cases, un bouton doré.
+const fgArt = (id) => `<img class="px m-fg-art" src="assets/ui/art104/forge_step_${id}.png" alt="" width="300" height="120">`;
+const fgTile = (it, o = {}) => mTile(it, { size: 56, ...o });
+
+function phoneRecycle(state, now) {
+  const p = now.preview;
+  const n = p.list.length;
+  const cells = p.list.slice(0, 15).map((i) => fgTile(i));
+  return `${fgArt('recycle')}<p class="m-fg-phrase">Les objets inutiles deviennent des éclats et de l'or.</p>
+    ${n ? `<div class="m-card">${mGrid(cells, 5)}${n > 15 ? `<p class="m-note">+${n - 15} autres</p>` : ''}</div>
+      <div class="m-gains" aria-label="Ce que ça rapporte">${shard()} <b class="num">+${formatNumber(p.shards)}</b> ${coin()} <b class="num">+${formatNumber(p.gold)}</b></div>`
+      : '<div class="m-card"><p class="m-note">Rien à recycler : tes objets sont protégés (verrouillés, meilleurs que l\'équipé ou utiles à un ensemble).</p></div>'}
+    ${mBtnGold(`Recycler${n ? ` (${n})` : ''}`, { action: 'recycle-useless', disabled: !n })}`;
+}
+
+function phoneUpgrade(ui, state, now) {
+  const ranking = now.ranking;
+  const kg = skillKillGold(state);
+  const units = teamOf(state).flatMap((c) => Object.values(unitGear(state, c.id)).filter(Boolean).map((item) => ({ item, unit: c, preview: gearUpgradePreview(state, item, kg) })));
+  const all = [...ranking.map((r) => ({ ...r, unit: null })), ...units];
+  if (!all.length) return `${fgArt('upgrade')}<p class="m-fg-phrase">Tu ne portes encore aucun objet. Équipe-toi d'abord.</p>${mBtnGold('Ouvrir l\'Équipement', { action: 'open-tab', value: 'inventory' })}`;
+  const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all.find((r) => r.item.id === now.upgrade.item?.id) ?? all[0];
+  const p = sel.preview;
+  const weak = !sel.unit && !p.atMax && sel.gainPct < WEAK_GAIN_PCT && (gainsPower(sel) || sharpenCost(state, sel.item) > 0);
+  const gain = p.atMax ? `au maximum (+${p.max})` : sel.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ')
+    : weak ? 'presque sans effet' : gainsPower(sel) ? `${pctText(sel.gainPct)} de puissance` : statGainText(p);
+  const cells = all.map((r) => fgTile(r.item, { action: 'forge-up-sel', id: r.item.id, selected: r.item.id === sel.item.id }));
+  const sharpen = weak ? sharpenCost(state, sel.item) : 0;
+  let main = '';
+  if (!p.atMax) {
+    if (sel.unit) main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'gear-up', value: sel.item.id, disabled: !p.canPay });
+    else if (weak && sharpen) main = mBtnGold('Remettre au niveau', { action: 'sharpen', id: sel.item.id, attrs: `data-cost="${sharpen}" data-currency="shards"`, disabled: state.materials.shards < sharpen });
+    else if (weak) main = `${mBtnGold('Fabriquer un meilleur objet', { action: 'forge-go', value: 'craft' })}${mBtn(`Renforcer quand même +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) })}`;
+    else main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) });
+  }
+  const costs = p.atMax || !p.cost ? '' : `<div class="m-costs">${mCost('icon_shard', state.materials.shards, p.cost.shards, { fmt: formatNumber })}${mCost('coin', state.gold, p.cost.gold, { fmt: formatNumber })}</div>`;
+  return `${fgArt('upgrade')}<p class="m-fg-phrase">Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.</p>
+    <div class="m-card">${mGrid(cells, 5)}</div>
+    <div class="m-card m-fg-sel r-${sel.item.rarity}"><div class="m-fg-selh">${fgTile(sel.item, { size: 64 })}<div><b>${escapeHtml(sel.item.name)}${sel.item.upgrades ? ` +${sel.item.upgrades}` : ''}</b>
+      <small>${sel.unit ? `${escapeHtml(slotName(sel.unit, eqSlot(sel.item)))} de ${escapeHtml(sel.unit.name)}` : HERO_SLOTS[sel.slot]}</small>
+      <span class="${p.canPay && !weak ? 'good' : 'muted'} num">${p.atMax ? gain : `+${p.level} › +${p.level + 1} : ${gain}`}</span></div></div>${costs}</div>
+    ${main}`;
+}
+
+function phoneFuse(ui, state, groups) {
+  const count = BALANCE.forge.fusionCount;
+  const phrase = `<p class="m-fg-phrase">${count} objets de la même place et de la même rareté : 1 objet de la rareté au-dessus.</p>`;
+  if (!groups.length) return `${fgArt('fuse')}${phrase}<div class="m-card"><p class="m-note">Il faut ${count} objets de la même place et de la même rareté.</p></div>${mBtnGold('Fusionner', { disabled: true })}`;
+  const keep = fusionKeep(state);
+  const keyOf = (g) => `${g.slot}|${g.rarity}`;
+  const g = groups.find((x) => keyOf(x) === ui.view.fuseOpen) ?? groups.find((x) => x.usable >= x.stakes[0]) ?? groups[0];
+  const key = keyOf(g);
+  const auto = groups.filter((x) => x.auto);
+  const nAll = auto.reduce((t, x) => t + Math.floor(x.usable / count) * count, 0);
+  const all = auto.length > 1 || (auto.length === 1 && auto[0].usable >= count * 2)
+    ? mBtn(ui.view.fuseArmed ? `Confirmer : fusionner ${nAll} objets ?` : `Fusionner tout ce qui est sûr · ${plural(auto.length, 'groupe', 'groupes')}`, { action: 'fuse-all' }) : '';
+  const chips = `<div class="m-chips" role="group" aria-label="Groupe à fusionner">${groups.map((x) => mChip(`${rarityLabel(x.rarity)} › ${rarityLabel(x.next)} ×${x.bag}`, { action: 'fuse-open', value: keyOf(x), on: keyOf(x) === key, icon: slotIconName(x.slot) })).join('')}</div>`;
+  const included = Boolean(ui.view.fusionInclude?.[key]);
+  const pv = fusionPreview(state, g.slot, g.rarity, included ? fusionKeep(state, { include: [key] }) : keep);
+  const cells = Array.from({ length: count }, (_, i) => (pv.used[i] ? fgTile(pv.used[i], { plus: `Niv ${pv.used[i].level}` }) : mTile(null, { size: 56, slot: g.slot })));
+  const protectedLine = g.protected ? `<div class="m-chips">${mChip(`${plural(g.protected, 'objet protégé', 'objets protégés')} : ${included ? 'inclus' : 'inclure'}`, { action: 'fuse-include', value: key, on: included })}</div>` : '';
+  const chosen = ui.view.fuseSet?.[key] ?? pv.inherit[0]?.set;
+  const inherit = pv.inherit.length ? `<div class="m-chips" role="group" aria-label="Ensemble gardé">${pv.inherit.map((o) => mChip(`${setById(o.set)?.name ?? o.set} · ${o.chance} %`, { action: 'fuse-set', value: key, attrs: `data-set="${escapeHtml(o.set)}"`, on: chosen === o.set })).join('')}${mChip('Aucun', { action: 'fuse-set', value: key, attrs: 'data-set="none"', on: chosen === 'none' })}</div>` : '';
+  const est = pv.level ? estimateGainPct(state, g.slot, pv.next, pv.level) : null;
+  const lower = pv.stakes.filter((x) => x.possible && x.stake !== pv.stake).map((x) => mBtn(`Tenter à ${x.stake} · ${x.chance} %`, { action: 'fuse', value: key, attrs: `data-stake="${x.stake}"` })).join('');
+  const main = pv.stake ? mBtnGold(`Fusionner (${pv.stake} objets · ${pv.chance} %)`, { action: 'fuse', value: key, attrs: `data-stake="${pv.stake}"` })
+    : `<p class="m-note bad">Il manque ${plural(pv.stakes[0].stake - pv.available, 'objet', 'objets')} pour fusionner.</p>${mBtnGold('Fusionner', { disabled: true })}`;
+  return `${fgArt('fuse')}${phrase}${chips}
+    <div class="m-card">${mGrid(cells, 5)}<div class="m-fg-res"><span>›</span><b class="r-${pv.next} rarity-text">1 × ${escapeHtml(SLOTS[g.slot])} ${rarityLabel(pv.next)}</b><small>niv. ${pv.level ?? '—'}${est === null ? '' : est > 0 ? ` · ${pctText(est)} de puissance` : ' · pas mieux que le tien'}</small></div>
+      ${mBar((pv.chance ?? 0) / 100)}<p class="m-note">Chance de réussite : <b class="num">${pv.stake ? `${pv.chance} %` : '—'}</b>${pv.pity ? ` · +${pv.pity} % en réserve (règle de pitié)` : ''}</p>${protectedLine}${inherit}</div>
+    ${ui.view.fuseMsg ? `<p class="m-note bad" role="status">${escapeHtml(ui.view.fuseMsg)}</p>` : ''}${all}${lower}${main}`;
+}
+
+function phoneCraft(ui, state) {
+  const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
+  const full = state.inventory.length >= BALANCE.loot.inventorySize;
+  const lvl = levelForStage(state.maxStage);
+  const slots = `<div class="m-chips" role="group" aria-label="Place à fabriquer">${Object.entries(SLOTS).map(([k, l]) => mChip(l, { action: 'craft-slot', value: k, on: k === slot, icon: slotIconName(k) })).join('')}</div>`;
+  const tier = (t) => {
+    const cost = craftCost(state, undefined, t);
+    const short = state.gold < cost.gold || state.materials.shards < cost.shards;
+    const btn = (t === 'epic' ? mBtnGold : mBtn)(`Fabriquer ${t === 'epic' ? 'Épique+' : 'Rare+'}`, { action: 'craft', value: slot, attrs: `data-tier="${t}"`, disabled: short || full });
+    return `<div class="m-card m-fg-tier"><div class="m-fg-tier-t"><b>${t === 'epic' ? 'Épique ou mieux' : 'Rare ou mieux'}</b></div>
+      <div class="m-fg-odds">${craftOdds(t).map((o) => `<span class="r-${o.rarity}"><b class="num rarity-text">${formatDecimal(o.pct, o.pct < 10 ? 1 : 0)} %</b> ${rarityLabel(o.rarity)}</span>`).join('')}</div>
+      <div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: formatNumber })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: formatNumber })}</div>${btn}</div>`;
+  };
+  return `${fgArt('craft')}<p class="m-fg-phrase">De l'or et des éclats : un objet neuf, niveau ${lvl} (ton étape max), pour la place choisie.</p>${slots}
+    ${tier('rare')}${tier('epic')}${full ? '<p class="m-note bad">Sac plein : recycle d\'abord.</p>' : ''}
+    ${bastionOpen(state) ? mBtn('Commander au forgeron (moins cher, 1 h à 8 h)', { action: 'bastion-open', value: 'forge' }) : ''}`;
+}
+
+function phoneForge(ui, state) {
+  const now = forgeNow(state);
+  const seg = SEGS.includes(ui.view.forgeSeg) ? ui.view.forgeSeg : 'recycle';
+  const modes = mModes([{ id: 'recycle', label: 'Recycler', icon: 'icon_rebirth' }, { id: 'upgrade', label: 'Renforcer', icon: 'icon_upgrade' }, { id: 'fuse', label: 'Fusionner', icon: 'icon_double' }, { id: 'craft', label: 'Fabriquer', icon: 'icon_anvil' }]
+    .map((m) => ({ ...m, action: 'forge-seg', value: m.id })), seg, { size: 64 });
+  const head = `<div class="m-stats2 m-fg-res2">${mStat('icon_shard', 'Éclats', formatNumber(state.materials.shards))}${mStat('coin', 'Or', formatNumber(state.gold))}</div>`;
+  const body = seg === 'recycle' ? phoneRecycle(state, now) : seg === 'upgrade' ? phoneUpgrade(ui, state, now) : seg === 'fuse' ? phoneFuse(ui, state, now.groups) : phoneCraft(ui, state);
+  return `<div class="m-frame m-hero m-fg${ui.view.forgeFx ? ' fx' : ''}">${mTitle('icon_anvil', 'Forge', true)}${head}${modes}<div class="m-fg-body">${body}</div></div>`;
+}
+
 export default {
   id: 'forge',
   title: 'Forge',
   icon: 'icon_anvil',
   render(ui, state) {
+    if (ui.root?.classList.contains('m-phone')) return phoneForge(ui, state); // v10.12 (lot 4)
     const now = forgeNow(state);
     const seg = SEGS.includes(ui.view.forgeSeg) ? ui.view.forgeSeg : 'recycle';
     const sword = slotIconName('weapon'), helm = slotIconName('helmet');

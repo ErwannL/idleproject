@@ -11,6 +11,8 @@ import { coin, effectText, escapeHtml, formatDecimal, formatNumber, img } from '
 import { pref } from '../prefs.js';
 import { vignetteHtml } from '../vignettes.js';
 import { vignetteFx } from '../../data/skill-vfx.js';
+import { mBtn, mBtnGold, mChip, mGrid, mModes, mSheet, mTile, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
+import { icon } from '../common.js';
 
 const time = (s) => (s >= 60 ? `${Math.ceil(s / 60)} min` : `${Math.ceil(s)} s`);
 
@@ -186,12 +188,68 @@ function viewV2(ui, state) {
     ${bubbleV2(state, sel)}`;
 }
 
+// v10.12 (lot 4, § 5) : Compétences sur téléphone. Cadre + cartouche, points (et « Répartir » en doré quand il y en a),
+// deux modes Attaques / Boosts avec « Auto » en interrupteur, cases de 5 par ligne (nom dessous, Nv), une fiche au toucher.
+function phoneView(ui, state) {
+  const cells = skillGridCells(state);
+  const pts = skillPointsAvailable(state);
+  const mode = ui.view.mSkillMode === 'r' ? 'r' : 's';
+  const [k, id] = String(ui.view.mSkillSheet ?? '').split(':');
+  const sel = cells.find((c) => c.kind === k && c.id === id) ?? null;
+  const modes = mModes([{ id: 's', label: 'Attaques', icon: 'skill_quick', action: 'm-set', value: 's', attrs: 'data-key="mSkillMode"' },
+    { id: 'r', label: 'Boosts', icon: 'icon_bolt', action: 'm-set', value: 'r', attrs: 'data-key="mSkillMode"' }], mode, { size: 64 });
+  const tile = (c) => mTile({ name: c.name, rarity: c.kind === 'r' ? 'epic' : 'rare', locked: c.locked }, {
+    size: 56, src: icon(c.icon), action: 'm-set', value: `${c.kind}:${c.id}`, attrs: 'data-key="mSkillSheet"', label: c.name, pips: false,
+    plus: c.locked ? '' : `Nv ${c.level}`, badge: c.active > 0 ? time(c.active) : '', bang: !c.locked && !c.maxed && c.plus?.can && c.kind === 's',
+  });
+  const auto = mode === 's'
+    ? `<label class="m-switch"><input type="checkbox" data-action="skill-auto" ${state.skillAuto ? 'checked' : ''}><span class="m-sw" aria-hidden="true"></span><span class="m-sw-t">Auto</span></label>`
+    : `<label class="m-switch"><input type="checkbox" data-action="rush-auto" ${state.rushes.auto ? 'checked' : ''}><span class="m-sw" aria-hidden="true"></span><span class="m-sw-t">Auto</span></label>`;
+  const head = `<div class="m-card m-skhead"><div class="m-sk-pts"><small>Points à dépenser</small><b class="num">${pts}</b></div>
+    <div class="m-sk-btn">${pts > 0 ? mBtnGold('Répartir les points', { action: 'distribute-skills' }) : ''}</div></div>`;
+  const list = cells.filter((c) => c.kind === mode);
+  const body = `<div class="m-card m-skbody"><div class="m-sk-row"><span class="m-sk-sub">${mode === 's' ? 'Payées en points, lancées seules' : 'Payés en or, à utiliser'}</span>${auto}</div>
+    ${mGrid(list.map(tile), 5)}</div>`;
+  return `<div class="m-frame m-hero m-sk">${mTitle('skill_quick', 'Compétences', true)}${head}${modes}${body}${sel ? phoneSheet(state, sel) : ''}</div>`;
+}
+
+function phoneSheet(state, c) {
+  const tk = c.kind === 'r' ? 'boost' : SKILLS.find((x) => x.id === c.id)?.type ?? '';
+  const type = c.kind === 'r' ? 'Boost' : TYPE_LABEL[tk] ?? '';
+  let short = '', now = '', next = '', main = '', use = '';
+  if (c.kind === 's') {
+    const skill = SKILLS.find((x) => x.id === c.id);
+    const bonus = computeHeroStats(state).bonus;
+    short = SKILL_SHORT[skill.id] ?? skill.name;
+    now = c.level > 0 ? `${skill.text(formatDecimal(skillValue(skill, c.level)))}, toutes les ${formatDecimal(skillCooldown(skill, bonus))} s.` : '';
+    next = c.maxed ? '' : skill.text(formatDecimal(skillValue(skill, c.level + 1)));
+    if (c.plus) main = mBtnGold(`${c.level === 0 ? 'Apprendre' : 'Améliorer'} · ${c.plus.price}`, { action: 'learn-skill', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: !c.plus.can });
+    if (c.level > 0) { const on = activeSkills(state).some((x) => x.id === c.id); use = mBtn(on ? '✓ Active (3 au plus)' : 'Rendre active (3 au plus)', { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}" aria-pressed="${on}"` }); }
+  } else {
+    const rush = RUSHES.find((x) => x.id === c.id);
+    short = rush.id === 'phantom' ? 'Coups fantômes en plus' : effectText(rushEffect(state, rush));
+    now = `Pendant ${rushDuration(state, rush)} s, recharge ${Math.round(rush.cooldown / 60)} min.`;
+    if (c.plus) main = mBtnGold(`Améliorer · ${c.plus.price}`, { icon: 'coin', action: 'upgrade-rush', attrs: `data-key="${escapeHtml(c.id)}" data-cost="${c.plus.cost}" data-currency="gold"`, disabled: !c.plus.can });
+    use = c.locked ? '' : c.active > 0 ? `<p class="m-sk-state good">Actif ${time(c.active)}</p>` : c.cd > 0 ? `<p class="m-sk-state">Prêt dans ${time(c.cd)}</p>` : mBtn('Utiliser', { action: 'rush', value: rush.id });
+  }
+  const why = c.plus && !c.plus.can && !c.locked && !c.maxed ? (c.kind === 's' ? 'Il te faut 1 point (1 par niveau du héros)' : "Il te manque de l'or") : '';
+  const lock = c.locked ? `Débloquée au niveau ${c.unlock} du héros.` : c.maxed ? 'Niveau maximal.' : '';
+  const body = `<div class="m-card m-sk-prev">${skillVignetteHtml(state, c, 160)}</div>
+    <div class="m-card m-sk-info"><div class="m-sk-name"><b>${escapeHtml(c.name)}</b><span>Nv ${c.level}</span>${type ? `<em class="sk2-type t-${tk}">${type}</em>` : ''}</div>
+      <p class="m-sk-short">${escapeHtml(short)}</p>
+      ${now ? `<div class="m-sk-line"><small>Effet</small><b>${now}</b></div>` : ''}${next ? `<div class="m-sk-line"><small>Niveau suivant</small><b class="good">${next}</b></div>` : ''}
+      ${lock ? `<p class="m-sk-lock">${img('icon_lock')} ${escapeHtml(lock)}</p>` : ''}${why ? `<p class="m-sk-why">${escapeHtml(why)}</p>` : ''}</div>
+    <div class="m-sk-actions">${main}${use}</div>`;
+  return mSheet(c.name, body, { id: 'mSkillSheet', icon: c.icon, close: 'm-sheet-x', back: 'm-sheet-x' });
+}
+
 export default {
   id: 'skills',
   title: 'Compétences',
   icon: 'skill_quick',
   extra: (ui, state) => `Points : <b class="gold-text">${skillPointsAvailable(state)}</b>`,
   render(ui, state) {
+    if (ui.root?.classList.contains('m-phone')) return phoneView(ui, state); // v10.12 (lot 4)
     if (pref('skillList') !== true) return viewV2(ui, state); // v9.3.4 : nouvelle vue par défaut (l'ancienne liste reste en option)
     if (pref('skillGrid') === true) return gridView(ui, state);
     const points = skillPointsAvailable(state);

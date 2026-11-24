@@ -1429,6 +1429,8 @@ export class UI {
       case 'import-save': this.importFromPanel(); break;
       case 'close-modal': this.closeModal(); break;
       case 'm-help': this.$('panel-help').click(); break; // v10.12 : « ? » du cartouche du kit mobile = l'aide du panneau
+      case 'm-set': if (/^(m[A-Z]\w*|upgradeSort)$/.test(key ?? '')) local(() => { v[key] = value === undefined || value === '' ? null : value; }); break; // v10.12 (hero) : état de vue d'un mode / d'une fiche (data-key = nom commençant par « m », ou upgradeSort)
+      case 'm-sheet-x': { const k = el.closest('.m-sheet')?.id; if (/^m[A-Z]\w*$/.test(k ?? '')) local(() => { v[k] = null; }); else el.closest('.m-sheet')?.remove(); break; } // v10.12 (hero) : ferme une fiche dont l'id est son état de vue
       case 'm-sheet-close': el.closest('.m-sheet')?.remove(); break; // v10.12 : ferme une fiche du kit (un panneau qui garde l'état passe sa propre action dans mSheet)
       case 'rebirth-talent': this.closeModal(); this.openTab('tree'); break; // v9.3.5
       case 'open-claims': this.openClaims(); break;
@@ -3602,6 +3604,7 @@ export class UI {
 // v9.7.1 (lot 5) : lexique d'un appui — la première occurrence de chaque terme (texte hors balises et hors boutons) devient
 // touchable ; un appui affiche sa phrase d'explication.
 function lexify(html) {
+  if (html.includes('m-frame m-hero')) return html; // v10.12 (hero) : pas de mots soulignés (cibles de 16 px) dans les écrans Héros du kit mobile
   const seen = new Set();
   let inButton = 0;
   return html.replace(/(<[^>]*>)|([^<]+)/g, (m, tag, text) => {
