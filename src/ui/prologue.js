@@ -32,13 +32,13 @@ export const PROLOGUE_SCENES = SCENES;
 export const PROLOGUE_LINES = [
   [1, 'Les ruines d\'Ascendrya. Tu marches, au sommet de ta force.'],
   [7, 'Des monstres !'],
-  [9, 'Touche le bouton qui brille : ta compétence.'], // v9.8 (0.6) : au moment où le bouton brille, doigt dessus
+  [9, 'Touche le bouton qui brille : ta compétence !'], // v10.12 : le temps ralentit tant que le joueur n'a pas touché
   [20, 'Le sol tremble…'],
-  [24, 'Le Colosse des Anciens. Frappe-le de toutes tes forces.'],
+  [24, 'Frappe-le de toutes tes forces !'],
   [33, 'Tes coups l\'effleurent à peine.'],
   [42, 'Chaque coup du géant te fait plier.'],
   [50, 'La Prêtresse et la Pyromancienne accourent !'],
-  [56, 'Touche leurs boutons : elles combattent avec toi.'],
+  [56, 'Touche les boutons : elles combattent avec toi !'],
   [68, 'Ensemble, vous faites enfin plier le géant.'],
   [75, 'Le Colosse entre en rage.'],
   [81, 'Son regard brûlant balaie tout.'],
@@ -119,11 +119,15 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
   el.setAttribute('role', 'dialog');
   el.setAttribute('aria-label', 'Prologue');
   el.innerHTML = `<canvas class="px pro-canvas" aria-hidden="true"></canvas>
+    <div class="pro-lb top" aria-hidden="true"></div><div class="pro-lb bottom" aria-hidden="true"></div>
+    <div class="pro-slow" aria-hidden="true"></div><div class="pro-flash" aria-hidden="true"></div>
+    <div class="pro-title" aria-live="polite"><small></small><b></b></div>
+    <div class="pro-dmg" aria-hidden="true"></div>
     <div class="pro-hud"><div class="pro-who"><b>Héros</b> <span class="num">Niv. 60</span><i class="pro-hp"><i></i></i></div>
       <div class="pro-cboss hidden"><b>Colosse des Anciens</b><i class="pro-bhp"><i></i></i></div></div>
     <div class="pro-dialog" aria-live="polite"><p></p></div>
     <div class="pro-actions">
-      <button class="pro-act pro-skill hidden" type="button" data-act="skill">⚔ Frappe<span class="pro-finger" aria-hidden="true">👆</span></button>
+      <button class="pro-act pro-skill hidden" type="button" data-act="skill"><span class="pro-ico" aria-hidden="true">⚔</span>Frappe<span class="pro-finger" aria-hidden="true">👆</span></button>
       <button class="pro-act pro-heal hidden" type="button" data-act="priestess">✚ Soin</button>
       <button class="pro-act pro-fire hidden" type="button" data-act="pyromancer">🔥 Flammes</button>
     </div>
@@ -139,6 +143,33 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
   let world = null, state = null, r = null, wb = null, fight = null, pressed = 0;
   const fired = new Set();
   const once = (key, fn) => { if (!fired.has(key)) { fired.add(key); fn(); } };
+  // v10.12 : mise en scène « film d'action » — cartons de titre, éclairs d'impact, ralenti tant que le joueur n'a pas touché.
+  let scale = 1, qte = null, titleTimer = 0;
+  const title = (big, small = '', kind = '') => {
+    const box = q('.pro-title');
+    box.className = `pro-title show ${kind}`;
+    box.querySelector('b').textContent = big;
+    box.querySelector('small').textContent = small;
+    void box.offsetWidth; box.classList.add('slam');
+    clearTimeout(titleTimer);
+    titleTimer = setTimeout(() => box.classList.remove('show', 'slam'), reduced ? 1600 : 2600);
+  };
+  const flash = (color = '#fff') => {
+    const f = q('.pro-flash');
+    f.style.background = color;
+    f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+  };
+  const shakeScene = (n) => { if (reduced) return; const sc = wb?.r ?? r; if (sc) sc.shake = Math.max(sc.shake ?? 0, n); };
+  const popDmg = (text, kind = '') => {
+    const d = q('.pro-dmg');
+    d.className = `pro-dmg ${kind}`;
+    d.textContent = text;
+    void d.offsetWidth; d.classList.add('on');
+  };
+  // Moments où le joueur doit agir : le temps ralentit (×0,15) jusqu'à l'appui, ou 6 s réelles (puis l'action part seule).
+  const QTE = [{ at: 9, kind: 'skill' }, { at: 24.3, kind: 'skill' }, { at: 56.2, kind: 'ally' }];
+  const startQte = (i) => { qte = { i, real: 0 }; el.classList.add('qte'); };
+  const endQte = () => { qte = null; el.classList.remove('qte'); };
 
   // Cadre : en portrait (téléphone), la scène est rendue comme sur PC puis réduite (même règle que le World Boss).
   const fit = () => {
@@ -182,9 +213,24 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     fit();
   }
   const push = (ev) => fight?.out.push({ damage: 0, ...ev });
+  const s0 = () => prologueState(t);
+  const act2 = (kind) => { if (wb) fight.world.events.push({ type: 'companionSkill', companionId: kind, skill: 0, skillType: kind === 'priestess' ? 'heal' : 'burst', time: fight.world.time }); };
 
   function act(kind) {
     pressed += 1;
+    const wasQte = qte;
+    endQte();
+    flash(kind === 'priestess' ? '#c8ffd4' : kind === 'pyromancer' ? '#ffb36a' : '#fff');
+    shakeScene(kind === 'skill' ? 9 : 6);
+    try { navigator.vibrate?.(kind === 'skill' ? 45 : 30); } catch { /* pas de vibreur */ }
+    if (kind === 'skill') { const weak = Boolean(wb) && s0().scene === 'colossus'; popDmg(weak ? 'À peine une égratignure…' : 'CRITIQUE !', weak ? 'weak' : ''); }
+    else if (kind === 'priestess') popDmg('SOIN !', 'heal');
+    else popDmg('FLAMMES !', 'fire');
+    if (wasQte && QTE[wasQte.i].kind === 'ally') {
+      // un seul appui suffit à lancer les deux compagnonnes ; l'autre bouton reste là pour le plaisir
+      const other = kind === 'priestess' ? 'pyromancer' : 'priestess';
+      setTimeout(() => act2(other), 450);
+    }
     if (kind === 'skill') {
       const tgt = wb ? fight.state : state;
       tgt.skillAuto = true; // une seule salve : remis à false au pas suivant
@@ -219,11 +265,12 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
       wb.r.shake = Math.max(wb.r.shake, 4);
     }));
     for (const at of ROCKS) if (s.t >= at) once(`rock${at}`, () => push({ type: 'ability', id: 'boulder', name: 'Jet de pierre' }));
-    for (const at of PUNCH) if (s.t >= at) once(`punch${at}`, () => { wb.play('attack'); wb.heroHurt({ damage: 0 }, 0.45, 7); });
+    for (const at of ROCKS) if (s.t >= at + 0.7) once(`rockhit${at}`, () => { flash('#ffdca8'); shakeScene(8); });
+    for (const at of PUNCH) if (s.t >= at) once(`punch${at}`, () => { wb.play('attack'); wb.heroHurt({ damage: 0 }, 0.45, 7); flash('#ff6a5a'); shakeScene(12); try { navigator.vibrate?.(60); } catch { /* rien */ } });
     if (s.t >= SCENES.rage) once('rage', () => { fight.phase = 3; push({ type: 'phase', id: 'fury', phase: 3 }); });
-    if (s.t >= BEAM) once('beam', () => push({ type: 'ability', id: 'eyebeam', name: 'Regard brûlant' }));
+    if (s.t >= BEAM) once('beam', () => { push({ type: 'ability', id: 'eyebeam', name: 'Regard brûlant' }); flash('#ff3a2a'); });
     if (s.t >= BEAM + 6) once('beam2', () => push({ type: 'ability', id: 'eyebeam', name: 'Regard brûlant' }));
-    if (s.t >= LAST_HIT - 0.6) once('last', () => { wb.play('attack3'); wb.heroHurt({ damage: 0 }, 0.4, 10); });
+    if (s.t >= LAST_HIT - 0.6) once('last', () => { wb.play('attack3'); wb.heroHurt({ damage: 0 }, 0.4, 10); flash('#fff'); shakeScene(16); });
     // Paliers de vie : le moteur ne décide rien (héros jamais mort, Colosse immortel), le script fixe la barre.
     const hero = fight.world.hero;
     const max = fight.world.heroStats?.maxHp ?? hero.hp;
@@ -257,6 +304,10 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     q('.pro-fire').classList.toggle('hidden', !s.allyPrompt);
     if (s.shake && !reduced) { const sc = wb?.r ?? r; sc.shake = Math.max(sc.shake ?? 0, 4); } // secousse du moteur (le canvas garde son échelle)
     el.classList.toggle('rage', s.scene === 'rage');
+    if (s.t >= 0.3) once('t-open', () => title('Ascendrya', 'Les ruines · au sommet de ta force'));
+    if (s.t >= 20.4) once('t-boss', () => { title('Le Colosse des Anciens', 'Gardien des ruines', 'boss'); flash('#ff4a3a'); shakeScene(14); });
+    if (s.t >= 50.2) once('t-allies', () => title('Renforts !', 'La Prêtresse et la Pyromancienne', 'ally'));
+    if (s.t >= 75.2) once('t-rage', () => { title('Rage', 'Le Colosse se déchaîne', 'rage'); flash('#ff2a1a'); });
     q('.pro-white').style.opacity = String(s.white);
     if (s.dialog !== shownDialog && s.dialog >= 0) {
       shownDialog = s.dialog;
@@ -272,6 +323,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     fired.add('rebirth');
     cancelAnimationFrame(raf);
     ro?.disconnect();
+    endQte();
     el.classList.add('in-rebirth');
     const box = q('.pro-rebirth');
     box.classList.remove('hidden');
@@ -296,11 +348,13 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     if (!c.classList.contains('hidden')) return;
     q('.pro-voice').textContent = 'Choisis ce que tu emportes dans ta nouvelle vie.';
     c.innerHTML = `<div class="pro-bless">${Object.entries(BLESSINGS).map(([id, b]) => `<button class="pro-b" type="button" data-b="${id}"><b>${escapeHtml(b.label)}</b><small>${escapeHtml(b.text)}</small></button>`).join('')}</div>
-      <label class="pro-name">Ton nom (facultatif) <input type="text" maxlength="16" autocomplete="off" spellcheck="false"></label>`;
+      <label class="pro-name"><span>Ton nom (facultatif)</span><input type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Héros"></label>`;
     c.classList.remove('hidden');
     c.querySelectorAll('.pro-b').forEach((b) => b.addEventListener('click', () => {
+      if (el.classList.contains('light')) return;
       const name = c.querySelector('input').value.trim().replace(/[<>]/g, '').slice(0, 16);
-      el.classList.add('light');
+      b.classList.add('picked');
+      el.classList.add('light'); // le choix reste lisible, puis un voile blanc monte (plus de page délavée)
       setTimeout(() => finishAll({ blessing: b.dataset.b, name }), reduced ? 200 : 1400);
     }));
     c.querySelector('.pro-b')?.focus({ preventScroll: true });
@@ -324,22 +378,30 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
   // Un appui sur la scène : réplique suivante.
   el.addEventListener('click', (e) => {
     if (fired.has('rebirth') || e.target.closest('button, input, label')) return;
+    if (qte) { const k = QTE[qte.i].kind; if (k === 'skill') act('skill'); else { act('priestess'); } return; } // en ralenti, tout l'écran compte
     const nxt = PROLOGUE_LINES.find(([at]) => at > t + 0.05);
     if (nxt && nxt[0] - t < 8) t = nxt[0];
   });
 
   const frame = (now) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const real = Math.min(0.05, (now - last) / 1000);
     last = now;
+    QTE.forEach((x, i) => { if (t >= x.at) once(`qte${i}`, () => startQte(i)); });
+    if (qte) {
+      qte.real += real;
+      if (qte.real > 6) { const k = QTE[qte.i].kind; act(k === 'skill' ? 'skill' : 'priestess'); } // jamais bloquant
+    }
+    scale = qte && !reduced ? Math.max(0.15, scale - real * 4) : Math.min(1, scale + real * 2.5);
+    const dt = real * scale;
     t += dt;
     const s = prologueState(t);
-    // Sans action du joueur, la compétence part seule (jamais bloquant).
-    if (s.skillPrompt && t > 14 && pressed === 0) once('autoSkill', () => act('skill'));
     if (s.scene === 'rebirth') { rebirth(); return; }
     try { frameCombat(dt, s); } catch (err) { console.warn('prologue', err); rebirth(); return; }
     render(s);
     raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);
-  return { finish: () => finishAll({}), el, skipTo: (x) => { t = x; } };
+  const handle = { finish: () => finishAll({}), el, skipTo: (x) => { t = x; } };
+  if (typeof window !== 'undefined') window.__pro = handle; // tests de capture
+  return handle;
 }

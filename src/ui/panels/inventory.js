@@ -569,13 +569,12 @@ export default {
     if (!pop) { ui.view.eqPopKey = null; return; }
     const slots = [...body.querySelectorAll('.eq-doll .eq-slot')];
     if (!slots.length) return;
-    const key = ui.view.gearWho ?? 'hero';
-    if (ui.view.eqPopKey !== key) {
-      body.scrollTop += Math.min(...slots.map((s) => s.getBoundingClientRect().top)) - body.getBoundingClientRect().top - 6;
-      ui.view.eqPopKey = key;
-    }
+    // v10.12 : plus de défilement automatique de la page à l'ouverture de la fiche (l'écran « sautait » à chaque place
+    // touchée) : la page reste où elle est, la feuille prend la place libre sous les cases (la moitié de l'écran au moins).
     const bottom = Math.max(...slots.map((s) => s.getBoundingClientRect().bottom));
-    pop.style.setProperty('max-height', `${Math.round(Math.max(window.innerHeight * 0.5, window.innerHeight - bottom - 6))}px`, 'important');
+    const hPx = `${Math.round(Math.min(window.innerHeight * 0.82, Math.max(window.innerHeight * 0.4, window.innerHeight - bottom - 6)))}px`;
+    pop.style.setProperty('max-height', hPx, 'important');
+    pop.style.setProperty('height', hPx, 'important'); // v10.12 : même hauteur d'une place à l'autre (le haut de la feuille ne saute plus)
   },
   render(ui, state) {
     const v = ui.view;
