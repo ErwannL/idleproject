@@ -277,9 +277,9 @@ function ageRibbon(ui, state) {
   const fresh = age > seen;
   if (fresh) state.ui.ageSeen = age;
   if (PHONE && fresh) ui.view.bastionAgeNew = age;
-  return `<div class="bs-age" style="--age:${a.color}"><b>Âge ${a.roman} · ${escapeHtml(a.name)}</b><span>niveaux jusqu'à ${a.maxLevel}${mult > 1.001 ? ` · ×${dec(mult)} dégâts et vie` : ''}</span>
+  return `<div class="bs-age${fresh && DESK ? ' fresh' : ''}" style="--age:${a.color}"><b>Âge ${a.roman} · ${escapeHtml(a.name)}</b><span>niveaux jusqu'à ${a.maxLevel}${mult > 1.001 ? ` · ×${dec(mult)} dégâts et vie` : ''}</span>
       ${nx ? `<small>Âge ${nx.roman} · ${escapeHtml(nx.name)} : étape ${nx.stage}${nx.bastionLevel ? `, Bastion niveau ${nx.bastionLevel}` : ''}</small>` : '<small>Âge maximal</small>'}</div>
-    ${fresh && !PHONE ? `<div class="bs-age-new" role="status" style="--age:${a.color}"><small>Nouvel âge</small><b>${escapeHtml(a.name)}</b></div>` : ''}`;
+    ${fresh && !PHONE && !DESK ? `<div class="bs-age-new" role="status" style="--age:${a.color}"><small>Nouvel âge</small><b>${escapeHtml(a.name)}</b></div>` : ''}`;
 }
 function villageMap(ui, state, now, kick = true) {
   const age = bastionAge(state);

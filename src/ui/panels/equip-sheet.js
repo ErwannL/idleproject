@@ -109,7 +109,7 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
     const rows = p.rows.map((r) => `<div class="eq-row chg"><span>${STAT_NAMES[r.key]}</span><span class="num muted">${r.key === 'cd' ? '−' : '+'}${formatDecimal(r.before)} %</span><i>→</i><b class="num good">${r.key === 'cd' ? '−' : '+'}${distinctTo(formatDecimal(r.before), formatDecimal(r.after), GEAR_UP_PCT)} %</b></div>`).join('');
     return `<section class="eq-sec eq-reinf"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>
       <div class="eq-rows">${rows}</div>${costLines(state, p.cost)}
-      <button class="btn btn-gold eq-do" data-action="gear-up" data-value="${item.id}" ${p.canPay ? '' : 'disabled'}>Renforcer +${p.level + 1}</button>
+      <button class="btn btn-gold eq-do" data-action="gear-up" data-value="${item.id}" ${p.canPay ? '' : 'disabled'}>Améliorer</button>
       ${helpQ(`Règle des compagnons : chaque niveau ajoute ${GEAR_UP_PCT} % aux bonus de la pièce.`)}</section>`;
   }
   const p = upgradePreview(state, item);
@@ -136,7 +136,7 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
   return `<section class="eq-sec eq-reinf${weak ? ' is-weak' : ''}"><h4>Renforcer : <b>+${p.level} → +${p.level + 1}</b> <span class="muted">max +${p.max}</span></h4>${helpQ(rule)}
     ${named ? `<div class="eq-named">Stat renforcée : <b>${label(named)}</b> <span class="good">+${B.upgradeBoostPct} %</span></div>` : ''}
     <div class="eq-rows">${rows}${pw}</div>${better}${costLines(state, p.cost)}
-    <button class="btn btn-gold eq-do" data-action="upgrade-item" data-id="${item.id}" data-cost="${p.cost.gold}" data-currency="gold" ${p.lack.shards ? 'data-locked="1" disabled' : p.lack.gold ? 'disabled' : ''}>Renforcer +${p.level + 1}</button></section>`;
+    <button class="btn btn-gold eq-do" data-action="upgrade-item" data-id="${item.id}" data-cost="${p.cost.gold}" data-currency="gold" ${p.lack.shards ? 'data-locked="1" disabled' : p.lack.gold ? 'disabled' : ''}>Améliorer</button></section>`;
 }
 
 // Grand effet de l'objet, et s'il est actif (un seul à la fois).
