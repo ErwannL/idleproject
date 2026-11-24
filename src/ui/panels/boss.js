@@ -14,8 +14,8 @@ import { ZONES } from '../../data/zones.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
-import { mBar, mGrid, mSheet, mTile } from '../mobile-kit.js'; // v10.12
-import { isMPhone, mpFrame } from './profile-m.js';
+import { mBar, mBtn, mBtnGold, mGrid, mSheet, mTile } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpBtns, mpFold, mpFrame } from './profile-m.js';
 import { animCanvas } from '../animator.js';
 
 // v9.1.0 : un boss hors de portée n'est plus « combattu » (le jeu restait à l'étape max et coupait l'avance auto).
@@ -134,6 +134,69 @@ function bossDetail(ui, state, bossId) {
 }
 
 
+
+// ---------- v10.12 : fiche du boss sur téléphone, en kit (cartes, lignes .m-stat, puces, un seul bouton doré) ----------
+// Mêmes actions que sur PC : rechallenge, take-power, keep-power, reroll, toggle-power, claim-mastery ; la règle du changement est dans un repli « ? ».
+function bossDetailPhone(ui, state, bossId) {
+  const boss = BOSSES[bossId];
+  const entry = state.powers[bossId];
+  const dungeon = bossDungeon(bossId);
+  const where = dungeon ? `Donjon « ${dungeon.name} »` : `${ZONES[ZONES.findIndex((z) => z.bosses.includes(bossId))]?.name ?? ''} · étape ${stageLabel(bossFirstStage(bossId))}`;
+  const signature = signatureItemFor(bossId);
+  const rw = (cls, title, inner) => `<span class="mp-rwi ${cls}" title="${escapeHtml(title)}" role="img" aria-label="${escapeHtml(title)}">${inner}</span>`;
+  const rewards = [
+    signature ? rw('r-legendary', `${itemBase(signature.id).name} (objet ancestral, ${Math.round(BALANCE.loot.signatureChance * 100)} %)`, `<img class="px" src="${itemIconUrl({ baseId: signature.id, rarity: 'legendary', slot: signature.slot })}" alt="">`) : '',
+    rw('r-epic', 'Objet Rare ou mieux garanti', img('icon_bag')), rw('r-rare', 'Éclats', img('icon_shard')), rw('r-rare', 'Gemmes', img('icon_gem')), rw('r-common', 'Or', img('coin')),
+  ].join('');
+  const trait = bossTrait(bossId);
+  const hero = `<div class="m-card mp-bhero"><div class="mp-bpic">${entry ? portrait(bossId, true, 1) : `<img class="px" src="${portrait(bossId, false)}" alt="">`}</div>
+      <div class="mp-bmeta"><b class="mp-bname">${entry ? escapeHtml(boss.name) : '???'}</b><span class="m-chip on mp-static">Boss ancestral</span><small>${escapeHtml(where)}</small></div></div>`;
+  const traitCard = trait ? `<div class="m-card mp-trait" style="--trait:${trait.color}"><b>${escapeHtml(trait.name)}</b><small>${escapeHtml(trait.text)}</small><small class="mp-counter">Parade : ${escapeHtml(trait.counter)}</small></div>` : '';
+  const lore = entry && BOSS_LORE[bossId] ? mpFold(ui, 'boss-lore', 'Histoire', `<div class="m-card"><div class="mp-note">${escapeHtml(BOSS_LORE[bossId])}</div></div>`) : '';
+  const rewardFold = mpFold(ui, 'boss-rewards', 'Récompenses possibles', `<div class="m-card mp-rwrow">${rewards}</div>`);
+  const stage = bossDungeon(bossId) ? null : bossFirstStage(bossId);
+  const locked = stage !== null && stage > state.maxStage;
+  const fight = (label, gold) => (locked
+    ? `${(gold ? mBtnGold : mBtn)(label, { disabled: true })}<div class="mp-note mp-center">Atteins l'étape ${stageLabel(stage)}</div>`
+    : (gold ? mBtnGold : mBtn)(label, { action: 'rechallenge', attrs: `data-boss="${bossId}"` }));
+  if (!entry) {
+    return `${hero}${traitCard}<div class="m-card"><div class="mp-sub0">Pouvoir</div><b class="mp-pname">À découvrir</b><div class="mp-note">Vaincs ce boss pour obtenir un pouvoir unique.</div></div>
+      ${fight('Combattre ce boss', true)}<div class="mp-gap"></div>${rewardFold}`;
+  }
+  const current = powerById(entry.current);
+  const active = state.equippedPowers.includes(bossId);
+  const pity = pityRemaining(state, bossId);
+  const charges = entry.charges;
+  const maxC = maxCharges(state);
+  const powerCard = (power, label) => {
+    const family = POWER_FAMILIES[power.family];
+    return `<div class="m-card mp-power r-${power.rarity}"><div class="mp-sub0">${label}</div><b class="mp-pname rarity-text r-${power.rarity}">${escapeHtml(power.name)}</b>
+      <div class="mp-pmeta"><span class="m-chip on mp-static">${rarityLabel(power.rarity)}</span><span class="m-chip mp-static" style="color:${family.color}">${family.label}</span></div>
+      <div class="mp-peff">${effectText(power.effects)}</div></div>`;
+  };
+  const pityText = `Chaque changement coûte une charge (${maxC} au plus, 1 par nouvelle victoire sur ce boss). ${pity === 0 ? 'Prochain changement : Épique ou mieux garanti.' : `Épique ou mieux garanti dans ${pity} changement${pity > 1 ? 's' : ''}.`}`;
+  const actions = entry.pending
+    ? `${powerCard(current, 'Pouvoir actuel')}${powerCard(powerById(entry.pending), 'Nouveau pouvoir proposé')}
+      ${mBtnGold('Prendre le nouveau', { action: 'take-power', attrs: `data-boss="${bossId}"` })}<div class="mp-gap"></div>${mBtn('Conserver le pouvoir actuel', { action: 'keep-power', attrs: `data-boss="${bossId}"` })}`
+    : `${powerCard(current, 'Pouvoir actuel')}
+      ${mBtnGold(`Changer le pouvoir (${charges}/${maxC})`, { action: 'reroll', attrs: `data-boss="${bossId}"`, disabled: charges < 1 })}
+      <div class="mp-gap"></div>${mpBtns([fight('Réaffronter', false), mBtn(active ? 'Actif ✓' : 'Activer', { action: 'toggle-power', attrs: `data-boss="${bossId}"`, cls: active ? 'ready' : '' })])}
+      ${mpFold(ui, 'boss-pity', 'Règles du changement', `<div class="m-card"><div class="mp-note">${charges ? '' : 'Réaffronte ce boss : 1 charge par victoire. '}${pityText}</div></div>`)}`;
+  const tiers = BALANCE.mastery;
+  const last = tiers[tiers.length - 1].victories;
+  const steps = tiers.map((t, i) => {
+    const got = i < entry.masteryClaimed;
+    const ready = !got && entry.victories >= t.victories;
+    const { victories, ...reward } = t;
+    const label = `${victories} victoires : ${rewardText(reward, formatNumber)}`;
+    const inner = `<span class="mp-stepi">${got ? '✔' : ready ? '!' : img('icon_chest')}</span><small>${victories}</small>`;
+    return ready ? `<button type="button" class="mp-step ready" data-action="claim-mastery" data-boss="${bossId}" title="${escapeHtml(label)}" aria-label="Récupérer : ${escapeHtml(label)}">${inner}</button>`
+      : `<span class="mp-step${got ? ' got' : ''}" title="${escapeHtml(label)}" role="img" aria-label="${escapeHtml(label)}">${inner}</span>`;
+  }).join('');
+  const mastery = `<div class="m-card"><div class="mp-between"><span>Maîtrise du boss</span><b>${entry.victories} victoire${entry.victories > 1 ? 's' : ''}</b></div>
+      ${mBar(Math.min(1, entry.victories / last))}<div class="mp-steps">${steps}</div></div>`;
+  return `${hero}${traitCard}${actions}${mastery}${lore}${rewardFold}`;
+}
 // ---------- v10.12 : Boss / Pouvoirs sur téléphone (kit mobile) ----------
 // Grille de 3 cases (silhouettes tant qu'un boss n'est pas vaincu), « couronnes » dans la tête, fiche du boss dans une .m-sheet.
 const TIER_RARITY = { mini: 'common', mid: 'rare', hard: 'epic', dungeon: 'rare' };
@@ -157,8 +220,8 @@ function bossPhone(ui, state) {
   const open = ui.view.sheetOpen === 'boss';
   const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
   const entry = state.powers[sel];
-  const sheet = open ? mSheet(entry ? BOSSES[sel].name : '???', `<div class="m-card mp-detail">${bossDetail(ui, state, sel)}
-      ${fold(ui, 'boss-families', `Bonus de famille${synergies.length ? ` : <span class="good">${synergies.join(', ')}</span>` : ''}`, `<div class="muted codex-help">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div>`)}</div>`, { close: 'close-sheet', back: 'close-sheet', id: 'boss-sheet' }) : '';
+  const sheet = open ? mSheet(entry ? BOSSES[sel].name : '???', `${bossDetailPhone(ui, state, sel)}
+      ${mpFold(ui, 'boss-families', 'Bonus de famille', `<div class="m-card"><div class="mp-note">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div></div>`, synergies.length ? `<span class="good">${synergies.join(', ')}</span>` : '')}`, { close: 'close-sheet', back: 'close-sheet', id: 'boss-sheet' }) : '';
   return `${mpFrame('icon_boss', 'Boss', `${head}${mGrid(tiles, 3)}`, true, open)}${sheet}`;
 }
 

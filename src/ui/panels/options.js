@@ -4,8 +4,8 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, fold, formatNumber, img } from '../common.js';
 import { isPhone } from '../prefs.js';
-import { mModes } from '../mobile-kit.js'; // v10.12
-import { isMPhone, mpChips, mpFrame } from './profile-m.js';
+import { mBtn, mBtnGold, mChip, mModes, mStat } from '../mobile-kit.js'; // v10.12
+import { isMPhone, kitify, mpBtns, mpChips, mpField, mpFold, mpFrame, mpSec, mpSwitch } from './profile-m.js';
 import { availableLangs, getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
 import { ownsTheme } from '../../core/cosmetics.js'; // v9.2.8
@@ -301,6 +301,110 @@ function interfaceTab(ui, state) {
       </div>`;
 }
 
+// ---------- v10.12 : Paramètres sur téléphone, entièrement en kit (cartes .m-card, puces, interrupteurs .m-switch, boutons .m-btn) ----------
+// Mêmes réglages, mêmes data-action que le PC ; les explications longues sont repliées (mpFold).
+function cloudPhone(ui) {
+  if (!BUILD.cloud) return '';
+  const c = ui.cloud ?? {};
+  const busy = c.busy;
+  const msg = c.message ? `<div class="mp-msg${c.error ? ' bad' : ''}" role="status">${escapeHtml(c.message)}</div>` : '';
+  const input = (id, type, ph, extra = '', val = '') => `<input id="${id}" class="mp-in" type="${type}" ${val ? `value="${escapeHtml(val)}"` : ''} maxlength="${type === 'password' ? 200 : 20}" placeholder="${ph}" ${extra} aria-label="${ph}">`;
+  const loginForm = `${input('cloud-pseudo', 'text', 'Nom d\'utilisateur', 'autocomplete="username"', c.draft?.['cloud-pseudo'] ?? '')}${input('cloud-password', 'password', 'Mot de passe', 'autocomplete="current-password"')}`;
+  const listed = mpSwitch('Classement public', 'cloud-listed', c.listed !== false, { sub: 'Nom, niveau, étape, boss' });
+  let body;
+  if (c.loggedIn && c.guest) {
+    body = `<div class="m-card"><div class="mp-between"><span>Nom</span><b>${escapeHtml(c.pseudo)}</b></div>
+        <div class="mp-form">${input('cloud-claim-pseudo', 'text', 'Choisis ton nom (3 à 20)', 'autocomplete="username"', c.draft?.['cloud-claim-pseudo'] ?? '')}
+          ${input('cloud-claim-password', 'password', 'Mot de passe (8 min.)', 'autocomplete="new-password"')}${input('cloud-claim-confirm', 'password', 'Confirmer le mot de passe', 'autocomplete="new-password"')}</div>
+        ${mpBtns([mBtn('Créer mon compte', { action: 'cloud-claim', disabled: busy, cls: 'ready' }), mBtn('Synchroniser', { action: 'cloud-sync', disabled: busy })])}${msg}</div>
+      ${listed}
+      <details class="m-card mp-det"><summary>J'ai déjà un compte</summary><div class="mp-form">${loginForm}</div>${mBtn('Se connecter', { action: 'cloud-login', disabled: busy })}</details>
+      ${mpFold(ui, 'opt-cloud-info', 'Pourquoi un compte ?', '<div class="mp-note">Ta progression est déjà sauvegardée sur le serveur. Un compte te laisse choisir ton nom et la retrouver sur un autre appareil. Se connecter à un compte existant remplace la partie de cet appareil (une copie est gardée).</div>')}`;
+  } else if (c.loggedIn) {
+    body = `<div class="m-card"><div class="mp-between"><span>Connecté</span><b>${escapeHtml(c.pseudo)}</b></div>
+        ${mpBtns([mBtn('Synchroniser', { action: 'cloud-sync', disabled: busy }), mBtn('Se déconnecter', { action: 'cloud-logout' })])}${msg}</div>
+      ${listed}
+      <details class="m-card mp-det"><summary>Changer de nom</summary><div class="mp-form">${input('cloud-rename-pseudo', 'text', 'Nouveau nom (3 à 20)', 'autocomplete="username"', c.draft?.['cloud-rename-pseudo'] ?? '')}${input('cloud-rename-password', 'password', 'Mot de passe du compte', 'autocomplete="current-password"')}</div>${mBtn('Changer de nom', { action: 'cloud-rename', disabled: busy })}</details>
+      <details class="m-card mp-det"><summary>Supprimer mon compte</summary><div class="mp-note">Efface le compte et la progression du serveur. La partie reste sur cet appareil.</div><div class="mp-form">${input('cloud-delete-password', 'password', 'Mot de passe du compte', 'autocomplete="current-password"')}</div>${mBtn('Supprimer', { action: 'cloud-delete', cls: 'mp-danger' })}</details>`;
+  } else {
+    const status = c.optedOut ? 'Déconnecté : partie sur cet appareil.' : c.error ? 'Hors ligne : partie sur cet appareil.' : 'Connexion au serveur…';
+    body = `<div class="m-card"><div class="mp-note">${status}</div><div class="mp-form">${loginForm}</div>
+        ${mpBtns([mBtn('Se connecter', { action: 'cloud-login', disabled: busy }), mBtn('Créer un compte', { action: 'cloud-register', disabled: busy, cls: 'ready' })])}
+        ${c.optedOut ? mBtn('Sauvegarder en ligne sans compte', { action: 'cloud-resume', disabled: busy }) : ''}${msg}</div>
+      ${mpFold(ui, 'opt-cloud-info', 'Comment créer un compte ?', '<div class="mp-note">Choisis un nom d\'utilisateur et un mot de passe (8 caractères min.), puis « Créer un compte ».</div>')}`;
+  }
+  return `${mpSec('Compte en ligne')}${body}`;
+}
+
+function versionPhone(ui) {
+  const current = ui.desktop?.version ?? GAME_VERSION;
+  if (playsOnSite(ui)) return `${mpSec('Version')}<div class="m-card">${mStat('icon_star', 'Version', current)}<div class="mp-note">Site : toujours à jour.</div></div>`;
+  const u = ui.updateInfo ?? {};
+  const rel = u.release;
+  let status = 'Pas encore vérifié';
+  if (u.busy) status = 'Vérification…';
+  else if (u.status === 'uptodate') status = `À jour · ${escapeHtml(rel.version)}`;
+  else if (u.status === 'error') status = 'Hors ligne';
+  else if (u.status === 'available') status = `Nouvelle version ${escapeHtml(rel.version)}`;
+  const install = u.status === 'available'
+    ? (ui.desktop ? mBtn(u.installing ? 'Téléchargement…' : `Mettre à jour (${rel.version})`, { action: 'install-update', disabled: u.installing || !rel.setup, cls: 'ready' })
+      : mBtn(`Télécharger la ${rel.version}`, { action: 'open-releases', cls: 'ready' })) : '';
+  const notes = u.status === 'available' && rel.notes ? `<details class="m-card mp-det"><summary>Nouveautés</summary><pre>${escapeHtml(rel.notes)}</pre></details>` : '';
+  return `${mpSec('Version')}<div class="m-card">${mStat('icon_star', `Ascendrya ${ui.desktop ? '(bureau)' : '(navigateur)'}`, current)}${mStat('icon_gear', 'Mises à jour', status)}
+      ${u.error && u.status !== 'error' ? `<div class="mp-msg bad">${escapeHtml(u.error)}</div>` : ''}
+      ${mpBtns([mBtn('Vérifier', { action: 'check-update', disabled: u.busy }), mBtn('Versions', { action: 'open-releases' })])}${install}</div>${notes}${kitify(privateRepoHelp(u))}`;
+}
+
+function generalPhone(ui, state) {
+  const ago = Math.max(0, (Date.now() - state.lastSaved) / 1000);
+  const code = ui.view.exportCode;
+  const langs = `<div class="m-chips mp-chips mp-scroll" role="group" aria-label="Langue" data-no-i18n>${availableLangs().map((l) => mChip(`${l.flag} ${l.label}`, { action: 'lang', value: l.code, on: getLang() === l.code })).join('')}</div>`;
+  const imp = ui.view.importOpen ? `<div class="m-card"><textarea id="import-text" class="mp-in" rows="3" placeholder="Code ou fichier…" aria-label="Sauvegarde à importer"></textarea>
+      <input id="import-file" class="mp-in" type="file" accept=".json,application/json" aria-label="Fichier de sauvegarde">
+      ${mpBtns([mBtn('Importer', { action: 'import-save', cls: 'ready' }), mBtn('Annuler', { action: 'import-open' })])}</div>` : '';
+  return `${mpField('Langue · Language', langs)}
+    ${mpSec('Sauvegarde')}
+    <div class="m-card">${mStat('icon_timer', 'Dernière', `il y a ${formatDuration(ago)}`)}${mBtnGold('Sauvegarder', { action: 'save' })}
+      ${mpBtns([mBtn('Exporter', { action: 'export-save', value: 'file' }), mBtn('Copier code', { action: 'export-save', value: 'code' }), mBtn('Importer', { action: 'import-open' })])}
+      ${code ? `<textarea class="mp-in" readonly rows="3" aria-label="Code de sauvegarde">${escapeHtml(code)}</textarea>` : ''}</div>${imp}
+    ${mpFold(ui, 'opt-save-info', 'Comment ça marche ?', `<div class="mp-note">Sauvegarde automatique toutes les ${BALANCE.autosaveSeconds} s, à chaque action et à la fermeture. Jeu fermé, le héros gagne ${BALANCE.offline.farmMultiplier * 100} % de son rythme, ${BALANCE.offline.capHours} h au plus. Importer copie d'abord la partie actuelle, puis redémarre sur la partie importée.</div>`)}
+    ${cloudPhone(ui)}
+    ${versionPhone(ui)}
+    ${mpSec('Tutoriel')}${mpBtns([mBtn('Revoir le tutoriel', { action: 'tour-full' }), mBtn('Revoir le prologue', { action: 'replay-prologue' })])}
+    ${kitify(cheatCard(state, ui))}${kitify(devOfflineCard())}
+    ${mpSec('Zone de danger')}<div class="m-card mp-dz">${mBtn('Réinitialiser la partie…', { action: 'reset', cls: 'mp-danger' })}<div class="mp-note">Efface tout sur cet appareil. Exporte avant.</div></div>`;
+}
+
+function interfacePhone(ui, state) {
+  const cur = state.ui.theme ?? 'knight';
+  const theme = THEMES.find((t) => t.id === cur);
+  const themes = () => `<div class="mp-themes">${THEMES.map((t) => { const mine = ownsTheme(state, t.id);
+    return `<button type="button" class="mp-theme${cur === t.id ? ' on' : ''}${mine ? '' : ' locked'}" data-action="${mine ? 'theme' : 'theme-preview'}" data-value="${t.id}">
+      <span class="theme-swatches">${themeSwatches(t.id).map((c) => `<i style="background:${c}"></i>`).join('')}</span><b>${escapeHtml(t.name)}</b>${mine ? '' : `<small>${img('icon_lock')} Boutique</small>`}</button>`; }).join('')}</div>`;
+  const assist = state.ui.combatAssist ?? 'mixed';
+  const sw = (label, action, on, key, sub) => mpSwitch(label, action, on, { attrs: key ? `data-key="${key}"` : '', sub });
+  return `${mpFold(ui, 'opt-theme', 'Thème', themes, escapeHtml(theme?.name ?? ''))}
+    ${sw('Mode simple', 'simple-mode', state.ui.simple === true, '', 'Cache les systèmes avancés')}
+    ${mpField('Aide au combat', mpChips('combat-assist', [['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']], assist), { full: 'Tout se joue seul', mixed: 'Tes actions comptent plus', manual: 'Rien sans toi' }[assist])}
+    ${mpField('Taille des personnages', mpChips('char-size', [['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']], state.ui.charSize ?? 'auto'))}
+    ${ui.interfaceExtra?.(state) ?? ''}
+    ${mpSec('Notifications et effets')}
+    ${sw('Bannières des boss', 'notify', state.ui.notify?.boss !== false, 'boss')}${sw('Messages d\'événements', 'notify', state.ui.notify?.events !== false, 'events', 'Coffres, marchands…')}
+    ${sw('Notifications du téléphone', 'notify', state.ui.notify?.phone !== false, 'phone', '2 par jour au plus')}${sw('Cinématiques', 'cinematics', state.ui.cinematics !== false, '', 'Lancement, nouveau monde')}
+    ${sw('Tremblement d\'écran', 'screen-shake', state.ui.shake !== false, '', 'Zone, coups de boss')}${sw('Équipement auto', 'auto-equip', state.ui.autoEquip === true, '', 'Au retour de session')}
+    ${sw('Noms des sorts', 'skill-names', state.ui.skillNames !== false, '', 'Au-dessus des unités')}${sw('Fil des gains', 'gain-feed', state.ui.feed !== false, '', 'À gauche de la scène')}
+    ${sw('Grandes auras 5★', 'big-auras', state.ui.bigAuras === true, '', 'Sinon un simple liseré')}${sw('Mesures anonymes', 'metrics-opt-in', state.ui.metricsOptIn === true, '', 'Aucun identifiant')}
+    ${mpField('Veillée automatique', mpChips('vigil-auto', [['never', 'Jamais'], ['phone', 'Téléphone'], ['always', 'Toujours']], state.ui.vigil ?? 'phone'), 'Après 5 min sans toucher')}
+    ${mBtn('Veillée au Camp', { action: 'sleep-mode', icon: 'icon_star' })}<div class="mp-gap"></div>${mBtn('Journal de la session', { action: 'show-journal', icon: 'icon_book' })}`;
+}
+
+function soundPhone(ui) {
+  const s = ui.sound?.settings;
+  if (!s) return '';
+  const slider = (kind, label) => `<label class="m-card mp-vol"><b>${label}</b><input type="range" min="0" max="100" step="5" value="${Math.round(s[kind] * 100)}" data-action="volume" data-kind="${kind}" aria-label="${label}"></label>`;
+  return `${mpSwitch('Couper le son', 'mute', Boolean(s.muted))}${slider('master', 'Général')}${slider('music', 'Musique')}${slider('sfx', 'Effets')}`;
+}
+
 export default {
   id: 'options',
   title: 'Paramètres',
@@ -310,11 +414,12 @@ export default {
     const tab = tabs.some(([id]) => id === ui.view.optTab) ? ui.view.optTab : 'general';
     const seg = `<div class="seg" role="tablist">${tabs.map(([id, label]) => `<button class="seg-btn${id === tab ? ' active' : ''}" role="tab"
       aria-selected="${id === tab}" data-action="opt-tab" data-value="${id}">${label}</button>`).join('')}</div>`;
-    const body = tab === 'interface' ? interfaceTab(ui, state) : tab === 'sound' ? soundOptions(ui) : tab === 'window' ? windowOptions(ui) : generalTab(ui, state);
     if (isMPhone(ui)) {
+      const body = tab === 'interface' ? interfacePhone(ui, state) : tab === 'sound' ? soundPhone(ui) : tab === 'window' ? kitify(windowOptions(ui)) : generalPhone(ui, state);
       const ico = { general: 'icon_gear', interface: 'icon_star', sound: 'icon_bolt', window: 'icon_map' };
       return mpFrame('icon_gear', 'Paramètres', `${mModes(tabs.map(([id, label]) => ({ id, label, icon: ico[id] ?? 'icon_gear', action: 'opt-tab', value: id })), tab, { size: 64 })}${body}`);
     }
+    const body = tab === 'interface' ? interfaceTab(ui, state) : tab === 'sound' ? soundOptions(ui) : tab === 'window' ? windowOptions(ui) : generalTab(ui, state);
     return seg + body;
   },
 };
