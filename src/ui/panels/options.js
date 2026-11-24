@@ -4,6 +4,8 @@ import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, fold, formatNumber, img } from '../common.js';
 import { isPhone } from '../prefs.js';
+import { mModes } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpChips, mpFrame } from './profile-m.js';
 import { availableLangs, getLang } from '../../i18n/i18n.js';
 import { THEMES, themeSwatches } from '../themes.js';
 import { ownsTheme } from '../../core/cosmetics.js'; // v9.2.8
@@ -191,6 +193,10 @@ function versionOptions(ui) {
 
 // v9.1.0 : Paramètres en 4 onglets (au plus un segment visible). Son et Fenêtre n'apparaissent que s'ils
 // ont un contenu (moteur de son prêt ; version bureau).
+// v10.12 : un <select> sur PC, une rangée de puces sur téléphone (même action, même effet).
+const selectOr = (ui, action, items, current) => (isMPhone(ui) ? mpChips(action, items, current)
+  : `<select data-action="${action}">${items.map(([v, l]) => `<option value="${v}"${current === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`);
+
 export function optionTabs(ui) {
   return [['general', 'Général'], ['interface', 'Interface'], ...(soundOptions(ui) ? [['sound', 'Son']] : []), ...(ui.desktop ? [['window', 'Fenêtre']] : [])];
 }
@@ -267,15 +273,15 @@ function interfaceTab(ui, state) {
           <b>${escapeHtml(t.name)}</b><span class="muted">${escapeHtml(t.text)}</span>${mine ? '' : `<span class="muted">${img('icon_lock')} Boutique › Thèmes · Aperçu</span>`}</button>`; }).join('')}</div>`, { extra: escapeHtml(theme?.name ?? '') })}
       <label class="toggle card"><input type="checkbox" data-action="simple-mode" ${state.ui.simple === true ? 'checked' : ''}> <b>Mode simple</b> <span class="muted">cache les détails et les systèmes avancés tant que tu n'en as pas besoin</span></label>
       <div class="card row-between"><span><b>Aide au combat</b> <span class="muted">${{ full: 'tout se joue seul', mixed: 'tes actions comptent plus, le reste part seul', manual: 'rien ne part sans toi' }[state.ui.combatAssist ?? 'mixed']}</span></span>
-        <select data-action="combat-assist">${[['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']].map(([v, l]) => `<option value="${v}"${(state.ui.combatAssist ?? 'mixed') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+        ${selectOr(ui, 'combat-assist', [['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']], state.ui.combatAssist ?? 'mixed')}</div>
       <div class="card row-between"><b>Taille des personnages</b>
-        <select data-action="char-size">${[['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']].map(([v, l]) => `<option value="${v}"${(state.ui.charSize ?? 'auto') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+        ${selectOr(ui, 'char-size', [['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']], state.ui.charSize ?? 'auto')}</div>
       ${ui.interfaceExtra?.(state) ?? ''}
       ${fold(ui, 'opt-notify', 'Notifications', () => `
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="events" ${state.ui.notify?.events !== false ? 'checked' : ''}> Messages des événements (coffres, marchands…)</label>
         <button class="btn" data-action="sleep-mode">🔥 Veillée au Camp (écran sombre, le jeu continue)</button>
-        <div class="row-between"><span>Veillée automatique (5 min sans toucher)</span><select data-action="vigil-auto">${[['never', 'Jamais'], ['phone', 'Téléphone seulement'], ['always', 'Toujours']].map(([v, l]) => `<option value="${v}"${(state.ui.vigil ?? 'phone') === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+        <div class="row-between"><span>Veillée automatique (5 min sans toucher)</span>${selectOr(ui, 'vigil-auto', [['never', 'Jamais'], ['phone', 'Téléphone seulement'], ['always', 'Toujours']], state.ui.vigil ?? 'phone')}</div>
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="phone" ${state.ui.notify?.phone !== false ? 'checked' : ''}> Notifications du téléphone (2 par jour au plus)</label>
         <label class="toggle"><input type="checkbox" data-action="cinematics" ${state.ui.cinematics !== false ? 'checked' : ''}> Cinématiques (lancement du jeu, nouveau monde)</label>
         <label class="toggle"><input type="checkbox" data-action="screen-shake" ${state.ui.shake !== false ? 'checked' : ''}> Tremblement de l'écran (compétences de zone, coups de boss)</label>
@@ -305,6 +311,10 @@ export default {
     const seg = `<div class="seg" role="tablist">${tabs.map(([id, label]) => `<button class="seg-btn${id === tab ? ' active' : ''}" role="tab"
       aria-selected="${id === tab}" data-action="opt-tab" data-value="${id}">${label}</button>`).join('')}</div>`;
     const body = tab === 'interface' ? interfaceTab(ui, state) : tab === 'sound' ? soundOptions(ui) : tab === 'window' ? windowOptions(ui) : generalTab(ui, state);
+    if (isMPhone(ui)) {
+      const ico = { general: 'icon_gear', interface: 'icon_star', sound: 'icon_bolt', window: 'icon_map' };
+      return mpFrame('icon_gear', 'Paramètres', `${mModes(tabs.map(([id, label]) => ({ id, label, icon: ico[id] ?? 'icon_gear', action: 'opt-tab', value: id })), tab, { size: 64 })}${body}`);
+    }
     return seg + body;
   },
 };

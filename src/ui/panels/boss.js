@@ -14,6 +14,8 @@ import { ZONES } from '../../data/zones.js';
 import { BOSS_LORE } from '../../data/lore.js';
 import { bossTrait } from '../../core/boss-traits.js';
 import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel } from '../common.js';
+import { mBar, mGrid, mSheet, mTile } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpFrame } from './profile-m.js';
 import { animCanvas } from '../animator.js';
 
 // v9.1.0 : un boss hors de portée n'est plus « combattu » (le jeu restait à l'étape max et coupait l'avance auto).
@@ -131,12 +133,42 @@ function bossDetail(ui, state, bossId) {
     ${lore}${rewardFold}`;
 }
 
+
+// ---------- v10.12 : Boss / Pouvoirs sur téléphone (kit mobile) ----------
+// Grille de 3 cases (silhouettes tant qu'un boss n'est pas vaincu), « couronnes » dans la tête, fiche du boss dans une .m-sheet.
+const TIER_RARITY = { mini: 'common', mid: 'rare', hard: 'epic', dungeon: 'rare' };
+function bossPhone(ui, state) {
+  const order = bossesInOrder();
+  const known = order.filter((id) => state.powers[id]).length;
+  const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);
+  const crownsMax = order.length * BALANCE.mastery.length;
+  const crownsGot = order.reduce((n, id) => n + (state.powers[id]?.masteryClaimed ?? 0), 0);
+  const head = `<div class="m-card mp-head"><span class="mp-ico big">${img('icon_boss')}</span><div class="mp-main"><div class="mp-head-line"><b class="num">♛ ${crownsGot}/${crownsMax}</b><small>couronnes</small></div>
+      ${mBar(crownsGot / Math.max(1, crownsMax))}<small>${known}/${order.length} boss découverts · pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}</small></div></div>`;
+  const tiles = order.map((id) => {
+    const boss = BOSSES[id];
+    const entry = state.powers[id];
+    const seen = Boolean(entry) || (state.codex?.kills?.[id] ?? 0) > 0;
+    const sprite = boss.sprite ?? ENEMIES[boss.base].sprite;
+    const src = seen ? icon(sprite, 1, boss.palette ? { colors: boss.palette } : {}) : icon(sprite, 1, { tint: { color: '#4a5a78', alpha: 1 } });
+    const crowns = entry?.masteryClaimed ?? 0;
+    return mTile({ name: seen ? boss.name : '???', rarity: seen ? (TIER_RARITY[boss.tier] ?? 'legendary') : 'common' }, { size: 80, action: 'boss-sel', value: id, src, label: seen ? boss.name : '???', pips: false, plus: crowns ? `♛${crowns}` : '' });
+  });
+  const open = ui.view.sheetOpen === 'boss';
+  const synergies = synergyFamilies(state).map((f) => POWER_FAMILIES[f].label);
+  const entry = state.powers[sel];
+  const sheet = open ? mSheet(entry ? BOSSES[sel].name : '???', `<div class="m-card mp-detail">${bossDetail(ui, state, sel)}
+      ${fold(ui, 'boss-families', `Bonus de famille${synergies.length ? ` : <span class="good">${synergies.join(', ')}</span>` : ''}`, `<div class="muted codex-help">2 pouvoirs de la même famille = effets +${POWER_RULES.synergy.bonusPct} %.</div>`)}</div>`, { close: 'close-sheet', back: 'close-sheet', id: 'boss-sheet' }) : '';
+  return `${mpFrame('icon_boss', 'Boss', `${head}${mGrid(tiles, 3)}`, true, open)}${sheet}`;
+}
+
 export default {
   id: 'boss',
   title: 'Boss',
   icon: 'icon_boss',
   extra: (ui, state) => `Pouvoirs actifs ${state.equippedPowers.length}/${powerSlots(state)}`,
   render(ui, state) {
+    if (isMPhone(ui)) return bossPhone(ui, state);
     const order = bossesInOrder();
     const known = order.filter((id) => state.powers[id]).length;
     const sel = BOSSES[ui.view.bossSel] && order.includes(ui.view.bossSel) ? ui.view.bossSel : (order.find((id) => state.powers[id]) ?? order[0]);

@@ -3,6 +3,8 @@
 // { friends, incoming, outgoing, message, error }. Un invité (joueurXXXXXX) est invité à créer son compte.
 import { ZONES } from '../../data/zones.js';
 import { escapeHtml, formatNumber } from '../common.js';
+import { mBtn, mBtnGold, mChip, mEmpty, mModes, mSheet } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpChips, mpFrame } from './profile-m.js';
 import { formatDuration } from './stats.js';
 
 export const RANKING_SORTS = {
@@ -63,12 +65,60 @@ function rankPreview(ui) {
     <div class="row-between"><b>Toi</b><span>Meilleure étape <b class="num">${formatNumber(best)}</b></span></div><div class="muted">Le classement se charge… Ton record y figure dès que tu es connecté.</div></div>`;
 }
 
+
+// ---------- v10.12 : Classement sur téléphone (kit mobile) ----------
+// Un .m-chip « Étape ▾ » ouvre les critères dans une .m-sheet ; « Tout le monde / Mes amis » en modes ; non connecté = .m-empty.
+function mRankRow(sort, p) {
+  const second = sort === 'stage' ? `niv. ${formatNumber(p.level)}` : escapeHtml(p.stageLabel ?? '');
+  return `<div class="mp-rk${p.me ? ' me' : ''}"><span class="mp-rk-rank">${p.rank <= 3 ? ['🥇', '🥈', '🥉'][p.rank - 1] : p.rank}</span>
+    <span class="mp-rk-name"><b>${escapeHtml(p.pseudo)}${p.me ? ' (toi)' : ''}</b><small>${second}</small></span><b class="mp-rk-val">${value(sort, p)}</b></div>`;
+}
+
+function mFriends(f) {
+  if (!f) return '<div class="m-card mp-reset">Chargement des amis…</div>';
+  const incoming = f.incoming?.length ? `<div class="mp-sub">Demandes reçues</div>${f.incoming.map((p) => `<div class="m-card mp-row"><div class="mp-main"><b class="mp-name">${escapeHtml(p)}</b></div>
+      ${mBtn('Accepter', { action: 'friend-accept', value: p, cls: 'auto ready' })}${mBtn('Refuser', { action: 'friend-remove', value: p, cls: 'auto' })}</div>`).join('')}` : '';
+  const outgoing = f.outgoing?.length ? `<div class="mp-sub">En attente</div>${f.outgoing.map((p) => `<div class="m-card mp-row"><div class="mp-main"><b class="mp-name">${escapeHtml(p)}</b></div>${mBtn('Annuler', { action: 'friend-remove', value: p, cls: 'auto' })}</div>`).join('')}` : '';
+  const list = f.friends?.length ? f.friends.map((p) => `<div class="m-card mp-row"><div class="mp-main"><b class="mp-name">${escapeHtml(p.pseudo)}</b><small>${escapeHtml(p.stageLabel)} · niv. ${formatNumber(p.level)}</small></div>
+      ${mBtn('Retirer', { action: 'friend-remove', value: p.pseudo, cls: 'auto' })}</div>`).join('') : '<div class="mp-reset">Pas encore d\'amis : ajoute un joueur par son nom.</div>';
+  return `<div class="mp-sub">Mes amis${f.friends?.length ? ` (${f.friends.length})` : ''}</div>
+    <div class="m-card mp-addfriend"><input id="friend-pseudo" class="mp-input" type="text" maxlength="20" placeholder="Nom du joueur" aria-label="Nom du joueur à ajouter" autocomplete="off">${mBtn('Ajouter', { action: 'friend-add', cls: 'auto' })}</div>
+    ${f.message ? `<div class="${f.error ? 'bad' : 'good'} mp-reset">${escapeHtml(f.message)}</div>` : ''}${incoming}${outgoing}${list}`;
+}
+
+function rankingPhone(ui) {
+  const r = ui.ranking ?? {};
+  const sort = r.sort ?? 'stage';
+  const scope = r.scope ?? 'all';
+  const c = ui.cloud ?? {};
+  const member = c.loggedIn && !c.guest;
+  const modes = mModes([{ id: 'all', label: 'Tout le monde', icon: 'icon_crown', action: 'ranking-scope', value: 'all' },
+    { id: 'friends', label: 'Mes amis', icon: 'icon_heart', action: 'ranking-scope', value: 'friends', attrs: member ? '' : 'disabled' }], scope);
+  const world = r.world ?? 2;
+  const chips = `<div class="m-chips mp-rank-chips">${mChip(`${RANKING_SORTS[sort].label} ▾`, { action: 'mp-open', value: 'rank', on: true })}${RANKING_SORTS[sort].time && sort !== 'reach' ? '<small class="mp-n">Le plus court gagne</small>' : ''}</div>`;
+  const worldPick = sort === 'reach' ? `<div class="mp-sub">Monde à atteindre</div>${mpChips('ranking-world', ZONES.slice(1).map((z, i) => [i + 2, `${i + 2}. ${z.name}`]), world)}` : '';
+  const invite = member ? '' : mEmpty(c.loggedIn ? `Tu joues en invité (${c.pseudo}). Crée ton compte pour apparaître au classement.` : 'Tu n\'es pas connecté. Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.',
+    { icon: 'icon_trophy', button: mBtnGold('Créer mon compte', { action: 'open-account' }) });
+  let body;
+  if (r.error) body = `<div class="m-card"><div class="bad">${escapeHtml(r.error)}</div>${mBtn('Réessayer', { action: 'ranking-sort', value: sort })}</div>`;
+  else if (!r.players) body = mEmpty('Le classement se charge…', { icon: 'icon_trophy' });
+  else if (!r.players.length) body = `<div class="m-card mp-reset">${scope === 'friends' ? 'Ajoute des amis pour te comparer à eux.' : 'Personne au classement pour l\'instant.'}</div>`;
+  else {
+    const mine = r.me ? `<div class="mp-rk-gap">…</div>${mRankRow(sort, { ...r.me, me: true })}` : '';
+    body = `<div class="m-card mp-rklist"><div class="mp-rk head"><span class="mp-rk-rank">#</span><span class="mp-rk-name">Joueur</span><b class="mp-rk-val">${RANKING_SORTS[sort].head}</b></div>${r.players.map((p) => mRankRow(sort, p)).join('')}${mine}</div>`;
+  }
+  const sheetOpen = ui.view.mSheet === 'rank';
+  const sheet = sheetOpen ? mSheet('Critère', `<div class="mp-crit">${Object.entries(RANKING_SORTS).map(([k, s]) => mBtn(s.label, { action: 'mp-rank', value: k, cls: sort === k ? 'ready' : '' })).join('')}</div>`, { close: 'mp-shut', back: 'mp-shut', id: 'rank-sheet' }) : '';
+  return `${mpFrame('icon_trophy', 'Classement', `${modes}${chips}${worldPick}${invite}${body}${member && scope === 'friends' ? mFriends(ui.friends) : ''}`, true, sheetOpen)}${sheet}`;
+}
+
 export default {
   id: 'ranking',
   title: 'Classement',
   icon: 'icon_trophy',
   extra: (ui) => (ui.friends?.incoming?.length ? `${ui.friends.incoming.length} demande${ui.friends.incoming.length > 1 ? 's' : ''}` : ''),
   render(ui) {
+    if (isMPhone(ui)) return rankingPhone(ui);
     const r = ui.ranking ?? {};
     const sort = r.sort ?? 'stage';
     const scope = r.scope ?? 'all';

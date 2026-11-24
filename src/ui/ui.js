@@ -561,7 +561,11 @@ export class UI {
 
   // Paramètres › Interface : réglages propres à cet appareil (mode compact, combat, animations, taille…).
   interfaceExtra() {
-    const sel = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+    const selBox = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+    // v10.12 : sur téléphone, plus de <select> : une rangée de puces (même action, via mp-pick)
+    const sel = (name, options) => (this.root.classList.contains('m-phone')
+      ? `<div class="m-chips mp-chips" role="group" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<button type="button" class="m-chip${String(pref(name)) === String(v) ? ' on' : ''}" aria-pressed="${String(pref(name)) === String(v)}" data-action="mp-pick" data-for="device-pref" data-key="${name}" data-value="${v}">${l}</button>`).join('')}</div>`
+      : selBox(name, options));
     const check = (name, label) => `<label class="toggle"><input type="checkbox" data-action="device-pref" data-key="${name}" ${pref(name) === true ? 'checked' : ''}> ${label}</label>`;
     const keys = Object.keys(KEY_LABELS).map((action) => `<div class="key-row"><span>${KEY_LABELS[action]}</span>
       <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuie sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
@@ -1447,6 +1451,12 @@ export class UI {
       case 'm-set': if (/^(m[A-Z]\w*|upgradeSort)$/.test(key ?? '')) local(() => { v[key] = value === undefined || value === '' ? null : value; }); break; // v10.12 (hero) : état de vue d'un mode / d'une fiche (data-key = nom commençant par « m », ou upgradeSort)
       case 'm-sheet-x': { const k = el.closest('.m-sheet')?.id; if (/^m[A-Z]\w*$/.test(k ?? '')) local(() => { v[k] = null; }); else el.closest('.m-sheet')?.remove(); break; } // v10.12 (hero) : ferme une fiche dont l'id est son état de vue
       case 'm-sheet-close': el.closest('.m-sheet')?.remove(); break; // v10.12 : ferme une fiche du kit (un panneau qui garde l'état passe sa propre action dans mSheet)
+      // v10.12 (profil) : fiches .m-sheet des onglets du profil (état de vue v.mSheet), puces qui remplacent les <select>
+      case 'mp-open': local(() => { v.mSheet = value || null; }); break;
+      case 'mp-shut': local(() => { v.mSheet = null; }); break;
+      case 'mp-rank': v.mSheet = null; this.actions.loadRanking(value); break;
+      case 'mp-world': v.mSheet = null; this.actions.loadRanking(undefined, undefined, Number(value)); break;
+      case 'mp-pick': this.onChange({ target: { dataset: { action: el.dataset.for, key: el.dataset.key }, value, checked: true } }); this.invalidate(); break;
       case 'rebirth-talent': this.closeModal(); this.openTab('tree'); break; // v9.3.5
       case 'open-claims': this.openClaims(); break;
       case 'show-boost': this.showBoost(this.state); break;

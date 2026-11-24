@@ -2,6 +2,8 @@
 // Sans compte : explication (les guildes demandent un compte créé). Données serveur : server/guilds.mjs.
 import { escapeHtml, formatNumber, img } from '../common.js';
 
+import { mBar, mBtn, mBtnGold, mChip, mEmpty, mModes } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpFrame } from './profile-m.js';
 const EMBLEMS = ['weapon_sword', 'icon_shield', 'icon_crown', 'icon_star', 'icon_skull', 'icon_heart', 'icon_paw', 'icon_tower', 'icon_gem', 'icon_boss'];
 const ROLE = { leader: 'Chef', officer: 'Officier', member: 'Membre' };
 const ago = (t) => { if (!t) return '—'; const h = Math.floor((Date.now() - t) / 3600000); return h < 1 ? 'en ligne récemment' : h < 24 ? `il y a ${h} h` : `il y a ${Math.floor(h / 24)} j`; };
@@ -59,11 +61,67 @@ function guildPreview() {
   return `<div class="card pv-card"><div class="pv-tiles">${t('icon_boss', 'Boss commun', 'Une barre de PV partagée par toute la guilde')}${t('icon_star', 'Bonus de guilde', '+ dégâts et + or pour tous les membres')}${t('icon_trophy', 'Classement', 'Les guildes les plus fortes du moment')}</div></div>`;
 }
 
+
+// ---------- v10.12 : Guilde sur téléphone (kit mobile) ----------
+const perks = () => `<div class="mp-perks">${[['icon_boss', 'Boss commun'], ['icon_star', 'Bonus de guilde'], ['icon_trophy', 'Classement']].map(([ic, t]) => `<span class="mp-perk"><span class="mp-ico big">${img(ic)}</span><b>${t}</b></span>`).join('')}</div>`;
+
+function mRanking(g) {
+  const r = g.ranking;
+  if (!r) return '<div class="mp-reset">Chargement du classement…</div>';
+  const modes = mModes([{ id: 'global', label: 'Boss commun', icon: 'icon_boss', action: 'guild-rank', value: 'global' }, { id: 'event', label: 'World Boss', icon: 'icon_trophy', action: 'guild-rank', value: 'event' }], g.mode ?? 'global', { size: 64 });
+  const rows = r.guilds.map((x, i) => `<div class="mp-rk${x.name === r.me ? ' me' : ''}"><span class="mp-rk-rank">${i + 1}</span><span class="mp-rk-name"><b>${img(x.emblem)} ${escapeHtml(x.name)}</b><small>${x.members} membres · ${x.contributors} contributeurs</small></span><b class="mp-rk-val">${formatNumber(x.score)}</b></div>`).join('');
+  return `${modes}<div class="mp-reset">Score = ${escapeHtml(r.rule)}. Période : ${escapeHtml(r.period || 'événement en cours')}.</div>
+    ${rows ? `<div class="m-card mp-rklist">${rows}</div>` : '<div class="mp-reset">Aucune guilde classée pour l\'instant.</div>'}`;
+}
+
+function mMyGuild(ui, d) {
+  const g = d.guild;
+  const lead = ['leader', 'officer'].includes(d.role);
+  const pct = Math.min(1, d.weekly.progress / d.weekly.goal);
+  const head = `<div class="m-card mp-head mp-guild-head"><span class="mp-ico big">${img(g.emblem)}</span><div class="mp-main"><b class="mp-name gold-text">${escapeHtml(g.name)}</b>
+      <small>${d.members.length}/${g.maxMembers} membres · ${g.open ? 'accès libre' : 'sur demande'} · ${ROLE[d.role]}</small></div>${mBtn('Quitter', { action: 'guild-leave', cls: 'auto' })}</div>
+    ${g.description ? `<div class="mp-reset">${escapeHtml(g.description)}</div>` : ''}${d.lockedUntil ? `<div class="bad mp-reset">Nouveau membre : tes contributions comptent à partir du ${new Date(d.lockedUntil).toLocaleString('fr-FR')}.</div>` : ''}`;
+  const weekly = `<div class="mp-sub">Objectif de la semaine</div><div class="m-card"><div class="mp-barline">${mBar(pct)}<small class="mp-n">${d.weekly.progress}/${d.weekly.goal}</small></div>
+      <div class="mp-reset">Tentatives de World Boss (3 au plus par membre et par jour)${d.weekly.reached ? ' — <b class="good">atteint !</b>' : ''}</div>${mBtn('Aller au World Boss', { action: 'open-tab', value: 'event', icon: 'weapon_sword' })}</div>`;
+  const requests = lead && d.requests.length ? `<div class="mp-sub">Demandes</div>${d.requests.map((p) => `<div class="m-card mp-row"><div class="mp-main"><b class="mp-name">${escapeHtml(p)}</b></div>${mBtn('Accepter', { action: 'guild-accept', value: p, cls: 'auto ready' })}</div>`).join('')}` : '';
+  const members = d.members.map((m) => `<div class="m-card mp-row"><div class="mp-main"><b class="mp-name">${escapeHtml(m.pseudo)} <small>${ROLE[m.role]}</small></b><small>${ago(m.lastSeen)} · ${m.contrib} ✦ · ${formatNumber(m.damage)} dégâts</small></div>
+      ${lead && m.role !== 'leader' ? mBtn('Exclure', { action: 'guild-kick', value: m.pseudo, cls: 'auto' }) : ''}${d.role === 'leader' && m.role === 'member' ? mBtn('Officier', { action: 'guild-role', value: `${m.pseudo}|officer`, cls: 'auto' }) : ''}</div>`).join('');
+  const log = d.log.map((l) => `<li><small>${new Date(l.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small> ${escapeHtml(l.text)}</li>`).join('') || '<li>Rien pour l\'instant.</li>';
+  return `${head}${weekly}${requests}<div class="mp-sub">Membres</div>${members}<div class="mp-sub">Activité récente</div><div class="m-card"><ul class="guild-log mp-log">${log}</ul></div>`;
+}
+
+function mNoGuild(ui, g) {
+  const em = ui.view.guildEmblem ?? EMBLEMS[0];
+  const list = (g.list ?? []).map((x) => `<div class="m-card mp-row"><span class="mp-ico">${img(x.emblem)}</span><div class="mp-main"><b class="mp-name">${escapeHtml(x.name)}</b><small>${x.members}/${x.maxMembers} · ${x.open ? 'libre' : 'sur demande'}</small></div>
+      ${mBtn(x.open ? 'Rejoindre' : 'Demander', { action: 'guild-join', value: x.name, disabled: x.members >= x.maxMembers, cls: 'auto' })}</div>`).join('');
+  return `<div class="mp-sub">Rejoins une guilde</div>
+    <div class="m-card mp-addfriend"><input class="mp-input" data-guild="q" placeholder="Rechercher une guilde" value="${escapeHtml(ui.view.guildQ ?? '')}" maxlength="24">${mBtn('Chercher', { action: 'guild-search', cls: 'auto' })}</div>
+    ${list || '<div class="mp-reset">Aucune guilde trouvée.</div>'}
+    <div class="mp-sub">Fonder une guilde</div>
+    <div class="m-card"><input class="mp-input" data-guild="name" placeholder="Nom (3 à 24 caractères)" maxlength="24"><div class="mp-gap"></div><input class="mp-input" data-guild="desc" placeholder="Description (facultatif)" maxlength="200">
+      <div class="m-chips mp-emblems">${EMBLEMS.map((e) => mChip('', { action: 'guild-emblem', value: e, on: e === em, icon: e, attrs: 'aria-label="Emblème"' })).join('')}</div>
+      <label class="mp-check"><input type="checkbox" data-guild="open" checked> Accès libre (sinon : sur demande)</label>${mBtnGold('Fonder', { action: 'guild-create' })}</div>`;
+}
+
+function guildPhone(ui) {
+  const g = ui.guild ?? {};
+  const empty = (txt) => mEmpty(txt, { icon: 'icon_crown', button: `${perks()}${mBtnGold('Créer mon compte', { action: 'open-account' })}` });
+  let body;
+  if (g.needAccount) body = empty('Rejoins une guilde : bannière, salle commune et boss partagés.');
+  else {
+    const msg = g.error ? `<div class="state-error mp-reset">${escapeHtml(g.error)}</div>` : g.message ? `<div class="good mp-reset">${escapeHtml(g.message)}</div>` : '';
+    if (!g.data) body = `${msg}${mEmpty(g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment : voici ce qui t\'attend.', { icon: 'icon_crown', button: perks() })}`;
+    else body = `${msg}${g.data.guild ? mMyGuild(ui, g.data) : mNoGuild(ui, g)}<div class="mp-sub">Classement des guildes</div>${mRanking(g)}`;
+  }
+  return mpFrame('icon_crown', 'Guilde', body);
+}
+
 export default {
   id: 'guild',
   title: 'Guilde',
   icon: 'icon_crown',
   render(ui) {
+    if (isMPhone(ui)) return guildPhone(ui);
     const g = ui.guild ?? {};
     // v9.8 (I9) : illustration et bouton direct vers la création de compte.
     if (g.needAccount) return `${guildPreview()}<div class="card guild-invite">

@@ -30,6 +30,9 @@ import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { AFFIXES } from '../../data/items.js';
 import { ENVIRONMENTS } from '../../data/environment.js'; // v9.2.1
 import { envEffectText } from '../../core/environment.js';
+import { mBar, mBtn, mBtnGold, mGrid, mModes, mSheet, mTile } from '../mobile-kit.js'; // v10.12
+import { MUSEUM, museumDuplicates, museumEffects } from '../../core/museum.js';
+import { esc, isMPhone, mpChips, mpFrame, mpRow } from './profile-m.js';
 import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
@@ -313,6 +316,140 @@ function envTable(state) {
   return `<div class="muted">Le malus grandit de 25 % par cycle (×2 au plus) et baisse selon le niveau de l'amélioration qui le contre.</div>${rows}`;
 }
 
+
+// ---------- v10.12 : Encyclopédie sur téléphone (kit mobile) ----------
+// Grille de 3 cartes (nom sur 2 lignes sans coupure de mot), paliers en une seule barre, fiche d'une entrée dans une .m-sheet.
+const mcell = (key, known, pic, label, extra = '') => `<button type="button" class="m-card mp-cell${known ? '' : ' unknown'}${extra}" data-action="mp-open" data-value="enc:${esc(key)}" title="${known ? esc(label) : '???'}"><span class="mp-cell-pic">${pic}</span><span class="mp-cell-name">${known ? esc(label) : '???'}</span></button>`;
+const mcells = (html) => `<div class="mp-cells">${html}</div>`;
+const mGroup = (label) => `<div class="mp-sub">${esc(label)}</div>`;
+const mShut = { close: 'mp-shut', back: 'mp-shut', id: 'enc-sheet' };
+
+function mMonsters(state) {
+  return mcells(Object.entries(ENEMIES).map(([id, e]) => {
+    const n = MONSTER_VARIANTS.filter((v) => variantFound(state, id, v.id)).length;
+    const dots = MONSTER_VARIANTS.map((v) => `<i class="${variantFound(state, id, v.id) ? `on v-${v.id}` : ''}"></i>`).join('');
+    return mcell(`m:${id}`, n > 0, `${spritePic(e.sprite, n > 0, 2)}<span class="enc-dots">${dots}</span>`, e.name);
+  }).join(''));
+}
+function mBosses(state) {
+  const groups = [['mega', 'Méga boss'], ['mini', 'Mini-boss'], ['mid', 'Boss'], ['hard', 'Boss redoutables'], ['dungeon', 'Boss de donjon']];
+  return groups.map(([tier, label]) => {
+    const ids = Object.keys(BOSSES).filter((id) => (BOSSES[id].tier ?? 'mega') === tier);
+    return `${mGroup(label)}${mcells(ids.map((id) => { const known = Boolean(state.codex.kills[id]); return mcell(`b:${id}`, known, spritePic(enemySprite(id), known), BOSSES[id].name); }).join(''))}`;
+  }).join('');
+}
+function mMutations(state) {
+  return mcells(MUTATIONS.map((m) => { const known = Boolean(state.codex.mutants[m.id]); return mcell(`x:${m.id}`, known, mutantPic(m, known), m.name); }).join(''));
+}
+function mItems(state, slot) {
+  const bases = [...ITEM_BASES, ...SIGNATURE_ITEMS].filter((b) => slot === 'all' || b.slot === slot);
+  const chips = mpChips('enc-slot-select', ['all', ...Object.keys(SLOTS)].map((k) => [k, k === 'all' ? 'Tous' : SLOTS[k]]), slot);
+  const cells = bases.map((b) => {
+    const known = RARITIES.filter((r) => state.codex.itemRar[`${b.id}:${r.id}`] && (!b.signature || SIGNATURE_RARITIES.includes(r.id)));
+    const best = known.at(-1)?.id ?? (b.signature ? SIGNATURE_RARITIES[0] : 'common');
+    const pic = `<img class="px${known.length ? '' : ' enc-shadow'}" src="${itemIconUrl({ baseId: b.id, rarity: best, slot: b.slot })}" alt="">`;
+    return `<button type="button" class="m-card mp-cell r-${best}${known.length ? '' : ' unknown'}" data-action="mp-open" data-value="enc:i:${esc(b.id)}:${best}" title="${known.length ? esc(b.name) : '???'}"><span class="mp-cell-pic">${pic}</span><span class="mp-cell-name">${known.length ? esc(b.name) : '???'}${b.signature && known.length ? ' ✦' : ''}</span></button>`;
+  }).join('');
+  return `${chips}${mcells(cells)}`;
+}
+function mCompanions(state) {
+  return [['pet', 'Familiers'], ['ally', 'Compagnons']].map(([kind, label]) => `${mGroup(label)}${mcells(COMPANIONS.filter((c) => (c.kind === 'ally') === (kind === 'ally')).map((c) => {
+    const known = Boolean(state.companions.owned[c.id]);
+    return mcell(`c:${c.id}`, known, spritePic(c.sprite, known, c.kind === 'ally' ? 2 : 3), c.name, ` r-${c.rarity}`);
+  }).join(''))}`).join('');
+}
+function mMuseum(state) {
+  const n = museumCount(state);
+  const total = effectText(museumEffects(state));
+  const head = `<div class="m-card mp-head"><span class="mp-ico big">${img('icon_trophy')}</span><div class="mp-main"><div class="mp-head-line"><b class="num">${n}/${MUSEUM_PIECES.length}</b><small>pièces exposées</small></div>${mBar(n / MUSEUM_PIECES.length)}<small class="good">${total || ' '}</small></div>${mBtn('Outils', { action: 'mp-open', value: 'enc:mtools', cls: 'auto' })}</div>`;
+  const tiles = MUSEUM_PIECES.map((baseId) => {
+    const base = itemBase(baseId);
+    const item = state.museum[baseId];
+    // la case est un <span> (non cliquable) dans un bouton : un seul élément interactif par pièce
+    const tile = item ? mTile({ ...item, name: base.name }, { size: 80, plus: item.level ? `niv. ${item.level}` : '', src: itemIconUrl({ baseId, rarity: item.rarity, slot: base.slot }) })
+      : mTile(null, { size: 80, slot: base.slot });
+    return `<button type="button" class="mp-tilebtn" data-action="mp-open" data-value="enc:mus:${esc(baseId)}" aria-label="${esc(base.name)}">${tile}<small>${esc(base.name)}</small></button>`;
+  });
+  return `${head}${mGrid(tiles, 3)}`;
+}
+const FUTURE_P = ['Titan des Abysses', 'Dieu de l\'Orage', 'Mère des Dragons'];
+function mPantheon() {
+  const met = Object.values(GRAND_BOSSES).filter((b) => !b.test);
+  const cards = met.map((b) => `<button type="button" class="m-card mp-cell" data-action="mp-open" data-value="enc:p:${esc(b.id)}"><span class="mp-cell-pic"><span class="mp-art" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></span></span><span class="mp-cell-name">${esc(b.name)}</span></button>`).join('');
+  const ghosts = FUTURE_P.map(() => '<div class="m-card mp-cell unknown"><span class="mp-cell-pic"><span class="mp-art silhouette"></span></span><span class="mp-cell-name">???</span></div>').join('');
+  return mcells(cards + ghosts);
+}
+function mPantheonSheet(state, id) {
+  const b = Object.values(GRAND_BOSSES).find((x) => x.id === id);
+  if (!b) return '';
+  const best = id === 'colossus' ? Math.max(state.worldBoss?.best ?? 0, state.records?.worldBossBest ?? 0) : state.grand?.[id]?.best ?? 0;
+  return mSheet(b.name, `<div class="m-card mp-detail"><div class="mp-art big" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></div><b>${esc(b.title ?? '')}</b><p>${esc(b.lore ?? '')}</p>
+    <div class="m-stat"><span class="m-k">Meilleur score</span><b class="m-v">${formatNumber(best)}</b></div>${id === 'colossus' ? `<div class="m-stat"><span class="m-k">Revanche</span><b class="m-v">${revengeLevel(state)}/${REVENGE_STEPS}</b></div>` : ''}
+    <div class="muted">Donne : ${Object.entries(b.rewards ?? {}).map(([k, n]) => `${n} ${{ gems: 'gemmes', shards: 'éclats' }[k] ?? k}`).join(', ')}</div></div>`, mShut);
+}
+function mEncTitle(state, key) {
+  const [kind, a, b] = key.split(':');
+  const f = { m: () => (MONSTER_VARIANTS.some((v) => variantFound(state, a, v.id)) ? ENEMIES[a]?.name : null), b: () => (state.codex.kills[a] ? BOSSES[a]?.name : null), x: () => (state.codex.mutants[a] ? MUTATIONS.find((x) => x.id === a)?.name : null),
+    i: () => (state.codex.itemRar[`${a}:${b}`] ? itemBase(a)?.name : null), c: () => (state.companions.owned[a] ? COMPANIONS.find((c) => c.id === a)?.name : null) }[kind];
+  return f?.() ?? '???';
+}
+function mEncSheet(ui, state, key) {
+  if (key === 'mtools') {
+    const auto = state.ui.autoMuseum !== false;
+    const dupes = museumDuplicates(state).length;
+    return mSheet('Outils du Musée', `<div class="m-card mp-detail"><p>Chaque pièce exposée : dégâts, PV et or +${MUSEUM.perPiece.damageMultPct} % (×2 si Légendaire). Collection complète : +${MUSEUM.complete.damageMultPct} % de plus. Une pièce exposée n'est pas portée : reprends-la pour l'équiper.</p></div>
+      ${mBtn(auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée', { action: 'auto-museum', cls: auto ? 'ready' : '' })}<div class="mp-gap"></div>
+      ${mBtn('Exposer tout (sac + Réserve)', { action: 'expose-all' })}${dupes ? `<div class="mp-gap"></div>${mBtn(`Recycler les doublons (${dupes})`, { action: 'recycle-museum-dupes' })}` : ''}`, mShut);
+  }
+  if (key === 'env') return mSheet('Environnements', `<div class="m-card mp-detail">${envTable(state)}</div>`, mShut);
+  if (key.startsWith('p:')) return mPantheonSheet(state, key.slice(2));
+  if (key.startsWith('mus:')) {
+    const baseId = key.slice(4);
+    const base = itemBase(baseId);
+    const item = state.museum[baseId];
+    if (!base) return '';
+    const body = item ? `<div class="m-card mp-detail">${mTile({ ...item, name: base.name }, { size: 96, src: itemIconUrl({ baseId, rarity: item.rarity, slot: base.slot }) })}<b class="rarity-text r-${item.rarity}">${esc(base.name)}</b>
+        <div class="muted">${rarityById(item.rarity).label} · niv. ${item.level}${item.rarity === 'legendary' ? ' · bonus ×2' : ''}</div></div>${mBtn('Reprendre dans le sac', { action: 'from-museum', value: baseId })}`
+      : `<div class="m-card mp-detail"><b>${esc(base.name)}</b><div class="muted">Butin de ${esc(BOSSES[base.signature]?.name ?? '?')}</div></div>`;
+    return mSheet(item ? base.name : '???', body, mShut);
+  }
+  const html = detail(state, key).replaceAll('data-action="enc-sel" data-value="', 'data-action="mp-open" data-value="enc:');
+  if (!html) return '';
+  return mSheet(mEncTitle(state, key), `<div class="m-card mp-detail">${html}</div>`, mShut);
+}
+function encPhone(ui, state) {
+  const v = ui.view;
+  const progress = encyclopediaProgress(state);
+  const sec = v.encSec === 'museum' || v.encSec === 'pantheon' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
+  const modes = mModes([...progress.sections.map((s) => ({ id: s.id, label: s.label, icon: s.icon, action: 'enc-sec', value: s.id, badge: Boolean(s.milestones && sectionStatus(state, s.id).ready) })),
+    { id: 'museum', label: 'Musée', icon: 'icon_trophy', action: 'enc-sec', value: 'museum' }, { id: 'pantheon', label: 'Panthéon', icon: 'icon_boss', action: 'enc-sec', value: 'pantheon' }], sec);
+  // Paliers : une seule barre, un repère par palier ; « Récupérer » doré quand le prochain est prêt.
+  const claimed = state.codex.encClaimed ?? 0;
+  const next = encyclopediaNext(state);
+  const ticks = ENCYCLOPEDIA_MILESTONES.map((m, i) => `<span class="${i < claimed ? 'got' : progress.pct >= m.pct ? 'ready' : ''}" style="left:${m.pct}%" title="${m.pct} % : ${esc(rewardText(m.reward, formatNumber))}"></span>`).join('');
+  const label = next ? (next.ready ? 'Palier prêt !' : `À ${next.pct} % : ${rewardIcons(next.reward)}`) : 'Tous les paliers ✔';
+  const head = `<div class="m-card mp-head"><div class="mp-main"><div class="mp-head-line"><b class="num">${pct(progress.pct)}</b><small>${label}</small></div>
+      <div class="mp-track"><i style="--pct:${Math.min(100, progress.pct)}%"></i>${ticks}</div><small>Encyclopédie complétée</small></div>
+      ${next?.ready ? mBtnGold('Récupérer', { action: 'enc-claim', cls: 'auto', attrs: `aria-label="Récupérer : ${esc(rewardText(next.reward, formatNumber))}"` }) : ''}</div>`;
+  let ms = '';
+  const def = ENCYCLOPEDIA_SECTIONS.find((x) => x.id === sec);
+  if (def?.milestones) {
+    const st = sectionStatus(state, sec);
+    const goal = st.next ?? st.total;
+    const right = st.next === null ? '<span class="mp-ok" role="img" aria-label="Paliers obtenus">✔</span>' : mBtn('Récupérer', { action: 'claim-collection', value: sec, disabled: !st.ready, cls: `auto${st.ready ? ' ready' : ''}`, attrs: `aria-label="Récupérer : ${esc(rewardText(st.reward, formatNumber))}"` });
+    ms = mpRow({ icon: img(def.icon), title: `Récompense ${Math.min(st.claimed + 1, def.milestones.length)}/${def.milestones.length}`, sub: st.next === null ? '' : `<div class="mp-rw">${rewardIcons(st.reward)}</div>`, bar: Math.min(1, st.found / Math.max(1, goal)), n: `${st.found}/${goal}`, right, cls: st.ready ? 'ready' : '' });
+  }
+  const found = progress.sections.find((x) => x.id === sec);
+  const count = found ? `<div class="mp-reset">${esc(found.label)} : ${found.found}/${found.total} découverts</div>` : '';
+  let body;
+  if (sec === 'museum') body = mMuseum(state);
+  else if (sec === 'pantheon') body = mPantheon();
+  else body = { monsters: () => mMonsters(state), bosses: () => mBosses(state), mutations: () => mMutations(state), items: () => mItems(state, v.encSlot ?? 'all'), companions: () => mCompanions(state) }[sec]();
+  const env = mBtn('Environnements des mondes', { action: 'mp-open', value: 'enc:env', icon: 'icon_map' });
+  const sheetKey = typeof v.mSheet === 'string' && v.mSheet.startsWith('enc:') ? v.mSheet.slice(4) : '';
+  return `${mpFrame('icon_book', 'Encyclopédie', `${head}${modes}${ms}${count}${body}<div class="mp-gap"></div>${env}`, true, Boolean(sheetKey))}${sheetKey ? mEncSheet(ui, state, sheetKey) : ''}`;
+}
+
 // v9.1.0 : deux systèmes sur un écran, dans cet ordre — en-tête (pourcentage et paliers de l'encyclopédie, pour ses
 // 5 sections seulement), sections avec leur palier (v9.1.3 : ancien Codex), puis le Musée (compteur propre, sans effet
 // sur le pourcentage). Le Musée n'est pas une section de l'encyclopédie (core/encyclopedia.js ne le compte pas).
@@ -322,6 +459,7 @@ export default {
   icon: 'icon_book',
   extra: (ui, state) => `${pct(encyclopediaProgress(state).pct)}`,
   render(ui, state) {
+    if (isMPhone(ui)) return encPhone(ui, state);
     const v = ui.view;
     const progress = encyclopediaProgress(state);
     const sec = v.encSec === 'museum' || v.encSec === 'pantheon' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
