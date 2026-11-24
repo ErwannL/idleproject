@@ -32,7 +32,7 @@ import { ENVIRONMENTS } from '../../data/environment.js'; // v9.2.1
 import { envEffectText } from '../../core/environment.js';
 import { mBar, mBtn, mBtnGold, mGrid, mModes, mSheet, mTile } from '../mobile-kit.js'; // v10.12
 import { MUSEUM, museumDuplicates, museumEffects } from '../../core/museum.js';
-import { esc, isMPhone, mpChips, mpFrame, mpRow } from './profile-m.js';
+import { esc, isMPhone, mpBtns, mpChips, mpFold, mpFrame, mpRow, mpSwitch } from './profile-m.js';
 import { effectText, escapeHtml, fold, formatNumber, icon, img, progressBar, rarityLabel, rewardIcons, stars } from '../common.js';
 
 const SHADOW = { tint: { color: '#2e3a52', alpha: 1 } };
@@ -379,14 +379,122 @@ function mPantheon() {
   const ghosts = FUTURE_P.map(() => '<div class="m-card mp-cell unknown"><span class="mp-cell-pic"><span class="mp-art silhouette"></span></span><span class="mp-cell-name">???</span></div>').join('');
   return mcells(cards + ghosts);
 }
-function mPantheonSheet(state, id) {
+function mPantheonSheet(ui, state, id) {
   const b = Object.values(GRAND_BOSSES).find((x) => x.id === id);
   if (!b) return '';
   const best = id === 'colossus' ? Math.max(state.worldBoss?.best ?? 0, state.records?.worldBossBest ?? 0) : state.grand?.[id]?.best ?? 0;
-  return mSheet(b.name, `<div class="m-card mp-detail"><div class="mp-art big" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></div><b>${esc(b.title ?? '')}</b><p>${esc(b.lore ?? '')}</p>
-    <div class="m-stat"><span class="m-k">Meilleur score</span><b class="m-v">${formatNumber(best)}</b></div>${id === 'colossus' ? `<div class="m-stat"><span class="m-k">Revanche</span><b class="m-v">${revengeLevel(state)}/${REVENGE_STEPS}</b></div>` : ''}
-    <div class="muted">Donne : ${Object.entries(b.rewards ?? {}).map(([k, n]) => `${n} ${{ gems: 'gemmes', shards: 'éclats' }[k] ?? k}`).join(', ')}</div></div>`, mShut);
+  const names = { gems: ['icon_gem', 'Gemmes'], shards: ['icon_shard', 'Éclats'] };
+  const gives = Object.entries(b.rewards ?? {}).map(([k, n]) => pRow(names[k]?.[0] ?? '', names[k]?.[1] ?? esc(k), nl(n)));
+  return mSheet(b.name, `${pHero(`<span class="mp-art big" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></span>`, esc(b.name), b.title ? pChip(esc(b.title), true) : '')}
+    ${pStats([pRow('icon_trophy', 'Meilleur score', nl(best)), id === 'colossus' ? pRow('icon_skull', 'Revanche', `${revengeLevel(state)}/${REVENGE_STEPS}`) : ''])}
+    ${gives.length ? `<div class="m-card mp-srows"><div class="mp-sub0">Il donne</div>${gives.join('')}</div>` : ''}
+    ${b.lore ? pFoldN(ui, 'enc-plore', 'Histoire', esc(b.lore)) : ''}`, mShut);
 }
+// ---------- v10.12 (rattrapage) : fiches d'entrée sur téléphone, en kit (tête avec portrait + puces, lignes .m-stat, replis « ? ») ----------
+const nl = (n) => formatNumber(n);
+const pHero = (pic, name, chips = '', sub = '', nameStyle = '') => `<div class="m-card mp-bhero"><div class="mp-bpic">${pic}</div><div class="mp-bmeta"><b class="mp-bname"${nameStyle ? ` style="${nameStyle}"` : ''}>${name}</b>${chips ? `<span class="mp-chiprow">${chips}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+const pChip = (label, on = false, style = '') => `<span class="m-chip mp-static${on ? ' on' : ''}"${style ? ` style="${style}"` : ''}>${label}</span>`;
+const pStats = (rows) => `<div class="m-card mp-srows">${rows.filter(Boolean).join('')}</div>`;
+const pRow = (ic, label, value) => `<div class="m-stat">${ic ? img(ic) : ''}<span class="m-k">${label}</span><b class="m-v">${value}</b></div>`;
+const pNote = (t) => `<div class="m-card"><div class="mp-note">${t}</div></div>`;
+const pShow = (kind, id) => `<div class="m-card mp-showcase"><div class="mp-sub0">Vitrine</div>${showcaseSlot(kind, id)}</div>`;
+const pFoldN = (ui, id, title, html) => mpFold(ui, id, title, `<div class="m-card"><div class="mp-note">${html}</div></div>`);
+const pUnknown = (pic, hint) => `${pHero(pic, '???')}${pNote(hint)}`;
+const pTrait = (id) => { const t = bossTrait(id); return t ? `<div class="m-card mp-trait" style="--trait:${t.color}"><b>${escapeHtml(t.name)}</b><small>${escapeHtml(t.text)}</small><small class="mp-counter">Parade : ${escapeHtml(t.counter)}</small></div>` : ''; };
+
+function pMonster(ui, state, id) {
+  const e = ENEMIES[id];
+  const known = MONSTER_VARIANTS.some((v) => variantFound(state, id, v.id));
+  const where = zonesOf(id);
+  if (!known) return pUnknown(spritePic(e.sprite, false, 3), `Se rencontre : ${escapeHtml(where.join(', ') || 'quelque part')}. Vaincs-le pour le découvrir.`);
+  const how = { normal: 'Le vaincre une fois.', elite: 'Vaincre sa version Élite (événement « Élite errante »).', mutant: 'Vaincre une version mutée (à partir du monde 2).' };
+  const variants = MONSTER_VARIANTS.map((v) => pRow('', `<span class="v-${v.id}">${v.label}</span>`, variantFound(state, id, v.id) ? '<span class="good">✔</span>' : '<span class="muted">à trouver</span>')).join('');
+  return `${pHero(animCanvas(`foe:${e.sprite}`, 36, 36, 3), escapeHtml(e.name), e.flyHeight ? pChip('Volant') : '', escapeHtml(where.join(', ')))}
+    ${pStats([pRow('icon_skull', 'Vaincus', nl(state.codex.kills[id] ?? 0)), pRow('icon_crown', 'Élites vaincues', nl(state.codex.elite[id] ?? 0)), pRow('icon_heart', 'PV de base', e.hp), pRow('icon_damage', 'Dégâts de base', e.damage),
+      pRow('icon_bolt', 'Vitesse', e.speed), pRow('icon_timer', 'Attaque toutes les', `${String(e.attackInterval).replace('.', ',')} s`)])}
+    ${pShow('monster', id)}
+    <div class="m-card mp-srows"><div class="mp-sub0">Variantes</div>${variants}</div>
+    ${pFoldN(ui, 'enc-variants', 'Comment les trouver ?', MONSTER_VARIANTS.map((v) => `<b>${v.label}</b> : ${how[v.id]}`).join('<br>'))}`;
+}
+
+function pBoss(ui, state, id) {
+  const b = BOSSES[id];
+  const known = Boolean(state.codex.kills[id]);
+  const tier = TIERS[b.tier] ?? 'Méga boss';
+  const where = bossWhere(id);
+  if (!known) return pUnknown(spritePic(enemySprite(id), false, 1), `${tier}. Se rencontre : ${escapeHtml(where.join(', '))}.`);
+  const sig = SIGNATURE_ITEMS.find((s) => s.signature === id);
+  return `${pHero(animCanvas(`foe:${enemySprite(id)}`, 104, 104, 1), escapeHtml(b.name), pChip(tier, true), escapeHtml(where.join(' · ')))}
+    ${pTrait(id)}
+    ${pStats([pRow('icon_skull', 'Vaincu', `${nl(state.codex.kills[id])} fois`), pRow('icon_paw', 'Inspiré du', escapeHtml(ENEMIES[b.base]?.name ?? '—')), sig ? pRow('icon_star', 'Objet ancestral', `<span class="rarity-text r-legendary">${escapeHtml(sig.name)}</span>`) : ''])}
+    ${BOSS_LORE[id] ? pFoldN(ui, 'enc-lore', 'Histoire', escapeHtml(BOSS_LORE[id])) : ''}
+    ${pShow('boss', id)}`;
+}
+
+function pMutation(ui, state, id) {
+  const m = MUTATIONS.find((x) => x.id === id);
+  const known = Boolean(state.codex.mutants[id]);
+  const rule = `Chance qu'un monstre ordinaire soit muté : ${pct(mutationChance(state) * 100)} actuellement (${pct(MUTATION_RULES.chance * 100)} sans Transcendance, +${pct(MUTATION_RULES.chancePerTranscend * 100)} par Transcendance, ${pct(MUTATION_RULES.maxChance * 100)} au plus ; à partir du monde 2).`;
+  const folds = `${pFoldN(ui, 'enc-cue', 'En combat', `Étiquette et contour de sa couleur. ${escapeHtml(MUTATION_CUES[m.id] ?? '')}`)}${pFoldN(ui, 'enc-rule', 'Chance de mutation', rule)}`;
+  if (!known) return `${pUnknown(mutantPic(m, false, 3), 'Vaincs un monstre porteur de cette mutation.')}${folds}`;
+  return `${pHero(mutantPic(m, true, 2), escapeHtml(m.name), '', `Le monstre ${escapeHtml(m.text)}.`, `color:${m.color}`)}
+    ${pStats([pRow('icon_skull', 'Vaincus', nl(state.codex.mutants[id])), pRow('icon_heart', 'PV', `×${String(MUTATION_RULES.hpMultiplier).replace('.', ',')}`), pRow('coin', 'Or', `×${MUTATION_RULES.goldMultiplier}`), pRow('icon_bag', 'Butin', 'objet garanti')])}
+    ${pShow('mutation', id)}${folds}`;
+}
+
+function pItem(ui, state, baseId, rarity) {
+  const b = itemBase(baseId);
+  const r = rarityById(rarity);
+  const known = Boolean(state.codex.itemRar[`${baseId}:${rarity}`]);
+  const how = b.signature ? `Objet ancestral de ${escapeHtml(BOSSES[b.signature]?.name ?? 'un boss')} (${Math.round(BALANCE.loot.signatureChance * 100)} % par victoire).`
+    : rarity === 'legendary' ? 'Très rare : boss, coffres, donjons et Tour augmentent tes chances.' : 'Se ramasse sur les monstres, les boss et dans les coffres.';
+  const rars = RARITIES.filter((x) => !b.signature || SIGNATURE_RARITIES.includes(x.id)).map((x) => {
+    const got = state.codex.itemRar[`${baseId}:${x.id}`];
+    return `<button type="button" class="mp-rbtn r-${x.id}${got ? '' : ' unknown'}${x.id === rarity ? ' selected' : ''}" data-action="mp-open" data-value="enc:i:${esc(baseId)}:${x.id}" title="${esc(x.label)}" aria-label="${esc(x.label)}">
+      <img class="px${got ? '' : ' enc-shadow'}" src="${itemIconUrl({ baseId, rarity: x.id, slot: b.slot })}" alt=""></button>`;
+  }).join('');
+  const raritiesCard = `<div class="m-card"><div class="mp-sub0">Raretés</div><div class="mp-rars">${rars}</div></div>`;
+  const pic = `<span class="mp-rpic r-${rarity}"><img class="px${known ? '' : ' enc-shadow'}" src="${itemIconUrl({ baseId, rarity, slot: b.slot }, 64)}" alt=""></span>`;
+  const chips = `${pChip(SLOTS[b.slot])}${pChip(r.label, true)}${b.signature ? pChip('Ancestral') : ''}`;
+  if (!known) return `${pHero(pic, '???', chips)}${pNote(how)}${raritiesCard}`;
+  const stats = Object.entries(b.stats ?? {}).map(([k, v]) => pRow('', STAT_LABELS[k], `${nl(itemStatValue(k, v, r, 1))}${PERCENT_STATS.has(k) ? ' %' : ''}`));
+  const main = b.mainAffix ? pRow('', 'Effet principal', AFFIXES[b.mainAffix.type].label(Math.round(b.mainAffix.base * r.statMultiplier * 10) / 10)) : '';
+  const fixed = (b.affixes ?? []).map((a) => pRow('', 'Effet', AFFIXES[a.type].label(a.value)));
+  return `${pHero(pic, escapeHtml(b.name), chips)}
+    ${pStats([...stats, main, ...fixed, pRow('icon_star', 'Puissance', `×${String(r.statMultiplier).replace('.', ',')}`)])}
+    ${raritiesCard}
+    ${pFoldN(ui, 'enc-itemhow', 'À savoir', `Valeurs au niveau 1 ; elles grandissent avec le niveau de l'objet. ${rarity !== 'common' && !b.signature ? 'Effets spéciaux tirés au hasard en plus. ' : ''}${how}`)}`;
+}
+
+function pCompanion(ui, state, id) {
+  const c = COMPANIONS.find((x) => x.id === id);
+  const owned = state.companions.owned[id];
+  const grade = rarityLabel(c.rarity);
+  const kind = c.kind === 'ally' ? 'Compagnon' : 'Familier';
+  if (!owned) return pUnknown(spritePic(c.sprite, false, c.kind === 'ally' ? 2 : 4), `${kind} ${grade}. S'obtient par l'Invocation.`);
+  const passive = Object.fromEntries(Object.entries(c.passive).map(([k, v]) => [MULTIPLICATIVE[k] ?? k, v * COMPANION_RULES.passiveBase]));
+  const skills = allCompanionSkills(c.id).map((sk) => {
+    const open = !sk.ultimate || ultimateUnlocked(owned);
+    const v = skillTextAt(sk, companionSkillMultiplier(state, c, sk.type, false, BALANCE, owned));
+    return `<div class="mp-skill${open ? '' : ' locked'}"><b>${escapeHtml(sk.name)}</b>${sk.ultimate ? ` <span class="m-chip mp-static${open ? ' on' : ''}">${open ? 'Ultime' : `Ultime à ${SKILL_RULES.ultimateCopies - 1} doublons`}</span>` : ''}<small>${escapeHtml(v)} · toutes les ${sk.every} s</small></div>`;
+  }).join('');
+  return `${pHero(c.kind === 'ally' ? animCanvas(`foe:${c.sprite}`, 48, 48, 2) : animCanvas(`pet:${c.sprite}`, 32, 32, 3), `<span class="rarity-text r-${c.rarity}">${escapeHtml(c.name)}</span>`, `${pChip(kind)}${pChip(grade, true)}`, stars(duplicates(owned)))}
+    ${pStats([pRow('icon_xp', 'Niveau', unitLevel(state, c.id)), pRow('icon_star', 'Passif (niv. 1)', effectText(passive)), pRow('icon_summon', 'Copies', `${duplicates(owned) + 1}/${COMPANION_RULES.maxCopies}`)])}
+    ${pShow('unit', c.id)}
+    <div class="m-card mp-skills"><div class="mp-sub0">Compétences</div>${skills}</div>
+    ${pFoldN(ui, 'enc-aura', 'À 5 étoiles', 'Une aura de flammes à ses couleurs l\'entoure en combat.')}`;
+}
+
+function pEnv(ui, state) {
+  const best = Math.max(state.maxStage ?? 1, state.records?.bestStage ?? 1);
+  const rows = ENVIRONMENTS.map((e) => {
+    const zi = ZONES.findIndex((z) => z.id === e.zone);
+    if (!(best > zi * 20)) return `<div class="m-card mp-env unseen"><b>${zi + 1}. ?</b></div>`;
+    return `<div class="m-card mp-env"><b>${img(e.icon, 'ico16')} ${zi + 1}. ${escapeHtml(e.name)}</b><small>${escapeHtml(envEffectText(e, e.base))}</small><small class="mp-counter">Contré par ${escapeHtml(BALANCE.upgrades[e.counter].label)} (complet niv. ${e.fullAt})</small></div>`;
+  }).join('');
+  return `${pFoldN(ui, 'enc-envinfo', 'Comment ça marche ?', 'Le malus grandit de 25 % par cycle (×2 au plus) et baisse selon le niveau de l\'amélioration qui le contre.')}${rows}`;
+}
+
 function mEncTitle(state, key) {
   const [kind, a, b] = key.split(':');
   const f = { m: () => (MONSTER_VARIANTS.some((v) => variantFound(state, a, v.id)) ? ENEMIES[a]?.name : null), b: () => (state.codex.kills[a] ? BOSSES[a]?.name : null), x: () => (state.codex.mutants[a] ? MUTATIONS.find((x) => x.id === a)?.name : null),
@@ -397,25 +505,28 @@ function mEncSheet(ui, state, key) {
   if (key === 'mtools') {
     const auto = state.ui.autoMuseum !== false;
     const dupes = museumDuplicates(state).length;
-    return mSheet('Outils du Musée', `<div class="m-card mp-detail"><p>Chaque pièce exposée : dégâts, PV et or +${MUSEUM.perPiece.damageMultPct} % (×2 si Légendaire). Collection complète : +${MUSEUM.complete.damageMultPct} % de plus. Une pièce exposée n'est pas portée : reprends-la pour l'équiper.</p></div>
-      ${mBtn(auto ? 'Exposition auto : activée' : 'Exposition auto : désactivée', { action: 'auto-museum', cls: auto ? 'ready' : '' })}<div class="mp-gap"></div>
-      ${mBtn('Exposer tout (sac + Réserve)', { action: 'expose-all' })}${dupes ? `<div class="mp-gap"></div>${mBtn(`Recycler les doublons (${dupes})`, { action: 'recycle-museum-dupes' })}` : ''}`, mShut);
+    return mSheet('Outils du Musée', `${mpSwitch('Exposition auto', 'auto-museum', auto, { sub: auto ? 'Activée' : 'Désactivée' })}
+      ${mBtnGold('Exposer tout (sac + Réserve)', { action: 'expose-all' })}${dupes ? `<div class="mp-gap"></div>${mBtn(`Recycler les doublons (${dupes})`, { action: 'recycle-museum-dupes' })}` : ''}<div class="mp-gap"></div>
+      ${pFoldN(ui, 'enc-museumhow', 'Comment ça marche ?', `Chaque pièce exposée : dégâts, PV et or +${MUSEUM.perPiece.damageMultPct} % (×2 si Légendaire). Collection complète : +${MUSEUM.complete.damageMultPct} % de plus. Une pièce exposée n'est pas portée : reprends-la pour l'équiper.`)}`, mShut);
   }
-  if (key === 'env') return mSheet('Environnements', `<div class="m-card mp-detail">${envTable(state)}</div>`, mShut);
-  if (key.startsWith('p:')) return mPantheonSheet(state, key.slice(2));
+  if (key === 'env') return mSheet('Environnements', pEnv(ui, state), mShut);
+  if (key.startsWith('p:')) return mPantheonSheet(ui, state, key.slice(2));
   if (key.startsWith('mus:')) {
     const baseId = key.slice(4);
     const base = itemBase(baseId);
     const item = state.museum[baseId];
     if (!base) return '';
-    const body = item ? `<div class="m-card mp-detail">${mTile({ ...item, name: base.name }, { size: 96, src: itemIconUrl({ baseId, rarity: item.rarity, slot: base.slot }) })}<b class="rarity-text r-${item.rarity}">${esc(base.name)}</b>
-        <div class="muted">${rarityById(item.rarity).label} · niv. ${item.level}${item.rarity === 'legendary' ? ' · bonus ×2' : ''}</div></div>${mBtn('Reprendre dans le sac', { action: 'from-museum', value: baseId })}`
-      : `<div class="m-card mp-detail"><b>${esc(base.name)}</b><div class="muted">Butin de ${esc(BOSSES[base.signature]?.name ?? '?')}</div></div>`;
+    const pic = `<span class="mp-rpic r-${item ? item.rarity : 'common'}"><img class="px${item ? '' : ' enc-shadow'}" src="${itemIconUrl({ baseId, rarity: item?.rarity ?? 'common', slot: base.slot }, 64)}" alt=""></span>`;
+    const body = item ? `${pHero(pic, `<span class="rarity-text r-${item.rarity}">${esc(base.name)}</span>`, `${pChip(SLOTS[base.slot])}${pChip(rarityById(item.rarity).label, true)}`)}
+        ${pStats([pRow('icon_xp', 'Niveau', item.level), item.rarity === 'legendary' ? pRow('icon_star', 'Bonus', '×2') : ''])}<div class="mp-gap"></div>${mBtnGold('Reprendre dans le sac', { action: 'from-museum', value: baseId })}`
+      : `${pHero(pic, '???', pChip(SLOTS[base.slot]))}${pNote(`Butin de ${esc(BOSSES[base.signature]?.name ?? '?')}.`)}`;
     return mSheet(item ? base.name : '???', body, mShut);
   }
-  const html = detail(state, key).replaceAll('data-action="enc-sel" data-value="', 'data-action="mp-open" data-value="enc:');
+  const [kind, x, y] = key.split(':');
+  const html = { m: () => (ENEMIES[x] ? pMonster(ui, state, x) : ''), b: () => (BOSSES[x] ? pBoss(ui, state, x) : ''), x: () => pMutation(ui, state, x),
+    i: () => (itemBase(x) ? pItem(ui, state, x, y) : ''), c: () => pCompanion(ui, state, x) }[kind]?.() ?? '';
   if (!html) return '';
-  return mSheet(mEncTitle(state, key), `<div class="m-card mp-detail">${html}</div>`, mShut);
+  return mSheet(mEncTitle(state, key), html, mShut);
 }
 function encPhone(ui, state) {
   const v = ui.view;

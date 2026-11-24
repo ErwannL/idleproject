@@ -162,6 +162,7 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
+import { interfaceExtraPhone } from './panels/profile-m.js'; // v10.12
 import { mountShowcase } from './showcase.js';
 import { showHowTo } from './learn.js'; // v10.1
 import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
@@ -561,6 +562,7 @@ export class UI {
 
   // Paramètres › Interface : réglages propres à cet appareil (mode compact, combat, animations, taille…).
   interfaceExtra() {
+    if (this.root.classList.contains('m-phone')) return interfaceExtraPhone(pref); // v10.12 : version kit mobile
     const selBox = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
     // v10.12 : sur téléphone, plus de <select> : une rangée de puces (même action, via mp-pick)
     const sel = (name, options) => (this.root.classList.contains('m-phone')

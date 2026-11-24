@@ -208,3 +208,127 @@
 #app.m-phone .m-sheet .sc-play { min-height: 44px; min-width: 88px; }
 #app.m-phone .m-sheet .lex { display: inline-block; min-height: 44px; line-height: 44px; vertical-align: middle; }
 #app.m-phone .mp-frame .mp-chips.mp-scroll { flex-wrap: nowrap; }
+
+/* ==========================================================================================================================
+   Rattrapage : Paramètres, fiches de l'Encyclopédie et fiche Boss entièrement en kit (plus de HTML d'origine sombri)
+   ========================================================================================================================== */
+/* ---------- Interrupteurs (.m-switch, comme Compétences) et cartes de réglage ---------- */
+#app.m-phone .mp-sw { position: relative; display: flex; align-items: center; gap: 10px; min-height: 56px; margin: 0 0 8px; padding: 6px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#app.m-phone .mp-sw-t { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+#app.m-phone .mp-sw-t b { font-size: 15px; font-weight: 800; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; word-break: normal; hyphens: none; }
+#app.m-phone .mp-sw-t small, #app.m-phone .mp-field-h small { font-size: 12px; line-height: 1.25; color: var(--m-soft); font-weight: 600; }
+#app.m-phone .mp-sw .m-switch { position: static; flex: none; display: inline-flex; align-items: center; }
+#app.m-phone .mp-sw .m-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+#app.m-phone .mp-sw .m-sw { position: relative; flex: none; width: 50px; height: 28px; border-radius: 14px; background: #0b1124; border: 2px solid var(--m-btn-line); box-sizing: border-box; transition: background .15s; }
+#app.m-phone .mp-sw .m-sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--m-soft); transition: transform .15s, background .15s; }
+#app.m-phone .mp-sw input:checked + .m-sw { background: #1f6b34; border-color: var(--m-ok); }
+#app.m-phone .mp-sw input:checked + .m-sw::after { transform: translateX(22px); background: #d8ffe0; }
+#app.m-phone .mp-sw input:focus-visible + .m-sw { outline: 2px solid var(--m-gold-hi); outline-offset: 2px; }
+#app.m-phone .mp-field { padding: 10px 12px 4px; }
+#app.m-phone .mp-field-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#app.m-phone .mp-field-h b { font-size: 15px; font-weight: 800; color: var(--m-text); }
+#app.m-phone .mp-field .m-chips { margin: 4px 0 0; padding: 6px 0 8px; }
+#app.m-phone .mp-btnrow { display: grid; gap: 8px; margin: 8px 0 0; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); }
+#app.m-phone .mp-btnrow.n1 { --n: 1; } #app.m-phone .mp-btnrow.n3 { --n: 3; }
+#app.m-phone .mp-btnrow > .m-btn, #app.m-phone .mp-btnrow > .m-btn-gold { width: 100%; min-width: 0; padding: 0 6px; font-size: 14px; }
+#app.m-phone .mp-frame .m-card > .m-btn-gold, #app.m-phone .mp-frame .m-card > .m-btn { margin-top: 8px; }
+#app.m-phone .mp-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; font-size: 14px; color: var(--m-text); }
+#app.m-phone .mp-between > b { font-weight: 900; color: var(--m-gold-hi); }
+#app.m-phone .mp-note { font-size: 13px; line-height: 1.4; color: var(--m-soft); margin: 4px 0; }
+#app.m-phone .mp-msg { margin: 6px 0 0; font-size: 13px; font-weight: 700; color: var(--m-ok); } #app.m-phone .mp-msg.bad { color: var(--m-ko); }
+#app.m-phone .mp-form { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; }
+#app.m-phone .mp-in, #app.m-phone .mp-frame .m-card .mp-form input[type=text], #app.m-phone .mp-frame .m-card .mp-form input[type=password] { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--m-btn-line); background: #0b1124; color: var(--m-text); font: 700 15px/1.3 system-ui, sans-serif; }
+#app.m-phone textarea.mp-in { margin: 8px 0 0; resize: vertical; font-size: 13px; } #app.m-phone input[type=file].mp-in { margin: 8px 0 0; font-size: 13px; }
+#app.m-phone .mp-in::placeholder { color: var(--m-soft); font-weight: 600; }
+#app.m-phone .mp-in:focus-visible { outline: 2px solid var(--m-gold-hi); outline-offset: 1px; }
+#app.m-phone .mp-det { padding: 0 12px; } #app.m-phone .mp-det > summary { min-height: 48px; display: flex; align-items: center; font-size: 15px; font-weight: 800; color: var(--m-text); cursor: pointer; }
+#app.m-phone .mp-det[open] { padding-bottom: 10px; } #app.m-phone .mp-det pre { white-space: pre-wrap; font-size: 12px; color: var(--m-soft); margin: 6px 0 0; }
+#app.m-phone .mp-det > .m-btn { margin-top: 8px; }
+#app.m-phone button.m-btn.mp-danger { color: #ffb4bc; border-color: #8a2a36; background: #2a1119; }
+#app.m-phone .mp-dz { border-color: #6a2230; }
+#app.m-phone .cheat-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 0; font-size: 13px; }
+#app.m-phone .cheat-row .grow { flex: 1 1 100%; }
+#app.m-phone .cheat-row .m-btn { width: auto; min-width: 84px; padding: 0 10px; }
+#app.m-phone .mp-vol { display: flex; flex-direction: column; gap: 4px; min-height: 64px; padding: 8px 12px; }
+#app.m-phone .mp-vol b { font-size: 15px; font-weight: 800; }
+#app.m-phone .mp-vol input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--m-gold-hi); }
+
+/* ---------- Replis (« ? » / Détails) : une carte de 48 px qui s'ouvre ---------- */
+#app.m-phone .mp-fold { margin: 0 0 8px; }
+#app.m-phone .mp-fold > .fold-head { width: 100%; min-height: 48px; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--m-card-line); background: var(--m-card); color: var(--m-text); font: 800 15px/1.2 system-ui, sans-serif; text-align: left; cursor: pointer; }
+#app.m-phone .mp-fold > .fold-head .fold-title { flex: 1 1 auto; min-width: 0; }
+#app.m-phone .mp-fold > .fold-head .fold-extra { flex: none; font-size: 13px; font-weight: 700; color: var(--m-soft); }
+#app.m-phone .mp-fold > .fold-head .fold-arrow { color: var(--m-gold-hi); }
+#app.m-phone .mp-fold > .fold-body { margin-top: 8px; }
+#app.m-phone .mp-fold.open > .fold-head { border-color: var(--m-gold); }
+#app.m-phone .mp-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#app.m-phone .mp-theme { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; min-height: 64px; padding: 8px 10px; border-radius: 12px; border: 1.5px solid var(--m-card-line); background: var(--m-card); color: var(--m-text); font: inherit; text-align: left; cursor: pointer; }
+#app.m-phone .mp-theme.on { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app.m-phone .mp-theme b { font-size: 14px; font-weight: 800; } #app.m-phone .mp-theme small { font-size: 12px; color: var(--m-soft); display: flex; align-items: center; gap: 4px; }
+#app.m-phone .mp-theme small img { width: 14px; height: 14px; }
+#app.m-phone .mp-theme .theme-swatches { display: flex; gap: 3px; } #app.m-phone .mp-theme .theme-swatches i { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #0006; }
+#app.m-phone .mp-fold { background: none; border: 0; padding: 0; box-shadow: none; border-radius: 0; }
+#app.m-phone .mp-field .m-chips { flex-wrap: wrap; overflow: visible; }
+
+/* ---------- Fiche du boss (kit) ---------- */
+#app.m-phone .mp-bhero { display: flex; align-items: center; gap: 12px; }
+#app.m-phone .mp-bpic { flex: none; width: 104px; height: 104px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--m-gold); border-radius: 12px; background: var(--m-bg2); overflow: hidden; }
+#app.m-phone .mp-bpic > * { max-width: 100%; max-height: 100%; } #app.m-phone .mp-bpic img { image-rendering: pixelated; object-fit: contain; }
+#app.m-phone .mp-bmeta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+#app.m-phone .mp-bname { font-size: 18px; font-weight: 900; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; hyphens: none; }
+#app.m-phone .mp-bmeta small { font-size: 12px; color: var(--m-soft); font-weight: 700; }
+#app.m-phone .m-chip.mp-static { cursor: default; pointer-events: none; min-height: 28px; height: 28px; padding: 0 10px; font-size: 12px; }
+#app.m-phone .mp-trait { display: flex; flex-direction: column; gap: 3px; border-left: 4px solid var(--trait, var(--m-gold)); }
+#app.m-phone .mp-trait b { font-size: 14px; font-weight: 900; color: var(--trait, var(--m-gold-hi)); }
+#app.m-phone .mp-trait small { font-size: 12.5px; line-height: 1.35; color: var(--m-text); } #app.m-phone .mp-trait .mp-counter { color: var(--m-soft); }
+#app.m-phone .mp-sub0 { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--m-gold-hi); }
+#app.m-phone .mp-pname { display: block; margin: 2px 0 6px; font-size: 17px; font-weight: 900; color: var(--m-text); }
+#app.m-phone .mp-pmeta { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 6px; }
+#app.m-phone .mp-peff { font-size: 14px; line-height: 1.4; color: var(--m-text); }
+#app.m-phone .mp-power { border-left: 4px solid var(--rarity, var(--m-gold)); }
+#app.m-phone .mp-center { text-align: center; }
+#app.m-phone .mp-rwrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+#app.m-phone .mp-rwi { width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--rarity, var(--m-card-line)); background: var(--m-bg2); }
+#app.m-phone .mp-rwi img { width: 32px; height: 32px; image-rendering: pixelated; }
+#app.m-phone .mp-steps { display: flex; justify-content: space-between; gap: 6px; margin-top: 10px; }
+#app.m-phone .mp-step { flex: 1 1 0; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 10px; border: 1.5px solid var(--m-card-line); background: var(--m-bg2); color: var(--m-text); font: inherit; }
+#app.m-phone .mp-step small { font-size: 12px; font-weight: 800; color: var(--m-soft); } #app.m-phone .mp-stepi { font-size: 18px; font-weight: 900; } #app.m-phone .mp-stepi img { width: 22px; height: 22px; image-rendering: pixelated; }
+#app.m-phone .mp-step.got { border-color: var(--m-ok); color: var(--m-ok); }
+#app.m-phone button.mp-step.ready { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; color: var(--m-gold-hi); cursor: pointer; }
+#app.m-phone .mp-fold .fold-extra .good { color: var(--m-ok); }
+
+/* ---------- Fiches de l'Encyclopédie (kit) ---------- */
+#app.m-phone .mp-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+#app.m-phone .mp-srows { padding: 6px 8px; }
+#app.m-phone .mp-srows .m-stat + .m-stat { border-top: 1px solid rgba(255, 255, 255, .06); border-radius: 0; }
+#app.m-phone .mp-srows .m-stat .m-v { font-size: 14px; }
+#app.m-phone .mp-srows .mp-sub0 { padding: 4px 6px 2px; }
+#app.m-phone .mp-showcase { padding: 8px; overflow: hidden; }
+#app.m-phone .mp-showcase .mp-sub0 { margin: 0 0 6px 2px; }
+#app.m-phone .mp-rpic { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 100%; border-radius: 10px; border: 2px solid var(--m-rc, var(--m-card-line)); box-sizing: border-box; }
+#app.m-phone .mp-rpic img { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .mp-rpic.r-common, #app.m-phone .mp-rbtn.r-common { --m-rc: var(--m-r-common); } #app.m-phone .mp-rpic.r-rare, #app.m-phone .mp-rbtn.r-rare { --m-rc: var(--m-r-rare); }
+#app.m-phone .mp-rpic.r-epic, #app.m-phone .mp-rbtn.r-epic { --m-rc: var(--m-r-epic); } #app.m-phone .mp-rpic.r-legendary, #app.m-phone .mp-rbtn.r-legendary { --m-rc: var(--m-r-legendary); }
+#app.m-phone .mp-rpic.r-mythic, #app.m-phone .mp-rbtn.r-mythic { --m-rc: var(--m-r-mythic); } #app.m-phone .mp-rpic.r-astral, #app.m-phone .mp-rbtn.r-astral { --m-rc: var(--m-r-astral); }
+#app.m-phone .mp-rpic.r-ascendant, #app.m-phone .mp-rbtn.r-ascendant { --m-rc: var(--m-r-ascendant, #ff6b6b); }
+#app.m-phone .mp-rars { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+#app.m-phone .mp-rbtn { width: 48px; height: 48px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; border: 2px solid var(--m-rc, var(--m-card-line)); background: var(--m-bg2); cursor: pointer; }
+#app.m-phone .mp-rbtn.selected { box-shadow: 0 0 0 2px var(--m-gold-hi); } #app.m-phone .mp-rbtn.unknown { opacity: .6; }
+#app.m-phone .mp-rbtn img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .mp-bpic .mp-art.big { margin: 0; width: 88px; height: 88px; }
+#app.m-phone .mp-bpic .enc-mutant-real { max-width: 96px; max-height: 96px; }
+#app.m-phone .mp-skills { padding: 8px 10px; }
+#app.m-phone .mp-skill { padding: 6px 0; border-top: 1px solid rgba(255, 255, 255, .06); }
+#app.m-phone .mp-skill:first-of-type { border-top: 0; }
+#app.m-phone .mp-skill b { font-size: 14px; font-weight: 800; color: var(--m-text); } #app.m-phone .mp-skill small { display: block; font-size: 12.5px; color: var(--m-soft); margin-top: 2px; }
+#app.m-phone .mp-skill.locked b { color: var(--m-soft); } #app.m-phone .mp-skill .m-chip { margin-left: 6px; vertical-align: middle; }
+#app.m-phone .mp-env { display: flex; flex-direction: column; gap: 3px; } #app.m-phone .mp-env b { font-size: 14px; font-weight: 900; display: flex; align-items: center; gap: 6px; color: var(--m-text); }
+#app.m-phone .mp-env b img { width: 20px; height: 20px; } #app.m-phone .mp-env small { font-size: 12.5px; line-height: 1.35; color: var(--m-text); } #app.m-phone .mp-env .mp-counter { color: var(--m-soft); }
+#app.m-phone .mp-env.unseen { opacity: .6; min-height: 44px; justify-content: center; }
+#app.m-phone .mp-srows .good { color: var(--m-ok); } #app.m-phone .mp-srows .muted { color: var(--m-soft); }
+#app.m-phone .mp-srows .v-normal { color: var(--m-text); } #app.m-phone .mp-srows .v-elite { color: #ffd36b; } #app.m-phone .mp-srows .v-mutant { color: #c78bff; }
+#app.m-phone .mp-note .v-normal, #app.m-phone .mp-note b { color: var(--m-text); }
+#app.m-phone .m-sheet .sc-chip, #app.m-phone .m-sheet .sc-chip .sc-ico, #app.m-phone .m-sheet .sc-chip span { font-size: 13px; }
+#app.m-phone .mp-bname .rarity-text.r-common { color: var(--m-text); }
+#app.m-phone input[type=file].mp-in::file-selector-button { min-height: 32px; margin-right: 10px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--m-btn-line); background: #141c38; color: var(--m-text); font: 700 13px system-ui, sans-serif; }
+#app.m-phone .mp-bpic .enc-mutant-real { width: 88px; height: 88px; max-width: none; max-height: none; object-fit: contain; }
