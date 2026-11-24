@@ -496,3 +496,32 @@ export function fusionFailText(result, slotLabel, step) {
   const n = result.lost;
   return `Échec (${result.chance} %) : ${n} objet${n > 1 ? 's' : ''} perdu${n > 1 ? 's' : ''}, ${result.returned?.name} ${given}, jauge ${slotLabel} +${step}`;
 }
+
+// v10.12.1 (téléphone, Équipement › Améliorer) : « Tout améliorer » du héros. Même renfort, mêmes coûts qu'un appui sur
+// « Améliorer » (upgradeItem) ; on prend toujours le meilleur gain de Puissance par éclat parmi les objets portés et
+// payables, et on s'arrête dès qu'aucun renfort utile n'est payable (jamais un renfort sans effet sur la Puissance, jamais
+// au-delà du maximum). → { n, gold, shards, before, after } (Puissance avant / après).
+export function upgradeAllHero(state, rng = null, { max = 60, balance = BALANCE } = {}) {
+  const before = computeHeroStats(state, balance).combatPower;
+  const gold0 = state.gold, shards0 = state.materials.shards;
+  let n = 0;
+  for (let i = 0; i < max; i++) {
+    const row = upgradeRanking(state, balance).find((r) => r.preview.canPay && !r.preview.atMax && gainsPower(r));
+    if (!row || !upgradeItem(state, row.item.id, rng, balance)) break;
+    n++;
+  }
+  return { n, gold: gold0 - state.gold, shards: shards0 - state.materials.shards, before, after: n ? computeHeroStats(state, balance).combatPower : before };
+}
+
+// Pourquoi « Tout améliorer » (héros) n'a rien à faire : null s'il y a un renfort utile payable, sinon une ligne courte.
+export function upgradeAllHeroWhy(state, balance = BALANCE) {
+  const rows = upgradeRanking(state, balance);
+  if (!rows.length) return 'Rien de porté';
+  const open = rows.filter((r) => !r.preview.atMax);
+  if (!open.length) return 'Tout est au maximum';
+  const useful = open.filter(gainsPower);
+  if (!useful.length) return 'Rien d\'utile à renforcer';
+  if (useful.some((r) => r.preview.canPay)) return null;
+  const r = useful[0].preview;
+  return r.lack.shards > 0 ? `Il manque ${r.lack.shards} éclat${r.lack.shards > 1 ? 's' : ''}` : 'Il manque de l\'or';
+}

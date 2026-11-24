@@ -14,11 +14,11 @@ import { bastionOpen, forgeLevel } from '../../core/bastion.js';
 import { companionProfile } from '../../core/arena.js';
 import { activeClass, canEquip, weaponClass } from '../../core/classes.js';
 import { STAR_TIERS, companionById, companionUpgradeCost, heroElement, isAwakened, skillKillGold, unitLevel } from '../../core/companions.js';
-import { bestGearFor, canEquip as unitCanEquip, classLabel, gearScore, gearStats, gearStatsWith, gearUpgradePreview, slotName, statText, unitGear, unitGearStats, wearerOf } from '../../core/companion-gear.js';
+import { upgradeAllGearWhy, bestGearFor, canEquip as unitCanEquip, classLabel, gearScore, gearStats, gearStatsWith, gearUpgradePreview, slotName, statText, unitGear, unitGearStats, wearerOf } from '../../core/companion-gear.js';
 import { elementBadge, unitElement } from '../../core/elements.js';
 import { formatStat } from '../../core/format.js';
 import { heroById } from '../../core/heroes.js';
-import { WEAK_GAIN_PCT, canReforge, canTargetReroll, fusableRarities, reforgeCost, sharpenCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canTargetReroll, fusableRarities, reforgeCost, sharpenCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking } from '../../core/forge.js';
 import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bulkRecycleCandidates, recycleRules, teamUpgradeFor } from '../../core/inventory.js';
 import { BIND_MODES } from '../../core/loadouts.js';
 import { levelForStage } from '../../core/combat.js';
@@ -244,14 +244,14 @@ const ITEM_RANK = (i) => RARITIES.findIndex((r) => r.id === i.rarity);
 function upgradeList(ui, state, ctx) {
   const { unit } = ctx;
   const kg = skillKillGold(state);
-  let rows, any;
+  let rows, why;
   if (unit) {
     const worn = Object.entries(unitGear(state, unit.id));
     rows = worn.map(([slot, it]) => it && { it, slot, p: gearUpgradePreview(state, it, kg) }).filter(Boolean);
-    any = rows.some((r) => !r.p.atMax && r.p.canPay);
+    why = upgradeAllGearWhy(state, unit.id, kg);
   } else {
     rows = upgradeRanking(state).map((r) => ({ it: r.item, slot: r.slot, p: r.preview }));
-    any = rows.some((r) => !r.p.atMax && r.p.canPay);
+    why = upgradeAllHeroWhy(state);
   }
   const line = ({ it, slot, p }) => {
     const place = unit ? slotName(unit, slot) : HERO_SLOTS[slot];
@@ -271,8 +271,10 @@ function upgradeList(ui, state, ctx) {
     levelUp = `<div class="em-row em-lvlrow"><span class="em-lvlico">${img('icon_xp')}</span><div class="em-row-mid"><b>Niveau ${lv} / ${COMPANION_RULES.maxLevel}</b>${maxed ? '<small>Niveau maximal</small>' : `<span class="em-lvl-line">${lv} <i>»</i> <b class="up">${lv + 1}</b></span><div class="m-costs em-costs">${costOnly('coin', cost, state.gold >= cost)}</div>`}</div>
       ${maxed ? '' : mBtn('Monter', { action: 'upgrade-companion', value: unit.id, disabled: state.gold < cost })}</div>`;
   }
-  const allBtn = mBtnGold('Tout améliorer', { action: 'upgrade-all', value: ctx.who, disabled: !any });
-  return `<div class="m-card em-up">${allBtn}${levelUp}${rows.length ? rows.map(line).join('') : mEmpty('Rien de porté : équipe un objet d\'abord.', { icon: 'icon_bag' })}</div>`;
+  const allBtn = mBtnGold('Tout améliorer', { action: 'upgrade-all', value: ctx.who, disabled: Boolean(why) });
+  const said = ui.view.upAllMsg?.who === (ctx.who || 'hero') ? `<p class="em-note em-done" role="status">${e(ui.view.upAllMsg.text)}</p>` : ''; // résultat du dernier « Tout améliorer »
+  const whyLine = why && rows.length ? `<p class="em-note em-why" role="status">${e(why)}</p>` : ''; // jamais un bouton grisé sans explication
+  return `<div class="m-card em-up">${allBtn}${said}${whyLine}${levelUp}${rows.length ? rows.map(line).join('') : mEmpty('Rien de porté : équipe un objet d\'abord.', { icon: 'icon_bag' })}</div>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
