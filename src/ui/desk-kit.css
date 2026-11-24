@@ -1,0 +1,299 @@
+/* v10.13 : KIT PC (« vrai jeu », comme la Forge). Voir docs/prompt-v10.13/PROMPT.md § 1 et src/ui/mobile-kit.js (helpers HTML).
+   Les composants sont LES MÊMES que ceux du téléphone (mFrame/mTitle/mModes/mTile/mStat/mCost/mBtnGold/mBtn/mChip/mBar/mGrid/mSheet…) :
+   ce fichier ne fait que leur donner leurs tailles PC. Une seule source de HTML pour les deux.
+   RÈGLE ABSOLUE : toute règle commence par `#app:not(.m-phone)` (le téléphone, kit 10.12, n'est jamais touché). Tant qu'un écran PC
+   n'emploie aucune de ces classes, rien ne change à son affichage.
+   Les autres feuilles PC (desk-<lot>.css) se chargent APRÈS celle-ci et ne mettent que leurs règles propres.
+
+   ───────────────────────────── COMPOSANTS (HTML = celui de mobile-kit.js) ─────────────────────────────
+   .m-frame          Cadre d'un écran : fond sombre, bord doré, coins ornés, padding-top 80px pour le cartouche.
+                     Enfant direct de #panel-body d'une page (#app.page-ui) : le corps du panneau se décale (padding-left --d-frame-left, après la
+                     mini-scène) et le cadre le remplit ; le corps défile. Ailleurs (panneau latéral du combat) : cadre ordinaire.
+                     C'est aussi le conteneur des grilles d-cols* (container query) : ne pose pas de position:fixed dans un cadre.
+   .m-title          Cartouche de titre (icône 36 px + nom 25 px, bouts biseautés) posé DANS le cadre, centré, 58 px ; « ? » (.m-help) à droite
+                     (42 px), .m-back / .m-close. Dans une .m-sheet il reste dans le flux.
+   .m-tabs > .m-tab  Onglets d'un menu : 64 px, icône 28 px + nom. .m-dot = pastille rouge « à voir ».
+   .m-modes > .m-mode  Modes d'un écran en GROSSES TUILES : 86 px de haut, icône 38 px, nom 16 px, occupent toute la largeur (flex 1).
+                     .m-modes.s64 : 64 px ; .m-modes.arrow : flèche sous le mode choisi. aria-selected="true" / .active = allumé.
+   .m-tile           Case d'objet / de récompense à bord de rareté (.r-common … .r-ascendant). Taille par classe : .s48 .s56 .s64 (défaut : sac)
+                     .s72 .s80 .s96 .s110 (tête de fiche). Enfants : img.m-tile-img, .m-plus (+N), .m-pips, .m-up, .m-bang, .m-gain, .m-lock, .m-add.
+                     .selected = contour doré ; .empty = pointillés. .m-tilewrap = case + petite légende dessous.
+   .m-stat           Ligne de statistique (icône, .m-k libellé, .m-v valeur à droite en tabular-nums) ; .m-stat.big = statistique principale
+                     (22 px, fond bleu) ; .m-v.up vert / .m-v.down rouge ; .m-stats2 = deux colonnes ; .m-power = gros chiffres dorés (34 px).
+   .m-cost           Coût : case de 72 px avec l'icône + « ce que j'ai / ce qu'il faut » ; .ok vert, .ko rouge. .m-costs = rangée de coûts.
+   .m-btn-gold       L'UNIQUE bouton doré d'un écran : 62 px, 22 px de texte. .auto = largeur du contenu. .disabled / :disabled = grisé.
+   .m-btn            Bouton sombre à bord clair : 46 px (jamais moins de 44), 16 px de texte. .auto = largeur du contenu.
+   .m-chip / .m-chips  Puce de filtre 36 px (aria-pressed / .on = dorée) et sa rangée.
+   .m-card           Bloc intérieur (fond #18223f, bord #2c3a66, 14 px de rayon, 14 px de marge intérieure).
+   .m-bar            Barre de progression de 10 px (--pct) ; .m-bar.hp verte.
+   .m-grid           Grille de cases : --cols colonnes (5 par défaut), espacement 10 px.
+   .m-sheet          Fiche : sur PC un PANNEAU LATÉRAL à droite (480 px au plus, pleine hauteur), pas plein écran. Dans un .m-frame il se
+                     colle au bord droit du cadre ; ailleurs il est fixe à droite de la fenêtre, au-dessus du menu du bas.
+   .m-empty          État vide centré.
+   Aides de mise en page (ajouts du kit PC) : .d-stack (colonne, 12 px), .d-row (ligne qui passe à la ligne, 10 px), .d-span (occupe toute la
+   largeur de la grille), .d-center (contenu centré), .d-tabnum (chiffres alignés).
+
+   ───────────────────────────── GRILLES PC (enfants directs = les colonnes) ─────────────────────────────
+   .d-cols3a   Équipement : 380px 400px minmax(0,1fr)   (personnage · sac · détail).
+   .d-cols3b   Compétences : 340px minmax(0,1fr) 470px (barre · cartes · détail).
+   .d-cols2    Compagnons, Recherches : minmax(0,1fr) 465px.
+   Repli selon la largeur du CADRE .m-frame (container query « mframe », en px CSS : le zoom 125 % des grands écrans est déjà compté) :
+   3 colonnes dès 1100 px de contenu (1120 px pour .d-cols3b) ; de 700 px à là : 2 colonnes, la 3e passe SOUS les deux autres sur toute
+   la largeur ; en dessous de 700 px : 1 colonne (.d-cols2 : 2 colonnes dès 780 px). Soit, pour les 4 tailles PC : 1116 x 993 -> 2 colonnes
+   (3e dessous), 1366 x 768 -> 2 colonnes (3e dessous), 1878 x 1245 et 1920 x 1080 -> 3 colonnes. Jamais de défilement horizontal
+   (colonnes minmax(0, …)). Les grilles ne se replient que DANS un .m-frame.
+   Cadre PC : position décidée par --d-frame-left (= largeur de la mini-scène + 24 px, soit ≈ 390 px à l'écran sous le zoom 125 %).
+   ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+
+#app:not(.m-phone) {
+  --m-bg1: #121a33; --m-bg2: #0b1124; --m-card: #18223f; --m-card-line: #2c3a66;
+  --m-gold: #c9a14a; --m-gold-hi: #f3d27a; --m-text: #eef2ff; --m-soft: #9fb0d8;
+  --m-ok: #5be37d; --m-ko: #ff6b6b; --m-btn-line: #3a4a80;
+  --m-r-common: var(--common, #b9c0cc); --m-r-rare: var(--rare, #4fa3ff); --m-r-epic: var(--epic, #b46bff);
+  --m-r-legendary: var(--legendary, #ffa630); --m-r-mythic: var(--mythic, #ff4d4d); --m-r-astral: var(--astral, #4de3ff);
+  --m-r-ascendant: #c8a6ff;
+  --d-frame-left: calc(var(--pg-mini-w, 280px) + 24px); /* le cadre commence après la mini-scène (≈ 390 px à l'écran sous le zoom 125 % des grands écrans) */
+}
+
+/* ---------- Page : le corps du panneau laisse la mini-scène à gauche et porte le cadre ---------- */
+@media (min-width: 601px) {
+  #app#app.page-ui:not(.page-narrow):not(.m-phone) #panel#panel #panel-body:has(> .m-frame) { padding: 6px 24px 20px var(--d-frame-left) !important; box-sizing: border-box; }
+  #app#app.page-ui.page-narrow:not(.m-phone) #panel#panel #panel-body:has(> .m-frame) { padding: 6px 12px 16px !important; box-sizing: border-box; }
+}
+
+/* ---------- Cadre d'un écran ---------- */
+#app:not(.m-phone) .m-frame {
+  position: relative; box-sizing: border-box; margin: 0 0 12px; padding: 80px 22px 22px; color: var(--m-text);
+  container: mframe / inline-size; /* les grilles d-cols* se replient selon la largeur du cadre (px CSS, zoom compris) */
+  border: 2px solid var(--m-gold); border-radius: 18px;
+  background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2));
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, .6), 0 0 0 1px #000, 0 10px 30px rgba(0, 0, 0, .65);
+}
+#app:not(.m-phone) #panel-body > .m-frame { min-height: 100%; margin-bottom: 0; max-width: none; } /* bat « #panel-body > * { max-width: 1100px } » de style.css */
+#app:not(.m-phone) .m-frame::after { content: ''; position: absolute; inset: 4px; border: 1px solid rgba(201, 161, 74, .32); border-radius: 14px; pointer-events: none; }
+#app:not(.m-phone) .m-frame::before { /* coins ornés : 4 losanges dorés */
+  content: ''; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; z-index: 1; background-repeat: no-repeat; background-size: 18px 9px;
+  background-image:
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0);
+  background-position:
+    left 6px top 6px, left 6px top 15px,
+    right 6px top 6px, right 6px top 15px,
+    left 6px bottom 15px, left 6px bottom 6px,
+    right 6px bottom 15px, right 6px bottom 6px;
+}
+
+/* ---------- Cartouche de titre : DANS le cadre, centré (58 px), « ? » à droite ---------- */
+#app:not(.m-phone) .m-title {
+  position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px;
+  height: 58px; margin: 0 0 12px; padding: 0 64px; font-weight: 900; color: var(--m-text);
+}
+/* le cartouche est un <header> : on retire le style des en-têtes de panneau (fond bleu, bords en image) */
+#app:not(.m-phone) .m-title, #app:not(.m-phone) #panel .m-title { background: none; border: 0; border-image: none; box-shadow: none; min-height: 0; }
+#app:not(.m-phone) .m-frame > .m-title { position: absolute; top: 10px; left: 0; right: 0; margin: 0; z-index: 2; pointer-events: none; }
+#app:not(.m-phone) .m-frame > .m-title > * { pointer-events: auto; }
+#app:not(.m-phone) .m-title .m-title-in {
+  position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 220px; max-width: 100%; height: 58px; box-sizing: border-box; padding: 0 54px;
+  color: var(--m-text); clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 22px 100%, 0 50%);
+}
+#app:not(.m-phone) .m-title .m-title-in::before { content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); }
+#app:not(.m-phone) .m-title .m-title-in::after {
+  content: ''; position: absolute; inset: 2px; z-index: -1; background: linear-gradient(180deg, #2a3a78, #16214a);
+  clip-path: polygon(21px 0, calc(100% - 21px) 0, 100% 50%, calc(100% - 21px) 100%, 21px 100%, 0 50%);
+}
+#app:not(.m-phone) .m-title img { width: 36px; height: 36px; image-rendering: pixelated; flex: none; }
+#app:not(.m-phone) .m-title b { flex: 0 1 auto; min-width: 0; font-size: 25px; font-weight: 900; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 #000; }
+#app:not(.m-phone) .m-title .m-help, #app:not(.m-phone) .m-title .m-back, #app:not(.m-phone) .m-title .m-close {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; padding: 0; border-radius: 10px; margin: 0;
+  display: inline-flex; align-items: center; justify-content: center; font: 900 20px/1 system-ui, sans-serif; color: var(--m-gold-hi);
+  background: #1a2448; border: 2px solid var(--m-gold); cursor: pointer; z-index: 2;
+}
+#app:not(.m-phone) .m-title .m-help, #app:not(.m-phone) .m-title .m-close { right: 16px; } #app:not(.m-phone) .m-title .m-back { left: 16px; }
+#app:not(.m-phone) .m-title .m-help + .m-close { right: 68px; }
+#app:not(.m-phone) .m-title:has(.m-help + .m-close) { padding-right: 120px; }
+#app:not(.m-phone) .m-title .m-help:hover, #app:not(.m-phone) .m-title .m-close:hover, #app:not(.m-phone) .m-title .m-back:hover { background: #26346a; }
+#app:not(.m-phone) .m-sheet > .m-title { height: 52px; }
+#app:not(.m-phone) .m-sheet > .m-title b { font-size: 22px; }
+#app:not(.m-phone) .m-sheet > .m-title .m-title-in { height: 52px; min-width: 160px; }
+/* un seul « ? » : celui du cartouche (le « ? » du panneau, en haut, double l'aide) */
+#app#app.page-ui:not(.m-phone) #panel:has(#panel-body .m-title) #panel-help { display: none !important; }
+
+/* ---------- Onglets d'un menu (64 px) et modes d'un écran en grosses tuiles (86 px) ---------- */
+#app:not(.m-phone) .m-tabs, #app:not(.m-phone) .m-modes { display: flex; flex-wrap: nowrap; gap: 10px; align-items: stretch; overflow-x: auto; scrollbar-width: none; margin: 0 0 14px; padding: 2px; }
+#app:not(.m-phone) .m-tabs::-webkit-scrollbar, #app:not(.m-phone) .m-modes::-webkit-scrollbar { display: none; }
+#app:not(.m-phone) .m-tab, #app:not(.m-phone) .m-mode {
+  position: relative; flex: 1 1 0; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  height: 64px; padding: 6px 4px; margin: 0; border: 2px solid var(--m-btn-line); border-radius: 14px;
+  background: linear-gradient(180deg, #22305f, #161f40); color: var(--m-soft); font: 900 16px/1.1 system-ui, sans-serif; text-align: center; cursor: pointer;
+}
+#app:not(.m-phone) .m-mode { height: 86px; font-size: 16px; border-color: #34447c; }
+#app:not(.m-phone) .m-modes.s64 .m-mode { height: 64px; }
+#app:not(.m-phone) .m-tab img, #app:not(.m-phone) .m-mode img { width: 28px; height: 28px; image-rendering: pixelated; flex: none; }
+#app:not(.m-phone) .m-mode img { width: 38px; height: 38px; }
+#app:not(.m-phone) .m-tab span, #app:not(.m-phone) .m-mode span { display: block; max-width: 100%; white-space: nowrap; overflow: visible; hyphens: none; overflow-wrap: normal; }
+#app:not(.m-phone) .m-tab:hover, #app:not(.m-phone) .m-mode:hover { color: var(--m-text); border-color: var(--m-gold); }
+#app:not(.m-phone) .m-tab[aria-selected="true"], #app:not(.m-phone) .m-mode[aria-selected="true"], #app:not(.m-phone) .m-tab.active {
+  color: #fff; border-color: var(--m-gold-hi); background: linear-gradient(180deg, #3a3f6e, #1d2650);
+  box-shadow: 0 0 16px rgba(243, 210, 122, .33), inset 0 0 0 1px var(--m-gold);
+}
+#app:not(.m-phone) .m-tab .m-dot, #app:not(.m-phone) .m-mode .m-dot { position: absolute; top: 6px; right: 8px; min-width: 12px; height: 12px; border-radius: 50%; background: #ff3b4e; box-shadow: 0 0 0 2px #0b1124; }
+#app:not(.m-phone) .m-modes.arrow { padding-bottom: 14px; margin-bottom: 0; }
+#app:not(.m-phone) .m-modes.arrow .m-mode[aria-selected="true"]::after { content: ''; position: absolute; left: 50%; bottom: -12px; width: 16px; height: 10px; transform: translateX(-50%); background: var(--m-gold-hi); clip-path: polygon(50% 0, 0 100%, 100% 100%); }
+
+/* ---------- Bloc intérieur, grille ---------- */
+#app:not(.m-phone) .m-card { box-sizing: border-box; padding: 14px; margin: 0 0 12px; background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 14px; color: var(--m-text); min-width: 0; }
+#app:not(.m-phone) .m-grid { display: grid; grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr)); gap: 10px; justify-items: center; }
+#app:not(.m-phone) .m-tilewrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; width: 100%; }
+#app:not(.m-phone) .m-tilewrap > small { max-width: 100%; font-size: 13px; line-height: 1.15; color: var(--m-soft); text-align: center; overflow-wrap: normal; hyphens: none; }
+
+/* ---------- Case d'objet : 64 px dans le sac, 110 px en tête de fiche ---------- */
+#app:not(.m-phone) .m-tile {
+  --m-rc: var(--m-r-common); --m-s: 64px;
+  position: relative; box-sizing: border-box; display: block; width: 100%; max-width: var(--m-s); min-width: 44px; aspect-ratio: 1; margin: 0; padding: 0; overflow: visible;
+  border: 3px solid var(--m-rc); border-radius: 12px; color: var(--m-text); cursor: pointer;
+  background: linear-gradient(160deg, #2a3558, #0b1124);
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--m-rc) 50%, transparent), #0d1430 75%);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, .55), 0 0 8px -2px var(--m-rc);
+}
+#app:not(.m-phone) .m-tile.s48 { --m-s: 48px; } #app:not(.m-phone) .m-tile.s56 { --m-s: 56px; } #app:not(.m-phone) .m-tile.s64 { --m-s: 64px; }
+#app:not(.m-phone) .m-tile.s72 { --m-s: 72px; } #app:not(.m-phone) .m-tile.s80 { --m-s: 80px; } #app:not(.m-phone) .m-tile.s96 { --m-s: 96px; } #app:not(.m-phone) .m-tile.s110 { --m-s: 110px; }
+#app:not(.m-phone) .m-tile.r-common { --m-rc: var(--m-r-common); } #app:not(.m-phone) .m-tile.r-rare { --m-rc: var(--m-r-rare); } #app:not(.m-phone) .m-tile.r-epic { --m-rc: var(--m-r-epic); }
+#app:not(.m-phone) .m-tile.r-legendary { --m-rc: var(--m-r-legendary); } #app:not(.m-phone) .m-tile.r-mythic { --m-rc: var(--m-r-mythic); } #app:not(.m-phone) .m-tile.r-astral { --m-rc: var(--m-r-astral); }
+#app:not(.m-phone) .m-tile.r-ascendant { --m-rc: var(--m-r-ascendant); border-color: #fff4c2; box-shadow: inset 0 0 10px rgba(0, 0, 0, .5), 0 0 9px 0 #ff6b6b, 0 0 11px -1px #6bd5ff; }
+#app:not(.m-phone) .m-tile:hover { filter: brightness(1.12); }
+#app:not(.m-phone) .m-tile.selected { outline: 3px solid var(--m-gold-hi); outline-offset: 2px; }
+#app:not(.m-phone) .m-tile > img.m-tile-img { position: absolute; left: 6%; top: 6%; width: 88%; height: 78%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
+#app:not(.m-phone) .m-tile.empty { border-style: dashed; background: rgba(11, 17, 36, .7); box-shadow: inset 0 0 10px rgba(0, 0, 0, .6); }
+#app:not(.m-phone) .m-tile.empty > img.m-tile-img { opacity: .35; filter: grayscale(1); }
+#app:not(.m-phone) .m-tile .m-add { position: absolute; right: 5px; bottom: 1px; font: 900 22px/1 system-ui, sans-serif; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
+#app:not(.m-phone) .m-tile .m-plus { position: absolute; right: 4px; bottom: 13px; font: 900 14px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 1px 0 #000, 0 0 4px #000, 1px 0 0 #000, -1px 0 0 #000; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-tile .m-bang { position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; border-radius: 11px; background: #e03b3b; color: #fff; font: 900 13px/18px system-ui, sans-serif; text-align: center; border: 2px solid #fff; box-sizing: border-box; font-style: normal; z-index: 2; }
+#app:not(.m-phone) .m-tile .m-up { position: absolute; top: 2px; left: 4px; font: 900 15px/1 system-ui, sans-serif; color: var(--m-ok); text-shadow: 0 1px 0 #000, 0 0 3px #000; font-style: normal; }
+#app:not(.m-phone) .m-tile .m-gain { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); max-width: 100%; padding: 1px 6px; border-radius: 8px; background: #1d7a3a; color: #d8ffe0; border: 1px solid var(--m-ok); font: 900 12px/15px system-ui, sans-serif; white-space: nowrap; z-index: 2; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .m-tile .m-gain.neg { background: #6b1f25; color: #ffd8d8; border-color: var(--m-ko); }
+#app:not(.m-phone) .m-tile .m-lock { position: absolute; left: 3px; bottom: 11px; width: 16px; height: 16px; image-rendering: pixelated; }
+#app:not(.m-phone) .m-pips { position: absolute; left: 0; right: 0; bottom: 4px; display: flex; justify-content: center; gap: 3px; pointer-events: none; }
+#app:not(.m-phone) .m-pips i { width: 7px; height: 7px; border-radius: 50%; background: var(--m-rc, var(--m-r-common)); box-shadow: 0 0 0 1px rgba(0, 0, 0, .85), 0 0 4px var(--m-rc, transparent); }
+#app:not(.m-phone) .m-pips.p-ascendant i:nth-child(1) { background: #ff6b6b; } #app:not(.m-phone) .m-pips.p-ascendant i:nth-child(2) { background: #ffd36b; } #app:not(.m-phone) .m-pips.p-ascendant i:nth-child(3) { background: #6bff9e; }
+#app:not(.m-phone) .m-pips.p-ascendant i:nth-child(4) { background: #6bd5ff; } #app:not(.m-phone) .m-pips.p-ascendant i:nth-child(5) { background: #c86bff; } #app:not(.m-phone) .m-pips.p-ascendant i:nth-child(6) { background: #ffffff; } #app:not(.m-phone) .m-pips.p-ascendant i:nth-child(7) { background: #fff4c2; }
+#app:not(.m-phone) .m-pips.r-common { --m-rc: var(--m-r-common); } #app:not(.m-phone) .m-pips.r-rare { --m-rc: var(--m-r-rare); } #app:not(.m-phone) .m-pips.r-epic { --m-rc: var(--m-r-epic); }
+#app:not(.m-phone) .m-pips.r-legendary { --m-rc: var(--m-r-legendary); } #app:not(.m-phone) .m-pips.r-mythic { --m-rc: var(--m-r-mythic); } #app:not(.m-phone) .m-pips.r-astral { --m-rc: var(--m-r-astral); }
+#app:not(.m-phone) .m-pips.r-ascendant { --m-rc: var(--m-r-ascendant); }
+#app:not(.m-phone) .m-tile.s80 .m-pips i, #app:not(.m-phone) .m-tile.s96 .m-pips i, #app:not(.m-phone) .m-tile.s110 .m-pips i { width: 9px; height: 9px; }
+#app:not(.m-phone) .m-tile.s80 .m-plus, #app:not(.m-phone) .m-tile.s96 .m-plus, #app:not(.m-phone) .m-tile.s110 .m-plus { bottom: 17px; font-size: 16px; }
+
+/* ---------- Statistique ---------- */
+#app:not(.m-phone) .m-stat { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 6px 8px; box-sizing: border-box; color: var(--m-text); font-size: 16px; border-radius: 10px; }
+#app:not(.m-phone) .m-stat img { width: 22px; height: 22px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .m-stat .m-k { flex: 1 1 auto; min-width: 0; color: var(--m-soft); font-weight: 700; overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .m-stat .m-v { flex: none; margin-left: auto; font-weight: 900; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+#app:not(.m-phone) .m-stat.big { min-height: 48px; font-size: 22px; background: #22305f; border: 1px solid var(--m-card-line); padding: 10px 12px; }
+#app:not(.m-phone) .m-stat.big .m-k { color: var(--m-text); font-weight: 900; }
+#app:not(.m-phone) .m-stat.big img { width: 28px; height: 28px; }
+#app:not(.m-phone) .m-stat .m-v.up { color: var(--m-ok); } #app:not(.m-phone) .m-stat .m-v.down { color: var(--m-ko); }
+#app:not(.m-phone) .m-stats2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+#app:not(.m-phone) .m-stats2 .m-stat { background: var(--m-card); border: 1px solid var(--m-card-line); }
+#app:not(.m-phone) .m-power { display: flex; align-items: center; gap: 10px; font-weight: 900; color: var(--m-gold-hi); font-size: 34px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #000; }
+
+/* ---------- Boutons : un seul doré (62 px), les autres sombres (46 px) ---------- */
+#app:not(.m-phone) .m-btn-gold, #app:not(.m-phone) button.m-btn, #app:not(.m-phone) a.m-btn {
+  position: relative; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 12px; width: 100%; margin: 0; padding: 0 18px;
+  border-radius: 14px; font-family: system-ui, sans-serif; text-align: center; cursor: pointer; text-decoration: none;
+}
+#app:not(.m-phone) .m-btn-gold {
+  height: 62px; min-height: 62px; font-size: 22px; font-weight: 900; color: #3a2300; border: 2px solid #ffe7a0;
+  background: linear-gradient(180deg, #ffd45a, #e0a21f);
+  box-shadow: 0 5px 0 #8a5a0a, 0 8px 18px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .55);
+  animation: d-glow 2.4s ease-in-out infinite;
+}
+#app:not(.m-phone) .m-btn-gold img { width: 28px; height: 28px; image-rendering: pixelated; }
+#app:not(.m-phone) .m-btn-gold:hover { filter: brightness(1.07); }
+#app:not(.m-phone) .m-btn-gold:active { transform: translateY(3px); box-shadow: 0 2px 0 #8a5a0a, 0 4px 10px rgba(0, 0, 0, .5); }
+#app:not(.m-phone) .m-btn-gold:disabled, #app:not(.m-phone) .m-btn-gold.disabled { filter: grayscale(.85) brightness(.7); animation: none; box-shadow: none; cursor: default; }
+#app:not(.m-phone) button.m-btn, #app:not(.m-phone) a.m-btn { min-height: 44px; height: 46px; font-size: 16px; font-weight: 800; color: var(--m-text); background: #1a2448; border: 2px solid var(--m-btn-line); }
+#app:not(.m-phone) button.m-btn img { width: 24px; height: 24px; image-rendering: pixelated; }
+#app:not(.m-phone) button.m-btn:hover { background: #222f5e; border-color: #5668a8; }
+#app:not(.m-phone) button.m-btn:active { background: #1d2850; }
+#app:not(.m-phone) button.m-btn:disabled, #app:not(.m-phone) button.m-btn.disabled { opacity: .5; cursor: default; }
+#app:not(.m-phone) button.m-btn.auto, #app:not(.m-phone) .m-btn-gold.auto { width: auto; }
+@keyframes d-glow { 0%, 100% { box-shadow: 0 5px 0 #8a5a0a, 0 0 8px rgba(243, 210, 122, .3), inset 0 1px 0 rgba(255, 255, 255, .55); } 50% { box-shadow: 0 5px 0 #8a5a0a, 0 0 20px rgba(243, 210, 122, .65), inset 0 1px 0 rgba(255, 255, 255, .55); } }
+
+/* ---------- Coût : case de 72 px + « ce que j'ai / ce qu'il faut » ---------- */
+#app:not(.m-phone) .m-cost { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; min-width: 72px; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--m-text); }
+#app:not(.m-phone) .m-cost > .m-cost-ico { display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; box-sizing: border-box; border-radius: 12px; background: var(--m-bg2); border: 3px solid var(--m-btn-line); }
+#app:not(.m-phone) .m-cost > .m-cost-ico img { width: 40px; height: 40px; image-rendering: pixelated; }
+#app:not(.m-phone) .m-cost.ok { color: var(--m-ok); } #app:not(.m-phone) .m-cost.ok > .m-cost-ico { border-color: var(--m-ok); }
+#app:not(.m-phone) .m-cost.ko { color: var(--m-ko); } #app:not(.m-phone) .m-cost.ko > .m-cost-ico { border-color: var(--m-ko); }
+#app:not(.m-phone) .m-cost .m-cost-n { white-space: nowrap; }
+#app:not(.m-phone) .m-costs { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-around; margin: 0 0 12px; }
+
+/* ---------- Barre de progression ---------- */
+#app:not(.m-phone) .m-bar { position: relative; height: 10px; border-radius: 5px; background: var(--m-bg2); border: 1px solid #000; overflow: hidden; box-sizing: content-box; }
+#app:not(.m-phone) .m-bar > i { display: block; height: 100%; width: var(--pct, 0%); background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); border-radius: 5px; }
+#app:not(.m-phone) .m-bar.hp > i { background: linear-gradient(180deg, #8bf5a2, #2fa84f); }
+
+/* ---------- Fiche : panneau latéral à droite (pas plein écran) ---------- */
+#app:not(.m-phone) .m-sheet {
+  position: fixed; right: 0; top: 0; bottom: var(--page-bottom, 0px); left: auto; width: min(480px, 100vw); z-index: 60; box-sizing: border-box;
+  display: flex; flex-direction: column; padding: 14px 18px 18px; overflow-y: auto; overscroll-behavior: contain;
+  background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2)); color: var(--m-text);
+  border-left: 2px solid var(--m-gold); box-shadow: -12px 0 30px rgba(0, 0, 0, .6); animation: d-sheet-in .18s ease-out;
+}
+#app:not(.m-phone) .m-frame .m-sheet { position: absolute; top: 2px; bottom: 2px; right: 2px; border-radius: 0 16px 16px 0; } /* dans un cadre : le cadre est le repère (container query) */
+#app:not(.m-phone) .m-sheet > .m-title { flex: none; }
+#app:not(.m-phone) .m-sheet > .m-sheet-body { flex: 1 1 auto; min-height: 0; }
+@keyframes d-sheet-in { from { transform: translateX(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- Puce (filtre, état court) ---------- */
+#app:not(.m-phone) .m-chip {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; min-width: 44px; padding: 0 14px; box-sizing: border-box; margin: 0;
+  border-radius: 18px; border: 2px solid var(--m-btn-line); background: #141c38; color: var(--m-soft); font: 800 14px/1 system-ui, sans-serif; white-space: nowrap; cursor: pointer;
+}
+#app:not(.m-phone) .m-chip img { width: 20px; height: 20px; image-rendering: pixelated; }
+#app:not(.m-phone) .m-chip:hover { color: var(--m-text); border-color: var(--m-gold); }
+#app:not(.m-phone) .m-chip[aria-pressed="true"], #app:not(.m-phone) .m-chip.on { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; }
+#app:not(.m-phone) .m-chip::after { content: ''; position: absolute; inset: -4px 0; }
+#app:not(.m-phone) .m-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; padding: 4px 2px; }
+
+/* ---------- État vide ---------- */
+#app:not(.m-phone) .m-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 18px; text-align: center; color: var(--m-soft); }
+#app:not(.m-phone) .m-empty img { width: 110px; height: 110px; image-rendering: pixelated; opacity: .9; }
+#app:not(.m-phone) .m-empty p { margin: 0; font-size: 15px; line-height: 1.35; color: var(--m-soft); }
+#app:not(.m-phone) .m-empty .m-btn-gold, #app:not(.m-phone) .m-empty button.m-btn { max-width: 320px; }
+
+/* ---------- Aides de mise en page ---------- */
+#app:not(.m-phone) .d-stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#app:not(.m-phone) .d-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
+#app:not(.m-phone) .d-center { display: flex; flex-direction: column; align-items: center; text-align: center; }
+#app:not(.m-phone) .d-tabnum { font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .d-span { grid-column: 1 / -1; }
+
+/* ---------- Grilles PC : repli selon la largeur du CADRE (container query, en px CSS : le zoom de l'interface est déjà compté) ---------- */
+#app:not(.m-phone) .d-cols3a, #app:not(.m-phone) .d-cols3b, #app:not(.m-phone) .d-cols2 { display: grid; gap: 14px; align-items: start; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+#app:not(.m-phone) .d-cols3a > *, #app:not(.m-phone) .d-cols3b > *, #app:not(.m-phone) .d-cols2 > * { min-width: 0; }
+@container mframe (min-width: 640px) {
+  #app:not(.m-phone) .d-cols3b { grid-template-columns: 340px minmax(0, 1fr); }
+  #app:not(.m-phone) .d-cols3b > :nth-child(n + 3) { grid-column: 1 / -1; }
+}
+@container mframe (min-width: 700px) {
+  #app:not(.m-phone) .d-cols3a { grid-template-columns: 380px minmax(0, 1fr); }
+  #app:not(.m-phone) .d-cols3a > :nth-child(n + 3) { grid-column: 1 / -1; }
+}
+@container mframe (min-width: 780px) {
+  #app:not(.m-phone) .d-cols2 { grid-template-columns: minmax(0, 1fr) 465px; }
+}
+@container mframe (min-width: 1100px) {
+  #app:not(.m-phone) .d-cols3a { grid-template-columns: 380px 400px minmax(0, 1fr); }
+  #app:not(.m-phone) .d-cols3a > :nth-child(n + 3) { grid-column: auto; }
+}
+@container mframe (min-width: 1120px) {
+  #app:not(.m-phone) .d-cols3b { grid-template-columns: 340px minmax(0, 1fr) 470px; }
+  #app:not(.m-phone) .d-cols3b > :nth-child(n + 3) { grid-column: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app:not(.m-phone) .m-btn-gold { animation: none; }
+  #app:not(.m-phone) .m-sheet { animation: none; }
+}
