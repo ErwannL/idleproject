@@ -185,7 +185,7 @@ form.addEventListener('submit', async (event) => {
     const el = document.createElement('div');
     el.className = `mail-notice ${ok ? 'ok' : 'err'}`; el.setAttribute('role', 'status');
     el.innerHTML = `<span></span><button type="button" aria-label="OK">✕</button>`;
-    el.querySelector('span').textContent = t(key);
+    const sp = el.querySelector('span'); let n = 0; const fill = () => { sp.textContent = t(key); if (sp.textContent === key && n++ < 40) setTimeout(fill, 100); }; fill();
     el.querySelector('button').addEventListener('click', () => el.remove());
     document.body.appendChild(el);
     const u = new URL(location.href); u.searchParams.delete('confirm'); u.searchParams.delete('unsubscribe'); history.replaceState(null, '', u);

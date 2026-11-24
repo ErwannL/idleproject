@@ -1,7 +1,7 @@
 #!/bin/sh
 # Mise à jour automatique du serveur « games » depuis la branche principale du dépôt.
 # Installé dans /usr/local/sbin/idle-rpg-update, lancé toutes les 5 min par idle-rpg-update.timer.
-# Si main a changé : sauvegarde (server, site, base) → copie de server/ et site/ → redémarrage → vérification ;
+# Si main a changé : sauvegarde (server, site, base) → copie de server/, site/ et src/ → redémarrage → vérification ;
 # en cas d'échec, l'ancienne version est remise en place.
 set -eu
 REPO=git@github.com:ErwannL/idleproject.git
@@ -24,15 +24,15 @@ echo "nouvelle version $NEW"
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-git -C "$SRC" archive "$NEW" server site tools/deploy/idle-rpg-update | tar -x -C "$TMP"
-for f in $(find "$TMP/server" "$TMP/site" -name '*.mjs' -o -name '*.js'); do node --check "$f"; done
+git -C "$SRC" archive "$NEW" server site src tools/deploy/idle-rpg-update | tar -x -C "$TMP"
+for f in $(find "$TMP/server" "$TMP/site" "$TMP/src" -name '*.mjs' -o -name '*.js'); do node --check "$f"; done
 
 BK=/var/backups/idle-rpg/$(date +%Y%m%d-%H%M%S)
 mkdir -p "$BK"
-cp -a "$APP/server" "$APP/site" "$BK/"
+cp -a "$APP/server" "$APP/site" "$BK/"; [ -d "$APP/src" ] && cp -a "$APP/src" "$BK/"
 node --disable-warning=ExperimentalWarning -e "new (require('node:sqlite').DatabaseSync)(process.argv[1], { readOnly: true }).exec(\"VACUUM INTO '\" + process.argv[2] + \"'\")" "$DB" "$BK/games.sqlite"
 
-swap() { rm -rf "$APP/server" "$APP/site"; cp -r "$1/server" "$1/site" "$APP/"; chown -R root:root "$APP/server" "$APP/site"; systemctl restart idle-rpg; }
+swap() { rm -rf "$APP/server" "$APP/site" "$APP/src"; cp -r "$1/server" "$1/site" "$1/src" "$APP/"; chown -R root:root "$APP/server" "$APP/site" "$APP/src"; systemctl restart idle-rpg; }
 healthy() {
   for i in 1 2 3 4 5 6 7 8 9 10; do
     sleep 2
