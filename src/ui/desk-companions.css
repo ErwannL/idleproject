@@ -58,8 +58,8 @@
 #app:not(.m-phone) .dc-card.in { box-shadow: inset 0 0 12px rgba(0, 0, 0, .5), 0 0 10px 0 #5be37d; }
 #app:not(.m-phone) .dc-pic { display: grid; place-items: center; width: 100%; }
 #app:not(.m-phone) .dc-pic img { display: block; width: 100%; max-width: 96px; aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; }
-#app:not(.m-phone) .dc-name { display: block; max-width: 100%; margin-top: -4px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: -.45px; overflow-wrap: anywhere; hyphens: none; }
-#app:not(.m-phone) .dc-name.long { letter-spacing: -.8px; }
+#app:not(.m-phone) .dc-name { display: block; max-width: 100%; margin-top: -4px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: -.45px; overflow-wrap: normal; word-break: keep-all; hyphens: none; }
+#app:not(.m-phone) .dc-name.long { letter-spacing: -1.1px; font-weight: 700; }
 #app:not(.m-phone) .dc-stars { color: var(--m-gold-hi); font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
 #app:not(.m-phone) .dc-stars i { font-style: normal; color: #44507a; }
 #app:not(.m-phone) .dc-stars.none { color: #44507a; }
