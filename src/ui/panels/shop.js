@@ -130,10 +130,11 @@ function mOfferCard(ui, state, offer) {
     <div class="m-offer-act">${prev}${buy}</div></div>`;
 }
 
-function phoneView(ui, state) {
+function phoneView(ui, state, desk = false) {
   const CATS = [...SHOP_CATEGORIES, { id: 'merchants', name: 'Marchands' }];
   const cat = CATS.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';
-  const tabs = `<div class="m-tabs" role="tablist">${CATS.map((c) => `<button type="button" class="m-tab${c.id === cat ? ' active' : ''}" role="tab" aria-selected="${c.id === cat}" data-m="${c.id}" data-action="shop-cat" data-value="${c.id}">${shopIcon(CAT_UI[c.id].icon, true)}<span>${escapeHtml(CAT_UI[c.id].label)}</span></button>`).join('')}</div>`;
+  const tabs0 = `<div class="m-tabs" role="tablist">${CATS.map((c) => `<button type="button" class="m-tab${c.id === cat ? ' active' : ''}" role="tab" aria-selected="${c.id === cat}" data-m="${c.id}" data-action="shop-cat" data-value="${c.id}">${shopIcon(CAT_UI[c.id].icon, true)}<span>${escapeHtml(CAT_UI[c.id].label)}</span></button>`).join('')}</div>`;
+  const tabs = desk ? tabs0.replace('class="m-tabs"', 'class="m-modes s64"').replace(/class="m-tab(?=[ "])/g, 'class="m-mode') : tabs0; // PC : modes en tuiles
   const preview = ui.view.themePreview ? `<div class="m-card m-prevbar"><span>Aperçu : <b>${escapeHtml(themeById(ui.view.themePreview).name)}</b></span>
     <button type="button" class="m-btn" data-action="theme-preview" data-value="">Mon thème</button></div>` : '';
   let body;
@@ -147,7 +148,7 @@ function phoneView(ui, state) {
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="m-card">${spendBlock(state)}</div>` : ''}`;
   }
   const note = paymentReady() ? '' : '<div class="m-soon">Achats bientôt disponibles</div>';
-  return `<div class="m-frame m-shop">${mTitle('icon_gem', 'Boutique', true)}${tabs}${preview}${note}${body}</div>`;
+  return `<div class="m-frame m-shop${desk ? ' d-shop' : ''}">${mTitle('icon_gem', 'Boutique', true)}${tabs}${preview}${note}${body}</div>`;
 }
 
 export default {
@@ -159,6 +160,7 @@ export default {
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b> ${walletIcon('ticketLimited')}<b class="num">${walletAmount(state, 'ticketLimited')}</b> ${walletIcon('ticketPet')}<b class="num">${walletAmount(state, 'ticketPet')}</b>`,
   render(ui, state) {
     if (ui.root?.classList?.contains('m-phone')) return phoneView(ui, state);
+    if (ui.root) return phoneView(ui, state, true); // v10.13 : le PC emploie les mêmes composants du kit (style : desk-shop.css)
     // v9.11 (9) : Marchands dans leur propre onglet (plus répétés sous chaque liste).
     const CATS = [...SHOP_CATEGORIES, { id: 'merchants', name: 'Marchands' }];
     const cat = CATS.some((c) => c.id === ui.view.shopCat) ? ui.view.shopCat : 'crystals';

@@ -104,7 +104,7 @@ function inPage(kind) {
 
   // 4. cartouche + un seul bouton doré
   const titles = inRoot('.m-title');
-  if (kind === 'tab' && !titles.length) add(4, 'aucun .m-title visible');
+  if (kind === 'tab' && !titles.length) add(4, `aucun .m-title visible (onglet ${tabName}, modale ${modal ? 'ouverte' : 'non'}, défilement ${Math.round(body?.scrollTop ?? -1)}, titres dans le DOM ${document.querySelectorAll('#panel .m-title').length}, cadre ${JSON.stringify(document.querySelector('#panel-body .m-frame')?.getBoundingClientRect().toJSON?.() ?? null)})`);
   const GOLD = '.m-btn-gold, .btn-gold, .btn.gold, .gold-btn, button.primary-gold';
   const golds = [...(kind === 'tab' ? (root ? root.querySelectorAll(GOLD) : []) : document.querySelectorAll(`#play ${GOLD.split(',').join(', #play ')}`))].filter(shown);
   if (golds.length > 1) add(4, `${golds.length} boutons dorés visibles : ${golds.slice(0, 4).map(name).join(' | ')}`);
@@ -175,6 +175,8 @@ export async function runAudit(argv) {
   const app = await startApp();
   const report = []; // { game, size, view, tab, issues[], skipped }
   const record = async (g, game, w, h, tab, view, kind, shotName) => {
+    if (kind === 'tab') await g.page.waitForFunction(() => { const f = document.querySelector('#panel-body .m-frame'); return !f || Number(getComputedStyle(f).opacity) > 0.99; }, null, { timeout: 4000 }).catch(() => { /* fondu du panneau trop long : le contrôle le dira */ });
+    await g.page.waitForFunction(() => [...document.images].every((i) => i.complete || i.loading === 'lazy' || !i.getClientRects().length), null, { timeout: 4000 }).catch(() => { /* image vraiment manquante : le contrôle 5 la signalera */ });
     const rec = { game, size: `${w}x${h}`, tab, view, issues: await g.page.evaluate(inPage, kind), skipped: null };
     report.push(rec);
     if (shots) await g.page.screenshot({ path: join(out, `${w}x${h}-${game === 'fresh' ? 'neuve-' : ''}${shotName}.jpg`), type: 'jpeg', quality: 70 });

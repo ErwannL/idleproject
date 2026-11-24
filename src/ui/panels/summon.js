@@ -10,7 +10,7 @@ import { walletAmount } from '../../core/wallet.js';
 import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
 import { animCanvas } from '../animator.js';
 import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, stars } from '../common.js';
-import { mGrid, mTabs, mTile, mTitle } from '../mobile-kit.js';
+import { mGrid, mModes, mTabs, mTile, mTitle } from '../mobile-kit.js';
 import { walletIcon } from './shop.js';
 
 function unitPortrait(u) {
@@ -235,13 +235,14 @@ function mBannerBody(state, pool) {
   return mGrid(tiles, 3);
 }
 
-function phoneView(ui, state) {
+function phoneView(ui, state, desk = false) {
   const pool = normalizePool(ui.view.summonPool);
   const tab = BANNER_TABS.find((t) => t.id === pool);
   const open = ui.view.summonOdds === pool;
   const g = state.summon.pity[BANNERS[pool].pity];
   const left = BANNERS[pool].hard - g.ssr;
-  const tabs = mTabs(BANNER_TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, action: 'summon-pool', value: t.id })), pool);
+  const tabItems = BANNER_TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon, action: 'summon-pool', value: t.id }));
+  const tabs = desk ? mModes(tabItems, pool) : mTabs(tabItems, pool);
   const head = `<div class="m-sum-head" style="background-image:linear-gradient(90deg,rgba(8,10,24,.78),rgba(8,10,24,.2)),url(assets/ui/art104/summon_head_${pool}.png)">
     <b>${PHONE_POOL_NAME[pool]}</b><span class="eco-chip">${walletIcon(tab.cur)}<b class="num">${formatNumber(walletAmount(state, tab.cur))}</b></span><span class="grow"></span>
     <button type="button" class="m-q${open ? ' on' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités">?</button></div>`;
@@ -249,7 +250,7 @@ function phoneView(ui, state) {
   const pay = pool === 'pet' ? mPay(state, pool, 'ticketPet', true) : `${mPay(state, pool, TICKET[pool], true)}${mPay(state, pool, 'gems', false)}`;
   const hist = (state.summon.history ?? []).length ? `<div class="m-card">${fold(ui, 'summon-history', 'Historique', () => historyBlock(state))}</div>` : '';
   const frag = fragmentBlock(state);
-  return `<div class="m-frame m-summon">${mTitle('icon_summon', 'Invocation', true)}${tabs}
+  return `<div class="m-frame m-summon${desk ? ' d-summon' : ''}">${mTitle('icon_summon', 'Invocation', true)}${tabs}
     <div class="m-card m-sum-card">${head}<div class="m-sum-body">${mBannerBody(state, pool)}</div>${gauge}${pay}
       ${open ? `${ratesLine(pool)}${pityLine(state, pool)}${oddsBlock(state, pool)}` : ''}${resultsBlock(ui, pool)}</div>
     ${frag ? frag.replace('class="card"', 'class="m-card"') : ''}${hist}</div>`;
@@ -264,6 +265,7 @@ export default {
   extra: (ui, state) => `${gem()}<b class="num">${formatNumber(state.gems)}</b>`,
   render(ui, state) {
     if (isMPhone(ui)) return phoneView(ui, state);
+    if (ui.root) return phoneView(ui, state, true); // v10.13 : le PC emploie les mêmes composants du kit (style : desk-shop.css)
     return `${limitedCard(ui, state)}${permanentCard(ui, state)}${petCard(ui, state)}${fragmentBlock(state)}
       ${(state.summon.history ?? []).length ? fold(ui, 'summon-history', 'Historique', () => historyBlock(state)) : ''}`;
   },
