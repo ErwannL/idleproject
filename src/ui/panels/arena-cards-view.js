@@ -32,7 +32,7 @@ function formationHtml(ui, state) {
     <div class="muted small">Devant encaisse, derrière frappe · ${c.formation.filter(Boolean).length}/${A.teamMax}</div>${picker}</div>`;
 }
 
-export function cardTowerHtml(ui, state) {
+export function cardTowerHtml(ui, state, phone = false) { // phone : faux, ou le HTML d'en-tête (cartouche + modes) placé en tête de la zone qui défile
   const fresh = !cardArena(state).cal;
   const cal0 = arenaCal(state); void cal0; // v10.2 (2.2) : à la première ouverture, formation placée automatiquement
   const c = cardArena(state);
@@ -52,8 +52,8 @@ export function cardTowerHtml(ui, state) {
   // v10.2 (2.4) : règle de l'étage en bandeau illustré, aperçu du dos de carte du premier gardien.
   const ruleBanner = setup.rule ? `<div class="ct-rule">${ruleArt(setup.rule.id) ? `<img class="px" src="${ruleArt(setup.rule.id)}" alt="">` : ''}<div>${ruleDup(setup.rule) ? `<b>${escapeHtml(setup.rule.text)}</b>` : `<b>${escapeHtml(ruleName(setup.rule.id))}</b><small>${escapeHtml(setup.rule.text)}</small>`}</div></div>` : '';
   const back = f === GOLD_BACK_FLOOR || (f < GOLD_BACK_FLOOR && f >= 20) ? `<div class="ct-back${hasGoldBack(state) ? ' won' : ''}"><img class="px" src="assets/ui/art101/card_back_gold.png" alt=""><span>${hasGoldBack(state) ? '✔ Gardien vaincu : ta formation porte le <b>dos de carte doré</b>.' : 'Gardien de l\'étage 25 vaincu : <b>dos de carte doré</b> pour toute ta formation.'}</span></div>` : '';
-  return `${tip}<div class="ct-head"><span>${stars(3).replace(/<i>.*<\/i>/, '')} <b class="num">${totalStars(state)}</b> étoiles</span>
-      <button class="btn ${chest > 0 ? 'btn-gold' : ''} small" data-action="card-chest" ${chest > 0 ? '' : 'disabled'}>${img('icon_chest')}${chest > 0 ? ` Coffre (${chest})` : ` ${A.chestEvery - (totalStars(state) % A.chestEvery)} ★`}</button>
+  const main = `${tip}<div class="ct-head"><span>${stars(3).replace(/<i>.*<\/i>/, '')} <b class="num">${totalStars(state)}</b> étoiles</span>
+      <button class="btn ${chest > 0 && !phone ? 'btn-gold' : ''} small" data-action="card-chest" ${chest > 0 ? '' : 'disabled'}>${img('icon_chest')}${chest > 0 ? ` Coffre (${chest})` : ` ${A.chestEvery - (totalStars(state) % A.chestEvery)} ★`}</button>
       <span class="muted" title="Balayages du jour">⚡ <b>${sweepsLeft(state)}</b>/${A.sweepsPerDay}</span></div>
     <div class="ct-floors">${near}</div>
     <div class="card ct-floor-card"><div class="row-between"><b>${escapeHtml(floorName(f))}</b>${stars(c.stars[f] ?? 0)}</div>${ruleBanner}<div class="ct-tags">${tags}</div>${back}
@@ -62,6 +62,8 @@ export function cardTowerHtml(ui, state) {
       <div class="muted small" title="Gagner sans perdre de carte en moins de ${A.star3} s. Essais illimités.">3 ★ : sans perte, en ${A.star3} s</div></div>
     ${formationHtml(ui, state)}
     <div class="card"><b>Saison</b> <span class="muted" title="Meilleur étage de la saison">★ ${c.season.best}</span><div class="ct-season">${season}</div></div>
-    <div class="ct-go"><button class="btn btn-gold primary-action" data-action="card-fight" data-value="${f}" ${team.length ? '' : 'disabled'}>${team.length ? `⚔ Combattre · ${escapeHtml(floorName(f))}` : 'Place au moins 1 carte'}</button>
+    `;
+  const go = `<div class="ct-go"><button class="btn btn-gold primary-action" data-action="card-fight" data-value="${f}" ${team.length ? '' : 'disabled'}>${team.length ? `⚔ Combattre · ${escapeHtml(floorName(f))}` : 'Place au moins 1 carte'}</button>
       ${(c.stars[f] ?? 0) >= 3 ? `<button class="btn" data-action="card-sweep" data-value="${f}" ${sweepsLeft(state) > 0 ? '' : 'disabled'}>⚡ Balayer</button>` : ''}</div>`;
+  return phone ? `<div class="ar-scroll">${phone === true ? '' : phone}${main}</div>${go}` : main + go; // v10.12 : téléphone — le bouton « Combattre » reste collé en bas, hors du défilement
 }

@@ -10,6 +10,8 @@ import { escapeHtml, formatNumber, icon, img, rarityLabel, rewardIcons } from '.
 import { companionStill } from './expeditions.js';
 import { cardTowerHtml } from './arena-cards-view.js';
 import { cardArena } from '../../core/arena-cards.js';
+import { mModes, mTitle } from '../mobile-kit.js'; // v10.12
+import { isPhoneUi } from './combat-phone.js';
 
 const MODE_LABEL = { cards: 'Tour à cartes', survival: 'Épreuve : Survie', global: 'Épreuve : Boss commun' }; // v10.1 (P4)
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };
@@ -93,8 +95,15 @@ export default {
   icon: 'icon_paw',
   extra: (ui, state) => (arenaUnlocked(state) ? `Étage <b class="num">${cardArena(state).best}</b>` : ''),
   render(ui, state) {
-    if (!arenaUnlocked(state)) return `<div class="state-empty">L'Arène des compagnons s'ouvre à l'étape ${ARENA.unlockStage}, avec au moins un compagnon.</div>`;
+    if (!arenaUnlocked(state)) return `<div class="state-empty${isPhoneUi(ui) ? ' m-card' : ''}">L'Arène des compagnons s'ouvre à l'étape ${ARENA.unlockStage}, avec au moins un compagnon.</div>`;
     const mode = ['survival', 'global'].includes(ui.view.arenaMode) ? ui.view.arenaMode : 'cards';
+    if (isPhoneUi(ui)) {
+      // v10.12 : l'Arène se joue dans la scène (panneau mi-hauteur) mais prend le même cadre, cartouche et modes que les autres écrans.
+      const modes = [['cards', 'Cartes', 'icon_paw'], ['survival', 'Survie', 'icon_skull'], ['global', 'Boss commun', 'icon_boss']].map(([id, label, ic]) => ({ id, label, icon: ic, action: 'arena-mode', value: id }));
+      const head = `${mTitle('icon_paw', 'Arène', true, { close: 'close-panel' })}${mModes(modes, mode, { size: 64 })}`;
+      return `<div class="m-frame cb-frame ar-frame">${mode === 'cards' ? cardTowerHtml(ui, state, head)
+        : `<div class="ar-scroll">${head}${mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state)}</div>`}</div>`;
+    }
     const tabs = `<div class="item-tabs" role="tablist">${Object.entries(MODE_LABEL).map(([k, l]) => `<button class="btn chip-btn small${k === mode ? ' active' : ''}" data-action="arena-mode" data-value="${k}" role="tab" aria-selected="${k === mode}">${l}</button>`).join('')}</div>`;
     return tabs + (mode === 'cards' ? cardTowerHtml(ui, state) : mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state));
   },

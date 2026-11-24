@@ -1047,6 +1047,9 @@ export class UI {
       case 'craft': a.craft(value, el.dataset.tier); break;
       case 'stage': a.selectStage(Number(stage)); break;
       case 'zone-sel': local(() => { v.zoneSel = Number(value); }); break;
+      case 'tower-info': local(() => { v.towerInfo = !v.towerInfo; }); break; // v10.12 : fiche des règles (Défis, téléphone)
+      case 'close-panel': this.closePanel(); break; // v10.12 : ✕ du cartouche de l'Arène (téléphone)
+      case 'cycle-pick': local(() => { v.cycleSel = Number(value); v.zoneSel = null; }); break; // v10.12 : difficulté de la Carte en puces (téléphone)
       case 'retry-boss': a.retryBoss(); break;
       case 'advance': a.advance(); break;
       case 'toggle-auto': a.setAutoAdvance(!this.state.autoAdvance); break;

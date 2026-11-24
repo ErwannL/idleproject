@@ -11,6 +11,8 @@ import { LIGHTS_EVENT, lightsMissions, lightsPath, lightsPosition, lightsShop, l
 const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
+import { mBar, mBtn, mBtnGold, mEmpty, mStat, mTitle } from '../mobile-kit.js'; // v10.12
+import { isPhoneUi } from './combat-phone.js';
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
 const give = (g) => Object.entries(g).map(([k, v]) => `<span class="shop-give">${walletIcon(k)}<b class="num">${v}</b></span>`).join('');
@@ -117,8 +119,18 @@ function announcements() {
   return liveAnnouncements().map((a) => `<div class="card live-news">${a.title ? `<div class="section-title"><span>${escapeHtml(a.title)}</span></div>` : ''}<div>${escapeHtml(a.text)}</div></div>`).join('');
 }
 
+let laneX = null; // v10.12 : défilement du chemin des lanternes (téléphone)
 export default {
   id: 'event',
+  // v10.12 : téléphone — le chemin des lanternes défile de côté ; on amène la lanterne du héros au centre.
+  afterRender(ui, body) {
+    const box = body.querySelector('.ev-lanterns');
+    if (!box) return;
+    const here = box.querySelector('.lt-node.here');
+    if (laneX === null && here) laneX = Math.max(0, here.offsetLeft - box.clientWidth / 2);
+    box.scrollLeft = laneX ?? 0; // la position reste d'un rendu à l'autre
+    box.addEventListener('scroll', () => { laneX = box.scrollLeft; }, { passive: true });
+  },
   title: 'Événement',
   icon: 'icon_map',
   // v10.6 (partie 3) : le Marché des Lueurs a sa propre affiche ; pas de seconde bannière au-dessus.
@@ -126,6 +138,12 @@ export default {
   render(ui, state) {
     const ev = currentEvent();
     const news = announcements();
+    const phone = isPhoneUi(ui);
+    if (phone && !ev) {
+      const nx = liveNextEvent();
+      return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${mEmpty(nx ? `Prochain événement : ${LIVE_EVENT_TYPES[nx.type].label} · ${dateText(nx.start)}` : 'Aucun événement en cours.', { icon: 'icon_map' })}</div>`;
+    }
+    if (phone) return phoneEvent(ui, state, ev, news);
     if (!ev) {
       const nx = liveNextEvent();
       return `${news}<div class="muted">Aucun événement en cours.</div>${nx ? `<div class="muted"><span>Prochain événement</span> : ${escapeHtml(LIVE_EVENT_TYPES[nx.type].label)} · ${dateText(nx.start)}</div>` : ''}`;
@@ -133,3 +151,87 @@ export default {
     return news + (ev.kind === 'grand' ? grand(ui, state, ev) : small(ui, state, ev));
   },
 };
+
+// v10.12 : Événement sur téléphone — même kit que les autres écrans : cadre, cartouche, affiche de 160 px, cartes sombres,
+// barre dorée, boutons du kit (un seul doré : Enchaîner / Tout récupérer).
+const poster = (cls, style, inner) => `<div class="m-card ev-poster ${cls}" style="${style}">${inner}</div>`;
+
+function phoneBoss(state, wb) {
+  const G = EVENTS.grand;
+  const day = worldBossDay(state);
+  const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="wb-tier${i < day.tiers ? ' on' : ''}"><b class="num">${Math.round(t * 100)} %</b></span>`).join('');
+  const body = wb.open
+    ? `${mStat('icon_boss', 'Tentatives du jour', `${wb.left}/${wb.perDay ?? G.worldBoss.attemptsPerDay}`)}${mStat('icon_trophy', 'Record', formatNumber(wb.best))}${mStat('icon_damage', 'Dégâts du jour', formatNumber(day.today))}
+      <div class="wb-card-tiers">${tiers}</div>${mBtn('Attaquer', { action: 'event-boss', disabled: !wb.left, icon: 'icon_boss' })}`
+    : `<div class="cb-sub">Débloqué à l'étape ${G.worldBoss.unlockStage}.</div>`;
+  return `<div class="m-card ev-boss"><b class="ev-h">${img('icon_boss')} World Boss · ${escapeHtml(WORLD_BOSS.name)}</b>${body}</div>`;
+}
+
+function phoneGrand(ui, state, ev) {
+  const G = EVENTS.grand;
+  const rec = eventRecord(state);
+  const wb = worldBossStatus(state);
+  const shop = eventShop(ev);
+  const next = rec.cleared + 1;
+  const regions = G.regions.map((r, ri) => {
+    const cells = Array.from({ length: G.stagesPerRegion }, (_, i) => {
+      const n = ri * G.stagesPerRegion + i + 1;
+      const cls = n <= rec.cleared ? 'done' : n === next ? 'next' : 'locked';
+      return `<span class="ev-stage ${cls}${n === G.fragmentStage ? ' frag' : ''}${n === G.worldBoss.unlockStage ? ' boss' : ''}" title="${n}">${n}</span>`;
+    }).join('');
+    return `<div class="ev-region"><div class="ev-region-name">${escapeHtml(r.name)}</div><div class="ev-stages">${cells}</div></div>`;
+  }).join('');
+  const last = ui.view.eventLast;
+  const head = poster('ev-grand', 'background-image:linear-gradient(90deg,rgba(11,17,36,.92),rgba(11,17,36,.45)),url(assets/ui/art98/expedition_map.png)',
+    `<b class="ev-t">${escapeHtml(G.name)}</b><span class="ev-sub">Jour ${ev.day}/${ev.days ?? 14} · jusqu'au ${dateText(ev.end - 86400000)}</span>
+     <span class="ev-wallet">${walletIcon('eventCoins')}<b class="num">${formatNumber(rec.coins)}</b> écus</span>${mBar(rec.cleared / totalStages())}<span class="ev-sub">Étapes ${rec.cleared}/${totalStages()}</span>`);
+  const fight = next <= totalStages()
+    ? `<div class="m-card ev-fight"><span class="ev-fight-t"><b>Étape ${next}</b><span class="cb-sub">Gardien niv. ${stageLabel(eventStageLevel(state, next))}</span></span>
+        ${mBtn('Combattre', { action: 'event-fight', value: next })}</div>${mBtnGold('Enchaîner', { action: 'event-chain', value: next, icon: 'icon_map' })}`
+    : '<div class="m-card good">Carte terminée.</div>';
+  const items = shop.map((i) => `<div class="m-card ev-item"><span class="ev-give">${give(i.give)}</span><span class="cb-sub num">${(rec.bought[i.id] ?? 0)}/${i.stock}</span>
+      <button type="button" class="m-btn" data-action="event-buy" data-value="${i.id}" ${rec.coins >= i.price && (rec.bought[i.id] ?? 0) < i.stock ? '' : 'disabled'}>${walletIcon('eventCoins')}<span>${i.price}</span></button></div>`).join('');
+  return `${head}<div class="m-card ev-mapcard"><div class="ev-map">${regions}</div></div>${fight}
+    ${last ? `<div class="cb-sub">${last}</div>` : ''}<div class="cb-sub cb-help">Combat automatique : ${G.fightSeconds} s de dégâts du héros contre les PV du gardien. Étape ${G.fragmentStage} : fragment Légendaire universel.</div>
+    ${wb ? phoneBoss(state, wb) : ''}<b class="ev-h">${walletIcon('eventCoins')} Boutique des écus</b><div class="ev-shop-grid">${items}</div>`;
+}
+
+function phoneSmall(state, ev) {
+  const E = LIGHTS_EVENT;
+  const left = Math.max(1, Math.ceil((ev.end - liveNow()) / 86400000));
+  const wallet = lightsWallet(state);
+  const path = lightsPath(state);
+  const pos = lightsPosition(state);
+  const cur = `<img class="px lt-cur" src="${E.art.currency}" alt="">`;
+  const N = path.length;
+  const xy = (i) => [4 + (i * 92) / (N - 1), i === N - 1 ? 42 : 50 + Math.sin(i * 1.1 + 0.6) * 26];
+  const dots = path.slice(0, -1).map((s, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
+  const nodes = path.map((s, i) => {
+    const [x, y] = xy(i);
+    const state0 = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
+    const giveIcon = s.prize ? `<img class="px lt-prize-mini" src="${E.art.prize}" alt="">` : rewardIcons(s.give);
+    return `<button class="lt-node ${state0}${s.prize ? ' prize' : ''}${i === pos ? ' here' : ''}" style="left:${x}%;top:${y}%" ${s.reached && !s.claimed ? `data-action="lights-step" data-value="${i}"` : 'disabled'} title="${escapeHtml(s.label)} · ${s.at} Lueurs">
+      <img class="px lt-lantern" src="${s.reached ? E.art.nodeDone : E.art.node}" alt=""><span class="lt-give">${giveIcon}</span><small>${escapeHtml(s.label)}</small>
+      ${i === pos ? `<span class="lt-hero">${heroPortrait(state)}</span>` : ''}</button>`;
+  }).join('');
+  const ready = path.filter((s) => s.reached && !s.claimed).length;
+  const tiles = lightsMissions(state).map((m) => {
+    const btn = m.lit ? '<span class="lt-stamp">Allumée</span>'
+      : m.ready ? mBtn('Allumer', { action: 'event-goal', value: m.id })
+        : m.tab ? mBtn('Y aller', { action: 'open-tab', value: m.tab }) : '';
+    return `<div class="m-card ev-mission${m.lit ? ' lit' : ''}"><img class="px lt-tile-art" src="${m.art}" alt="">
+      <div class="ev-mission-body"><b>${escapeHtml(m.title)}</b>${mBar(m.p / m.target)}<span class="lt-give">${cur}<b class="num">+${m.lueurs}</b></span></div>${btn}</div>`;
+  }).join('');
+  const shop = lightsShop(state).map((i) => `<button type="button" class="m-card ev-item lt-shop-item${i.can ? '' : ' off'}" data-action="lights-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'} title="${i.left} en stock">
+      <img class="px" src="${i.art}" alt=""><b>${escapeHtml(i.title)}</b><span class="lt-price">${cur}<b class="num">${i.price}</b></span></button>`).join('');
+  const head = poster('ev-small', `background-image:url(${E.art.key})`,
+    `<span class="ev-poster-l"><b class="ev-t">${escapeHtml(E.title)}</b><span class="ev-sub" title="${escapeHtml(E.tagline)}">encore ${left} j</span><span class="ev-wallet">${cur}<b class="num">${wallet.have}</b> ${E.currency}</span></span>
+     <span class="ev-poster-r"><img class="px" src="${E.art.prize}" alt="${escapeHtml(E.prize.label)}"><small>Grand prix · ${escapeHtml(E.prize.label)}</small></span>`);
+  return `${head}<div class="lt-map ev-lanterns"><div class="ev-lanes" style="background-image:url(${E.art.path})"><svg class="lt-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${dots}"/></svg>${nodes}</div></div>
+    ${ready > 1 ? mBtnGold(`Tout récupérer (${ready})`, { action: 'lights-all' }) : ''}
+    <b class="ev-h">Allume des lanternes</b>${tiles}<b class="ev-h">Échoppe des Lueurs</b><div class="ev-shop-grid">${shop}</div>`;
+}
+
+function phoneEvent(ui, state, ev, news) {
+  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${ev.kind === 'grand' ? phoneGrand(ui, state, ev) : phoneSmall(state, ev)}</div>`;
+}

@@ -1,0 +1,157 @@
+/* v10.12 (lot « combat ») : Carte, Donjons, Arène, Défis, Événement sur téléphone. Tout sous #app.m-phone (le PC ne bouge pas). */
+#app.m-phone .cb-frame { width: calc(100% - 16px); max-width: calc(100% - 16px); min-width: 0; align-self: flex-start; } /* #panel-body est un flex : sans cela le cadre (marge 8 px) déborde de 16 px */
+
+/* ---------- Carte ---------- */
+#app.m-phone .cb-frame .cb-head { height: 92px; box-sizing: border-box; margin: 0 0 8px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+#app.m-phone .cb-frame .cb-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+#app.m-phone .cb-frame .cb-zone { font-size: 18px; font-weight: 900; line-height: 1.15; color: var(--m-text); min-width: 0; }
+#app.m-phone .cb-frame .cb-sub { font-size: 13px; line-height: 1.25; color: var(--m-soft); font-weight: 700; display: block; max-height: 34px; overflow: hidden; }
+#app.m-phone .cb-frame .forecast { margin: 0 0 8px; font-size: 13px; }
+#app.m-phone .cb-frame .cb-mapbox { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 0 8px; border: 2px solid var(--m-gold); border-radius: 12px; }
+#app.m-phone .cb-frame .cb-mapbox::-webkit-scrollbar { display: none; }
+#app.m-phone .cb-frame .mini-map { width: 440px; max-width: none; margin: 0; border: 0; border-radius: 0; }
+#app.m-phone .cb-frame .map-dot { min-width: 44px; min-height: 44px; width: 44px; height: 44px; }
+#app.m-phone .cb-frame .cb-picker { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: center; margin: 0 0 8px; }
+#app.m-phone .cb-frame .cb-picker .world-name { text-align: center; font-size: 16px; font-weight: 900; color: var(--m-text); }
+#app.m-phone .cb-frame .cb-stars { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin: 0 0 8px; font-size: 12px; color: var(--m-soft); }
+#app.m-phone .cb-frame .cb-stars .star.on { color: var(--m-gold-hi); }
+#app.m-phone .cb-frame .cb-stages { padding: 8px 6px; margin: 0 0 8px; }
+#app.m-phone .cb-frame .stage-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 0; }
+#app.m-phone .cb-frame .stage-grid .btn { min-height: 44px; font-size: 14px; border-radius: 10px; }
+#app.m-phone .cb-frame .cb-mini { height: 64px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin: 0 0 8px; padding: 0 12px; text-align: left; color: var(--m-text); font: inherit; }
+#app.m-phone .cb-frame button.cb-mini { cursor: pointer; }
+#app.m-phone .cb-frame .cb-mini-t { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 15px; font-weight: 900; }
+#app.m-phone .cb-frame .cb-mini-s, #app.m-phone .cb-frame .cb-mini-r { font-size: 13px; color: var(--m-soft); font-weight: 700; }
+#app.m-phone .cb-frame .cb-mini-r { font-size: 14px; }
+#app.m-phone .cb-frame .cb-arena { border-color: var(--m-gold); }
+#app.m-phone .cb-frame .rv-dots { display: inline-flex; gap: 3px; flex-wrap: nowrap; }
+#app.m-phone .cb-frame .rv-dot { width: 10px; height: 10px; border-radius: 50%; background: #0b1124; border: 1px solid var(--m-btn-line); display: inline-block; }
+#app.m-phone .cb-frame .rv-dot.on { background: var(--m-gold-hi); border-color: var(--m-gold); }
+
+/* ---------- Style commun du lot (cartes et boutons anciens rendus à l'intérieur du cadre : même look que le kit) ---------- */
+#app.m-phone .cb-frame .card, #app.m-phone .cb-frame .state-empty { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; color: var(--m-text); box-shadow: none; }
+#app.m-phone .cb-frame .muted, #app.m-phone .cb-frame small { color: var(--m-soft); }
+#app.m-phone .cb-frame .btn:not(.m-btn):not(.m-btn-gold) { min-height: 44px; border-radius: 10px; border: 1.5px solid var(--m-btn-line); background: linear-gradient(180deg, #1e2a4d, #121a33); color: var(--m-text); font-weight: 800; }
+#app.m-phone .cb-frame .btn.btn-gold:not(.m-btn-gold) { color: #2a1a05; border-color: #fff0b8; background: linear-gradient(180deg, #ffe08a, #f0b93f); }
+#app.m-phone .cb-frame .cb-sub { display: block; font-size: 13px; color: var(--m-soft); font-weight: 700; margin: 0 0 6px; }
+#app.m-phone .cb-frame .cb-help { font-size: 12px; font-weight: 600; }
+#app.m-phone .cb-frame .cb-warn { margin: 0 0 8px; font-size: 13px; color: var(--m-ko); font-weight: 700; }
+#app.m-phone .cb-frame .m-btn, #app.m-phone .cb-frame .m-btn-gold { width: 100%; margin: 0 0 8px; }
+#app.m-phone .cb-frame .cb-mini .m-btn, #app.m-phone .cb-frame .m-card .m-btn, #app.m-phone .cb-frame .cb-picker .m-btn, #app.m-phone .cb-frame .dgm-head .m-btn { width: auto; margin: 0; }
+#app.m-phone .cb-frame .m-btn.cb-danger { border-color: var(--m-ko); color: var(--m-ko); }
+#app.m-phone .cb-frame .m-modes { margin-bottom: 8px; }
+
+/* ---------- Donjons ---------- */
+#app.m-phone .cb-frame .dgm-head { height: 92px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#app.m-phone .cb-frame .dgm-head .m-costs { margin: 0; justify-content: flex-start; }
+#app.m-phone .cb-frame .dgm {
+  position: relative; height: 120px; display: grid; grid-template-columns: minmax(0, 1fr) 108px; gap: 8px; padding: 8px 8px 8px 12px; overflow: hidden; border-color: var(--m-gold);
+  background: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), var(--dgm-bg) center / cover no-repeat; background-color: var(--m-card);
+}
+#app.m-phone .cb-frame .dgm.locked { filter: grayscale(.7) brightness(.8); }
+#app.m-phone .cb-frame .dgm-info { display: flex; flex-direction: column; justify-content: space-between; gap: 2px; min-width: 0; }
+#app.m-phone .cb-frame .dgm-name { font-size: 17px; font-weight: 900; line-height: 1.1; text-shadow: 0 2px 0 #000; }
+#app.m-phone .cb-frame .dgm-sub { font-size: 12px; line-height: 1.2; color: var(--m-soft); font-weight: 700; }
+#app.m-phone .cb-frame .dgm-row { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; font-weight: 800; }
+#app.m-phone .cb-frame .dgm-row .dg-stars { display: inline-flex; gap: 1px; }
+#app.m-phone .cb-frame .dgm-row .dg-star { width: 14px; height: 14px; }
+#app.m-phone .cb-frame .dgm-gain { display: inline-flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+#app.m-phone .cb-frame .dgm-gain img { width: 18px; height: 18px; flex: none; }
+#app.m-phone .cb-frame .dgm-info .m-chip { align-self: flex-start; }
+#app.m-phone .cb-frame .dgm-side { display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-width: 0; }
+#app.m-phone .cb-frame .dgm-boss { width: auto; height: 52px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .cb-frame .dgm-side .m-btn { width: 100%; height: 44px; margin: 0; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; color: #2a1a05; }
+#app.m-phone .cb-frame .dgm-lock { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 800; color: var(--m-soft); text-align: center; }
+#app.m-phone .cb-frame .dgm-lock img { width: 16px; height: 16px; }
+
+/* ---------- Défis (Tour, Défi de la semaine) ---------- */
+#app.m-phone .cb-frame .cb-tower { display: flex; align-items: center; gap: 12px; height: 124px; }
+#app.m-phone .cb-frame .cb-floor { position: relative; flex: none; width: 96px; height: 96px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; border: 2px solid var(--m-gold); border-radius: 12px; background: linear-gradient(160deg, #2a3558, #0b1124); overflow: hidden; }
+#app.m-phone .cb-frame .cb-floor canvas { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); }
+#app.m-phone .cb-frame .cb-floor-n { position: relative; z-index: 1; width: 100%; text-align: center; font-size: 28px; line-height: 1.1; font-weight: 900; color: var(--m-gold-hi); text-shadow: 0 2px 0 #000; background: linear-gradient(180deg, transparent, rgba(11, 17, 36, .85) 40%); font-variant-numeric: tabular-nums; }
+#app.m-phone .cb-frame .cb-floor small { position: relative; z-index: 1; font-size: 11px; color: var(--m-soft); margin: 0 0 4px; }
+#app.m-phone .cb-frame .cb-tower-in { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+#app.m-phone .cb-frame .cb-tower-k { font-size: 12px; font-weight: 800; color: var(--m-soft); }
+#app.m-phone .cb-frame .cb-tower-name { font-size: 17px; font-weight: 900; line-height: 1.15; }
+#app.m-phone .cb-frame .cb-tower-lv { font-size: 13px; color: var(--m-soft); font-weight: 700; }
+#app.m-phone .cb-frame .cb-rules { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+#app.m-phone .cb-frame .cb-rule { width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; border: 1.5px solid var(--m-gold); background: linear-gradient(180deg, #243158, #121a33); cursor: pointer; }
+#app.m-phone .cb-frame .cb-rule img { width: 28px; height: 28px; image-rendering: pixelated; }
+#app.m-phone .cb-frame .cb-more { font-size: 13px; color: var(--m-soft); }
+#app.m-phone .cb-frame .cb-run { display: flex; flex-direction: column; gap: 8px; }
+#app.m-phone .cb-frame .cb-run .m-btn { width: 100%; }
+#app.m-phone .m-sheet .cb-rule-row { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.3; }
+#app.m-phone .m-sheet .cb-rule-row + .cb-rule-row { margin-top: 8px; }
+#app.m-phone .m-sheet .cb-rule-row img { width: 28px; height: 28px; flex: none; image-rendering: pixelated; }
+#app.m-phone .m-sheet .tower-floor { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 8px; padding: 8px 4px; border-bottom: 1px solid var(--m-card-line); font-size: 13px; background: none; color: var(--m-text); }
+#app.m-phone .m-sheet .tower-floor .tf-reward { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; color: var(--m-soft); }
+#app.m-phone .m-sheet .tower-floor .tf-num { font-weight: 900; color: var(--m-gold-hi); }
+#app.m-phone .m-sheet .tower-floor.current { background: rgba(201, 161, 74, .15); }
+
+/* ---------- Événement ---------- */
+#app.m-phone .cb-frame .ev-poster { position: relative; height: 160px; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px; overflow: hidden; border-color: var(--m-gold); background-color: #0b1124; background-size: cover; background-position: center; }
+#app.m-phone .cb-frame .ev-poster.ev-small { flex-direction: row; justify-content: space-between; align-items: stretch; gap: 8px; }
+#app.m-phone .cb-frame .ev-poster-l { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0; flex: 1; }
+#app.m-phone .cb-frame .ev-poster-r { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; width: 40%; max-width: 150px; min-width: 0; }
+#app.m-phone .cb-frame .ev-poster-r img { width: auto; max-width: 100%; height: 110px; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .cb-frame .ev-poster-r small { font-size: 11px; color: var(--m-gold-hi); font-weight: 800; text-align: center; line-height: 1.15; text-shadow: 0 1px 0 #000; }
+#app.m-phone .cb-frame .ev-t { font-size: 20px; line-height: 1.1; font-weight: 900; text-shadow: 0 2px 0 #000; color: var(--m-text); }
+#app.m-phone .cb-frame .ev-sub { font-size: 13px; font-weight: 700; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
+#app.m-phone .cb-frame .ev-wallet { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 900; color: var(--m-text); }
+#app.m-phone .cb-frame .ev-wallet img { width: 24px; height: 24px; }
+#app.m-phone .cb-frame .ev-h { display: flex; align-items: center; gap: 6px; margin: 4px 2px 8px; font-size: 15px; font-weight: 900; color: var(--m-gold-hi); }
+#app.m-phone .cb-frame .ev-h img { width: 22px; height: 22px; }
+#app.m-phone .cb-frame .ev-fight { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#app.m-phone .cb-frame .ev-fight-t { display: flex; flex-direction: column; gap: 2px; font-size: 16px; }
+#app.m-phone .cb-frame .ev-mapcard { padding: 8px; }
+#app.m-phone .cb-frame .ev-lanterns.lt-map { height: 200px; margin: 0 0 8px; border: 1.5px solid var(--m-gold); border-radius: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; background: #1b1020; isolation: auto; }
+#app.m-phone .cb-frame .ev-lanterns.lt-map::before { display: none; }
+#app.m-phone .cb-frame .ev-lanterns::-webkit-scrollbar { display: none; }
+#app.m-phone .cb-frame .ev-lanes { position: relative; width: 700px; height: 100%; background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated; }
+#app.m-phone .cb-frame .ev-lanes .lt-road { position: absolute; inset: 0; width: 100%; height: 100%; }
+#app.m-phone .cb-frame .lt-node { min-width: 56px; min-height: 48px; justify-content: center; }
+#app.m-phone .cb-frame .lt-node small, #app.m-phone .cb-frame .lt-node .lt-give { font-size: 11px; }
+#app.m-phone .cb-frame .lt-node .lt-lantern { width: 40px; height: 40px; }
+#app.m-phone .cb-frame .ev-shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+#app.m-phone .cb-frame .ev-item { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; margin: 0; text-align: center; color: var(--m-text); font: inherit; }
+#app.m-phone .cb-frame button.ev-item { cursor: pointer; }
+#app.m-phone .cb-frame .ev-item img { width: 48px; height: 48px; image-rendering: pixelated; }
+#app.m-phone .cb-frame .ev-item b { font-size: 13px; line-height: 1.2; }
+#app.m-phone .cb-frame .ev-item .lt-price { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; }
+#app.m-phone .cb-frame .ev-item .lt-price img { width: 18px; height: 18px; }
+#app.m-phone .cb-frame .ev-item .m-btn { width: 100%; }
+#app.m-phone .cb-frame .ev-give { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+#app.m-phone .cb-frame .ev-mission { display: flex; align-items: center; gap: 10px; min-height: 64px; }
+#app.m-phone .cb-frame .ev-mission.lit { opacity: .7; }
+#app.m-phone .cb-frame .ev-mission .lt-tile-art { width: 48px; height: 48px; flex: none; image-rendering: pixelated; }
+#app.m-phone .cb-frame .ev-mission-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+#app.m-phone .cb-frame .ev-mission .lt-give { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--m-soft); }
+#app.m-phone .cb-frame .ev-mission .lt-give img { width: 16px; height: 16px; }
+#app.m-phone .cb-frame .lt-stamp { font-size: 13px; font-weight: 800; color: var(--m-ok); }
+#app.m-phone .cb-frame .ev-boss .m-stat { margin-bottom: 4px; }
+#app.m-phone .cb-frame .live-news { margin: 0 0 8px; padding: 10px; }
+
+/* ---------- Arène (reste dans la scène : panneau mi-hauteur, même cadre) ---------- */
+#app.m-phone #panel-body:has(> .ar-frame) { display: flex; flex-direction: column; }
+#app.m-phone .ar-frame { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+#app.m-phone .ar-frame .ar-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#app.m-phone .ar-frame .ct-go { flex: none; display: flex; flex-direction: column; gap: 6px; padding: 8px 0 2px; }
+#app.m-phone .ar-frame .ct-go .btn { width: 100%; min-height: 56px; font-size: 16px; font-weight: 900; }
+#app.m-phone .ar-frame .ct-go .btn:not(.btn-gold) { min-height: 44px; }
+#app.m-phone .ar-frame .primary-action { width: 100%; min-height: 56px; font-weight: 900; font-size: 16px; }
+#app.m-phone .cb-frame .dgm-keys { flex: 1; font-size: 16px; font-weight: 900; }
+/* Arène : le cartouche du cadre remplace la ligne de titre du panneau et la bannière (plus de place pour le jeu). */
+#app.m-phone #panel:has(.ar-frame) > header { display: none; }
+#app.m-phone #panel-body:has(> .ar-frame) > .art-banner-wrap, #app.m-phone #panel-body:has(> .ar-frame) > .tab-lead { display: none; }
+#app.m-phone .ar-frame { margin-top: 4px; }
+#app.m-phone .ar-frame { padding: 4px 8px 6px; }
+#app.m-phone .ar-frame .m-title { height: 40px; margin: 0 0 4px; }
+#app.m-phone .ar-frame .m-title .m-title-in { height: 36px; }
+#app.m-phone .ar-frame .m-title .m-help, #app.m-phone .ar-frame .m-title .m-close { width: 44px; height: 44px; }
+#app.m-phone .ar-frame .m-modes { margin-bottom: 4px; padding: 0 2px; }
+#app.m-phone .ar-frame .m-modes .m-mode { height: 44px; gap: 1px; padding: 2px 2px 1px; }
+#app.m-phone .ar-frame .m-modes .m-mode img { width: 18px; height: 18px; }
+#app.m-phone .ar-frame .ct-floor { min-height: 44px; }
+#app.m-phone .ar-frame .ct-tip { padding: 4px 8px; font-size: 12px; line-height: 1.2; margin-bottom: 4px; }
+#app.m-phone .cb-frame .ev-poster.ev-small::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11, 17, 36, .88), rgba(11, 17, 36, .1) 65%); pointer-events: none; }
+#app.m-phone .cb-frame .ev-poster > * { position: relative; }
