@@ -1,0 +1,192 @@
+/* v10.12 : Compagnons, Bastion, Expéditions sur téléphone (kit mobile). TOUT est sous `#app.m-phone` : le PC n'est jamais touché.
+   Composants du kit : voir mobile-kit.css. Ici : formation et cartes de compagnons, fiche du compagnon, places d'expédition,
+   Bastion (puces, onglets, annonces, fiche d'un bâtiment, ouvriers). */
+
+/* ---------- Commun ---------- */
+#app.m-phone .mt-frame { margin: 2px 0 14px; } /* #panel-body donne déjà 8 px de chaque côté (le cadre y est à 100 % de largeur) */
+#app.m-phone .mt-frame .mt-lab, #app.m-phone .mt-sub { display: block; font-size: 11px; line-height: 1.2; font-weight: 800; color: var(--m-soft); text-transform: none; }
+#app.m-phone .mt-sub { margin: 0 0 6px; font-size: 12px; }
+#app.m-phone .mt-center { justify-content: center; }
+#app.m-phone .mt-pair { display: flex; gap: 8px; margin: 8px 0; }
+#app.m-phone .mt-pair > .m-btn { flex: 1 1 0; min-width: 0; font-size: 13px; padding: 0 8px; }
+#app.m-phone .mt-pair > .m-btn:only-child { flex-basis: 100%; }
+#app.m-phone .m-btn-gold + .m-btn-gold { margin-top: 8px; }
+#app.m-phone .mt-comp > .m-btn-gold { margin: 0 0 8px; }
+/* HTML réutilisé du PC, rangé dans les cartes du kit */
+#app.m-phone .m-frame .card, #app.m-phone .m-sheet .card { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; padding: 10px; margin: 0 0 8px; box-shadow: none; }
+#app.m-phone .m-frame .muted, #app.m-phone .m-sheet .muted { color: var(--m-soft); }
+#app.m-phone .m-sheet .btn, #app.m-phone .m-frame .fold-head { min-height: 44px; box-sizing: border-box; }
+#app.m-phone .m-sheet .btn.btn-gold, #app.m-phone .m-sheet .btn.btn-primary { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f 60%, #c8892a); border: 2px solid #fff0b8; font-weight: 900; border-radius: 12px; }
+#app.m-phone .m-sheet .btn.tiny, #app.m-phone .m-sheet .btn.small { min-height: 44px; padding: 0 10px; font-size: 13px; }
+#app.m-phone .m-sheet .m-chips .m-chip { flex: none; }
+#app.m-phone .m-sheet .m-chips { flex-wrap: wrap; }
+
+/* ---------- Compagnons : formation ---------- */
+#app.m-phone .mt-formation { height: auto; padding: 8px 10px 10px; }
+#app.m-phone .mt-form-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; }
+#app.m-phone .mt-fcol { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#app.m-phone .mt-fcol.grow { flex: 1 1 auto; }
+#app.m-phone .mt-frow { display: flex; gap: 6px; }
+#app.m-phone .mt-fcol .m-tile, #app.m-phone .mt-fcol .m-tilewrap { width: clamp(54px, calc((100vw - 92px) / 5), 64px); height: clamp(54px, calc((100vw - 92px) / 5), 64px); max-width: none; flex: none; aspect-ratio: auto; }
+#app.m-phone .mt-hero { cursor: default; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#app.m-phone .mt-hero canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: 100%; max-height: 100%; image-rendering: pixelated; }
+#app.m-phone .mt-gear-team { font-size: 14px; }
+#app.m-phone .mt-swap { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--m-gold); color: var(--m-gold-hi); font-size: 18px; font-weight: 900; line-height: 1; }
+#app.m-phone .mt-formation .m-chips { margin: 6px 0 0; padding: 4px 0 0; align-items: center; }
+#app.m-phone .mt-formation .m-chips .mt-lab { flex: none; }
+
+/* conseils (volet replié) */
+#app.m-phone .mt-comp .fold { margin: 0 0 8px; background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; overflow: hidden; }
+#app.m-phone .mt-comp .fold-head { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; background: transparent; border: 0; color: var(--m-text); font: 800 14px/1 system-ui, sans-serif; text-align: left; }
+#app.m-phone .mt-comp .fold-extra { margin-left: auto; font-size: 12px; }
+#app.m-phone .mt-comp .fold-body { padding: 4px 10px 10px; }
+#app.m-phone .mt-comp .fold-body .btn { min-height: 44px; }
+
+/* cartes de compagnons : grille de 3 */
+#app.m-phone .mt-grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 10px; }
+#app.m-phone .mt-ucard {
+  --m-rc: var(--m-r-common); position: relative; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; min-height: 158px; padding: 22px 4px 6px; margin: 0;
+  border: 2px solid var(--m-rc); border-radius: 12px; color: var(--m-text); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(160deg, #2a3558, #0b1124); background: linear-gradient(170deg, color-mix(in srgb, var(--m-rc) 42%, #0b1124), color-mix(in srgb, var(--m-rc) 8%, #0b1124));
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, .55), 0 0 6px -2px var(--m-rc);
+}
+#app.m-phone .mt-ucard.r-common { --m-rc: var(--m-r-common); } #app.m-phone .mt-ucard.r-rare { --m-rc: var(--m-r-rare); } #app.m-phone .mt-ucard.r-epic { --m-rc: var(--m-r-epic); }
+#app.m-phone .mt-ucard.r-legendary { --m-rc: var(--m-r-legendary); } #app.m-phone .mt-ucard.r-mythic { --m-rc: var(--m-r-mythic); } #app.m-phone .mt-ucard.r-astral { --m-rc: var(--m-r-astral); }
+#app.m-phone .mt-ucard.r-ascendant { --m-rc: var(--m-r-ascendant); }
+#app.m-phone .mt-ucard.unowned { filter: saturate(.55) brightness(.85); }
+#app.m-phone .mt-lvl { position: absolute; left: 4px; top: 4px; padding: 1px 6px; border-radius: 8px; background: rgba(0, 0, 0, .62); font: 900 11px/15px system-ui, sans-serif; color: #fff; font-variant-numeric: tabular-nums; }
+#app.m-phone .mt-bang { position: absolute; right: -5px; top: -5px; min-width: 20px; height: 20px; border-radius: 10px; background: #ff3b4e; color: #fff; font: 900 12px/20px system-ui, sans-serif; text-align: center; font-style: normal; box-shadow: 0 0 0 2px #0b1124; }
+#app.m-phone .mt-eq, #app.m-phone .mt-away { position: absolute; right: 5px; top: 4px; font: 900 13px/16px system-ui, sans-serif; color: var(--m-ok); font-style: normal; text-shadow: 0 1px 0 #000; }
+#app.m-phone .mt-bang ~ .mt-eq, #app.m-phone .mt-bang ~ .mt-away { display: none; }
+#app.m-phone .mt-away { color: var(--m-gold-hi); }
+#app.m-phone .mt-art { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 68px; }
+#app.m-phone .mt-art img { max-height: 64px; max-width: 80%; width: auto; image-rendering: pixelated; }
+#app.m-phone .mt-art .uc-q { position: absolute; font: 900 22px/1 system-ui, sans-serif; color: var(--m-soft); }
+#app.m-phone .mt-name { display: block; max-width: 100%; font: 900 13px/1.15 system-ui, sans-serif; text-align: center; overflow-wrap: normal; hyphens: none; word-break: normal; min-height: 15px; }
+#app.m-phone .mt-stars { font-size: 13px; line-height: 1; letter-spacing: 1px; color: #ffd36b; text-shadow: 0 1px 0 #000; }
+#app.m-phone .mt-stars i { font-style: normal; color: rgba(255, 255, 255, .22); }
+#app.m-phone .mt-stars.none { font-size: 11px; color: var(--m-ko); font-weight: 900; }
+#app.m-phone .mt-meta { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap; margin-top: auto; }
+#app.m-phone .mt-meta .rar-pill { font-size: 11px; padding: 1px 6px; line-height: 15px; }
+#app.m-phone .mt-meta .role-dot { position: static; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+/* ---------- Fiche du compagnon ---------- */
+#app.m-phone .mt-unit-head { display: flex; gap: 10px; margin: 0 0 8px; min-height: 150px; }
+#app.m-phone .mt-portrait { position: relative; flex: 0 0 132px; height: 150px; border-radius: 12px; overflow: hidden; border: 2px solid var(--m-gold); box-sizing: border-box;
+  background: radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--ec, #5a6a90) 55%, #0b1124), #0b1124 75%); display: flex; align-items: center; justify-content: center; }
+#app.m-phone .mt-portrait-btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; background: transparent; cursor: pointer; }
+#app.m-phone .mt-portrait img, #app.m-phone .mt-portrait canvas { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .mt-portrait .hd-art { height: 146px; }
+#app.m-phone .mt-unit-id { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1 1 auto; justify-content: center; }
+#app.m-phone .mt-unit-name { font: 900 20px/1.1 system-ui, sans-serif; color: var(--m-text); overflow-wrap: normal; hyphens: none; }
+#app.m-phone .mt-unit-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+#app.m-phone .mt-unit-role { font-size: 12px; font-weight: 800; color: var(--m-soft); display: flex; align-items: center; gap: 4px; }
+#app.m-phone .mt-unit-role img { width: 16px; height: 16px; image-rendering: pixelated; }
+#app.m-phone .mt-unit-lv { font: 900 15px/1 system-ui, sans-serif; color: var(--m-text); font-variant-numeric: tabular-nums; }
+#app.m-phone .mt-unit-stars { font-size: 16px; line-height: 1; color: #ffd36b; letter-spacing: 1px; text-shadow: 0 1px 0 #000; }
+#app.m-phone .mt-unit-stars i { font-style: normal; color: rgba(255, 255, 255, .22); }
+#app.m-phone .mt-unit-body { min-height: 120px; }
+#app.m-phone .mt-unit-body .up-skills { display: grid; gap: 8px; }
+#app.m-phone .mt-unit-body .up-skill { min-height: 56px; }
+#app.m-phone .mt-unit-actions { margin-top: 8px; }
+#app.m-phone .mt-upline { margin: 0 0 8px; padding: 6px 10px; border-radius: 10px; background: rgba(255, 255, 255, .05); font-size: 12px; color: var(--m-soft); }
+#app.m-phone .mt-up { display: flex; align-items: center; gap: 10px; }
+#app.m-phone .mt-up .m-btn-gold { flex: 1 1 auto; width: auto; min-width: 0; }
+#app.m-phone .mt-up .m-cost > .m-cost-ico { width: 48px; height: 48px; }
+#app.m-phone .mt-replace { text-align: center; }
+#app.m-phone .mt-replace > b { display: block; margin-bottom: 6px; }
+#app.m-phone .gear-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 8px 0; }
+#app.m-phone .mt-unit-body .gear-slot { min-width: 0; padding: 6px; font-size: 12px; overflow-wrap: anywhere; }
+#app.m-phone .mt-unit-body .gear-row { flex-wrap: wrap; gap: 6px; }
+
+/* ---------- Expéditions ---------- */
+#app.m-phone .mt-exp-head { position: relative; margin: 0 0 8px; height: 132px; border-radius: 12px; overflow: hidden; border: 1px solid var(--m-card-line); }
+#app.m-phone .mt-exp-head .exp-map { height: 100%; min-height: 0; margin: 0; border-radius: 0; border: 0; background-size: cover; background-position: center; }
+#app.m-phone .mt-exp-head .exp-map-empty { font-size: 12px; }
+#app.m-phone .mt-exp-list { display: grid; gap: 8px; margin: 0 0 8px; }
+#app.m-phone .mt-slot { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px; min-height: 76px; }
+#app.m-phone .mt-slot-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 0; margin: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+#app.m-phone .mt-slot-main.static { cursor: default; }
+#app.m-phone .mt-slot-pic { flex: none; display: block; width: 56px; }
+#app.m-phone .mt-slot-pic .m-tile { width: 56px; }
+#app.m-phone .mt-slot-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
+#app.m-phone .mt-slot-txt > b { font: 900 14px/1.15 system-ui, sans-serif; overflow-wrap: normal; hyphens: none; }
+#app.m-phone .mt-slot-txt > small { font-size: 12px; color: var(--m-soft); }
+#app.m-phone .mt-st { font-style: normal; font-weight: 800; font-size: 12px; color: var(--m-gold-hi); }
+#app.m-phone .mt-gain { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; font-weight: 800; }
+#app.m-phone .mt-gain .rw-icons { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; background: transparent; border: 0; padding: 0; }
+#app.m-phone .mt-gain .rw { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 800; }
+#app.m-phone .mt-gain .rw img { width: 16px; height: 16px; }
+#app.m-phone .mt-gain .rw-name { font-size: 11px; color: var(--m-soft); }
+#app.m-phone .mt-gain.big { display: block; margin-top: 8px; }
+#app.m-phone .mt-gain.big small { display: block; margin-bottom: 4px; color: var(--m-soft); font-size: 12px; }
+#app.m-phone .mt-slot .m-btn.auto { flex: none; width: auto; min-width: 84px; }
+#app.m-phone .mt-slot.done { border-color: var(--m-ok); }
+#app.m-phone .mt-slot .m-bar { width: 100%; box-sizing: border-box; }
+#app.m-phone .mt-slot.free .mt-slot-main:active { background: rgba(255, 255, 255, .05); }
+#app.m-phone .mt-exp .m-chips { margin-bottom: 8px; }
+
+/* ---------- Bastion ---------- */
+#app.m-phone .mt-res { flex-wrap: nowrap; margin: 0 0 6px; padding: 2px 0 6px; height: 44px; box-sizing: border-box; align-items: center; }
+#app.m-phone .mt-res .m-chip { flex: none; height: 34px; color: var(--m-text); background: var(--m-card); }
+#app.m-phone .mt-res .m-chip img { width: 20px; height: 20px; }
+#app.m-phone .mt-res .m-chip.warn { border-color: var(--m-gold-hi); box-shadow: 0 0 8px rgba(243, 210, 122, .5); }
+#app.m-phone .mt-res .m-chip.good { color: var(--m-ok); }
+#app.m-phone .mt-bs .bs-main { display: block; }
+#app.m-phone .mt-bs .bs-age { margin: 0 0 8px; background: var(--m-card); border: 1px solid var(--age, var(--m-card-line)); border-radius: 12px; padding: 8px 10px; }
+#app.m-phone .mt-bs .bs-age b { font-size: 15px; }
+#app.m-phone .mt-bs .bs-age span, #app.m-phone .mt-bs .bs-age small { font-size: 12px; color: var(--m-soft); margin-left: 0; }
+#app.m-phone .mt-bs .bs-village { border-radius: 12px; overflow-x: auto; }
+#app.m-phone .mt-bs .bs-zoom button { min-width: 44px; min-height: 44px; }
+#app.m-phone .mt-bs .bs-tree { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; }
+#app.m-phone .mt-bs .bs-view, #app.m-phone .mt-bs .bs-page, #app.m-phone .mt-bs .bs-btab { min-height: 44px; }
+#app.m-phone .mt-bs .bs-node { min-width: 46px; min-height: 46px; }
+#app.m-phone .mt-bs .bs-turn { min-width: 44px; min-height: 44px; }
+/* annonces */
+#app.m-phone .mt-announce { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 16px 12px; margin-bottom: 12px; border-color: var(--age, var(--m-gold)); }
+#app.m-phone .mt-ann-title { font: 900 18px/1.2 system-ui, sans-serif; color: var(--m-gold-hi); }
+#app.m-phone .mt-ann-kicker { font: 900 12px/1 system-ui, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--age, var(--m-gold-hi)); }
+#app.m-phone .mt-ann-age { font: 900 30px/1.1 system-ui, sans-serif; color: #fff; text-shadow: 0 0 12px var(--age, var(--m-gold)); overflow-wrap: normal; }
+#app.m-phone .mt-announce > span, #app.m-phone .mt-announce > small { font-size: 13px; color: var(--m-soft); }
+#app.m-phone .mt-kline { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font-size: 13px; }
+#app.m-phone .mt-kline img { width: 28px; height: 28px; image-rendering: pixelated; flex: none; }
+#app.m-phone .mt-kline.gift { color: #ffe08a; }
+/* onglet Ouvriers */
+#app.m-phone .mt-brow { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 64px; margin: 0 0 8px; padding: 8px 10px; text-align: left; font: inherit; cursor: pointer; }
+#app.m-phone .mt-brow.idle { border-color: var(--m-gold); }
+#app.m-phone .mt-bimg { width: 48px; height: 48px; object-fit: contain; flex: none; image-rendering: pixelated; }
+#app.m-phone .mt-btxt { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+#app.m-phone .mt-btxt b { font: 900 14px/1.15 system-ui, sans-serif; overflow-wrap: normal; hyphens: none; }
+#app.m-phone .mt-btxt small { font-size: 12px; color: var(--m-soft); }
+#app.m-phone .mt-bw { display: flex; align-items: center; gap: 6px; flex: none; }
+#app.m-phone .mt-bw .m-tile { width: 48px; }
+#app.m-phone .mt-bwt { display: flex; flex-direction: column; font-size: 12px; font-weight: 800; }
+#app.m-phone .mt-bw.need { color: var(--m-gold-hi); font-weight: 900; font-size: 13px; }
+#app.m-phone .mt-free .m-tilewrap > small { font-size: 11px; }
+/* fiche d'un bâtiment / d'une recherche : le contenu d'origine, aux couleurs du kit */
+#app.m-phone .m-sheet .bs-hero .bs-close { display: none; }
+#app.m-phone .m-sheet .bs-block, #app.m-phone .m-sheet .bs-wblock { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; padding: 10px; margin: 0 0 8px; }
+#app.m-phone .m-sheet .bs-wcard { min-width: 56px; min-height: 76px; }
+#app.m-phone .m-sheet .bs-wgrid { gap: 6px; }
+#app.m-phone .m-sheet .bs-wmore, #app.m-phone .m-sheet .bs-word, #app.m-phone .m-sheet .bs-trade, #app.m-phone .m-sheet .bs-slot { min-height: 44px; min-width: 44px; }
+#app.m-phone .m-sheet .m-btn-gold { margin-top: 6px; }
+#app.m-phone .m-sheet .bs-hero { position: relative; }
+#app.m-phone .m-sheet .bs-tip .btn { min-height: 44px; }
+#app.m-phone .m-sheet .bs-need-btn { width: 100%; }
+#app.m-phone .m-sheet .bs-go { position: static; margin: 0; padding: 0; background: none; }
+#app.m-phone .mt-camp .card { margin-bottom: 8px; }
+#app.m-phone .mt-camp .bs-soon { display: flex; gap: 10px; align-items: center; }
+#app.m-phone .mt-camp .bs-soon img { width: 64px; height: 64px; image-rendering: pixelated; flex: none; }
+#app.m-phone .mt-camp .bs-soon > span { flex: 1 1 auto; min-width: 0; display: grid; gap: 6px; }
+
+/* titres un peu plus petits dans les écrans de ce lot : « Atelier d'enchantement » doit tenir sans « … » */
+#app.m-phone .mt-frame > .m-title .m-title-in { padding: 0 16px; }
+#app.m-phone #bs-sheet > .m-title b, #app.m-phone #comp-sheet > .m-title b, #app.m-phone #exp-sheet > .m-title b, #app.m-phone #bs-announce > .m-title b { font-size: 17px; }
+#app.m-phone #bs-sheet > .m-title .m-title-in, #app.m-phone #comp-sheet > .m-title .m-title-in, #app.m-phone #exp-sheet > .m-title .m-title-in, #app.m-phone #bs-announce > .m-title .m-title-in { padding: 0 14px; min-width: 120px; }
+/* fiches : la zone de choix défile seule, l'action principale reste en bas (rien ne se chevauche) */
+#app.m-phone #exp-sheet { overflow-y: hidden; }
+#app.m-phone #exp-sheet > .m-sheet-body { display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; }
+#app.m-phone #exp-sheet .mt-pick { flex: 1 1 120px; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; }
+#app.m-phone #exp-sheet .mt-pick + .m-card, #app.m-phone #exp-sheet .m-btn-gold { flex: none; }
+#app.m-phone .mt-frame > .m-title b { font-size: 20px; }
+#app.m-phone .mt-frame > .m-title .m-title-in { min-width: 0; padding: 0 12px; }
