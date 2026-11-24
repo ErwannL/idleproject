@@ -1,0 +1,260 @@
+<title>Bilan Ascendrya 10.12.1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;800&display=swap">
+<style>
+/* Mise en page : un rapport de forge — colonne de lecture, chaque écran = une planche « actuel → cible ». Thème sombre unique, couleurs du jeu. */
+:root{
+  --bg:#0b1124; --panel:#121a33; --card:#18223f; --line:#2c3a66;
+  --gold:#c9a14a; --gold2:#f3d27a; --fg:#eef2ff; --soft:#9fb0d8;
+  --good:#5be37d; --bad:#ff6b6b; --warn:#ffb02e;
+  --display:"Cinzel", Georgia, serif; --body:"Inter", system-ui, sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,44px);color:var(--gold2);letter-spacing:.5px}
+h2{font-size:clamp(21px,2.6vw,28px);color:var(--gold2)}
+h3{font-size:15px;font-family:var(--body);font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--soft)}
+p{margin:0}
+.lead{color:var(--soft);max-width:68ch;margin-top:10px}
+.head{border:2px solid var(--gold);border-radius:18px;background:linear-gradient(var(--panel),var(--bg));padding:26px;position:relative}
+.head:before,.head:after{content:"";position:absolute;top:-8px;left:-8px;width:14px;height:14px;background:var(--gold2);transform:rotate(45deg)}
+.head:after{left:auto;right:-8px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;margin-top:22px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.box h3{margin-bottom:8px}
+ul{margin:0;padding-left:20px}li{margin:4px 0}
+.ok li::marker{color:var(--good)} .ko li::marker{color:var(--bad)}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.toc a{color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px}
+.toc a:hover,.toc a:focus-visible{border-color:var(--gold2);outline:none}
+section{margin-top:54px;scroll-margin-top:16px}
+.sh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.sev{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:999px;padding:3px 10px;border:1px solid}
+.sev.g{color:var(--bad);border-color:var(--bad)} .sev.m{color:var(--warn);border-color:var(--warn)} .sev.b{color:var(--good);border-color:var(--good)}
+.ref{margin-left:auto;color:var(--soft);font-size:13px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:16px}
+.txt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:14px}
+@media (max-width:760px){.cols,.txt{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;min-width:0}
+figure img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#000}
+figure.target img{border:2px solid var(--gold)}
+figcaption{font-size:13px;color:var(--soft);margin-top:6px}
+figcaption b{color:var(--fg)}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:6px;margin-right:6px}
+.tag.now{background:#3a1d26;color:#ffb0c0}.tag.to{background:#3a3010;color:var(--gold2)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin-top:12px}
+.quote{border-left:3px solid var(--gold);padding:4px 0 4px 14px;color:var(--soft);font-style:italic;margin-top:12px;max-width:80ch}
+.rules{counter-reset:r;list-style:none;padding:0}
+.rules li{counter-increment:r;padding-left:34px;position:relative;margin:10px 0}
+.rules li:before{content:counter(r);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#2a1a00;font-weight:800;font-size:13px;display:grid;place-items:center}
+.foot{margin-top:56px;color:var(--soft);font-size:14px}
+code{background:#0006;border-radius:5px;padding:1px 5px;font-size:.92em}
+</style>
+
+<div class="wrap">
+<header class="head">
+  <h3>Ascendrya · version testée 10.12.1 (24/11, 17 h 02)</h3>
+  <h1>Bilan d'ergonomie et cible 10.13</h1>
+  <p class="lead">Tout le jeu passé en revue sur PC (1878 × 1245 et 1116 × 993) et téléphone (412 × 915), avec une partie avancée et une partie neuve jouée 5 minutes par un joueur automatique. Pour chaque écran : ce qui est à l'écran aujourd'hui, ce qui ne va pas, et la maquette cible dans le style de la Forge.</p>
+  <div class="sum">
+    <div class="box ok"><h3>Ce qui marche déjà</h3><ul>
+      <li>La <b>Forge</b> : chaque action a son image, un titre court, un coût en cases et un bouton doré. C'est le modèle de toute la 10.13.</li>
+      <li>Les proportions et la lisibilité de la 10.12 sur téléphone.</li>
+      <li>Le milieu de l'écran de combat (scène, héros, compagnons).</li>
+    </ul></div>
+    <div class="box ko"><h3>Ce qui ne va pas</h3><ul>
+      <li>Sur PC, les onglets restent en style « page web » : petites cases, texte seul, vide à droite.</li>
+      <li>« Remettre au niveau » existe encore, et c'est même le bouton doré d'un joueur neuf.</li>
+      <li>Changer un effet est caché derrière « Plus… ».</li>
+      <li>L'écran de combat : icônes d'événement mal cadrées, carte de zone qui se chevauche, bas d'écran éparpillé.</li>
+      <li>On peut équiper depuis Compagnons, ce qui embrouille.</li>
+    </ul></div>
+  </div>
+  <nav class="toc" aria-label="Écrans">
+    <a href="#fiche">Équipement et fiche</a><a href="#reforger">Reforger</a><a href="#competences">Compétences</a><a href="#talents">Talents</a><a href="#renaissance">Renaissance</a><a href="#compagnons">Compagnons</a><a href="#recherches">Recherches</a><a href="#combat">Écran de combat</a><a href="#telephone">Téléphone</a><a href="#neuf">Partie neuve</a><a href="#regles">Contre les retours en arrière</a>
+  </nav>
+</header>
+
+<section id="fiche">
+  <div class="sh"><h2>Équipement et fiche d'objet</h2><span class="sev g">Important</span><span class="ref">Prompt PC § 2 et § 3</span></div>
+  <p class="quote">« Les textes comme la Croc de l'Alpha manquent d'illustration, comme sur la photo fournie par ChatGPT. La possibilité de remettre au niveau un objet ne devrait pas exister. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul>
+      <li>Sur PC, la fiche est une colonne de texte serré : petite icône de 40 px, lignes de stats, aucune image pour l'effet.</li>
+      <li>Le bandeau jaune « Presque sans effet » pousse <b>« Remettre au niveau (840 éclats) »</b>, en doré, avant même « Renforcer ».</li>
+      <li>Sur téléphone, un joueur neuf voit « Remettre au niveau (6 éclats) » dès la 2<sup>e</sup> minute.</li>
+      <li>Filtres du sac en liste déroulante, colonnes collées à gauche.</li>
+    </ul></div>
+    <div class="box"><h3>Cible</h3><ul>
+      <li>Trois colonnes : personnage, sac en grille, détails illustrés comme la maquette ChatGPT.</li>
+      <li>Grande case 110 px avec l'image de l'objet, rareté, Renfort +3/13, stat principale en grand.</li>
+      <li>Modes « Améliorer · Reforger · Équiper » en grosses tuiles.</li>
+      <li>« Remettre au niveau » <b>supprimé partout</b> (code, équilibrage, tests, textes). À la place : « ⚠ Objet dépassé · Trouver mieux › ».</li>
+    </ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a01-equipement-pc.jpg" alt="Équipement PC actuel" loading="lazy"><figcaption><span class="tag now">Actuel</span><b>PC 1878 × 1245</b> : le bouton doré propose de remettre au niveau.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m01-equipement-ameliorer.jpg" alt="Maquette Équipement, mode Améliorer" loading="lazy"><figcaption><span class="tag to">Cible</span><b>Mode Améliorer</b> : +3 » +4, gains en vert, coûts en cases.</figcaption></figure>
+  </div>
+  <div class="strip">
+    <figure><img src="images/joueur/j01-maquette-chatgpt-fiche.jpg" alt="Maquette ChatGPT de la fiche" loading="lazy"><figcaption><span class="tag to">Référence</span>La maquette ChatGPT envoyée.</figcaption></figure>
+    <figure><img src="images/actuel/a02-fiche-telephone.jpg" alt="Fiche téléphone actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>Téléphone : « Remettre au niveau » en doré.</figcaption></figure>
+    <figure><img src="images/actuel/a03-fiche-joueur-neuf-telephone.jpg" alt="Fiche d'un joueur neuf" loading="lazy"><figcaption><span class="tag now">Actuel</span>Joueur neuf, 2 min : même bouton.</figcaption></figure>
+  </div>
+</section>
+
+<section id="reforger">
+  <div class="sh"><h2>Changer l'effet (Reforger)</h2><span class="sev g">Important</span><span class="ref">Prompt PC § 3</span></div>
+  <p class="quote">« Pour changer un effet pareil, il faudrait voir directement les boutons et les illustrations qui ressortent, là c'est pas visible. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Une ligne repliée « Plus : changer l'effet, remettre au niveau » en bas de la fiche, qu'on ne remarque pas.</li><li>Aucune image, aucun coût visible avant d'ouvrir.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Trois cartes illustrées toujours visibles, comme les étapes de la Forge : Changer l'effet (20 éclats), Relance orientée (60), Changer le type (40).</li><li>Après un changement : ancien et nouvel effet côte à côte, « Garder » ou « Revenir ».</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/joueur/j04-plus-changer-effet.jpg" alt="Ligne Plus repliée" loading="lazy"><figcaption><span class="tag now">Actuel</span>La seule entrée, repliée.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m02-equipement-reforger.jpg" alt="Maquette mode Reforger" loading="lazy"><figcaption><span class="tag to">Cible</span>Les trois choix visibles, avec image et coût.</figcaption></figure>
+  </div>
+</section>
+
+<section id="competences">
+  <div class="sh"><h2>Compétences</h2><span class="sev g">Important</span><span class="ref">Prompt PC § 4</span></div>
+  <p class="quote">« Pour l'onglet Compétences l'ergonomie est pas top du tout, on a l'impression d'être sur un jeu par navigateur. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Deux rangées de petites cases de 40 px collées à gauche, le reste du cadre vide.</li><li>Le détail tient en une ligne de texte, sans aperçu ni comparaison.</li><li>On ne voit pas sa barre de combat ni ce qui est actif.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>À gauche, « Ta barre de combat » : le héros et ses 3 emplacements ronds, puis les boosts Q à T.</li><li>Au centre, cartes 3 × 2 avec grande icône, étiquette, recharge et pastille « Active ».</li><li>À droite, aperçu en combat, Nv 5 » Nv 6, Dégâts et Recharge avant » après, et pourquoi on ne peut pas (« prochain point au niveau 152 »).</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a04-competences-pc.jpg" alt="Compétences PC actuelles" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC 1878 × 1245.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m03-competences.jpg" alt="Maquette Compétences" loading="lazy"><figcaption><span class="tag to">Cible</span>Barre de combat, cartes, détail illustré.</figcaption></figure>
+  </div>
+</section>
+
+<section id="talents">
+  <div class="sh"><h2>Talents</h2><span class="sev m">Moyen</span><span class="ref">Prompt PC § 5</span></div>
+  <p class="quote">« Pour les talents la présentation est pas si belle. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Trois petites cartes avec une icône, « Bonus : — » et un bouton gris, beaucoup de vide autour.</li><li>Rien ne dit ce que les talents donnent déjà.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Trois branches en grandes cartes illustrées, piste de 15 paliers, carte « Prochain talent » et coût en fragments.</li><li>Bloc « Ce que tes talents te donnent déjà » en 6 tuiles.</li><li>« Voir l'arbre complet » et « Apprendre le meilleur ».</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a05-talents-pc.jpg" alt="Talents PC actuels" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC 1878 × 1245.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m04-talents.jpg" alt="Maquette Talents" loading="lazy"><figcaption><span class="tag to">Cible</span>Branches illustrées et bilan.</figcaption></figure>
+  </div>
+</section>
+
+<section id="renaissance">
+  <div class="sh"><h2>Renaissance</h2><span class="sev m">Moyen</span><span class="ref">Prompt PC § 5</span></div>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Un phénix en petit, des chiffres alignés en tableau, un long texte gris.</li><li>Le choix « est-ce rentable ? » se lit mal.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Le phénix en grand à gauche, Puissance avant » après en gros chiffres.</li><li>« Ce que tu gagnes » en 3 tuiles, « Ce qui se passe » en clair (gardé en vert, remis à zéro en rouge).</li><li>Bande verte « Rentable maintenant » et un gros bouton doré « Renaître · +91 ».</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a06-renaissance-pc.jpg" alt="Renaissance PC actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC 1878 × 1245.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m05-renaissance.jpg" alt="Maquette Renaissance" loading="lazy"><figcaption><span class="tag to">Cible</span>Décision en un coup d'œil.</figcaption></figure>
+  </div>
+</section>
+
+<section id="compagnons">
+  <div class="sh"><h2>Compagnons</h2><span class="sev m">Moyen</span><span class="ref">Prompt PC § 6</span></div>
+  <p class="quote">« Compagnons, ça fait léger la présentation. On doit pouvoir équiper que dans Équipement à mon avis. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Une rangée de petites têtes, deux gros boutons jaunes (« Équiper toute l'équipe », « Améliorer l'équipe ») et une grille de cartes serrées.</li><li>La fiche s'ouvre en fenêtre avec « Équiper… », qui veut dire « mettre dans l'équipe » mais se confond avec les objets.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Bandeau « Ton équipe » illustré avec les 3 compagnons en grand et le familier.</li><li>Grille de portraits et fiche toujours visible à droite : grand portrait, stats, 3 compétences illustrées.</li><li>Un seul bouton doré, « Mettre dans l'équipe ».</li><li><b>Les objets s'équipent seulement dans Héros › Équipement</b> : « Équiper toute l'équipe » y déménage, et « Objets portés › » y mène.</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a07-compagnons-pc.jpg" alt="Compagnons PC actuels" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC 1878 × 1245.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m06-compagnons.jpg" alt="Maquette Compagnons" loading="lazy"><figcaption><span class="tag to">Cible</span>Équipe illustrée et fiche permanente.</figcaption></figure>
+  </div>
+  <div class="strip"><figure><img src="images/joueur/j08-fiche-compagnon-equiper.jpg" alt="Fiche compagnon actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>La fiche et son « Équiper… ».</figcaption></figure></div>
+</section>
+
+<section id="recherches">
+  <div class="sh"><h2>Recherches du Bastion</h2><span class="sev g">Important</span><span class="ref">Prompt PC § 7</span></div>
+  <p class="quote">« La page de Recherche rend pas bien, manque de lisibilité et d'ergonomie. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Le livre est joli, mais les noms sont écrits sur l'image, en petit et à moitié effacés.</li><li>« Lancer » est gris, et la raison (« Construis d'abord la Bibliothèque ») est un petit texte rouge en dessous.</li><li>Les ouvriers ne se voient pas.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Branches en grandes tuiles illustrées, paliers en boutons.</li><li>Livre en parchemin uni : nœuds de 112 px, nom foncé lisible dessous, liens entre les cercles seulement.</li><li>Bandeau « La Bibliothèque n'est pas construite · Construire › » en haut du livre.</li><li>Détail avec avant » après, coûts en cases, et les 5 ouvriers en bas.</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a08-recherches-pc.jpg" alt="Recherches PC actuelles" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC 1878 × 1245.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m07-recherches.jpg" alt="Maquette Recherches" loading="lazy"><figcaption><span class="tag to">Cible</span>Lisible, et on sait quoi faire.</figcaption></figure>
+  </div>
+</section>
+
+<section id="combat">
+  <div class="sh"><h2>Écran de combat</h2><span class="sev g">Important</span><span class="ref">Prompt PC § 8</span></div>
+  <p class="quote">« Les icônes de Marché, Prime, etc. sont mal mises dans le cadre. Pour l'avancée je ne vois plus parce que j'ai des icônes qui se superposent. La partie basse, les quêtes et les sorts, ça ne rend pas bien. »</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui</h3><ul><li>Événements : l'image dépasse ou colle en haut du cadre, le minuteur mord sur l'image.</li><li>Carte de zone : les compteurs 3/3, 0/3, 0/1 recouvrent la piste des étapes.</li><li>Bas : vague, malédiction, PV, sort, « Tout récupérer » et coffre flottent séparément sur le mur de briques.</li><li>La bulle « Bonus du moment » sort de l'écran à droite.</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Événements dans un seul cadre doré : image centrée dans un carré de 76 px, minuteur dessous, nom, pastille à l'extérieur.</li><li>Carte de zone en 3 lignes : titre, piste avec boss, compteurs dans leur propre rangée.</li><li>Quêtes et Carnet dans le même cadre que la zone.</li><li>Une console en bas : sorts et Ultime, vague et PV, « Tout récupérer » et coffre.</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a09-combat-pc.jpg" alt="Écran de combat PC actuel" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC, partie avancée.</figcaption></figure>
+    <figure class="target"><img src="images/maquette/m08-ecran-de-combat.jpg" alt="Maquette écran de combat" loading="lazy"><figcaption><span class="tag to">Cible</span>Tout rangé dans des cadres.</figcaption></figure>
+  </div>
+  <div class="strip">
+    <figure><img src="images/joueur/j10-evenements-cadre.jpg" alt="Rangée d'événements actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>Événements.</figcaption></figure>
+    <figure><img src="images/joueur/j11-carte-de-zone.jpg" alt="Carte de zone actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>Carte de zone.</figcaption></figure>
+    <figure><img src="images/joueur/j13-quetes.jpg" alt="Quêtes actuelles" loading="lazy"><figcaption><span class="tag now">Actuel</span>Quêtes et Carnet.</figcaption></figure>
+  </div>
+  <div class="strip"><figure><img src="images/joueur/j12-bas-ecran.jpg" alt="Bas de l'écran actuel" loading="lazy"><figcaption><span class="tag now">Actuel</span>Bas de l'écran.</figcaption></figure></div>
+</section>
+
+<section id="telephone">
+  <div class="sh"><h2>Téléphone</h2><span class="sev m">Lot à part</span><span class="ref">Prompt téléphone</span></div>
+  <p class="lead">Le téléphone garde le kit 10.12 et reçoit sa propre version des mêmes écrans. <b>Ce lot ne touche pas le PC</b> : ses règles sont réservées au téléphone, et les captures PC doivent rester identiques au pixel près après chaque lot téléphone (et inversement).</p>
+  <div class="txt">
+    <div class="box ko"><h3>Aujourd'hui (412 × 915)</h3><ul><li>Compétences : 6 petites cases en haut, le reste vide.</li><li>Compagnons : « Équiper toute l'équipe » et « Améliorer l'équipe » en tête.</li><li>Combat : compteurs de zone sur la piste, Bastion et coffre qui flottent sur les briques, vague tout en bas.</li><li>Fiche : « Remettre au niveau » en doré.</li><li>Mini-scène des onglets avec des bandes noires sur les côtés (correction pour le téléphone seulement, le PC ne change pas).</li></ul></div>
+    <div class="box"><h3>Cible</h3><ul><li>Fiche avec les 3 choix de Reforger visibles en cartes illustrées.</li><li>Compétences avec la barre de combat et des cartes 3 × 2.</li><li>Talents en cartes illustrées, Compagnons avec bandeau d'équipe et portraits.</li><li>Recherches en lignes lisibles sur parchemin.</li><li>Combat : zone en 3 lignes, événements dans un cadre, une console en bas.</li></ul></div>
+  </div>
+  <div class="strip" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))">
+    <figure><img src="images/actuel/t01-combat-telephone.jpg" alt="Combat téléphone actuel" loading="lazy"><figcaption><span class="tag now">Actuel</span>Combat</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t07-ecran-de-combat.jpg" alt="Maquette combat téléphone" loading="lazy"><figcaption><span class="tag to">Cible</span>Combat</figcaption></figure>
+    <figure><img src="images/actuel/t03-competences-telephone.jpg" alt="Compétences téléphone actuelles" loading="lazy"><figcaption><span class="tag now">Actuel</span>Compétences</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t03-competences.jpg" alt="Maquette compétences téléphone" loading="lazy"><figcaption><span class="tag to">Cible</span>Compétences</figcaption></figure>
+  </div>
+  <div class="strip" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))">
+    <figure><img src="images/actuel/a02-fiche-telephone.jpg" alt="Fiche téléphone actuelle" loading="lazy"><figcaption><span class="tag now">Actuel</span>Fiche</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t01-fiche-ameliorer.jpg" alt="Maquette fiche Améliorer" loading="lazy"><figcaption><span class="tag to">Cible</span>Fiche · Améliorer</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t02-fiche-reforger.jpg" alt="Maquette fiche Reforger" loading="lazy"><figcaption><span class="tag to">Cible</span>Fiche · Reforger</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t06-recherches.jpg" alt="Maquette recherches téléphone" loading="lazy"><figcaption><span class="tag to">Cible</span>Recherches</figcaption></figure>
+  </div>
+  <div class="strip" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))">
+    <figure><img src="images/actuel/t04-talents-telephone.jpg" alt="Talents téléphone actuels" loading="lazy"><figcaption><span class="tag now">Actuel</span>Talents</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t04-talents.jpg" alt="Maquette talents téléphone" loading="lazy"><figcaption><span class="tag to">Cible</span>Talents</figcaption></figure>
+    <figure><img src="images/actuel/t05-compagnons-telephone.jpg" alt="Compagnons téléphone actuels" loading="lazy"><figcaption><span class="tag now">Actuel</span>Compagnons</figcaption></figure>
+    <figure class="target"><img src="images/maquette/t05-compagnons.jpg" alt="Maquette compagnons téléphone" loading="lazy"><figcaption><span class="tag to">Cible</span>Compagnons</figcaption></figure>
+  </div>
+</section>
+
+<section id="neuf">
+  <div class="sh"><h2>Partie neuve, 5 minutes</h2><span class="sev m">Moyen</span><span class="ref">Prompts PC § 9 et téléphone § 8</span></div>
+  <p class="lead">Joueur automatique qui suit le doigt du tutoriel et le Sceau, sur PC et sur téléphone. Ces constats viennent de son journal ; ils sont à confirmer à la main.</p>
+  <div class="txt">
+    <div class="box ko"><h3>PC</h3><ul><li>Après « Héros · 1 objet » (1 min 24), plus aucun conseil pendant 3 min 30.</li><li>400 à 650 d'or restent sans être dépensés, et l'or ne bouge plus pendant 75 s à l'étape 5.</li><li>Étape 7 au bout de 5 minutes.</li></ul></div>
+    <div class="box ko"><h3>Téléphone</h3><ul><li>Le doigt montre « Héros » pendant que le Sceau ouvre l'Invocation, puis « Équipement » contre la Forge : allers-retours pendant plus d'une minute.</li><li>Un objet Légendaire à 2 min, avec « Remettre au niveau » en doré.</li><li>Étape 10 au bout de 5 minutes.</li></ul></div>
+  </div>
+  <div class="cols">
+    <figure><img src="images/actuel/a11-partie-neuve-pc.jpg" alt="Partie neuve PC" loading="lazy"><figcaption><span class="tag now">Actuel</span>PC, une image toutes les 40 s.</figcaption></figure>
+    <figure><img src="images/actuel/a12-partie-neuve-telephone.jpg" alt="Partie neuve téléphone" loading="lazy"><figcaption><span class="tag now">Actuel</span>Téléphone, une image toutes les 40 s.</figcaption></figure>
+  </div>
+</section>
+
+<section id="regles">
+  <div class="sh"><h2>Contre les retours en arrière</h2><span class="sev b">Règle</span><span class="ref">Prompts PC § 0 et téléphone § 0</span></div>
+  <ol class="rules">
+    <li>Captures « avant » de chaque onglet en 6 tailles (4 PC, 2 téléphone), partie avancée et partie neuve, avant le premier commit.</li>
+    <li>Liste des acquis 10.11 à 10.12 vérifiée à chaque lot : onglets centrés, compagnons hors des cadres, effets visibles dans Améliorations, ouvrier du Bastion, barre du bas et kit du téléphone, tutoriel.</li>
+    <li>Rien n'est retiré de l'écran sans être remplacé. Seule exception voulue : « Remettre au niveau ».</li>
+    <li>PC et téléphone séparés : un lot PC laisse le téléphone identique au pixel près, un lot téléphone laisse le PC identique. Seules la suppression de « Remettre au niveau » et « équiper seulement dans Équipement » touchent les deux.</li>
+    <li>Pas de changement de règles, de coûts ni de gains.</li>
+    <li>Aucun test supprimé pour passer : on corrige le code, pas le test.</li>
+    <li>Nouveau contrôle <code>tools/desk-audit.mjs</code> : pas de chevauchement, image d'événement dans son cadre, un seul bouton doré, une image pour chaque objet ou compétence, aucun « Remettre au niveau ».</li>
+    <li>Planche avant / après de chaque écran, relue à côté des maquettes avant de livrer.</li>
+  </ol>
+</section>
+
+<p class="foot">Deux prompts pour Claude : <code>prompt-v10.13-pc.zip</code> (à faire d'abord) puis <code>prompt-v10.13-telephone.zip</code>. Chacun contient son PROMPT.md, ses captures, ses maquettes et leur code HTML.</p>
+</div>
