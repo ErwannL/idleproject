@@ -94,10 +94,12 @@ test('v9.3.4 : compétences du héros en deux sections (Attaques en points, Boos
   assert.equal(cells.filter((c) => c.kind === 's').length, 6);
   const html = skills.default.render(uiWith({ skillSel: 's:quick' }), s);
   assert.ok(html.includes('>Attaques<') && html.includes('>Boosts<'));
-  assert.equal((html.match(/class="sk2-cell/g) ?? []).length, 11);
-  assert.ok(html.includes('class="sk2-name">Frappe rapide') && /Nv \d/.test(html));
-  assert.match(html, /class="sk2-bubble">.*Frappe rapide/s);
-  assert.equal((html.match(/btn btn-gold sk2-up/g) ?? []).length, 1, 'un seul gros bouton');
+  // v10.13 (lot 4) : un mode à la fois (6 cartes d'Attaques, ou 5 Boosts), détail à droite, un seul bouton doré.
+  assert.equal((html.match(/class="dsk-card /g) ?? []).length, 6);
+  assert.equal((skills.default.render(uiWith({ mDSkMode: 'r' }), s).match(/class="dsk-card /g) ?? []).length, 5);
+  assert.ok(html.includes('class="dsk-name">Frappe rapide') && /Nv \d/.test(html));
+  assert.match(html, /class="dsk-dhead"><b>Frappe rapide/);
+  assert.equal((html.match(/class="m-btn-gold/g) ?? []).length, 1, 'un seul gros bouton');
 });
 
 test('Talents : outils repliés, plus de « ● » de région ; vue Région en lecture seule', () => {
