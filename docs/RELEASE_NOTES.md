@@ -1,6 +1,22 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.12.1 — Téléphone, finitions
+## Ascendrya v10.13.0 — Le PC passe au style « vrai jeu »
+
+Sur PC, chaque écran suit maintenant le modèle de la Forge : un grand cadre doré avec son titre, une illustration pour chaque chose qu'on choisit, « avant » après » en gros, les coûts en cases et un seul gros bouton doré.
+
+- **Équipement** : trois colonnes (personnage, sac, détails). Grande image de l'objet, modes Améliorer · Reforger · Équiper. Reforger montre directement ses 3 cartes illustrées : Changer l'effet, Relance orientée (liste des effets avec leur icône), Changer le type. Après un changement d'effet : Avant / Après, Garder ou Revenir. Les objets des compagnons s'équipent ici.
+- **« Remettre au niveau » n'existe plus.** À la place : « ⚠ Objet dépassé » et le bouton « Trouver mieux › », qui ouvre le sac trié par gain, ou la Forge s'il n'y a rien de mieux.
+- **Compétences** : ta barre de combat (3 places, touches 1-2-3, boosts Q à T), les compétences en grandes cartes, un aperçu en combat dans le détail ; on place une compétence par clic ou en la glissant.
+- **Talents et Renaissance** : 3 branches illustrées avec leur piste, « Prochain talent » ; Renaissance avec le phénix, la Puissance avant » après et ce qui est gardé ou remis à zéro.
+- **Compagnons** : bandeau « Ton équipe » sur le décor du monde, grille de portraits, fiche toujours visible, « Mettre dans l'équipe ». « Équiper toute l'équipe » est passé dans Équipement.
+- **Recherches** : livre en parchemin lisible, noms sous les médaillons, détail à droite ; un bandeau dit quand la Bibliothèque manque.
+- **Écran de combat** : événements dans leur cadre, carte de zone sur 3 lignes (plus rien ne se chevauche), une seule console en bas (attaques, vague et PV, « Tout récupérer » et butin).
+- **Tous les autres onglets** (Boutique, Invocation, Apparences, Forge, Améliorations, Bastion, Carte, Donjons, Arène, Défis, Événement, Expéditions, Carnet, Contrats, Paramètres, Classement, Guilde, Statistiques, Boss, Encyclopédie) : même cadre, plus de listes déroulantes, textes d'au moins 12 px.
+- **Joueur neuf** : un conseil revient dès que de l'or attend ; le doigt et le Sceau montrent toujours la même chose.
+
+**Ce qui ne change pas** : les règles du jeu, les coûts et les gains (seule exception : « Remettre au niveau » est retiré) ; le téléphone garde son affichage 10.12 ; ta partie garde toute sa puissance.
+
+<details><summary>Ascendrya v10.12.1 — Téléphone, finitions</summary>
 
 - **Talents › Arbre avancé** : sur téléphone, un arbre vertical par région (puces de région, nœuds ronds reliés, ▲ quand on peut apprendre), une fiche par talent avec « Apprendre » et « Max ».
 - **Bastion** : noms des bâtiments lisibles sur la carte, raison du verrou affichée (« Étape 55 », « Âge III »), « + Ouvrier » sur le bâtiment, minuteurs au-dessus des toits.
@@ -8,6 +24,8 @@
 - **« Tout améliorer »** : le bouton n'est actif que s'il fait vraiment quelque chose, dit pourquoi il est grisé, et affiche le résultat (renforcements, Puissance avant → après).
 - **Encyclopédie, Boss, Paramètres** : fiches refaites dans le même style que le reste ; bouton « Choisir un fichier… » en français pour importer une sauvegarde.
 - Correction : la version Windows de 10.12.0 ne se construisait pas.
+
+</details>
 
 <details><summary>Ascendrya v10.12.0 — Un vrai jeu mobile</summary>
 
