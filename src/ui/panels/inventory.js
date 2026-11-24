@@ -36,6 +36,7 @@ import { companionPortrait, companionStill } from './expeditions.js';
 import { recycleButton } from './forge.js';
 import { skillBubble, skillIcons } from './unit-popup.js';
 import { isPhoneView, phoneAfter, phoneView } from './equip-phone.js'; // v10.12 : version téléphone (kit mobile)
+import { deskView } from './equip-desk.js'; // v10.13 : version PC (trois colonnes, style de la Forge)
 
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
@@ -540,6 +541,7 @@ export default {
   // juste dessous : les places restent visibles au-dessus de la fiche (sauf fenêtre trop basse : la fiche d'abord).
   afterRender(ui, body) {
     if (isPhoneView(ui)) { phoneAfter(ui, body); return; } // v10.12 : téléphone (kit mobile)
+    if (body.querySelector(':scope > .m-frame.de')) return; // v10.13 : PC en kit (equip-desk.js) : rien à repositionner
     // v10.4 (partie 7) : la rangée des personnages dépasse → ombre au bord droit (elle défile au doigt).
     const whos = body.querySelector('.eq-top > .eq-whos');
     if (whos) {
@@ -608,12 +610,13 @@ export default {
     }
     const phone = isPhoneView(ui);
     const TABS = phone ? (unit ? [['gear', 'Équipement'], ['up', 'Améliorer'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['gear', 'Équipement'], ['up', 'Améliorer'], ['reforge', 'Reforger'], ['sets', 'Sets']])
-      : unit ? [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement']];
+      : unit ? [['gear', 'Équipement'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['gear', 'Équipement'], ['sets', 'Sets']]; // v10.13 : PC = trois colonnes (equip-desk.js) ; la vue d'ensemble est dans la colonne du personnage
     const tab = TABS.some(([id]) => id === v.eqTab) ? v.eqTab : 'gear';
     const unitIds = new Set(unit ? bestGearFor(state, unit.id) : []);
     const unitSlots = new Set([...state.inventory, ...(state.stash ?? [])].filter((i) => unitIds.has(i.id)).map((i) => eqSlot(i)));
     const ctx = { who, unit, team, order: ['hero', ...team.map((c) => c.id)], st, gains, best, plan, sel: { item, slot }, tab, unitIds, unitSlots };
     if (phone) return phoneView(ui, state, { ...ctx, item, slot, invTab }); // v10.12 : téléphone = kit mobile (equip-phone.js)
+    return deskView(ui, state, { ...ctx, item, slot, invTab }); // v10.13 : PC = trois colonnes dans un cadre (equip-desk.js)
     const isWorn = item && (Object.values(state.equipment).some((i) => i?.id === item.id) || Boolean(wearerOf(state, item.id)));
     const quickN = unit ? unitIds.size : plan.changes.length;
     let sheet;

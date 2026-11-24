@@ -47,7 +47,7 @@ import { finishGlobalBoss, globalBossLeft, runSurvival, startGlobalBoss } from '
 import { autoFormation, claimSeason, claimStarChest, playFloor, setFormation, sweepFloor } from './core/arena-cards.js'; // v10.1 (P4)
 import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, targetReroll, upgradeAllHero, upgradeAllHeroWhy, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, retypeItem, targetReroll, upgradeAllHero, upgradeAllHeroWhy, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, betterItems, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
@@ -240,6 +240,12 @@ function caravanItem(given) {
   const it = generateItem(state, new Rng(Date.now() % 2 ** 31), { level: levelForStage(best), minRarity: 'epic' });
   addToInventory(state, it);
 }
+// v10.13 : photo des effets d'un objet avant une relance (pour « Revenir »).
+const findStateItem = (id) => [...state.inventory, ...Object.values(state.equipment), ...(state.stash ?? [])].find((i) => i?.id === id);
+function itemSnap(id) {
+  const it = findStateItem(id);
+  return it ? JSON.parse(JSON.stringify({ affixes: it.affixes ?? [], stats: it.stats ?? {}, boosts: it.boosts ?? {}, upgrades: it.upgrades ?? 0, level: it.level })) : null;
+}
 function done(ok, message = null, color = null) {
   if (!ok) return false;
   announceSynergies();
@@ -381,8 +387,19 @@ const actions = {
     if (item) { ui.view.selectedItemId = item.id; ui.view.forgeFx = `craft r-${item.rarity}`; setTimeout(() => { ui.view.forgeFx = null; ui.invalidate(); }, 1100); } // v9.3.4 : animation de forge
     done(Boolean(item), item ? `Forgé : ${item.name}` : null);
   },
-  reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
-  targetReroll(id, type) { done(targetReroll(state, id, type, rng), 'Effet relancé'); }, // v9.1.3 (doc3 lot 3), hors REPEATABLE
+  // v10.13 (§ 3) : après un changement d'effet, l'écran montre « Avant / Après » : « Garder » ou « Revenir » (l'ancien effet revient, les éclats
+  // dépensés ne sont pas rendus). Photo de l'objet gardée seulement dans l'affichage (ui.view.rfPrev), jamais dans la sauvegarde.
+  reforge(id) { const snap = itemSnap(id); const ok = reforgeItem(state, id, rng); if (ok && ui.view) ui.view.rfPrev = { id, snap }; done(ok, 'Effets spéciaux relancés'); },
+  targetReroll(id, type) { const snap = itemSnap(id); const ok = targetReroll(state, id, type, rng); if (ok && ui.view) ui.view.rfPrev = { id, snap }; done(ok, 'Effet relancé'); }, // v9.1.3 (doc3 lot 3), hors REPEATABLE
+  reforgeRevert(id) {
+    const prev = ui.view.rfPrev;
+    const item = findStateItem(id);
+    ui.view.rfPrev = null;
+    if (!item || prev?.id !== id || prev.snap.upgrades !== item.upgrades || prev.snap.level !== item.level) { ui.invalidate(); return; }
+    item.affixes = prev.snap.affixes; item.stats = prev.snap.stats; item.boosts = prev.snap.boosts;
+    done(true, 'Ancien effet remis');
+  },
+  retypeItem(id) { done(retypeItem(state, id, rng), 'Type changé'); }, // v10.13 : Reforger › Changer le type
   upgradeItem(id) {
     const stat = upgradeItem(state, id, rng);
     if (stat) sound.play('upgrade');

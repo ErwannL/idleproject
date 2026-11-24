@@ -326,6 +326,7 @@ export const BALANCE = {
     // Fabrication épique : Épique ou mieux (v9.1.3 : 60 éclats + 6 essences → 120 éclats).
     epicCraft: { shards: 120, goldKills: 60 },
     reforgeShards: 20, // v9.1.3 : 10 éclats + 1 essence
+    retypeShards: 40, // v10.13 : « Changer le type » (Reforger) : une arme prend un autre modèle de sa famille, même niveau
     // v9.1.3 (doc3 lot 3) : relance orientée (Épique et Légendaire) : le joueur choisit l'effet de la 1re ligne.
     // Prix du doc convertis en éclats (1 essence = 10 éclats) : 50 + 5 → 100, 70 + 7 → 140, 30 + 3 → 60, 40 + 4 → 80.
     // gear = arme, casque, armure ; accessory = collier, boucles, bague, bracelet. Provisoires.

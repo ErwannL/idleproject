@@ -39,31 +39,31 @@ import { bastionShortcuts, heroTodo, unitPower, visibleItems } from './inventory
 
 const e = escapeHtml;
 const num = formatNumber;
-const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
+export const STAT_ICONS = { damage: 'weapon_sword', attackSpeed: 'icon_bolt', maxHp: 'icon_heart', armor: 'icon_shield' };
 const AFFIX_UNITS = { dropChance: ' pts', regenPct: ' % PV/s' };
-const SORT_LABELS = { gain: 'Meilleur gain', rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
-const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
-const PLURAL = { weapon: 'Armes', helmet: 'Casques', armor: 'Armures', amulet: 'Colliers', ring: 'Anneaux', bracelet: 'Bracelets' };
-const SIL = (slot) => (slot === 'accessory' ? 'amulet' : slot); // silhouette d'une place vide
+export const SORT_LABELS = { gain: 'Meilleur gain', rarity: 'Rareté', level: 'Niveau', power: 'Puissance', recent: 'Récent' };
+export const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
+export const PLURAL = { weapon: 'Armes', helmet: 'Casques', armor: 'Armures', amulet: 'Colliers', ring: 'Anneaux', bracelet: 'Bracelets' };
+export const SIL = (slot) => (slot === 'accessory' ? 'amulet' : slot); // silhouette d'une place vide
 
 // Petits pictogrammes (SVG en ligne : le jeu n'a pas d'icône d'entonnoir, de tri ni d'échange).
 const SVG = (d, extra = '') => `<svg class="em-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" ${extra}>${d}</svg>`;
-const ICON_FUNNEL = SVG('<path d="M3 4h18l-7 8.5V20l-4-2v-5.5z" fill="currentColor"/>');
-const ICON_SORT = SVG('<path d="M4 6h16M4 12h11M4 18h6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M18 14v7m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>');
-const ICON_SWAP = SVG('<path d="M5 8h13m0 0l-3.5-3.5M18 8l-3.5 3.5M19 16H6m0 0l3.5-3.5M6 16l3.5 3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>');
-const ICON_MORE = SVG('<circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/>');
+export const ICON_FUNNEL = SVG('<path d="M3 4h18l-7 8.5V20l-4-2v-5.5z" fill="currentColor"/>');
+export const ICON_SORT = SVG('<path d="M4 6h16M4 12h11M4 18h6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M18 14v7m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>');
+export const ICON_SWAP = SVG('<path d="M5 8h13m0 0l-3.5-3.5M18 8l-3.5 3.5M19 16H6m0 0l3.5-3.5M6 16l3.5 3.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>');
+export const ICON_MORE = SVG('<circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/>');
 
 // Fenêtre de téléphone : classe m-phone posée par ui.js, ou largeur ≤ 600 px (comme les autres panneaux).
 export const isPhoneView = (ui) => Boolean(ui?.root?.classList?.contains('m-phone')) || (ui?.root?.clientWidth ?? 9999) <= 600;
 
-const pill = (cls, text, extra = '') => `<span class="em-pill ${cls}"${extra}>${e(text)}</span>`;
-const rarPill = (rarity) => pill(`r-${rarity}`, rarityLabel(rarity));
-const ratio = (a, b) => (b > 0 ? Math.max(0, Math.min(1, a / b)) : 0);
+export const pill = (cls, text, extra = '') => `<span class="em-pill ${cls}"${extra}>${e(text)}</span>`;
+export const rarPill = (rarity) => pill(`r-${rarity}`, rarityLabel(rarity));
+export const ratio = (a, b) => (b > 0 ? Math.max(0, Math.min(1, a / b)) : 0);
 // Coût sans « tu as » (la place manque dans une ligne) : vert si on peut payer, rouge sinon.
-const costOnly = (pic, need, ok) => `<span class="m-cost ${ok ? 'ok' : 'ko'}"><span class="m-cost-ico">${img(pic)}</span><span class="m-cost-n">${e(num(need))}</span></span>`;
-const rowLabel = (r) => (r.kind === 'stat' ? STAT_LABELS[r.stat] : KEEP_AFFIX_LABELS[r.type] ?? 'Effet spécial');
-const rowVal = (r, v) => (r.kind === 'stat' ? formatStat(r.stat, v, true) : `${formatDecimal(v, 1)}${AFFIX_UNITS[r.type] ?? ' %'}`);
-const ba = (label, a, b, good = true) => `<div class="em-ba"><span class="em-ba-k">${e(label)}</span><span class="em-ba-a">${e(a)}</span><i>»</i><b class="${good ? 'up' : 'down'}">${e(b)}</b></div>`;
+export const costOnly = (pic, need, ok) => `<span class="m-cost ${ok ? 'ok' : 'ko'}"><span class="m-cost-ico">${img(pic)}</span><span class="m-cost-n">${e(num(need))}</span></span>`;
+export const rowLabel = (r) => (r.kind === 'stat' ? STAT_LABELS[r.stat] : KEEP_AFFIX_LABELS[r.type] ?? 'Effet spécial');
+export const rowVal = (r, v) => (r.kind === 'stat' ? formatStat(r.stat, v, true) : `${formatDecimal(v, 1)}${AFFIX_UNITS[r.type] ?? ' %'}`);
+export const ba = (label, a, b, good = true) => `<div class="em-ba"><span class="em-ba-k">${e(label)}</span><span class="em-ba-a">${e(a)}</span><i>»</i><b class="${good ? 'up' : 'down'}">${e(b)}</b></div>`;
 
 // =====================================================================================================================
 // Écran
@@ -131,7 +131,7 @@ function whoRow(state, ctx) {
 }
 
 // Le personnage en grand (mêmes illustrations qu'avant).
-function bigArt(state, ctx) {
+export function bigArt(state, ctx) {
   const { unit, sel } = ctx;
   if (unit) return isAwakened(state, unit.id) ? `<img class="hd-art eq-art px-hd" src="assets/hd/px/awake/ally_${unit.id}.webp" alt="" loading="lazy">` : hdArt(unit, 'eq-art') || companionPortrait(unit, true);
   const look = ctx.look;
@@ -140,7 +140,7 @@ function bigArt(state, ctx) {
 }
 
 // Bloc personnage : hauteur fixe (176 px).
-function characterBlock(state, ctx) {
+export function characterBlock(state, ctx) {
   const { unit, st } = ctx;
   const level = unit ? unitLevel(state, unit.id) : state.level;
   const pct = unit ? ratio(level, COMPANION_RULES.maxLevel) : ratio(state.xp, xpForLevel(state.level));
@@ -178,7 +178,7 @@ function slotTiles(state, ctx) {
 }
 
 // Statistiques en 2 × 2.
-function statsBlock(state, ctx) {
+export function statsBlock(state, ctx) {
   const { unit, st } = ctx;
   if (!unit) {
     return `<div class="m-stats2">${mStat('weapon_sword', 'Dégâts/s', num(st.dps))}${mStat('icon_heart', 'Vie', num(st.maxHp))}${mStat('icon_bolt', 'Vitesse', `${formatDecimal(st.attacksPerSecond, 2)}/s`)}${mStat('icon_star', 'Critique', `${formatDecimal(st.critChance)} %`)}</div>`;
@@ -220,7 +220,7 @@ function bagCard(ui, state, ctx) {
 }
 
 // Réserve (coffre) : grille, filtre par ensemble en puces, « Reprendre au sac ».
-function stashView(ui, state) {
+export function stashView(ui, state) {
   const v = ui.view;
   const sets = stashSets(state);
   const setId = sets.some((x) => x.setId === v.stashSet) ? v.stashSet : null;
@@ -308,7 +308,7 @@ function reforgeList(ui, state) {
 // ---------------------------------------------------------------------------------------------------------------------
 // Mode Sets
 // ---------------------------------------------------------------------------------------------------------------------
-function setsList(state) {
+export function setsList(state) {
   const worn = setCounts(state.equipment);
   const owned = {};
   for (const i of [...state.inventory, ...(state.stash ?? []), ...Object.values(state.equipment).filter(Boolean)]) if (i?.set) owned[i.set] = (owned[i.set] ?? 0) + 1;
@@ -327,7 +327,7 @@ function setsList(state) {
 // ---------------------------------------------------------------------------------------------------------------------
 // Compagnon : Étoiles et Compétences
 // ---------------------------------------------------------------------------------------------------------------------
-function starsPanel(state, ctx) {
+export function starsPanel(state, ctx) {
   const c = ctx.unit;
   const own = state.companions.owned[c.id] ?? { stars: 1, level: 1 };
   const max = COMPANION_RULES.maxCopies;
@@ -345,7 +345,7 @@ function starsPanel(state, ctx) {
     ${mBtnGold('Invoquer', { action: 'open-tab', value: 'summon', icon: 'icon_summon' })}</div>`;
 }
 
-function skillsPanel(ui, state, ctx) {
+export function skillsPanel(ui, state, ctx) {
   const c = ctx.unit;
   const own = state.companions.owned[c.id] ?? { stars: 1, level: 1 };
   ui.view.skillPop ??= 'active';
@@ -369,7 +369,7 @@ function sheetFor(ui, state, ctx) {
 const sheet = (title, body, extra = {}) => mSheet(title, body, { id: 'eq-sheet', close: 'close-sheet', back: 'close-sheet', ...extra });
 
 // Confirmation de l'Équipement rapide : avant » après.
-function quickSheet(state, ctx) {
+export function quickRows(state, ctx) { // lignes « avant » après » + total (téléphone : fiche ; PC : colonne de détail)
   const { unit } = ctx;
   let rows, total;
   if (unit) {
@@ -386,12 +386,15 @@ function quickSheet(state, ctx) {
     rows = plan.changes.map((c) => `<div class="em-q"><small>${e(HERO_SLOTS[c.slot])} <b class="up">${e(pctText(c.pct))}</b></small><span>${e(c.from ? c.from.name : 'place vide')} <i>»</i> <b class="r-${c.to.rarity} rarity-text">${e(c.to.name)}</b></span></div>`).join('');
     total = ba('Puissance', num(plan.before), num(plan.after));
   }
-  return sheet('Équipement rapide', `<div class="em-sheet-scroll"><div class="m-card">${rows}${total}</div></div>
+  return `<div class="m-card">${rows}${total}</div>`;
+}
+function quickSheet(state, ctx) {
+  return sheet('Équipement rapide', `<div class="em-sheet-scroll">${quickRows(state, ctx)}</div>
     <div class="em-dock em-dock-q">${mBtnGold('Confirmer', { action: 'eq-quick-ok', value: ctx.who })}${mBtn('Annuler', { action: 'close-sheet' })}</div>`);
 }
 
 // Flèches ‹ › : la place voisine (même action eq-slot que les cases).
-function slotNav(state, who, cur) {
+export function slotNav(state, who, cur) {
   const keys = who ? Object.keys(unitGear(state, who.id)) : Object.keys(HERO_SLOTS);
   const i = keys.indexOf(cur);
   if (i < 0 || keys.length < 2) return '';
@@ -402,7 +405,7 @@ function slotNav(state, who, cur) {
 }
 
 // Ligne « ce que ça change » sous les statistiques.
-function verdict(state, ctx, item, f) {
+export function verdict(state, ctx, item, f) {
   const { unit } = ctx;
   const hslot = heroSlot(item);
   if (f.heroWorn) {
@@ -474,7 +477,7 @@ function itemSheet(ui, state, ctx) {
 }
 
 // Panneau « Améliorer » : +N » +N+1, la ligne qui monte, les coûts, UN bouton doré.
-function upPanel(state, item, wearer, p) {
+export function upPanel(state, item, wearer, p, opts = {}) {
   if (wearer) {
     if (p.atMax) return `<p class="em-note">Renforcé au maximum (+${p.max}).</p>`;
     const rows = p.rows.filter((r) => r.before !== r.after).map((r) => ba(STAT_NAMES[r.key], `${r.key === 'cd' ? '−' : '+'}${formatDecimal(r.before)} %`, `${r.key === 'cd' ? '−' : '+'}${formatDecimal(r.after)} %`)).join('');
@@ -494,6 +497,11 @@ function upPanel(state, item, wearer, p) {
   const rows = p.rows.filter((r) => r.before !== r.after).slice(0, 1).map((r) => ba(rowLabel(r), rowVal(r, r.before), rowVal(r, r.after))).join('');
   const upBtn = { action: 'upgrade-item', id: item.id, disabled: Boolean(p.lack.shards || p.lack.gold), attrs: `data-cost="${p.cost.gold}" data-currency="gold"` };
   const costs = `<div class="m-costs">${mCost('icon_shard', state.materials.shards, p.cost.shards, { fmt: num })}${mCost('coin', state.gold, p.cost.gold, { fmt: num })}</div>`;
+  if (weak && opts.headTag) { // PC : l'étiquette « Objet dépassé » et « Trouver mieux » sont dans l'en-tête de la fiche ; ici seulement les chiffres
+    const worn = Object.values(state.equipment).some((i) => i?.id === item.id);
+    const power = !p.power ? '' : ba('Puissance', num(p.power.before), 'presque pareille', false);
+    return `<div class="em-lvlup"><b>+${p.level}</b><i>»</i><b class="up">+${p.level + 1}</b></div>${rows}${power}${costs}${worn ? mBtnGold('Améliorer', upBtn) : `${mBtn('Améliorer', upBtn)}${mBtnGold('Équiper', { action: 'equip', id: item.id })}`}`;
+  }
   if (weak) { // v10.13 (§ 2) : étiquette « Objet dépassé » + « Trouver mieux », le bouton doré reste « Améliorer » (ou « Équiper » si l'objet n'est pas porté)
     const note = `<p class="em-note em-weak"><b>${e(weakLabel(state, item))}</b></p>`;
     const worn = Object.values(state.equipment).some((i) => i?.id === item.id);
@@ -505,7 +513,7 @@ function upPanel(state, item, wearer, p) {
 }
 
 // Panneau « Équiper / Changer ».
-function equipPanel(ui, state, ctx, item, f) {
+export function equipPanel(ui, state, ctx, item, f) {
   const { unit } = ctx;
   const { heroWorn, wearUnit, forHero } = f;
   const hslot = heroSlot(item);
@@ -538,7 +546,7 @@ function equipPanel(ui, state, ctx, item, f) {
 }
 
 // Place vide : les objets compatibles du sac, « Équiper le meilleur ».
-function emptySheet(ui, state, ctx) {
+export function emptySheet(ui, state, ctx) {
   const { unit, slot } = ctx;
   const name = unit ? slotName(unit, slot) : HERO_SLOTS[slot];
   const cands = unit
@@ -562,7 +570,10 @@ function emptySheet(ui, state, ctx) {
 // =====================================================================================================================
 // Menu de l'entonnoir : filtres de place et de rareté, objets des autres classes, Équiper pour, Builds, réglages du sac
 // =====================================================================================================================
-function filterSheet(ui, state, ctx) {
+export function filterSheet(ui, state, ctx) {
+  return mSheet('Filtres et sac', filterBody(ui, state, ctx), { id: 'eq-menu', icon: 'icon_bag', close: 'bag-menu', back: 'bag-menu' });
+}
+export function filterBody(ui, state, ctx) { // le contenu du menu (téléphone : fiche ; PC : à la place du sac)
   const v = ui.view;
   const slotF = state.ui.slotFilter ?? 'all', rarF = state.ui.rarityFilter ?? 'all';
   const sec = (title, body) => `<section class="em-sec"><h4>${e(title)}</h4>${body}</section>`;
@@ -584,13 +595,12 @@ function filterSheet(ui, state, ctx) {
       ${l.team ? `<div class="m-chips" role="group" aria-label="Attaché à">${bind(state, l.bind).map((o) => mChip(o.label, { action: 'bind-set', value: i, on: o.on, attrs: `data-bind="${e(o.val)}"` })).join('')}</div>` : ''}</div>`;
   }).join('');
   const sh = bastionShortcuts(state);
-  const body = `<div class="em-sheet-scroll em-menu-body">${sec('Place', place)}${sec('Rareté', rar)}${others}${sec('Équiper pour', forChips)}${sec('Builds', builds)}${sec('Réglages du sac', bagSettings(ui, state))}
+  return `<div class="em-sheet-scroll em-menu-body">${sec('Place', place)}${sec('Rareté', rar)}${others}${sec('Équiper pour', forChips)}${sec('Builds', builds)}${sec('Réglages du sac', bagSettings(ui, state))}
     ${sh ? sec('Bastion', sh) : ''}${mBtn('Éléments', { action: 'elements-help' })}</div>`;
-  return mSheet('Filtres et sac', body, { id: 'eq-menu', icon: 'icon_bag', close: 'bag-menu', back: 'bag-menu' });
 }
 
 // Réglages du sac : recyclage en lot, règle automatique, avancé (mêmes actions, puces à la place des listes).
-function bagSettings(ui, state) {
+export function bagSettings(ui, state) {
   const v = ui.view;
   const cands = bulkRecycleCandidates(state, v.bulkRarity);
   const gold = cands.reduce((s, i) => s + recycleValue(i, BALANCE, recycleLevelOf(state)), 0);

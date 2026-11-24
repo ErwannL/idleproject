@@ -26,7 +26,7 @@ export const CHECKS = {
 
 // --- Contrôles exécutés dans la page ------------------------------------------------------------------------------------
 // kind : 'tab' (panneau ouvert) ou 'combat' (écran de jeu, panneau fermé).
-function inPage(kind) {
+export function inPage(kind) {
   const issues = [];
   const add = (check, msg) => issues.push({ check, msg });
   const vw = window.innerWidth;
@@ -191,7 +191,13 @@ export async function runAudit(argv) {
         }
         if (tab === 'inventory') {
           await openTab(g.page, tab);
-          if (await openItemSheet(g.page)) { await g.page.waitForTimeout(600); await record(g, game, w, h, tab, 'fiche-objet', 'tab', 'fiche-objet'); }
+          if (await openItemSheet(g.page)) {
+            await g.page.waitForTimeout(600); await record(g, game, w, h, tab, 'fiche-objet', 'tab', 'fiche-objet');
+            // v10.13 (lot 3) : les trois modes de la fiche (Améliorer · Reforger · Équiper) sont contrôlés eux aussi
+            for (const m of (await listModes(g.page)).filter((x) => x.action === 'item-tab')) {
+              if (await clickMode(g.page, m)) await record(g, game, w, h, tab, `fiche-objet/${m.value}`, 'tab', `fiche-objet--${slug(m.value)}`);
+            }
+          }
         }
         if (tab === 'companions') {
           await openTab(g.page, tab);

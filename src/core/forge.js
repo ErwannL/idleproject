@@ -7,7 +7,7 @@ import { addToInventory, isUpgrade, keptByAffix, recycleRules } from './inventor
 import { generateItem, itemBase, itemPower, makeItem, rarityIndex, refreshItemStats, rerollAffixes } from './loot.js';
 import { trackMissions } from './missions.js';
 import { CLASS_WEAPON_DROP } from '../data/classes.js';
-import { activeClass, canEquip, classWeaponBases } from './classes.js';
+import { activeClass, canEquip, classWeaponBases, weaponClass } from './classes.js';
 import { usefulSetPiece } from './sets.js';
 import { forgePerks } from './bastion-base.js'; // v10.3 (10.5) : la Forge du forgeron améliore les chiffres de la Forge
 import { computeHeroStats } from './stats.js'; // v10.3 (8) : Puissance avant → après d'un renforcement
@@ -89,6 +89,29 @@ export function targetReroll(state, id, type, rng, balance = BALANCE) {
   state.materials.shards -= cost;
   rerollAffixes(item, rng, balance, type);
   for (const a of item.affixes ?? []) delete a.base;
+  refreshItemStats(item, balance);
+  return true;
+}
+
+// v10.13 (§ 3, Reforger) : « Changer le type » : l'arme garde son niveau, sa rareté, ses renforts et ses effets, et prend un autre
+// modèle de la même famille de classe (dague → katar, épée → espadon…). Armes non ancestrales seulement ; coût en éclats.
+export const retypeCost = (balance = BALANCE) => balance.forge.retypeShards;
+export function retypeChoices(item) {
+  const base = item ? itemBase(item.baseId) : null;
+  if (!base || base.signature || base.slot !== 'weapon' || base.mainAffix || base.affixes) return [];
+  const cls = weaponClass(base);
+  if (!cls) return [];
+  return ITEM_BASES.filter((b) => b.slot === 'weapon' && !b.signature && !b.mainAffix && !b.affixes && b.id !== base.id && weaponClass(b)?.id === cls.id);
+}
+export const canRetype = (item) => retypeChoices(item).length > 0;
+export function retypeItem(state, id, rng, balance = BALANCE) {
+  const item = findItem(state, id);
+  const cost = retypeCost(balance);
+  const choices = retypeChoices(item);
+  if (!choices.length || state.materials.shards < cost) return false;
+  const next = choices[Math.floor(rng.next() * choices.length) % choices.length];
+  state.materials.shards -= cost;
+  item.baseId = next.id; item.name = next.name;
   refreshItemStats(item, balance);
   return true;
 }
