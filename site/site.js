@@ -51,7 +51,7 @@ async function setLang(code, push = false) {
   $('meta[property="og:locale"]').content = t('meta.locale');
   let canon = $('link[rel="canonical"]');
   if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
-  canon.href = `${location.origin}${location.pathname}?lang=${code}`;
+  canon.href = code === "en" ? "https://ascendrya.com/" : `https://ascendrya.com/?lang=${code}`; // une seule adresse (sans www) pour les moteurs
   $('#langs').innerHTML = LANGS.map((l) => `<button type="button" lang="${l.code}" data-lang="${l.code}" aria-pressed="${l.code === code}" title="${esc(l.name)}">${l.label}</button>`).join('');
   $('#reel-toggle').setAttribute('aria-label', t(reelPaused ? 'hero.play' : 'hero.pause'));
   renderGoal();

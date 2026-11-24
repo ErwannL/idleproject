@@ -529,3 +529,13 @@ test('site : icône pour Google (favicon.ico 48 px, PNG 192 et 512, manifeste, l
   const r = await fetch(`http://127.0.0.1:${server.address().port}/favicon.ico`);
   assert.equal(r.status, 200); assert.equal(r.headers.get('content-type'), 'image/x-icon');
 });
+
+test('site : robots.txt et sitemap.xml servis, adresse canonique unique (sans www)', async (t) => {
+  const db = openDatabase(':memory:');
+  const server = createServer(createApp({ db, siteDir: fileURLToPath(new URL('../site', import.meta.url)), webDir: '' })); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.close(); db.close(); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const robots = await fetch(`${base}/robots.txt`); assert.equal(robots.status, 200); assert.match(await robots.text(), /Sitemap: https:\/\/ascendrya\.com\/sitemap\.xml/);
+  const map = await fetch(`${base}/sitemap.xml`); assert.equal(map.status, 200); assert.match(await map.text(), /<loc>https:\/\/ascendrya\.com\/<\/loc>/);
+  assert.match(readFileSync(new URL('../site/index.html', import.meta.url), 'utf8'), /<link rel="canonical" href="https:\/\/ascendrya\.com\/">/);
+});
