@@ -123,8 +123,10 @@ test('10.13.1 (téléphone, t07) : carte de zone, événements, Carnet, console 
   assert.match(c, /classList\.contains\('m-phone'\)/); // le PC ne bouge pas
 });
 
-test('10.13.1 (téléphone, § 7) : la mini-scène des onglets remplit la largeur (téléphone seulement)', () => {
-  const p = src('src/ui/page.js');
-  assert.match(p, /const fill = band && document\.getElementById\('app'\)\?\.classList\.contains\('m-phone'\)/);
-  assert.match(p, /fill \? Math\.min\(H, 180 \* kc\) : H \* 0\.3/);
+test('10.13.1 (téléphone, § 7) : la mini-scène des onglets est une petite caméra (renderMini), téléphone seulement', () => {
+  const p = src('src/ui/page.js'), r = src('src/render/scene.js');
+  assert.match(p, /bw \/ bh > 2\.4 && r\?\.renderMini && document\.getElementById\('app'\)\?\.classList\.contains\('m-phone'\)/);
+  assert.match(r, /renderMini\(ctx, cv, cssW, cssH, dpr\)/);
+  assert.match(r, /\* 0\.65\)/); // ≈ 0,65 de l'échelle du combat
+  assert.doesNotMatch(r.slice(r.indexOf('renderMini('), r.indexOf('  // Décor de la zone')), /drawEffects/); // pas de chiffres flottants
 });

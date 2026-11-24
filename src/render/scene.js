@@ -961,6 +961,7 @@ export class SceneRenderer {
   }
 
   render(state, world, dt) {
+    this.lastState = state; this.lastWorld = world; // v10.13.1 : pour la mini-scène des onglets (renderMini)
     // Arrêt sur image (coup critique) : la scène ralentit fortement pendant un instant — le coup « pèse ».
     if (this.hitstop > 0) {
       this.hitstop -= dt;
@@ -1050,6 +1051,45 @@ export class SceneRenderer {
       ctx.fillStyle = `rgba(10, 8, 16, ${Math.min(1, this.zoneFade)})`;
       ctx.fillRect(0, 0, this.width, this.height);
       this.zoneFade = Math.max(0, this.zoneFade - dt * 1.5);
+    }
+  }
+
+  // v10.13.1 (téléphone) : la mini-scène des onglets (bande de 120 px, pleine largeur) est une vraie petite caméra sur le combat :
+  // le décor (calques répétés sur toute la largeur), puis l'équipe et les ennemis, chacun une seule fois, à ≈ 0,65 de l'échelle du
+  // combat, centrés. Pas de chiffres ni d'effets flottants. On prête au moteur les dimensions de la mini-toile le temps d'une image,
+  // puis on rend tout ce qui change (champs, listes d'effets) : le combat ne voit rien.
+  renderMini(ctx, cv, cssW, cssH, dpr) {
+    const state = this.lastState, world = this.lastWorld;
+    if (!state || !world || !cssW || !cssH) return;
+    const keep = { ...this };
+    const lists = {};
+    for (const [key, v] of Object.entries(this)) if (Array.isArray(v)) lists[key] = v.slice();
+    const mainW = this.width;
+    const k = Math.max(1, Math.round((this.k ?? 1) * 0.65));
+    const s = k / dpr;
+    const W = cssW / s, H = cssH / s;
+    try {
+      Object.assign(this, { canvas: cv, ctx, k, scale: s, width: W, height: H, groundY: Math.round(H - 14), dt: 0, tall: false, centerShift: 0 });
+      ctx.setTransform(k, 0, 0, k, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+      const zone = ZONES[currentEncounter(state).zoneIndex];
+      const scroll = this.smoothScroll(world);
+      this.drawBackground(ctx, zone, scroll);
+      this.layout = this.teamLayout(state);
+      const shift = Math.round((keep.viewShift ?? 0) + Math.max(0, (W - mainW) / 2));
+      ctx.save();
+      ctx.translate(shift, 0);
+      this.drawEnemies(ctx, world, 0);
+      this.processAllyQueue();
+      this.drawCompanions(ctx, state, world, 0);
+      for (const pet of world.hero.dead ? [] : equippedCompanions(state).filter((c) => c.kind !== 'ally')) this.drawPet(ctx, world, pet);
+      if (!this.soloUnit) this.drawHero(ctx, state, world);
+      drawTeamFx(this, ctx, state, world, HERO_X);
+      ctx.restore();
+      this.drawBackground(ctx, zone, scroll, true);
+    } finally {
+      Object.assign(this, keep);
+      for (const [key, v] of Object.entries(lists)) this[key] = v;
     }
   }
 

@@ -52,30 +52,30 @@ function copyFrame() {
   if (src?.width && src.height && mini.offsetParent !== null) {
     // v10.11 (6.1) : la bande du téléphone (pleine largeur, 120 px) a sa propre forme : le canvas suit sa boîte.
     const bw = Math.round(mini.clientWidth), bh = Math.round(mini.clientHeight);
+    const r = document.getElementById('app')?.__ui?.renderer;
+    // v10.13.1 (téléphone) : vraie petite caméra sur le combat (décor sur toute la largeur, équipe entière, sans chiffres) : SceneRenderer.renderMini.
+    // Sur PC (pas de .m-phone), le cadrage ci-dessous ne change pas.
+    if (bw > 10 && bh > 10 && bw / bh > 2.4 && r?.renderMini && document.getElementById('app')?.classList.contains('m-phone')) {
+      const dpr = window.devicePixelRatio || 1, pw = Math.round(bw * dpr), ph = Math.round(bh * dpr);
+      if (mini.width !== pw || mini.height !== ph) { mini.width = pw; mini.height = ph; ctx2d = mini.getContext('2d', { alpha: false }); ctx2d.imageSmoothingEnabled = false; }
+      r.renderMini(ctx2d, mini, bw, bh, dpr);
+      frames += 1; mini.dataset.frames = String(frames);
+      raf = requestAnimationFrame(copyFrame);
+      return;
+    }
     if (bw > 10 && bh > 10 && (mini.width !== bw || mini.height !== bh)) { mini.width = bw; mini.height = bh; ctx2d = mini.getContext('2d', { alpha: false }); ctx2d.imageSmoothingEnabled = false; }
     const w = mini.width, h = mini.height;
     // Gros plan sur le bas de la scène (le sol, le héros et les monstres), un peu à gauche du centre.
     const W = src.width, H = src.height;
     const band = w / h > 2.4; // bande du téléphone : assez de hauteur pour l'équipe entière
-    // v10.13.1 (téléphone) : la bande remplit toute la largeur (plus de bandes noires à gauche et à droite) : on prend la scène sur toute sa
-    // largeur, à l'échelle 1, et la hauteur qui va avec. Sur PC (pas de .m-phone), le cadrage ne change pas.
-    const fill = band && document.getElementById('app')?.classList.contains('m-phone');
-    // Téléphone : la caméra cadre la scène sur toute sa largeur et ~180 px (CSS) de haut : personnages entiers, 8 px au-dessus des têtes.
-    const kc = W / Math.max(1, document.getElementById('scene')?.getBoundingClientRect().width || W);
-    const sh = Math.min(H, band ? (fill ? Math.min(H, 180 * kc) : H * 0.3) : H * 0.62), sw = Math.min(W, sh * (w / h));
+    const sh = Math.min(H, band ? H * 0.3 : H * 0.62), sw = Math.min(W, sh * (w / h));
     const sx = Math.max(0, Math.min(W - sw, W * 0.4 - sw / 2));
     // Le sol (pieds de l'équipe) vers le bas de la vignette : on suit la ligne du sol de la scène.
-    const r = document.getElementById('app')?.__ui?.renderer;
     const gf = r?.height ? Math.min(0.97, (r.groundY + 6) / r.height) : 0.96;
-    const sy = Math.max(0, Math.min(H - sh, H * gf - sh * (fill ? 0.95 : 0.92))); // téléphone : les pieds tout en bas de la bande
+    const sy = Math.max(0, Math.min(H - sh, H * gf - sh * 0.92));
     const dw = Math.min(w, sw * (h / sh)), dx = Math.round((w - dw) / 2);
     if (dx > 0) { ctx2d.fillStyle = '#05070e'; ctx2d.fillRect(0, 0, w, h); }
     ctx2d.drawImage(src, sx, sy, sw, sh, dx, 0, dw, h);
-    if (fill && dx > 0) { // plus de bandes noires : les bords de la scène sont prolongés en miroir
-      const m = Math.min(sw, dx * (sh / h));
-      ctx2d.save(); ctx2d.translate(dx, 0); ctx2d.scale(-1, 1); ctx2d.drawImage(src, sx, sy, m, sh, 0, 0, m * (h / sh), h); ctx2d.restore();
-      ctx2d.save(); ctx2d.translate(dx + dw, 0); ctx2d.scale(-1, 1); ctx2d.translate(-(m * (h / sh)), 0); ctx2d.drawImage(src, sx + sw - m, sy, m, sh, 0, 0, m * (h / sh), h); ctx2d.restore();
-    }
     frames += 1;
     mini.dataset.frames = String(frames);
   }
