@@ -28,6 +28,6 @@ export function maybeBastionCard(ui, st) {
     <p><b>À quoi ça sert :</b> ${escapeHtml(first ? 'Tes compagnons libres y travaillent. Premier bâtiment : la Forge du forgeron.' : def.role)}</p><p><b>Ce que ça rapporte :</b> ${escapeHtml(GAIN[def.id] ?? '')}</p>
     <div class="row-between"><button class="btn btn-gold" type="button" data-go>Essayer maintenant</button><button class="btn small" type="button" data-close>Plus tard</button></div></div>`;
   el.querySelector('[data-close]').addEventListener('click', () => el.remove());
-  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionView = 'map'; ui.view.bastionSel = def.id; ui.openTab('camp'); });
+  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionView = 'map'; ui.view.bastionSel = def.id; ui.openTab('camp'); if (ui.tab !== 'camp') ui.toast?.('Le Bastion s\'ouvre avec sa mini-quête'); });
   host.appendChild(el);
 }

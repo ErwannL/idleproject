@@ -16,7 +16,7 @@
 import { SceneRenderer } from '../render/scene.js';
 import { WorldBossScene } from '../render/world-boss-scene.js';
 import { WorldBossFight } from '../core/world-boss.js';
-import { createCombat, step } from '../core/combat.js';
+import { createCombat, step, tapHit } from '../core/combat.js';
 import { makeItem } from '../core/loot.js';
 import { Rng } from '../core/rng.js';
 import { ZONES } from '../data/zones.js';
@@ -32,9 +32,9 @@ export const PROLOGUE_SCENES = SCENES;
 export const PROLOGUE_LINES = [
   [1, 'Les ruines d\'Ascendrya. Tu marches, au sommet de ta force.'],
   [7, 'Des monstres !'],
-  [9, 'Touche le bouton qui brille : ta compétence !'], // v10.12 : le temps ralentit tant que le joueur n'a pas touché
+  [9, 'Touche les monstres pour frapper !'], // v10.11.4 : on touche le monstre (cible dessus), chaque appui frappe
   [20, 'Le sol tremble…'],
-  [24, 'Frappe-le de toutes tes forces !'],
+  [24, 'Touche le Colosse : frappe-le de toutes tes forces !'],
   [33, 'Tes coups l\'effleurent à peine.'],
   [42, 'Chaque coup du géant te fait plier.'],
   [50, 'La Prêtresse et la Pyromancienne accourent !'],
@@ -123,6 +123,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     <div class="pro-slow" aria-hidden="true"></div><div class="pro-flash" aria-hidden="true"></div>
     <div class="pro-title" aria-live="polite"><small></small><b></b></div>
     <div class="pro-dmg" aria-hidden="true"></div>
+    <div class="pro-target hidden" aria-hidden="true"><i class="pro-ring"></i><span class="pro-tfinger">👆</span><b>Touche !</b></div>
     <div class="pro-hud"><div class="pro-who"><b>Héros</b> <span class="num">Niv. 60</span><i class="pro-hp"><i></i></i></div>
       <div class="pro-cboss hidden"><b>Colosse des Anciens</b><i class="pro-bhp"><i></i></i></div></div>
     <div class="pro-dialog" aria-live="polite"><p></p></div>
@@ -144,7 +145,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
   const fired = new Set();
   const once = (key, fn) => { if (!fired.has(key)) { fired.add(key); fn(); } };
   // v10.12 : mise en scène « film d'action » — cartons de titre, éclairs d'impact, ralenti tant que le joueur n'a pas touché.
-  let scale = 1, qte = null, titleTimer = 0;
+  let scale = 1, qte = null, titleTimer = 0, lastTap = 0;
   const title = (big, small = '', kind = '') => {
     const box = q('.pro-title');
     box.className = `pro-title show ${kind}`;
@@ -165,6 +166,21 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     d.className = `pro-dmg ${kind}`;
     d.textContent = text;
     void d.offsetWidth; d.classList.add('on');
+  };
+  // Cible posée sur le monstre à frapper (le premier vivant), en coordonnées d'écran.
+  const target = q('.pro-target');
+  const placeTarget = (show) => {
+    const sc = wb?.r ?? r;
+    const w = wb ? fight.world : world;
+    const foe = show && sc && w ? (wb ? fight.boss : null) ?? (w.enemies ?? []).filter((e) => e.hp > 0).sort((a, b) => a.x - b.x)[0] : null;
+    target.classList.toggle('hidden', !foe);
+    if (!foe) return;
+    const rect = canvas.getBoundingClientRect(), box = el.getBoundingClientRect();
+    const k = rect.width / Math.max(1, sc.width);
+    const x = rect.left - box.left + (sc.wx(foe.x) + (sc.centerShift ?? 0) + (wb ? 14 : 0)) * k + (wb ? rect.width * 0.2 : 0); // le Colosse est dessiné large
+    const y = rect.top - box.top + (sc.groundY - (wb ? 60 : 16)) * (rect.height / Math.max(1, sc.height));
+    target.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    target.classList.toggle('big', Boolean(wb));
   };
   // Moments où le joueur doit agir : le temps ralentit (×0,15) jusqu'à l'appui, ou 6 s réelles (puis l'action part seule).
   const QTE = [{ at: 9, kind: 'skill' }, { at: 24.3, kind: 'skill' }, { at: 56.2, kind: 'ally' }];
@@ -232,6 +248,18 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
       setTimeout(() => act2(other), 450);
     }
     if (kind === 'skill') {
+      // v10.11.4 : l'appui frappe vraiment : coups du joueur sur les monstres (chiffres de dégâts du moteur), éclats sur
+      // la cible ; dans la marche, les monstres tombent.
+      try {
+        const [gs, gw, sc] = wb ? [fight.state, fight.world, wb.r] : [state, world, r];
+        // Dans la marche, chaque monstre visible tombe sous la salve (le héros est au sommet de sa force).
+        if (!wb) { const one = (gw.heroStats?.damage ?? 1) * 0.09; for (const e of gw.enemies ?? []) if (e.hp > 0 && !e.boss) e.hp = Math.min(e.hp, one); }
+        for (let n = 0; n < (wb ? 2 : 4); n++) {
+          const hit = tapHit(gs, gw, rng);
+          if (!hit) break;
+          sc.burst(sc.wx(hit.x) + (sc.centerShift ?? 0), sc.groundY - 18, n ? '#ffd23f' : '#ffffff', 12, 60);
+        }
+      } catch (err) { console.warn('prologue tap', err); }
       const tgt = wb ? fight.state : state;
       tgt.skillAuto = true; // une seule salve : remis à false au pas suivant
       const w = wb ? fight.world : world;
@@ -299,7 +327,8 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
     q('.pro-hp > i').style.width = `${s.heroHp}%`;
     q('.pro-cboss').classList.toggle('hidden', s.scene === 'march' || s.scene === 'rebirth');
     q('.pro-bhp > i').style.width = `${s.bossHp}%`;
-    q('.pro-skill').classList.toggle('hidden', !s.skillPrompt);
+    q('.pro-skill').classList.add('hidden'); // v10.11.4 : plus de bouton « Frappe » : on touche le monstre
+    placeTarget(s.skillPrompt);
     q('.pro-heal').classList.toggle('hidden', !s.allyPrompt);
     q('.pro-fire').classList.toggle('hidden', !s.allyPrompt);
     if (s.shake && !reduced) { const sc = wb?.r ?? r; sc.shake = Math.max(sc.shake ?? 0, 4); } // secousse du moteur (le canvas garde son échelle)
@@ -379,6 +408,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = () 
   el.addEventListener('click', (e) => {
     if (fired.has('rebirth') || e.target.closest('button, input, label')) return;
     if (qte) { const k = QTE[qte.i].kind; if (k === 'skill') act('skill'); else { act('priestess'); } return; } // en ralenti, tout l'écran compte
+    if (prologueState(t).skillPrompt) { const now = performance.now(); if (now - lastTap > 250) { lastTap = now; act('skill'); } return; } // chaque appui frappe
     const nxt = PROLOGUE_LINES.find(([at]) => at > t + 0.05);
     if (nxt && nxt[0] - t < 8) t = nxt[0];
   });

@@ -100,3 +100,48 @@
   #app#app.page-ui #panel#panel#panel { background: linear-gradient(180deg, #0b1226, #0a0f1f) !important; }
 }
 .prologue2 .pro-rebirth:has(.pro-choice:not(.hidden)) .pro-circle { display: none; } /* le halo passait sur « Ton nom » */
+
+/* v10.11.4 : on touche le monstre. Une cible dorée pulse sur le monstre à frapper, le doigt tape dessus. */
+.prologue2 .pro-target { position: absolute; left: 0; top: 0; z-index: 4; width: 0; height: 0; pointer-events: none; }
+.prologue2 .pro-target.hidden { display: none; }
+.prologue2 .pro-ring { position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid #ffd23f;
+  box-shadow: 0 0 14px #ffb300, inset 0 0 10px rgba(255, 210, 63, .5); animation: pro-ring 0.9s ease-in-out infinite; }
+.prologue2 .pro-target.big .pro-ring { left: -52px; top: -52px; width: 104px; height: 104px; }
+.prologue2 .pro-tfinger { position: absolute; left: 6px; top: 8px; font-size: 34px; animation: pro-tap 900ms ease-in-out infinite; filter: drop-shadow(0 2px 2px #000); }
+.prologue2 .pro-target b { position: absolute; left: 50%; top: -62px; transform: translateX(-50%); white-space: nowrap; font: 900 16px system-ui, sans-serif; color: #ffe9a8;
+  text-transform: uppercase; letter-spacing: .06em; text-shadow: 0 2px 0 #000, 0 0 10px #ff9d2a; }
+.prologue2 .pro-target.big b { top: -84px; }
+.prologue2:not(.qte) .pro-target .pro-tfinger, .prologue2:not(.qte) .pro-target b { display: none; }
+@keyframes pro-ring { 50% { transform: scale(1.18); opacity: .7; } }
+@keyframes pro-tap { 50% { transform: translate(-4px, -8px) scale(.92); } }
+
+/* v10.11.4 : haut de l'écran de jeu sur téléphone, compact et sans chevauchement.
+   Rangée 1 : événements (Roue, Coffre… en petites icônes) | Avance auto. Rangée 2 : carte de l'étape | objectifs et
+   Carnet en puces. Rangée 3 : Chemin du héros sur une ligne. Le combat garde toute la place en dessous. */
+@media (max-width: 600px) {
+  #hud106.hq-phone #hq-events { top: 4px !important; left: 6px !important; height: auto !important; padding: 3px 6px 4px !important; gap: 4px !important; border: 2px solid #4a3058; border-radius: 12px; align-items: flex-start; }
+  #hud106.hq-phone #hq-events .hq-ev { width: 42px; }
+  #hud106.hq-phone #hq-events .hq-ev-art { width: 34px; height: 34px; border-radius: 9px; }
+  #hud106.hq-phone #hq-events .hq-ev-art img { width: 28px; height: 28px; }
+  #hud106.hq-phone #hq-events small { margin-top: 5px; font-size: 9px; max-width: 44px; line-height: 1.1; }
+  #hud106.hq-phone #hq-events .hq-ev-timer { font-size: 8px; bottom: -6px; padding: 0 3px; }
+  #hud106.hq-phone #hq-events .hq-dot { transform: scale(.8); transform-origin: top right; }
+  #hud106.hq-phone #hq-events .hq-more .hq-ev-art { font-size: 18px; }
+  #stage-area:has(#hud106.hq-phone:not(.hidden)) #auto-toggle { top: 10px !important; right: 6px !important; left: auto !important; }
+  #stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card { top: 68px !important; left: 6px !important; }
+  #stage-area:has(#hud106.hq-phone:not(.hidden)) #goals-pill { top: 70px !important; left: auto !important; right: 6px !important; }
+  #hud106.hq-phone #hq-left { top: 132px !important; gap: 6px; }
+  #hud106.hq-phone #hq-left > #hq-carnet { position: absolute !important; top: -36px !important; right: 0 !important; left: auto !important; }
+  #hud106.hq-phone .hq-carnet-chip { padding: 3px 9px; font-size: 11px; }
+  #hud106.hq-phone .hq-carnet-chip img { width: 16px; height: 16px; }
+  #hud106.hq-phone .hq-carnet-done { padding: 4px 9px; font-size: 11px; max-width: 196px; }
+  #hud106.hq-phone .hq-carnet-done img { width: 18px; height: 18px; }
+  #hud106.hq-phone #hq-path { padding: 4px 8px !important; gap: 8px; }
+  #hud106.hq-phone #hq-path .hq-world { width: 30px; height: 30px; }
+  #hud106.hq-phone #hq-path .hq-kicker { font-size: 9px; }
+  #hud106.hq-phone #hq-path .hq-title { font-size: 12.5px; }
+  #hud106.hq-phone #hq-path .hq-btn { padding: 4px 10px; font-size: 12px; }
+  #hud106.hq-phone #hq-bounty { top: 196px; }
+}
+/* Arène : le bouton « Combattre » collé en bas a un fond plein (les étages ne passent plus dessous en transparence). */
+.ct-go { background: #0f1628; box-shadow: 0 -8px 12px #0f1628; }

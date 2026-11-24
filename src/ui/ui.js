@@ -2198,8 +2198,9 @@ export class UI {
     // v10.12 : sur téléphone, la consigne se pose juste sous la carte de l'étape (elle passait dessus quand la rangée
     // Roue / Coffre poussait la carte vers le bas).
     if (this.phone && typeof document !== 'undefined') {
-      const zc = this.$('zone-card')?.getBoundingClientRect(), sa = this.$('stage-area')?.getBoundingClientRect();
-      if (zc && sa && zc.height) el.style.setProperty('top', `${Math.round(zc.bottom - sa.top + 6)}px`, 'important');
+      const sa = this.$('stage-area')?.getBoundingClientRect();
+      const below = ['zone-card', 'hq-left'].map((id) => document.getElementById(id)?.getBoundingClientRect()).filter((b) => b?.height);
+      if (sa && below.length) el.style.setProperty('top', `${Math.round(Math.max(...below.map((b) => b.bottom)) - sa.top + 6)}px`, 'important'); // v10.11.4 : sous la carte de l'étape et le Chemin du héros
     } else el.style.removeProperty('top');
   }
 
@@ -2289,7 +2290,7 @@ export class UI {
     const count = this.$('count-hero');
     if (count) {
       count.classList.toggle('hidden', !fresh || this.tab === 'inventory');
-      count.textContent = `${fresh > 99 ? '99+' : fresh} ${fresh > 1 ? 'objets' : 'objet'}`; // v9.3.5 : chiffre avec sa légende
+      count.textContent = this.phone ? (fresh > 99 ? '99+' : String(fresh)) : `${fresh > 99 ? '99+' : fresh} ${fresh > 1 ? 'objets' : 'objet'}`; // v10.11.4 : téléphone, le chiffre seul (la légende passait sur l'icône Héros) // v9.3.5 : chiffre avec sa légende
       count.title = `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''} dans le sac`;
       count.setAttribute('aria-label', `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''}`);
     }

@@ -61,7 +61,10 @@ export function maybeLearnCard(ui, st) {
   // 30 boss) a déjà vu toutes les notions dont l'étape est dépassée.
   if ((st.records?.bossesDefeated ?? 0) > 30) for (const x of LEARN) if (stage > x.stage && !learned(st).includes(x.id)) learned(st).push(x.id);
   // v10.2 (4.1) : une notion demandée par le Sceau passe avant son étape ; sinon l'ordre des étapes.
-  const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id));
+  // v10.11.4 : une carte n'arrive que quand son écran est vraiment ouvert (« Essayer maintenant » menait nulle part
+  // quand l'onglet était encore fermé par sa mini-quête) ; elle attend sinon, sans être marquée comme vue.
+  const ready = (x) => !x.tab || ui.tabVisible?.[x.tab] !== false;
+  const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id) && ready(x)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id) && ready(x));
   if (!L) return;
   learned(st).push(L.id);
   const host = ui.$('stage-area');
@@ -75,7 +78,10 @@ export function maybeLearnCard(ui, st) {
   el.querySelector('[data-go]').addEventListener('click', () => {
     el.remove();
     if (L.id === 'lootbag') ui.lootBag?.toggle?.(true);
-    else if (L.tab) ui.openTab(L.tab);
+    else if (L.tab) {
+      ui.openTab(L.tab);
+      if (ui.tab !== L.tab) ui.toast?.(`${L.title} : termine la mini-quête en cours pour l'ouvrir`); // jamais un bouton sans effet
+    }
   });
   host.appendChild(el);
 }
