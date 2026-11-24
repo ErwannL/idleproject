@@ -267,5 +267,50 @@ html.reduce-motion #app:not(.m-phone) .d-bs .d-bs-res .m-chip.warn { animation: 
 #app#app:not(.m-phone) .d-bs .bs-kick { padding: 10px 16px; gap: 4px 18px; }
 #app#app:not(.m-phone) .d-bs .bs-kick > b { font-size: 17px; }
 #app#app:not(.m-phone) .d-bs .bs-kick span { font-size: 14px; }
-@container mframe (max-width: 999px) { #app#app:not(.m-phone) .d-bs .d-bs-cols { grid-template-columns: minmax(0, 1fr); } }
 #app#app:not(.m-phone) .d-bs .bs-plot .bs-job .bs-time { white-space: nowrap; }
+
+/* ======================================================================================================================
+   FENÊTRE BASSE (1366 x 768) : tout l'essentiel tient sans défiler. Carte et fiche côte à côte, annonce et bandeau d'âge en une
+   ligne ; Forge : les 4 ateliers et le doré ; Améliorations : Meilleur achat, Tout acheter, première ligne de chaque famille.
+   ====================================================================================================================== */
+#app#app:not(.m-phone) .d-bs .d-bs-cols { grid-template-columns: minmax(0, 1fr) 400px; }
+@container mframe (max-width: 899px) { #app#app:not(.m-phone) .d-bs .d-bs-cols { grid-template-columns: minmax(0, 1fr); } }
+@media (max-height: 820px) {
+  /* Bastion */
+  #app#app:not(.m-phone) .d-bs .m-modes.s64 { margin-bottom: 8px; }
+  #app#app:not(.m-phone) .d-bs .m-modes.s64 .m-mode { height: 46px; flex-direction: row; gap: 10px; }
+  #app#app:not(.m-phone) .d-bs .m-modes.s64 .m-mode img { width: 28px; height: 28px; }
+  #app#app:not(.m-phone) .d-bs .m-chips.d-bs-res { margin-bottom: 8px; }
+  #app#app:not(.m-phone) .d-bs .d-bs-res .m-chip { height: 34px; font-size: 15px; }
+  #app#app:not(.m-phone) .d-bs .bs-kick { display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 6px 12px; margin: 0 0 8px; }
+  #app#app:not(.m-phone) .d-bs .bs-kick > b { font-size: 15px; flex: 1 1 auto; }
+  #app#app:not(.m-phone) .d-bs .bs-kick > span { display: none; }
+  #app#app:not(.m-phone) .d-bs .bs-kick .btn { min-height: 44px; flex: none; }
+  #app#app:not(.m-phone) .d-bs .bs-age { padding: 4px 12px; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+  #app#app:not(.m-phone) .d-bs .bs-age small { display: none; }
+  #app#app:not(.m-phone) .d-bs .d-bs-left { gap: 8px; }
+  #app#app:not(.m-phone) .d-bs .d-bs-free .m-grid { --cols: 7; }
+  /* Forge */
+  #app#app:not(.m-phone) .d-forge .d-fg { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 10px; }
+  #app#app:not(.m-phone) .d-forge .fg-top > .fg-top-art, #app#app:not(.m-phone) .d-forge .fg-side-art { display: none; }
+  #app#app:not(.m-phone) .d-forge .fg-loop { gap: 4px 4px; grid-template-rows: auto 18px auto; }
+  #app#app:not(.m-phone) .d-forge .fg-loop > .fg-step { padding: 6px 8px 8px; gap: 5px; }
+  #app#app:not(.m-phone) .d-forge .fg-step > .fg-scene { aspect-ratio: 16 / 7.2; }
+  #app#app:not(.m-phone) .d-forge .fg-it { width: 40px; height: 40px; } #app#app:not(.m-phone) .d-forge .fg-it img { width: 32px; height: 32px; }
+  #app#app:not(.m-phone) .d-forge .fg-diagram > img { width: 28px; height: 28px; }
+  #app#app:not(.m-phone) .d-forge .fg-step-head b { font-size: 15px; }
+  #app#app:not(.m-phone) .d-forge .fg-now, #app#app:not(.m-phone) .d-forge .fg-now.good { font-size: 13px; padding: 4px 8px; }
+  #app#app:not(.m-phone) .d-forge .fg-step .btn.fg-btn { min-height: 40px; height: 40px; font-size: 15px; }
+  /* Améliorations */
+  #app#app:not(.m-phone) .d-upg .d-up { gap: 8px; }
+  #app#app:not(.m-phone) .d-upg .d-topart { display: none; }
+  #app#app:not(.m-phone) .d-upg .upg-toprow { gap: 8px; }
+  #app#app:not(.m-phone) .d-upg .upg-bestbuy { padding: 8px 12px; grid-template-columns: 64px minmax(0, 1fr) auto; }
+  #app#app:not(.m-phone) .d-upg .upg-bestbuy .upg-bb-medal { width: 64px !important; height: 64px !important; }
+  #app#app:not(.m-phone) .d-upg .upg-bb-main > b { font-size: 17px; }
+  #app#app:not(.m-phone) .d-upg .upg-top { padding: 8px 12px !important; gap: 6px; }
+  #app#app:not(.m-phone) .d-upg .upg-top .forecast { display: none !important; }
+  #app#app:not(.m-phone) .d-upg .upg-top .btn-gold.buy-all, #app#app:not(.m-phone) .d-upg .upg-top .buy-all[disabled] { height: 50px; min-height: 50px; font-size: 20px; }
+  #app#app:not(.m-phone) .d-upg .upg-group-head { height: 44px; margin-bottom: 6px; }
+  #app#app:not(.m-phone) .d-upg .upg-group-head span { font-size: 17px; }
+}

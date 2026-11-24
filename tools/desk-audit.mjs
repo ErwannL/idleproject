@@ -209,8 +209,10 @@ export async function runAudit(argv) {
       for (const tab of tabs) {
         if (!await openTab(g.page, tab)) { report.push({ game, size: `${w}x${h}`, tab, view: tab, issues: [], skipped: 'onglet fermé (pas débloqué)' }); continue; }
         await record(g, game, w, h, tab, tab, 'tab', tab);
-        for (const m of await listModes(g.page)) {
-          if (!await clickMode(g.page, m)) continue;
+        const modes = await listModes(g.page);
+        for (const m of modes) {
+          // un mode peut manquer dans l'écran du mode précédent (ex. Ouvriers depuis Recherches) : on repasse par le premier mode
+          if (!await clickMode(g.page, m) && !(modes[0] !== m && await clickMode(g.page, modes[0]) && await clickMode(g.page, m))) continue;
           await record(g, game, w, h, tab, `${tab}/${m.value || m.label}`, 'tab', `${tab}--${slug(m.value || m.label)}`);
         }
         if (tab === 'camp') await researchViews(g, (view, name) => record(g, game, w, h, tab, view, 'tab', name)); // v10.13 (§ 7) : Bastion › Recherches
