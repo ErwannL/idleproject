@@ -561,3 +561,33 @@ test('site : une vidéo envoyée reçoit une version téléphone (540 px) et une
   assert.match(v.poster ?? '', /-poster\.jpg$/);
   assert.ok(existsSync(`${uploadsDir}/video/${v.phone.split('/').pop()}`));
 });
+
+// Site : les dictionnaires FR et EN ont la même structure, et l'anglais ne contient aucun texte français.
+test('site i18n : mêmes clés en FR et EN, aucun accent français dans en.js', async () => {
+  const [{ default: en }, { default: fr }] = await Promise.all([import('../site/i18n/en.js'), import('../site/i18n/fr.js')]);
+  const shape = (v) => (typeof v === 'function' || v === null || typeof v !== 'object' ? 'leaf' : Array.isArray(v) ? v.map(shape) : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, shape(x)])));
+  const keys = (a, b, path, missing) => {
+    if (a === 'leaf' || b === 'leaf') { if (a !== b) missing.push(`${path} (forme différente)`); return; }
+    if (Array.isArray(a) || Array.isArray(b)) {
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) missing.push(`${path} (tableau)`); else a.forEach((x, i) => keys(x, b[i], `${path}[${i}]`, missing));
+      return;
+    }
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) {
+      if (path === 'tiers' && k === 'tags') continue; // étiquettes françaises d'origine : traduites seulement en anglais
+      if (!(k in a) || !(k in b)) { missing.push(`${path}.${k}`); continue; }
+      keys(a[k], b[k], path ? `${path}.${k}` : k, missing);
+    }
+  };
+  const missing = [];
+  keys(shape(fr), shape(en), '', missing);
+  assert.deepEqual(missing, [], `clés différentes entre fr.js et en.js : ${missing.join(', ')}`);
+  const accents = /[àâäçéèêëîïôöûùüÿœÀÂÉÈÊÎÔÛÇŒ]/;
+  const bad = [];
+  const walk = (v, path) => {
+    if (typeof v === 'string') { if (accents.test(v) && v !== 'Français') bad.push(`${path}: ${v}`); return; }
+    if (Array.isArray(v)) return v.forEach((x, i) => walk(x, `${path}[${i}]`));
+    if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { if (path === 'tiers' && k === 'tags') continue; walk(x, path ? `${path}.${k}` : k); }
+  };
+  walk(en, '');
+  assert.deepEqual(bad, [], `texte français dans en.js : ${bad.join(' | ')}`);
+});

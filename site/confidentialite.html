@@ -112,8 +112,8 @@
     // Langue : ?lang=, sinon celle choisie sur le site, sinon celle du navigateur (français par défaut).
     let lang = new URLSearchParams(location.search).get('lang');
     try { lang ??= localStorage.getItem('ascendrya-lang'); } catch { /* stockage bloqué */ }
-    lang ??= (navigator.language || 'fr').slice(0, 2);
-    const en = lang === 'en';
+    lang ??= (navigator.language || 'en').slice(0, 2);
+    const en = lang !== 'fr'; // anglais par défaut, comme l'accueil
     document.documentElement.lang = en ? 'en' : 'fr';
     document.title = en ? 'Privacy · Ascendrya' : 'Confidentialité · Ascendrya';
     for (const el of document.querySelectorAll('[data-l]')) el.hidden = el.dataset.l !== (en ? 'en' : 'fr');

@@ -46,7 +46,7 @@
   <main class="wrap">
     <h1 data-i="title">Classement</h1>
     <p class="sub" data-i="sub">Les meilleurs aventuriers d'Ascendrya</p>
-    <div class="tabs" role="tablist" aria-label="Catégorie">
+    <div class="tabs" role="tablist" aria-label="Catégorie" data-a="aria-label:cat">
       <button class="tab" role="tab" data-sort="stage" aria-selected="true" data-i="stage">Étape max</button>
       <button class="tab" role="tab" data-sort="level" aria-selected="false" data-i="level">Niveau</button>
       <button class="tab" role="tab" data-sort="bosses" aria-selected="false" data-i="bosses">Boss vaincus</button>
@@ -67,17 +67,19 @@
     // Langue : ?lang=, sinon celle choisie sur le site, sinon celle du navigateur (français par défaut).
     let lang = new URLSearchParams(location.search).get('lang');
     try { lang ??= localStorage.getItem('ascendrya-lang'); } catch { /* stockage bloqué */ }
-    lang = (lang ?? navigator.language ?? 'fr').slice(0, 2) === 'en' ? 'en' : 'fr';
+    lang = (lang ?? navigator.language ?? 'en').slice(0, 2) === 'fr' ? 'fr' : 'en'; // anglais par défaut, comme l'accueil
     const TX = {
       fr: { title: 'Classement', sub: "Les meilleurs aventuriers d'Ascendrya", stage: 'Étape max', level: 'Niveau', bosses: 'Boss vaincus', boss: 'Boss', pseudo: 'Pseudo',
         foot: "Seuls les joueurs ayant choisi d'apparaître sont listés, et les nouvelles parties sont exclues.", home: "Retour à l'accueil", privacy: 'Confidentialité',
-        loading: 'Chargement…', empty: 'Pas encore de joueurs classés. Soyez le premier !', error: 'Classement indisponible pour le moment.', doc: 'Classement · Ascendrya' },
+        loading: 'Chargement…', empty: 'Pas encore de joueurs classés. Soyez le premier !', error: 'Classement indisponible pour le moment.', doc: 'Classement · Ascendrya', cat: 'Catégorie', desc: "Classement des meilleurs aventuriers d'Ascendrya : étape, niveau et boss vaincus." },
       en: { title: 'Leaderboard', sub: 'The best adventurers of Ascendrya', stage: 'Best stage', level: 'Level', bosses: 'Bosses defeated', boss: 'Bosses', pseudo: 'Player',
         foot: 'Only players who chose to appear are listed, and brand-new games are left out.', home: 'Back to home', privacy: 'Privacy',
-        loading: 'Loading…', empty: 'No ranked players yet. Be the first!', error: 'Leaderboard unavailable right now.', doc: 'Leaderboard · Ascendrya' },
+        loading: 'Loading…', empty: 'No ranked players yet. Be the first!', error: 'Leaderboard unavailable right now.', doc: 'Leaderboard · Ascendrya', cat: 'Category', desc: 'Leaderboard of the best Ascendrya adventurers: stage, level and bosses defeated.' },
     }[lang];
     document.documentElement.lang = lang;
     document.title = TX.doc;
+    document.querySelector('meta[name="description"]').content = TX.desc;
+    for (const el of document.querySelectorAll('[data-a]')) { const [a, k] = el.dataset.a.split(':'); el.setAttribute(a, TX[k]); }
     for (const el of document.querySelectorAll('[data-i]')) el.textContent = TX[el.dataset.i];
     if (lang === 'en') { document.getElementById('home-link').href = '/?lang=en'; document.getElementById('privacy-link').href = '/confidentialite.html?lang=en'; }
     const fmt = (n) => (n ?? 0).toLocaleString(lang === 'en' ? 'en-US' : 'fr-FR');

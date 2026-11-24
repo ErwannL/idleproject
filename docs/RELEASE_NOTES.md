@@ -1,11 +1,20 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.11.3 — Passe téléphone
+## Ascendrya v10.11.4 — Téléphone, 2e tour
+
+- **Tuto** : on touche le monstre pour le frapper (anneau doré, doigt et « TOUCHE ! » sur lui) ; chaque appui le touche vraiment et les monstres tombent.
+- **Haut de l'écran** : événements en petites icônes, objectifs et Carnet à côté de l'étape ; plus rien ne se chevauche et le combat a plus de place.
+- **« Essayer maintenant »** : une carte de nouveauté n'arrive que quand son écran est ouvert, et le bouton y mène.
+- **Site** : classement et confidentialité entièrement en anglais quand l'anglais est choisi.
+
+<details><summary>Ascendrya v10.11.3 — Passe téléphone</summary>
 
 - **Prologue en film d'action** : cartons de titre qui arrivent en force, éclairs et secousses, ralenti au moment d'agir (toucher n'importe où suffit, et l'action part seule au bout de 6 s : on ne reste jamais bloqué), « CRITIQUE ! », « SOIN ! », « FLAMMES ! ». Le bouton est au-dessus de la barre de gestes d'Android.
 - **Réincarnation** : le choix touché brille au lieu de délaver tout l'écran ; le champ du nom est clair.
 - **Équipement** : la fiche d'un objet ne fait plus sauter la page ; elle commence sous les cases, qui restent visibles, et Changer, Retirer et le cadenas sont de gros boutons.
 - **Écran de jeu** : la consigne de quête ne passe plus sur le nom de l'étape ; « ▶︎ Avance auto » s'affiche sur tous les téléphones ; les onglets ont un fond opaque (plus de texte du combat derrière).
+
+</details>
 
 <details><summary>Ascendrya v10.11.2 — Logo du site</summary>
 
