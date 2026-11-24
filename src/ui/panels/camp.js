@@ -14,7 +14,7 @@ import { SLOTS } from '../../data/items.js';
 import { BASTION_MAX_LEVEL, BASTION_UNLOCK_STAGE, FORGE_PERKS, LIBRARY, RESEARCH_UNLOCK_LEVEL, TRADE_POST, WORKER_RULES } from '../../data/bastion.js';
 import {
   BUILDINGS, ORDER_TIERS, RESEARCH, RESEARCH_BRANCHES, TRADES, availableWorkers, bastionLevel, bastionOf, buildCost, buildRemaining, buildingAccess,
-  buildingDef, buildingLevel, canBuild, canOrder, canResearch, forgePerks, orderChances, orderCost, orderLabel, orderRemaining, orderSlots, orderTierOpen,
+  buildingDef, buildingLevel, canBuild, researchDef, canOrder, canResearch, forgePerks, orderChances, orderCost, orderLabel, orderRemaining, orderSlots, orderTierOpen,
   ordersReady, productionFactor, productionOf, researchCost, researchRemaining, researchSlots, researchStatus, stockOf, tradeLeft,
   tradeOf, tradeOffer, workerBonus, workerBuilding, workerOf, workerSlots, workersPlaced,
 } from '../../core/bastion.js';
@@ -36,7 +36,7 @@ import { ageDef, bastionAge, bastionMult, nextAge } from '../../core/bastion-bas
 import { BLACK_MARKET_SHARDS, ENGRAVE_SHARDS, ascensionCost, ascensionPool, blackMarketOpen, canAscend, canEngrave } from '../../core/bastion-ages.js';
 import { rarityIndex } from '../../core/loot.js';
 import expeditionsPanel, { companionStill, isPhoneUi } from './expeditions.js';
-import { mBar, mBtn, mBtnGold, mChip, mGrid, mModes, mSheet, mTile, mTitle } from '../mobile-kit.js'; // v10.12 : kit mobile (téléphone)
+import { mBar, mBtn, mBtnGold, mChip, mCost, mGrid, mModes, mSheet, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 : kit mobile (téléphone)
 
 let PHONE = false; // v10.12 : vrai pendant le rendu téléphone (le PC garde son HTML d'origine)
 
@@ -311,6 +311,7 @@ export function shortResearchName(name) {
 }
 
 function researchTree(ui, state, now, below = false) {
+  if (PHONE) return researchTreePhone(ui, state, now);
   const lib = buildingLevel(state, 'library');
   // v10.8 (partie 5) : une page par palier (I à V) ; on tourne les pages, celle en cours garde un ruban. Les nœuds clés
   // (palier III) s'allument en or.
@@ -340,6 +341,7 @@ function researchTree(ui, state, now, below = false) {
 }
 
 function researchSheet(ui, state, now) {
+  if (PHONE) return researchSheetPhone(ui, state, now);
   const def = RESEARCH.find((r) => r.id === ui.view.bastionRes) ?? RESEARCH.find((r) => researchStatus(state, r.id).active) ?? RESEARCH[0];
   const st = researchStatus(state, def.id);
   const head = `<div class="bs-hero res" style="background-image:url(${ART('research_tree_bg')})"><img class="px bs-hero-b node" src="${researchArt(def.id)}" alt="">
@@ -355,6 +357,98 @@ function researchSheet(ui, state, now) {
       <div class="bs-costs">${have(cost, state)}${duration(cost.ms, f)}</div>
       ${PHONE ? mBtnGold('Lancer', { action: 'bastion-research', value: def.id, disabled: !can.ok }) : `<button class="btn btn-gold" data-action="bastion-research" data-value="${def.id}" ${can.ok ? '' : 'disabled'}>Lancer</button>`}
       ${can.ok ? '' : `<small class="bs-why">${escapeHtml(can.reason)}</small>`}</div>${versus}${words()}`;
+}
+
+// ---------------------------------------------------------------- v10.12 (finition) : Recherches sur téléphone, en kit
+// Emplacements (recherches en cours) → paliers I à V (.m-modes) → branches (.m-modes) → un chemin vertical de médaillons
+// ronds ; un toucher ouvre la fiche .m-sheet, produite depuis ui.view.bastionRes (actions inchangées).
+const mrTime = (state, id, now) => {
+  const r = researchRemaining(state, id);
+  return Number.isFinite(r) ? `<span class="mr-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="mr-time bad">en pause</span>';
+};
+const mrMedal = (def, st, big = false) => `<span class="mr-medal${big ? ' big' : ''}${def.keystone ? ' key' : ''}${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}"><img class="px" src="${researchArt(def.id)}" alt="" draggable="false">${!st.unlocked ? `<i class="mr-badge">${img('icon_lock')}</i>` : st.maxed ? '<i class="mr-badge ok">✓</i>' : ''}</span>`;
+function mrLockText(st) {
+  if (st.ageLock) return `Âge ${st.ageLock.roman} requis`;
+  if (st.lockedBy) return `Après ${st.lockedBy.name} niv. ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}`;
+  return '';
+}
+
+function mrNode(ui, state, def, now, last) {
+  const st = researchStatus(state, def.id);
+  const seen = (ui.view.resSeen ??= {});
+  const fresh = st.unlocked && seen[def.id] === false;
+  seen[def.id] = Boolean(st.unlocked);
+  const meta = st.active ? `<span class="mr-lv">Niv. ${st.level} → ${st.level + 1}</span>${mrTime(state, def.id, now)}`
+    : !st.unlocked ? `<span class="mr-lockline">${img('icon_lock')} ${escapeHtml(mrLockText(st))}</span>`
+      : st.maxed ? `<span class="mr-lv ok">Niv. ${st.level}/${def.max} · max</span>` : `<span class="mr-lv">Niv. ${st.level}/${def.max}</span>`;
+  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${def.keystone ? ' key' : ''}${fresh ? ' fresh' : ''}${ui.view.bastionRes === def.id ? ' sel' : ''}${last ? ' last' : ''}`;
+  return `<button type="button" class="mr-node${cls}" data-action="bastion-res" data-value="${def.id}" aria-label="${escapeHtml(`${def.name}, niveau ${st.level} sur ${def.max}`)}">
+      ${mrMedal(def, st)}<span class="mr-txt"><b class="mr-name">${escapeHtml(def.name)}</b><span class="mr-meta">${meta}</span></span><span class="mr-go" aria-hidden="true">›</span></button>`;
+}
+
+function researchTreePhone(ui, state, now) {
+  const lib = buildingLevel(state, 'library');
+  const age = Math.max(1, bastionAge(state));
+  const page = Math.min(5, Math.max(1, Number(ui.view.resPage) || 1));
+  const branch = RESEARCH_BRANCHES.find((b) => b.id === ui.view.resBranch) ?? RESEARCH_BRANCHES[0];
+  const b = bastionOf(state);
+  const slots = researchSlots(state);
+  const cells = [];
+  for (let i = 0; i < Math.max(1, slots); i++) {
+    const job = b.research.active[i];
+    const d = job ? researchDef(job.id) : null;
+    if (d) {
+      cells.push(`<button type="button" class="mr-slot busy" data-action="bastion-res" data-value="${job.id}" aria-label="${escapeHtml(d.name)}">${mrMedal(d, researchStatus(state, job.id))}<b class="mr-sname">${escapeHtml(d.name)}</b>${mrTime(state, job.id, now)}</button>`);
+    } else {
+      cells.push(`<span class="mr-slot free${lib < 1 ? ' off' : ''}"><span class="mr-medal empty">${lib < 1 ? img('icon_lock') : '+'}</span><b class="mr-sname">${lib < 1 ? 'Fermée' : 'Libre'}</b></span>`);
+    }
+  }
+  const head = `<div class="m-card mr-slots"><div class="mr-slots-top"><b>Recherches en cours</b><span class="mr-count num">${b.research.active.length}/${slots}</span></div><div class="mr-slotrow">${cells.join('')}</div></div>`;
+  const tiers = mModes([1, 2, 3, 4, 5].map((t) => {
+    const open = t <= age;
+    return { id: String(t), label: open ? `Pal. ${AGES[t - 1].roman}` : `Âge ${AGES[t - 1].roman}`, icon: open ? undefined : 'icon_lock', action: 'bastion-page', value: String(t) };
+  }), String(page), { size: 64 });
+  const branches = mModes(RESEARCH_BRANCHES.map((br) => ({ id: br.id, label: br.name, icon: `file:${ART(`research_branch_${br.id}`)}`, action: 'bastion-branch', value: br.id })), branch.id, { size: 64 });
+  const regular = RESEARCH.filter((r) => r.branch === branch.id && (r.tier ?? 1) === page && !r.keystone);
+  const keys = page === 3 ? RESEARCH.filter((r) => r.branch === branch.id && r.keystone) : [];
+  const all = [...regular, ...keys];
+  const lockMsg = lib < 1 ? `${img('icon_lock')} Construis la Bibliothèque` : page > age ? `${img('icon_lock')} Âge ${AGES[page - 1].roman} : ${escapeHtml(AGES[page - 1].name)}` : '';
+  const path = all.map((r, i) => `${keys.length && r === keys[0] ? '<div class="mr-keyhead"><i></i><span>Nœuds clés</span><i></i></div>' : ''}${mrNode(ui, state, r, now, i === all.length - 1)}`).join('');
+  return `<div class="mr-view">${head}<div class="mr-tiers">${tiers}</div>${branches}
+    <div class="mr-pathhead tier-${page}"><b>Palier ${AGES[page - 1].roman}</b><span>${escapeHtml(AGES[page - 1].name)}</span></div>
+    ${lockMsg ? `<p class="mr-lock">${lockMsg}</p>` : ''}<div class="m-card mr-path${lockMsg ? ' closed' : ''}">${path}</div></div>`;
+}
+
+function researchSheetPhone(ui, state, now) {
+  const def = RESEARCH.find((r) => r.id === ui.view.bastionRes) ?? RESEARCH.find((r) => researchStatus(state, r.id).active) ?? RESEARCH[0];
+  const st = researchStatus(state, def.id);
+  const f = productionFactor(state, 'library');
+  const top = `<div class="m-card mr-hero${def.keystone ? ' key' : ''}">${mrMedal(def, st, true)}<span class="mr-htxt"><b>${escapeHtml(def.name)}</b><span class="mr-lv">Niv. ${st.level}/${def.max}${def.keystone ? ' · nœud clé' : ''}</span><small>${escapeHtml(def.text)}</small></span></div>`;
+  const num = (n) => formatNumber(Math.floor(n));
+  let mid = '';
+  let btn = '';
+  if (st.maxed) {
+    mid = `<div class="m-card mr-fx"><span class="mr-fx-l">Effet total</span><b class="good">${escapeHtml(researchText(def, st.level))}</b></div>`;
+  } else if (!st.unlocked) {
+    mid = `<div class="m-card mr-fx"><span class="mr-fx-l">Effet</span><b>${escapeHtml(researchText(def, 1))}</b></div><p class="mr-lock">${img('icon_lock')} ${escapeHtml(mrLockText(st))}</p>`;
+    btn = mBtnGold('Verrouillée', { disabled: true });
+  } else {
+    const cost = researchCost(state, def.id);
+    const can = canResearch(state, def.id);
+    const split = (t) => t.match(/^([+−\-×]?\d+(?:,\d+)?(?: ?%| h)?)\s*(.*)$/) ?? [t, t, ''];
+    const [, nowV] = split(researchText(def, st.level || 1));
+    const [, nextV, what] = split(researchText(def, st.level + 1));
+    const fx = `<div class="m-card mr-fx up"><span class="mr-fx-l">Niv. ${st.level} → ${st.level + 1}</span><b><span class="was">${st.level ? escapeHtml(nowV) : '—'}</span> <i>»</i> <span class="good">${escapeHtml(nextV)}</span></b>${what ? `<small>${escapeHtml(what)}</small>` : ''}</div>`;
+    if (st.active) {
+      mid = `${fx}<div class="m-card mr-run"><span class="mr-run-l">En cours</span>${jobBar(st.active, f, now, 'work')}${mrTime(state, def.id, now)}</div>`;
+      btn = mBtnGold('En cours', { disabled: true });
+    } else {
+      const dur = f > 0 ? formatDuration(cost.ms / f / 1000) : `${formatDuration(cost.ms / 1000)} · à l'arrêt`;
+      mid = `${fx}<div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: num })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: num })}</div>${mStat('icon_timer', 'Durée', dur)}`;
+      btn = mBtnGold(st.level ? 'Améliorer' : 'Lancer', { action: 'bastion-research', value: def.id, disabled: !can.ok }) + (can.ok ? '' : `<small class="mr-why">${escapeHtml(can.reason)}</small>`);
+    }
+  }
+  return `<div class="mr-body">${top}${mid}${btn}<p class="mr-note">Gardées après les Renaissances.</p></div>`;
 }
 
 // ---------------------------------------------------------------- la fiche du bâtiment
@@ -642,7 +736,7 @@ function renderBastionPhone(ui, state, now) {
   else if (v.bastionAgeNew) sheet = ageSheet(ui, state);
   else if (view === 'research' ? v.bastionRes : v.bastionSel) {
     const body = view === 'research' ? researchSheet(ui, state, now) : buildingSheet(ui, state, now);
-    const name = view === 'research' ? RESEARCH.find((r) => r.id === v.bastionRes)?.name : buildingDef(v.bastionSel)?.name;
+    const name = view === 'research' ? 'Recherche' : buildingDef(v.bastionSel)?.name; // v10.12 : le nom complet est dans la fiche (cartouche trop étroit)
     if (body) sheet = mSheet(name ?? 'Bastion', body, { id: 'bs-sheet', icon: 'tab_expeditions', back: 'bastion-close', close: 'bastion-close' });
   }
   return `<div class="m-frame mt-frame mt-bastion">${mTitle('tab_expeditions', 'Bastion', true)}${chips}${modes}
