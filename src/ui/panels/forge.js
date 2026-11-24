@@ -298,16 +298,16 @@ export default {
     const steps = [
       step('recycle', 1, 'Recycler', `${it(sword, 'common')}${it(helm, 'rare')}<i>→</i>${img('icon_shard')}${img('coin')}`,
         'Les objets inutiles deviennent des éclats et de l\'or.', now.recycle,
-        `<button class="btn btn-gold fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>`),
+        `<button class="btn fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>`),
       step('upgrade', 2, 'Renforcer', `${it(sword, 'epic')}<b>+</b>${img('icon_shard')}<i>→</i>${it(sword, 'epic', '<em>+1</em>')}`,
         `Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.`, now.upgrade,
-        '<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
+        '<button class="btn fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
       step('fuse', 3, 'Fusionner', `<span class="fg-five">${'<s class="r-epic"></s>'.repeat(BALANCE.forge.fusionCount)}</span><i>→</i>${it(sword, 'legendary')}`,
         `${BALANCE.forge.fusionCount} objets de la même place et de la même rareté : 1 objet de la rareté au-dessus.`, now.fuse,
-        `<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="fuse">Fusionner${fuses ? ` (${fuses})` : ''}</button>`),
+        `<button class="btn fg-btn" data-action="forge-seg" data-value="fuse">Fusionner${fuses ? ` (${fuses})` : ''}</button>`),
       step('craft', 4, 'Fabriquer', `${img('coin')}<b>+</b>${img('icon_shard')}<i>→</i>${it(helm, 'rare', '<em>✦</em>')}`,
         'De l\'or et des éclats : un objet neuf, pour la place que tu choisis.', now.craft,
-        '<button class="btn btn-gold fg-btn" data-action="forge-seg" data-value="craft">Fabriquer</button>'),
+        '<button class="btn fg-btn" data-action="forge-seg" data-value="craft">Fabriquer</button>'),
     ].join('<i class="fg-arrow" aria-hidden="true">→</i>');
     const body = seg === 'recycle' ? recycleBody(state, now.preview) : seg === 'upgrade' ? upgradeBody(ui, state, now.ranking, now.upgrade.item) : seg === 'fuse' ? fuseBody(ui, state, now.groups) : craftBody(ui, state);
     const chip = (key, pic, v, word) => `<button class="eq-res-chip" data-gloss="${key}" title="${word}" aria-label="${word}">${img(pic)}<b class="num">${formatNumber(v)}</b></button>`;
@@ -315,9 +315,11 @@ export default {
     // numéro, son titre et son schéma posés dessus.
     // v10.4 (partie 2) : gabarit de page — ressources en haut, les 4 ateliers en grand, le détail de l'atelier choisi à
     // côté (la fusion détaillée se lit sans défiler).
-    return `<div class="fg pg pg-wide fg-on-${seg}"><div class="pg-top fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
+    // v10.13 : la Forge garde son allure (4 ateliers illustrés + détail) mais vit dans le cadre du kit PC : cartouche de titre dedans,
+    // un seul bouton doré (l'action du détail), texte d'au moins 12 px (desk-base.css).
+    return `<div class="m-frame d-forge">${mTitle('icon_anvil', 'Forge', true)}<div class="fg d-fg fg-on-${seg}"><div class="fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
       <img class="px art-banner fg-top-art" src="assets/ui/art104/forge_banner_wide.png" loading="lazy" alt="" aria-hidden="true"></div>
-      <div class="pg-main fg-main"><div class="fg-loop">${steps}</div></div><div class="pg-side pg-inline fg-side"><img class="px fg-side-art" src="assets/ui/art104/forge_step_${seg}.png" alt="" aria-hidden="true">${body}</div></div>`; // v10.6 (10) : l'atelier choisi en grand au-dessus de sa fiche
+      <div class="fg-main"><div class="fg-loop">${steps}</div></div><div class="fg-side"><img class="px fg-side-art" src="assets/ui/art104/forge_step_${seg}.png" alt="" aria-hidden="true">${body}</div></div></div>`; // v10.6 (10) : l'atelier choisi en grand au-dessus de sa fiche
   },
 };
 export const escape = escapeHtml;
