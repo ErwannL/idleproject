@@ -8,7 +8,8 @@ import { formatNumber } from './format.js';
 import { bossesForStage, createCombat, heroPower, isBossStage, step } from './combat.js';
 import { Rng } from './rng.js';
 import { endWorldRun } from './banner.js';
-import { isUpgrade, uselessItems } from './inventory.js';
+import { isUpgrade, teamUpgradeFor, uselessItems } from './inventory.js';
+import { canEquip } from './classes.js';
 import { companionById, companionUpgradeCost, onExpedition, teamKind, teamSlotsOf, unitLevel } from './companions.js';
 import { teamAdvice } from './team-advisor.js'; // v9.5.0
 import { upgradeProfits } from './profit.js';
@@ -99,7 +100,7 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
 
 // v10.13 (9) : une seule source de vérité pour « où mène la prochaine action conseillée » — le Sceau, le doigt du tutoriel
 // et les tests de parcours (tools/e2e-beginner.mjs) lisent tous cet écran. null : aucun écran précis (une action sur place).
-const ACTION_SCREEN = { 'equip-best': 'inventory', buy: 'upgrades', 'distribute-skills': 'skills', 'cast-first': 'skills', 'place-companion': 'companions',
+const ACTION_SCREEN = { 'equip-best': 'inventory', 'equip-unit': 'inventory', buy: 'upgrades', 'distribute-skills': 'skills', 'cast-first': 'skills', 'place-companion': 'companions',
   'apply-team': 'companions', 'upgrade-companion': 'companions', 'recycle-useless': 'inventory' };
 const ID_SCREEN = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', level: 'companions', rebirth: 'tree', fusion: 'forge', recycle: 'inventory' };
 export function adviceScreen(n) {
@@ -111,6 +112,7 @@ function whyOf(n, state, balance) {
   try {
     switch (n.id) {
       case 'equip': {
+        if (n.action === 'equip-unit') return 'Ton compagnon devient plus fort';
         const cur = computeHeroStats(state, balance).combatPower;
         const one = state.inventory.find((i) => isUpgrade(state, i, balance));
         const g = one ? (statsWithItem(state, one, balance).combatPower / cur - 1) * 100 : 0;
@@ -162,7 +164,13 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   if (bag.length >= 12 || bag.some((i) => isUpgrade(state, i, balance, current))) yield { id: 'lootbag', text: `Trier le coffre de butin (${bag.length})`, action: 'lootbag' };
   // v9.8 (E8) : « Équiper » suit isUpgrade (bilan dégâts/s × robustesse) ; le conseil semblait inutile à cause de
   // l'affichage des objets en valeurs brutes (« +6,3 M » à côté de « 2,4 Qa »), corrigé en A (gain en % de puissance).
-  const better = state.inventory.filter((i) => isUpgrade(state, i, balance, current)).length;
+  const betterAll = state.inventory.filter((i) => isUpgrade(state, i, balance, current));
+  // v10.13 (9) : un objet meilleur seulement pour un compagnon : le conseil le dit et mène à lui (Équipement, ce compagnon choisi).
+  const better = betterAll.filter((i) => canEquip(state, i)).length;
+  if (!better && betterAll.length) {
+    const it = betterAll[0], uid = teamUpgradeFor(state, it);
+    if (uid) yield { id: 'equip', text: `Équiper ${companionById(uid)?.name ?? 'ton compagnon'} : ${it.name}`, action: 'equip-unit', value: uid, itemId: it.id };
+  }
   if (better) { const one = state.inventory.find((i) => isUpgrade(state, i, balance, current)); yield { id: 'equip', text: better > 1 ? `Équiper ${better} objets meilleurs` : `Équiper ${one.name}`, action: 'equip-best' }; } // v9.9 (K2) : le nom de l'objet
   const place = companionToPlace(state, balance);
   if (place) yield { id: 'place', text: `Placer ${place.name} dans l'équipe`, action: 'place-companion', value: place.id };
