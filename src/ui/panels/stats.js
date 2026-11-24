@@ -4,6 +4,8 @@ import { ZONES } from '../../data/zones.js';
 import { TIME_MODES, average, cyclesPlayed, zoneTime } from '../../core/times.js';
 import { escapeHtml, formatNumber } from '../common.js';
 
+import { mStat } from '../mobile-kit.js'; // v10.12
+import { isMPhone, mpChips, mpFrame } from './profile-m.js';
 const MODE_LABELS = { campaign: 'Campagne', dungeon: 'Donjons', tower: 'Tour', challenge: 'Défi de la semaine' };
 
 export function formatDuration(seconds) {
@@ -38,11 +40,76 @@ function runsBlock(title, runs, best, current, count) {
     ${runs.length > 1 ? `<div class="runs-spark" title="Durée des dernières">${runs.slice(-20).map((r) => `<i style="height:${Math.max(6, (r / Math.max(...runs.slice(-20))) * 100)}%" title="${formatDuration(r)}"></i>`).join('')}</div>` : ''}</div>`;
 }
 
+
+// ---------- v10.12 : Statistiques sur téléphone (kit mobile) ----------
+// Grille régulière de 2 colonnes de .m-card de même hauteur (icône, chiffre, libellé) ; « Monde » = rangée de .m-chip.
+const sCard = (art, value, label) => `<div class="m-card mp-stat"><img class="px" src="assets/ui/art101/${art}.png" alt=""><b class="num">${value}</b><small>${label}</small></div>`;
+const sGrid = (cards) => `<div class="mp-stats">${cards.join('')}</div>`;
+const sLine = (label, value, note = '') => mStat('icon_book', label, `${value}${note ? ` · ${note}` : ''}`);
+function sBars(rows, total) {
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return `<div class="m-card mp-tbars">${rows.map((r) => {
+    const inner = `<span class="mp-tb-label">${r.label}</span><span class="mp-tb-track"><i style="width:${(r.value / max) * 100}%"></i></span><span class="mp-tb-val">${formatDuration(r.value)}<small>${pct(r.value, total)}</small></span>`;
+    return r.action ? `<button type="button" class="mp-tbar" data-action="stats-zone" data-value="${r.action}">${inner}</button>` : `<div class="mp-tbar">${inner}</div>`;
+  }).join('')}</div>`;
+}
+function sRuns(title, runs, best, current, count) {
+  if (!count && !runs.length) return '';
+  const last = runs.at(-1);
+  return `<div class="mp-sub">${title}</div><div class="m-card">${sLine('Nombre', formatNumber(count))}${sLine('En cours depuis', formatDuration(current))}${best ? sLine('La plus rapide', formatDuration(best)) : ''}
+    ${runs.length ? sLine('Moyenne', formatDuration(average(runs)), `sur ${runs.length}`) : ''}${last ? sLine('La dernière', formatDuration(last)) : ''}</div>`;
+}
+
+function statsPhone(ui, state) {
+  const t = state.times;
+  const zone = ui.view.statsZone ?? 'all';
+  const campaign = t.modes.campaign;
+  const active = TIME_MODES.reduce((s, m) => s + t.modes[m], 0);
+  const chips = `<div class="mp-sub">Monde</div>${mpChips('stats-zone-select', [['all', 'Tous'], ...ZONES.map((z, i) => [i, `${i + 1}. ${z.name}`])], zone, undefined, true)}`;
+  if (zone !== 'all') {
+    const z = Number(zone);
+    const spent = zoneTime(t, z);
+    const first = t.firstZone[z];
+    const cycles = cyclesPlayed(t, z);
+    const reach = first === undefined ? 'Pas encore atteint' : first < 0 ? 'Avant la 9.1.7' : first < 1 ? 'Dès le début' : `après ${formatDuration(first)} de jeu`;
+    return mpFrame('icon_book', 'Statistiques', `${chips}<div class="mp-sub">${z + 1}. ${escapeHtml(ZONES[z].name)}</div>
+      ${sGrid([sCard('stat_time', formatDuration(spent), pct(spent, campaign) ? `${pct(spent, campaign)} de la campagne` : 'Temps passé'), sCard('stat_stage', escapeHtml(reach), 'Premier passage')])}
+      ${cycles.length ? `<div class="m-card">${mStat('icon_star', 'Cycles joués', cycles.map((c) => (c === 1 ? 'normal' : `×${c}`)).join(', '))}</div><div class="mp-sub">Temps par cycle</div>${sBars(cycles.map((c) => ({ label: c === 1 ? 'Normal' : `×${c}`, value: zoneTime(t, z, c) })), spent)}` : ''}`);
+  }
+  const zones = ZONES.map((zd, i) => ({ label: `${i + 1}. ${escapeHtml(zd.name)}`, value: zoneTime(t, i), action: String(i) })).filter((r) => r.value > 0);
+  const cycles = cyclesPlayed(t);
+  const reached = ZONES.map((zd, i) => [i, t.firstZone[i]]).filter(([, v]) => v !== undefined);
+  const cards = [
+    sCard('stat_kills', formatNumber(state.records?.kills ?? 0), 'Monstres vaincus'), sCard('stat_bosses', formatNumber(state.records?.bossesDefeated ?? 0), 'Boss vaincus'),
+    sCard('stat_time', formatDuration(active), 'Temps de jeu'), sCard('stat_stage', formatNumber(state.records?.bestStage ?? state.maxStage ?? 1), 'Meilleure étape'),
+    sCard('mis_tower', formatNumber(state.towerBest ?? 0), 'Étage de Tour'), sCard('mis_arena', formatNumber(state.arena?.cards?.best ?? 0), 'Étage d\'Arène'),
+    sCard('mis_summons', formatNumber(state.records?.rebirths ?? 0), 'Renaissances'), sCard('mis_dungeons', formatNumber(Object.values(state.dungeonsCleared ?? {}).reduce((a, b) => a + b, 0)), 'Donjons'),
+    sCard('stat_time', formatDuration(t.offline), 'Hors jeu'), sCard('stat_time', formatDuration(t.session), 'Séance en cours'),
+    sCard('stat_time', formatDuration(t.longestSession), 'Plus longue séance'), sCard('stat_kills', formatNumber(t.sessions), 'Lancements du jeu'),
+  ];
+  if (t.sessions) { cards.push(sCard('stat_time', formatDuration(active / t.sessions), 'Séance moyenne')); if (cards.length % 2) cards.push(sCard('stat_stage', formatNumber(state.transcend?.count ?? 0), 'Transcendances')); }
+  const days = Object.entries(state.records?.dayBest ?? {}).sort(([a], [b]) => a.localeCompare(b)).slice(-14);
+  const curve = days.length >= 2 ? (() => {
+    const max = Math.max(...days.map(([, v]) => v)), min = Math.min(...days.map(([, v]) => v));
+    const pts = days.map(([, v], i) => `${Math.round((i / (days.length - 1)) * 300)},${Math.round(90 - ((v - min) / Math.max(1, max - min)) * 80)}`).join(' ');
+    return `<div class="mp-sub">Meilleure étape par jour</div><div class="m-card st-curve"><svg viewBox="-6 -6 312 108" role="img" aria-label="Courbe de progression"><polyline points="${pts}" fill="none" stroke="#ffd34a" stroke-width="3" stroke-linejoin="round"/>
+      ${days.map(([, v], i) => `<circle cx="${Math.round((i / (days.length - 1)) * 300)}" cy="${Math.round(90 - ((v - min) / Math.max(1, max - min)) * 80)}" r="3.5" fill="#fff"/>`).join('')}</svg>
+      <div class="mp-curve-ends"><span>${days[0][0].slice(5).replace('-', '/')} : ${formatNumber(days[0][1])}</span><span>${days.at(-1)[0].slice(5).replace('-', '/')} : ${formatNumber(days.at(-1)[1])}</span></div></div>`;
+  })() : '';
+  return mpFrame('icon_book', 'Statistiques', `${chips}${sGrid(cards)}${curve}
+    <div class="mp-sub">Par activité</div>${sBars(TIME_MODES.map((m) => ({ label: MODE_LABELS[m], value: t.modes[m] })), active)}
+    ${sRuns('Renaissances', t.rebirthRuns, t.bestRebirth, t.run, state.records.rebirths)}${sRuns('Transcendances', t.transcendRuns, t.bestTranscend, t.transcendRun, state.transcend?.count ?? 0)}
+    ${zones.length ? `<div class="mp-sub">Par monde</div>${sBars(zones, campaign)}` : ''}
+    ${cycles.length > 1 ? `<div class="mp-sub">Par cycle de difficulté</div>${sBars(cycles.map((c) => ({ label: c === 1 ? 'Normal' : `×${c}`, value: ZONES.reduce((s, zd, i) => s + zoneTime(t, i, c), 0) })), campaign)}` : ''}
+    ${reached.length ? `<div class="mp-sub">Premier passage dans chaque monde</div><div class="m-card">${reached.map(([i, v]) => mStat('icon_map', `${i + 1}. ${ZONES[i].name}`, v < 0 ? 'avant la 9.1.7' : formatDuration(v))).join('')}</div>` : ''}`);
+}
+
 export default {
   id: 'stats',
   title: 'Statistiques',
   icon: 'icon_book',
   render(ui, state) {
+    if (isMPhone(ui)) return statsPhone(ui, state);
     const t = state.times;
     const zone = ui.view.statsZone ?? 'all';
     const campaign = t.modes.campaign;

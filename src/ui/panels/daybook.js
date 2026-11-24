@@ -8,6 +8,8 @@ import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firs
 import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
 import { bastionDaybookLine } from '../../core/bastion.js'; // v10.3 (10.6)
+import { mBar, mBtn, mBtnGold, mChip } from '../mobile-kit.js'; // v10.12
+import { esc, isMPhone, mpFrame, mpRow } from './profile-m.js';
 
 // v9.8 (H5) : carnet des 7 premiers jours, en tête du Carnet du jour ; le gros lot (Épique au choix) visible dès le jour 1.
 function firstWeekHtml(ui, state) {
@@ -33,6 +35,57 @@ function firstWeekHtml(ui, state) {
     <ul class="fw-steps">${steps}</ul>
     <div class="fw-claim">${rewardIcons(day.reward, 'named')} ${day.claimed ? '<span class="good">Récupéré ✓</span>' : `<button class="btn ${all ? 'btn-gold' : ''}" data-action="fw-claim" data-value="${sel}" ${all ? '' : 'disabled'}>Récupérer</button>`}</div>
     <div class="fw-prize">${prize}</div>${prizeReady(state) ? '<p class="gold-text">Les 7 jours sont finis : choisis ton compagnon !</p>' : ''}</div>`;
+}
+
+// v10.12 : Carnet sur téléphone — cartes sombres du kit, barre 0/8 et coffre du jour en tête, « Y aller » secondaire,
+// un seul bouton doré (le coffre quand il est prêt, sinon « Récupérer » du jour de l'Apprenti).
+function phoneFirstWeek(ui, state, goldFree) {
+  if (!firstWeekActive(state)) return { html: '', gold: false };
+  const open = firstWeekDaysOpen(state);
+  const sel = Math.min(open, Math.max(1, Number(ui.view.fwDay) || open));
+  const day = firstWeekDay(state, sel);
+  const all = day.steps.every((x) => x.done);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = i + 1, info = firstWeekDay(state, d), ready = d <= open && !info.claimed && info.steps.every((x) => x.done);
+    return mChip(`J${d}${d > open ? ' 🔒' : info.claimed ? ' ✓' : ready ? ' !' : ''}`, { action: 'fw-day', value: d, on: d === sel, attrs: d > open ? 'disabled' : '' });
+  }).join('');
+  const pts = firstWeekPoints(state);
+  const steps = [...day.steps].sort((a, b) => b.done - a.done).map((x) => `<li class="${x.done ? 'fw-done' : ''}">${x.done ? '✓' : '○'} ${esc(x.text)}</li>`).join('');
+  const prize = FIRST_WEEK_PRIZE.map((id) => { const c = companionById(id); return `<button type="button" class="fw-prize-c" ${prizeReady(state) ? `data-action="fw-prize" data-value="${id}"` : 'disabled'} title="${esc(c?.name ?? id)}">${c ? companionStill(c) : ''}<small>${esc(c?.name ?? id)}</small></button>`; }).join('');
+  const useGold = goldFree && all && !day.claimed;
+  const claim = day.claimed ? '<span class="good">Récupéré ✓</span>'
+    : (useGold ? mBtnGold : mBtn)('Récupérer', { action: 'fw-claim', value: sel, disabled: !all, cls: 'auto' });
+  const html = `<div class="m-card mp-fw"><div class="mp-fw-head"><b>Carnet de l'Apprenti</b><small>${firstWeekDaysLeft(state)} j restants · ${pts}/21</small></div>
+    ${mBar(Math.min(1, pts / 21))}
+    <div class="m-chips mp-chips">${days}</div>
+    <ul class="fw-steps">${steps}</ul>
+    <div class="mp-fw-claim">${rewardIcons(day.reward, 'named')}${claim}</div>
+    <div class="fw-prize">${prize}</div>${prizeReady(state) ? '<p class="gold-text">Les 7 jours sont finis : choisis ton compagnon !</p>' : ''}
+    ${mBtn('Tout récupérer', { action: 'fw-all' })}</div>`;
+  return { html, gold: useGold };
+}
+
+function phoneTask(t) {
+  const pct = Math.min(1, t.n / Math.max(1, t.target));
+  const label = { 'quick-hunt': 'Chasser', 'wheel-open': 'Tourner', 'rift-open': 'Combattre' }[t.action] ?? 'Y aller';
+  const go = t.done ? '<span class="mp-ok" role="img" aria-label="Accompli">✓</span>'
+    : t.action ? mBtn(label, { action: t.action, cls: 'auto' }) : mBtn(label, { action: 'open-tab', value: t.tab, cls: 'auto' });
+  return mpRow({ icon: img(t.icon), title: esc(t.title), bar: pct, n: `${t.n}/${t.target}`, right: go, cls: `${t.done ? 'done' : ''}${t.dormant ? ' dormant' : ''}`, attrs: `data-db="${esc(t.id)}" title="${esc(t.text)}"` });
+}
+
+function phoneView(ui, state, { tasks, doneN, all, book }) {
+  const chestReady = all && !book.chest;
+  const fw = phoneFirstWeek(ui, state, !chestReady);
+  const chestBtn = book.chest ? '<span class="mp-ok" role="img" aria-label="Coffre ouvert">✓</span>'
+    : (chestReady ? mBtnGold : mBtn)(chestReady ? 'Ouvrir' : 'Coffre', { action: 'daybook-chest', disabled: !all, cls: 'auto', icon: 'icon_chest' });
+  const head = `<div class="m-card mp-head"><span class="mp-ico big">${img('icon_chest')}</span>
+    <div class="mp-main"><div class="mp-head-line"><b class="num">${doneN}/${tasks.length}</b><small>${book.chest ? 'Coffre ouvert · à demain !' : all ? 'Journée accomplie !' : 'Coffre du jour'}</small></div>
+      ${mBar(doneN / Math.max(1, tasks.length))}<div class="mp-head-rw">${rewardIcons(DAYBOOK_CHEST)}</div></div>${chestBtn}</div>`;
+  const d = dormantResources(state, daybookOpen(ui));
+  const dormant = d.length ? `<div class="mp-sleep"><small>Ça dort</small><div class="m-chips">${d.map((x) => mChip(`${x.text} ›`, { action: 'open-tab', value: x.tab })).join('')}</div></div>` : '';
+  const line = bastionDaybookLine(state);
+  const bastion = line ? `<div class="m-card mp-row mp-bastion"><span class="mp-ico"><img class="px" src="assets/ui/art104/bastion_forge_lv1.png" alt=""></span><div class="mp-main"><b class="mp-name">${esc(line)}</b></div>${mBtn('Bastion', { action: 'bastion-open', cls: 'auto' })}</div>` : '';
+  return mpFrame('icon_book', 'Carnet du jour', `${head}${fw.html}${dormant}${bastion}<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`);
 }
 
 export function daybookOpen(ui) {
@@ -64,6 +117,7 @@ export default {
     const doneN = tasks.filter((t) => t.done).length;
     const all = daybookComplete(state, open);
     const book = daybookOf(state);
+    if (isMPhone(ui)) return phoneView(ui, state, { tasks, doneN, all, book });
     const chest = book.chest ? '<div class="db-chest opened">' + img('icon_chest') + '<small>Coffre ouvert · à demain !</small></div>'
       : `<button class="db-chest${all ? ' ready' : ''}" data-action="daybook-chest" ${all ? '' : 'disabled'}>${img('icon_chest')}
           <small>${all ? 'Ouvre le coffre !' : `Coffre du jour : ${doneN}/${tasks.length}`}</small>${rewardIcons(DAYBOOK_CHEST, 'named')}</button>`;

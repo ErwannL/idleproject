@@ -13,6 +13,9 @@ import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../../data/missi
 import { claimPeekList, merchantsHtml } from './inbox.js';
 import { escapeHtml, fold, formatNumber, img, progressBar, rewardIcons, segment } from '../common.js';
 import { stageLabel, zoneStartStage } from '../../core/combat.js';
+import { mBar, mBtn, mBtnGold, mModes } from '../mobile-kit.js'; // v10.12
+import { SESSION_CHEST, goalProgress, sessionDone } from '../../core/session-goals.js';
+import { esc, isMPhone, mpFrame, mpRow } from './profile-m.js';
 import { ACHIEVEMENT_BONUS, ACHIEVEMENTS, achievementCount, achievementGroups } from '../../core/achievements.js';
 
 // Hauts faits (v8.3) : défis permanents, gemmes à réclamer et bonus permanent par haut fait obtenu.
@@ -204,6 +207,89 @@ export function bountyCard(state) { // v9.3.8 : affichée sur la Carte (ce n'est
   </div>`;
 }
 
+// ---------- v10.12 : Missions sur téléphone (kit mobile) ----------
+// Lignes de 64 px ; un seul bouton doré à l'écran : « Tout récupérer » (en tête). « Récupérer » d'une ligne prête = secondaire mis en valeur.
+const GOAL_ART = { stages: 'stages', kills: 'kills', bosses: 'bosses', bossesDefeated: 'bosses', guards: 'upgrades', manualCasts: 'skills', recycled: 'recycle', equips: 'items', summons: 'summons', tower: 'tower', dungeons: 'dungeons' };
+function mRow({ icon: ic, label, progress, target, reward, done, claimed, action, value, sub = '' }) {
+  const right = claimed ? '<span class="mp-ok" role="img" aria-label="Fait">✔</span>'
+    : mBtn('Récupérer', { action, value, disabled: !done, cls: `auto${done ? ' ready' : ''}`, attrs: `aria-label="Récupérer : ${esc(rewardText(reward, formatNumber))}"` });
+  return mpRow({ icon: img(ic), title: `${sub}${esc(label)}`, sub: reward ? `<div class="mp-rw">${rewardIcons(reward)}</div>` : '', bar: Math.min(1, (claimed ? target : progress) / Math.max(1, target)), n: `${formatNumber(claimed ? target : progress)}/${formatNumber(target)}`, right, cls: claimed ? 'done' : done ? 'ready' : '' });
+}
+function mPeriod(state, period) {
+  const run = state.missions[period.id];
+  const shown = openMissions(state, period);
+  const order = (m) => { const st = missionStatus(state, period.id, m); return st.claimed ? 2 : st.done ? 0 : 1; };
+  const rows = [...shown].sort((a, b) => order(a) - order(b)).map((m) => {
+    const st = missionStatus(state, period.id, m);
+    return mRow({ icon: misIcon(m.type, TYPE_ICONS[m.type] ?? 'icon_star'), label: m.label, progress: st.progress, target: m.target, reward: m.reward, done: st.done, claimed: st.claimed, action: 'claim-mission', value: `${period.id}|${m.id}` });
+  }).join('');
+  const got = shown.filter((m) => missionStatus(state, period.id, m).claimed).length;
+  const ready = bonusReady(state, period.id);
+  const chest = mpRow({ icon: '<img class="px" src="assets/ui/art102/tier_chest.png" alt="">', title: 'Récompense complète', sub: `<div class="mp-rw">${rewardIcons(period.bonus)}</div>`, bar: got / Math.max(1, shown.length), n: `${got}/${shown.length}`,
+    right: run.bonus ? '<span class="mp-ok" role="img" aria-label="Récupérée">✔</span>' : mBtn('Ouvrir', { action: 'claim-mission-bonus', value: period.id, disabled: !ready, cls: `auto${ready ? ' ready' : ''}` }), cls: run.bonus ? 'done' : ready ? 'ready' : '' });
+  return `<div class="mp-reset">${esc(period.reset)} · dans ${remainingText(periodRemaining(period.id))}</div>${chest}${rows}`;
+}
+function mTrack(state) {
+  const pct = trackPct(state);
+  const next = trackNext(state);
+  const p = state.missions.track.progress;
+  const head = next ? (next.ready
+    ? mBtn('Récupérer', { action: 'claim-track', cls: 'auto ready', attrs: `aria-label="Récupérer : ${esc(rewardText(next.reward, formatNumber))}"` })
+    : `<span class="mp-n">À ${next.pct} %</span>`) : '<span class="good">Piste terminée ✔</span>';
+  const top = mpRow({ icon: img('icon_map'), title: `${esc(MISSION_TRACK.label)} : ${Math.floor(pct)} %`, sub: next && !next.ready ? `<div class="mp-rw">${rewardIcons(next.reward)}</div>` : '', bar: Math.min(1, pct / 100), right: head, cls: next?.ready ? 'ready' : '' });
+  const rows = MISSION_TRACK.goals.map((g) => {
+    const v = p[g.id] ?? 0;
+    return mpRow({ icon: img(misIcon(g.type, TYPE_ICONS[g.type] ?? 'icon_star')), title: esc(g.label), bar: Math.min(1, v / g.target), n: `${formatNumber(v)}/${formatNumber(g.target)}`, cls: v >= g.target ? 'done' : '' });
+  }).join('');
+  return `${top}<div class="mp-reset">${esc(MISSION_TRACK.reset)} · dans ${remainingText(periodRemaining('monthly'))} · 1/${MISSION_TRACK.goals.length} par objectif</div>${rows}`;
+}
+function mAchievements(state) {
+  const n = achievementCount(state);
+  const rows = achievementGroups(state).map((g) => {
+    const a = g.tier, p = g.progress;
+    const right = g.allDone ? '<span class="mp-ok" role="img" aria-label="Obtenu">✔</span>'
+      : mBtn(`+${a.gems}`, { action: 'claim-achievement', value: a.id, disabled: !g.ready, cls: `auto${g.ready ? ' ready' : ''}`, icon: 'icon_gem', attrs: `aria-label="${g.ready ? 'Récupérer' : 'Verrouillé'} : +${a.gems} gemmes"` });
+    return mpRow({ icon: img(g.ready || g.allDone ? 'icon_trophy' : 'icon_lock'), title: esc(a.name), sub: `<small>${esc(a.label)} · palier ${g.allDone ? `${g.tiers.length}/${g.tiers.length}` : Math.min(g.claimedCount + 1, g.tiers.length)}</small>`,
+      bar: Math.min(1, p.ratio), n: `${formatNumber(Math.min(p.value, a.target))}/${formatNumber(a.target)}`, right, cls: g.allDone ? 'done' : g.ready ? 'ready' : '' });
+  }).join('');
+  return `<div class="mp-reset">${n}/${ACHIEVEMENTS.length} paliers · bonus permanent +${n * ACHIEVEMENT_BONUS.damagePct} % dégâts et +${n * ACHIEVEMENT_BONUS.goldPct} % or</div>${rows}`;
+}
+function mChronicle(state) {
+  const c = chronicleNow(state);
+  const h = heraldState(state);
+  const card = !c ? '<div class="m-card"><b>Chroniques d\'Ascendrya</b><div class="mp-reset">Toutes les chroniques sont écrites. Ton nom est une légende.</div></div>'
+    : mpRow({ icon: `<img class="px" src="assets/ui/art98/${c.art}.png" alt="">`, title: esc(c.title), sub: `<small>Chapitre ${c.index + 1}/${CHRONICLES.length} · ${c.ready ? '✔' : '○'} ${esc(c.need)}</small><div class="mp-rw">${rewardIcons(c.reward)}</div>`,
+      right: mBtn('Récupérer', { action: 'chronicle-claim', disabled: !c.ready, cls: `auto${c.ready ? ' ready' : ''}` }), cls: c.ready ? 'ready' : '', attrs: 'data-chron' });
+  const rows = HERALD_TASKS.map((t0) => {
+    const t = heraldTask(state, t0);
+    const p = Math.min(t.target, h.progress[t.id] ?? 0);
+    return mRow({ icon: misIcon(t.type, t.icon), label: t.text, progress: p, target: t.target, reward: t.reward, done: p >= t.target, claimed: false, action: 'herald-claim', value: t.id });
+  }).join('');
+  return `${card}<div class="mp-sub">Tâches du Héraut${h.done ? ` · ${h.done} accomplies` : ''}</div>${rows}`;
+}
+function mToday(ui, state, period, nOf) {
+  const s = state?.sessionGoals;
+  const goals = s ? s.goals.map((g) => {
+    const p = goalProgress(state, g);
+    return mpRow({ icon: `<img class="px" src="assets/ui/art101/mis_${GOAL_ART[g.key ?? g.id] ?? 'kills'}.png" alt="">`, title: esc(g.label), bar: Math.min(1, p / g.target), n: `${p}/${g.target}`, cls: p >= g.target ? 'ready' : '' });
+  }).join('') : '';
+  const chest = s ? (s.claimed ? '<span class="good">Coffre de session ouvert ✓</span>'
+    : mBtn(`Coffre de session : +${SESSION_CHEST.gems} gemmes`, { action: 'claim-session-chest', disabled: !sessionDone(state), cls: sessionDone(state) ? 'ready' : '' })) : '';
+  const finds = ui.claims.filter((c) => c.kind === 'event').map((c) => mpRow({ icon: img('icon_chest'), title: esc(c.label), sub: `<div class="mp-rw">${rewardIcons(c.reward)}${c.item ? ' + un objet' : ''}</div>${c.blocked ? `<small class="bad">${esc(c.blocked)}</small>` : ''}`,
+    right: mBtn('Récupérer', { action: 'claim-event', value: c.id, disabled: Boolean(c.blocked), cls: `auto${c.blocked ? '' : ' ready'}` }), cls: c.blocked ? '' : 'ready' })).join('');
+  const contracts = state.contracts.map((c) => mRow({ icon: misIcon(c.type, TYPE_ICONS[c.type] ?? 'icon_trophy'), label: contractLabel(c), progress: c.progress, target: c.target, reward: c.reward, done: c.progress >= c.target, claimed: false, action: 'claim-contract', value: c.id,
+    sub: `<span class="contract-title${c.rare ? ' rare' : ''}">${esc(contractTitle(c))}</span> ` })).join('');
+  return `${s ? `<div class="mp-sub">Objectifs de session</div>${goals}${chest}` : ''}<div class="mp-sub">${esc(period('daily').label)}${nOf('daily') ? ` <i class="mp-pill">${nOf('daily')}</i>` : ''}</div>${mPeriod(state, period('daily'))}
+    ${mBtn('Roue du jour', { action: 'wheel-open', icon: 'icon_star' })}${finds ? `<div class="mp-sub">Trouvailles</div>${finds}` : ''}${contracts ? `<div class="mp-sub">Contrats${nOf('contract') ? ` <i class="mp-pill">${nOf('contract')}</i>` : ''}</div>${contracts}` : ''}`;
+}
+function missionsPhone(ui, state, { parts, ready, tab, period, nOf }) {
+  const modes = mModes(parts.map(([id, label, ic]) => ({ id, label, icon: ic, action: 'mission-tab', value: id, badge: ready[id] ? String(ready[id]) : false })), tab);
+  const n = ui.claims.filter((c) => c.tab === 'contracts' && !c.blocked).length;
+  const bar = `<div class="mp-claimbar">${n ? mBtnGold(`Tout récupérer (${n})`, { action: 'claim-everything', icon: 'icon_chest' }) : ''}${mBtn('Voir', { action: 'open-claims', icon: 'icon_mail', cls: 'auto' })}</div>`;
+  const body = tab === 'chronicles' ? mChronicle(state) : tab === 'achievements' ? mAchievements(state) : tab === 'weekly' ? mPeriod(state, period('weekly')) : tab === 'week' ? mTrack(state) : mToday(ui, state, period, nOf);
+  return mpFrame('icon_trophy', 'Missions', `${modes}${bar}<div class="mp-list">${body}</div>`);
+}
+
 // v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Piste du mois (v9.1.3 : hebdomadaires et
 // mensuelles fondues), Hauts faits. « Tout récupérer » est dans l'en-tête du panneau (toujours visible).
 export default {
@@ -231,6 +317,7 @@ export default {
     const tab = parts.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'today';
     const seg = segment(parts.map(([id, label, icon]) => [id, ready[id] ? `${label}<i class="pill-n" aria-label="${ready[id]} à récupérer">${ready[id]}</i>` : label, icon]), 'mission-tab', tab);
     const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
+    if (isMPhone(ui)) return missionsPhone(ui, state, { parts, ready, tab, period, nOf: (k) => ui.claims.filter((c) => c.tab === 'contracts' && (c.period ?? c.kind) === k && !c.blocked).length });
     const merchants = merchantsHtml(state);
     // v9.2.5 : liste dépliée par ▾ (en haut du panneau, tient sur téléphone).
     const peekList = ui.claims.filter((c) => c.tab === 'contracts');
