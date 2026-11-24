@@ -17,7 +17,7 @@ import { perkCost } from '../../core/prestige.js';
 import { PRESTIGE, PRESTIGE_PERKS } from '../../data/prestige.js';
 import { costButton, effectText, escapeHtml, fold, fragment, formatNumber, img, segment, starsIcon } from '../common.js';
 import { memoryShare } from '../../core/transcend.js';
-import { mBar, mBtn, mBtnGold, mCost, mModes, mSheet, mStat, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
+import { mBar, mBtn, mBtnGold, mChip, mCost, mModes, mSheet, mStat, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
 
 export function keepResetLists() {
   return `<div class="keep-reset">
@@ -230,6 +230,73 @@ function phoneBranchSheet(state, b) {
   return mSheet(meta.name, body, { id: 'mTreeSheet', icon: regionImg(b.id), close: 'm-sheet-x', back: 'm-sheet-x' });
 }
 
+// v10.12 (round 2) : Arbre avancé sur téléphone — plus de zoom ni de glisser : une région à la fois (puces), ses talents
+// visibles rangés par anneau, de haut en bas, reliés par des traits ; chaque nœud est une pastille ronde de 54 px
+// (icône, nom sur 2 lignes, rang n/max) ; toucher un nœud ouvre sa fiche (effet, coût, Apprendre).
+const NODE_ROW = 4;
+function phoneAdvanced(ui, state) {
+  const shown = visibleTalents(state);
+  const regions = TALENT_BRANCHES.filter((b) => TALENTS.some((t) => t.region === b.id && shown.has(t.id)));
+  const reg = regions.find((b) => b.id === ui.view.mTreeRegion) ?? regions.find((b) => b.id === 'combat') ?? regions[0];
+  const pts = (r) => regionPoints(state, r);
+  const chips = `<div class="m-chips m-regchips" role="group" aria-label="Régions">${regions.map((b) => mChip(b.id === 'bridge' ? 'Ponts' : b.label, { action: 'm-set', on: b.id === reg.id, attrs: `data-key="mTreeRegion" data-value="${b.id}" style="--branch:${b.color}"` })).join('')}</div>`;
+  const list = TALENTS.filter((t) => (t.region === reg.id || t.id === 'core') && shown.has(t.id));
+  const rings = new Map();
+  for (const t of list) { if (!rings.has(t.ring)) rings.set(t.ring, []); rings.get(t.ring).push(t); }
+  const rows = [];
+  for (const ring of [...rings.keys()].sort((a, b) => a - b)) {
+    const ts = rings.get(ring).sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
+    for (let i = 0; i < ts.length; i += NODE_ROW) rows.push(ts.slice(i, i + NODE_ROW));
+  }
+  const node = (t) => {
+    const lv = state.talents[t.id] ?? 0;
+    const st = nodeState(state, t);
+    const afford = (st === 'open' || st === 'owned') && state.fragments >= talentCost(t, lv);
+    const mark = st === 'maxed' ? '<i class="m-tn-b ok">✓</i>' : st === 'gated' || st === 'locked' ? `<i class="m-tn-b lock">${img('icon_lock')}</i>` : afford ? '<i class="m-tn-b up">▲</i>' : '';
+    return `<button type="button" class="m-tnode ${st}${afford ? ' afford' : ''} k-${t.kind}" data-action="m-set" data-key="mTreeSheet" data-value="t:${t.id}" aria-label="${escapeHtml(`${t.name}, ${lv} sur ${t.max}, ${STATE_LABEL[st]}`)}">
+      <span class="m-tn-disc">${img(nodeIcon(t))}${mark}</span><span class="m-tn-name">${escapeHtml(t.name)}</span><small class="m-tn-rk">${lv}/${t.max}</small></button>`;
+  };
+  const body = rows.map((r, i) => {
+    const lit = r.some((t) => (state.talents[t.id] ?? 0) > 0);
+    return `${i ? `<i class="m-lv-link${lit ? ' on' : ''}" aria-hidden="true"></i>` : ''}<div class="m-lv${r.length > 1 ? ' rail' : ''}${lit ? ' on' : ''}">${r.map(node).join('')}</div>`;
+  }).join('');
+  const head = `<div class="m-card m-advhead" style="--branch:${reg.color}"><b>${reg.id === 'bridge' ? 'Ponts' : reg.label}</b><span>${reg.id === 'bridge' ? `${list.length} talents visibles` : `${pts(reg.id)} pts · ${list.filter((t) => (state.talents[t.id] ?? 0) > 0).length}/${TALENTS.filter((t) => t.region === reg.id).length}`}</span></div>`;
+  return `<div class="m-adv">${chips}${head}<div class="m-card m-lvs" style="--branch:${reg.color}">${body}</div>${mBtn('Outils et réinitialisation', { action: 'm-set', attrs: 'data-key="mTreeSheet" data-value="tools"' })}</div>`;
+}
+
+function phoneTalentSheet(state, t) {
+  const lv = state.talents[t.id] ?? 0;
+  const st = nodeState(state, t);
+  const region = TALENT_BRANCHES.find((b) => b.id === t.region);
+  const maxed = lv >= t.max;
+  const unlocked = talentUnlocked(state, t);
+  const cost = talentCost(t, lv);
+  const pts = t.gate ? regionPoints(state, t.region) : 0;
+  const why = maxed ? '' : unlocked ? '' : t.gate && talentConnected(state, t) && pts < t.gate ? `Il faut ${t.gate} points dans ${region?.label ?? ''} (actuellement ${pts}).` : 'Apprends d\'abord un talent relié.';
+  const next = t.links.map((id) => talentById(id)).filter((n) => n && !(state.talents[n.id] ?? 0) && !talentConnected(state, n));
+  const eff = `${lv ? `<div class="m-sk-line"><small>Actuel</small><b>${effectText(talentLevelEffects(t, lv))}</b></div>` : ''}
+    ${maxed ? '<p class="m-note good">Niveau maximum ✓</p>' : `<div class="m-sk-line"><small>Au prochain niveau</small><b class="good">${effectText(talentLevelEffects(t, lv + 1))}</b></div>`}`;
+  const body = `<div class="m-card m-tsheet" style="--branch:${region?.color ?? '#ffe08a'}"><div class="m-br-head"><span class="m-tn-disc big ${st}">${img(nodeIcon(t))}</span><div><b>${escapeHtml(t.name)}</b><span>${region && t.region !== 'bridge' ? `${region.label} · ` : ''}${KIND_LABEL[t.kind]} · ${STATE_LABEL[st]}</span></div></div>
+      <div class="m-sk-line"><small>Niveau</small><b>${lv}/${t.max}</b></div>${mBar(lv / t.max)}${eff}
+      ${why ? `<p class="m-note bad">${escapeHtml(why)}</p>` : ''}
+      ${next.length ? `<div class="m-sk-line"><small>Débloque ensuite</small><b>${next.slice(0, 3).map((n) => escapeHtml(n.name)).join(', ')}${next.length > 3 ? ` +${next.length - 3}` : ''}</b></div>` : ''}</div>
+    ${maxed ? '' : `<div class="m-costs">${mCost('icon_fragment', state.fragments, cost, { fmt: formatNumber })}</div>
+      ${mBtnGold('Apprendre', { action: 'buy-talent', attrs: `data-key="${t.id}" data-cost="${cost}" data-currency="fragments"`, disabled: !unlocked || state.fragments < cost })}
+      ${t.max > 1 && unlocked ? mBtn('Max', { action: 'buy-talent-max', attrs: `data-key="${t.id}"` }) : ''}`}`;
+  return mSheet(t.name, body, { id: 'mTreeSheet', icon: nodeIcon(t), close: 'm-sheet-x', back: 'm-sheet-x' });
+}
+
+function phoneTreeTools(state) {
+  const spent = fragmentsSpent(state);
+  const respec = respecCost(state);
+  const body = `<div class="m-card"><p class="m-note">Apprend le moins cher d'abord, tant que les fragments suffisent (une confirmation suit).</p>
+      ${mBtn('Tout apprendre…', { action: 'ask-buy-talents', value: '' })}
+      <div class="m-chips">${TALENT_BRANCHES.filter((b) => b.id !== 'bridge').map((b) => mChip(b.label, { action: 'ask-buy-talents', attrs: `data-value="${b.id}" style="--branch:${b.color}"` })).join('')}</div></div>
+    <div class="m-card"><p class="m-note">Rend les ${formatNumber(spent)} fragments investis.</p>
+      ${mBtn(respec ? `Réinitialiser l'arbre · ${formatNumber(respec)} gemmes` : 'Réinitialiser l\'arbre · gratuit (1re fois)', { action: 'respec-talents', disabled: !(spent > 0 && state.gems >= respec) })}</div>`;
+  return mSheet('Outils de l\'arbre', body, { id: 'mTreeSheet', icon: 'icon_tree', close: 'm-sheet-x', back: 'm-sheet-x' });
+}
+
 function phoneRebirth(ui, state) {
   const reward = rebirthReward(state);
   const can = canRebirth(state);
@@ -263,7 +330,7 @@ function phoneTree(ui, state, seg, items) {
   const help = ui.view.helpOpen === 'tree' ? `<div class="m-card m-help-card">${TREE_INTRO}</div>` : '';
   let content;
   if (seg === 'rebirth') content = phoneRebirth(ui, state);
-  else if (seg === 'tree') content = `<div class="m-treewrap">${treeView(ui, state)}</div>`;
+  else if (seg === 'tree') content = phoneAdvanced(ui, state);
   else if (seg === 'region') content = `<div class="m-treewrap">${regionView(state)}</div>`;
   else {
     const total = TALENTS.reduce((n, t) => n + (state.talents[t.id] ?? 0), 0);
@@ -282,6 +349,8 @@ function phoneTree(ui, state, seg, items) {
   let sheet = '';
   const b = TALENT_BRANCHES.find((x) => x.id === sh && SIMPLE_BRANCHES[x.id]);
   if (b) sheet = phoneBranchSheet(state, b);
+  else if (/^t:/.test(sh ?? '') && talentById(sh.slice(2))) sheet = phoneTalentSheet(state, talentById(sh.slice(2)));
+  else if (sh === 'tools' && seg === 'tree') sheet = phoneTreeTools(state);
   else if (sh === 'bonus') sheet = mSheet('Bonus éternels', `<div class="m-card m-perks">${bonusList(state)}</div>`, { id: 'mTreeSheet', icon: 'icon_star', close: 'm-sheet-x', back: 'm-sheet-x' });
   else if (sh === 'transcend' && (canTranscend(state) || state.transcend.count || state.transcend.stars)) {
     const reward = transcendReward(state);
