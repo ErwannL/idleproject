@@ -126,5 +126,5 @@ test('10.13.1 (téléphone, t07) : carte de zone, événements, Carnet, console 
 test('10.13.1 (téléphone, § 7) : la mini-scène des onglets remplit la largeur (téléphone seulement)', () => {
   const p = src('src/ui/page.js');
   assert.match(p, /const fill = band && document\.getElementById\('app'\)\?\.classList\.contains\('m-phone'\)/);
-  assert.match(p, /fill \? Math\.min\(H \* 0\.3, W \* \(h \/ w\)\) : H \* 0\.3/);
+  assert.match(p, /fill \? Math\.min\(H, 180 \* kc\) : H \* 0\.3/);
 });
