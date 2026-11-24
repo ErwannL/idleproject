@@ -332,3 +332,5 @@
 #app.m-phone .mp-bname .rarity-text.r-common { color: var(--m-text); }
 #app.m-phone input[type=file].mp-in::file-selector-button { min-height: 32px; margin-right: 10px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--m-btn-line); background: #141c38; color: var(--m-text); font: 700 13px system-ui, sans-serif; }
 #app.m-phone .mp-bpic .enc-mutant-real { width: 88px; height: 88px; max-width: none; max-height: none; object-fit: contain; }
+#app.m-phone .mp-file { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 8px 0; padding: 0 12px; border: 1px dashed rgba(255, 210, 120, .55); border-radius: 10px; background: rgba(255, 255, 255, .04); color: #f3e6c4; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+#app.m-phone .mp-file::before { content: '📂'; }

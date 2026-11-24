@@ -360,7 +360,7 @@ function generalPhone(ui, state) {
   const code = ui.view.exportCode;
   const langs = `<div class="m-chips mp-chips mp-scroll" role="group" aria-label="Langue" data-no-i18n>${availableLangs().map((l) => mChip(`${l.flag} ${l.label}`, { action: 'lang', value: l.code, on: getLang() === l.code })).join('')}</div>`;
   const imp = ui.view.importOpen ? `<div class="m-card"><textarea id="import-text" class="mp-in" rows="3" placeholder="Code ou fichier…" aria-label="Sauvegarde à importer"></textarea>
-      <input id="import-file" class="mp-in" type="file" accept=".json,application/json" aria-label="Fichier de sauvegarde">
+      <label class="m-btn mp-file">Choisir un fichier…<input id="import-file" type="file" accept=".json,application/json" aria-label="Fichier de sauvegarde" style="position:absolute;width:1px;height:1px;opacity:0" onchange="this.parentNode.firstChild.textContent=(this.files[0]?.name??'Choisir un fichier…')"></label>
       ${mpBtns([mBtn('Importer', { action: 'import-save', cls: 'ready' }), mBtn('Annuler', { action: 'import-open' })])}</div>` : '';
   return `${mpField('Langue · Language', langs)}
     ${mpSec('Sauvegarde')}
