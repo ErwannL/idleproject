@@ -47,3 +47,11 @@ test('10.12 (équipe) : les trois panneaux rendent un cadre + cartouche du kit s
   const ui = src('src/ui/ui.js');
   for (const a of ["case 'exp-open'", "case 'exp-pick-tile'", "case 'exp-slot-dur'", "case 'gear-filter-set'"]) assert.ok(ui.includes(a), a);
 });
+
+test('10.12 (carte du Bastion) : noms courts sur téléphone, pas de + / −, étiquettes bornées', () => {
+  const js = src('src/ui/panels/camp.js'), css = src('src/ui/mobile-team.css');
+  assert.match(js, /SHORT_NAME = \{ forge: 'Forge'/);
+  assert.match(js, /bs-lvl need bs-pill/);
+  assert.match(css, /#app\.m-phone \.mt-bs \.bs-zoom \{ display: none/);
+  assert.match(css, /\.bs-plot \.bs-tag \{[^}]*font-size: 11px !important/);
+});

@@ -101,6 +101,21 @@ function shortReason(reason) {
     .replace(/^Bastion niveau (\d+) requis$/, 'Bastion niv. $1').replace(/^S'ouvre avec 5 compagnons$/, '5 compagnons');
 }
 
+// v10.12 (carte du Bastion, téléphone) : noms courts sous les bâtiments (le nom entier reste dans le titre et la fiche),
+// durées sans espaces (« 1 h 20 min » → « 1h20 », « 11 min 57 s » → « 11m57 »).
+const SHORT_NAME = { forge: 'Forge', library: 'Biblio.', mine: 'Mine', training: 'Camp', trade: 'Marché', expeditions: 'Expéd.',
+  enchant: 'Enchant.', menagerie: 'Ménag.', observatory: 'Observ.', runes: 'Runes', ascension: 'Ascens.', wonder: 'Merveille' };
+const shortName = (def) => SHORT_NAME[def.id] ?? def.name;
+function shortTime(txt) {
+  return String(txt).replace(/(\d+) h (\d+)( min)?/, '$1h$2').replace(/(\d+) min (\d+)( s)?/, '$1m$2').replace(/(\d+) min\b/, '$1m').replace(/(\d+) j (\d+) h/, '$1j$2h').replace(/(\d+) s\b/, '$1s');
+}
+function phoneReason(reason) {
+  const r = shortReason(reason).replace(/^Âge (\S+) : .*$/, 'Âge $1').replace(/^Bastion niv\. (\d+)$/, 'Niv. $1').replace(/^5 compagnons$/, '5 compag.');
+  const m = r.match(/^Après : (.+)$/);
+  const dep = m ? BUILDINGS.find((d) => d.name === m[1]) : null;
+  return dep ? `Après ${shortName(dep)}` : r;
+}
+
 // ---------------------------------------------------------------- minuteurs (mis à jour sans redessin)
 
 // Temps restant : « 1 h 20 min », « en pause » sans ouvrier. `ms` : temps réel restant.
@@ -131,7 +146,7 @@ function tick(ui) {
   for (const el of root.querySelectorAll('[data-bt-end]')) {
     const left = Number(el.dataset.btEnd) - now;
     if (el.dataset.btSpan) el.style.width = `${(Math.max(0, Math.min(1, 1 - left / Number(el.dataset.btSpan))) * 100).toFixed(1)}%`;
-    else { const text = left <= 0 ? 'terminé' : `${el.dataset.btShort ? '' : 'encore '}${formatDuration(left / 1000)}`; if (el.textContent !== text) el.textContent = text; }
+    else { const text = left <= 0 ? (PHONE && el.dataset.btShort ? 'fini' : 'terminé') : `${el.dataset.btShort ? '' : 'encore '}${PHONE && el.dataset.btShort ? shortTime(formatDuration(left / 1000)) : formatDuration(left / 1000)}`; if (el.textContent !== text) el.textContent = text; }
   }
   for (const el of root.querySelectorAll('[data-bt-stock]')) {
     const cap = Number(el.dataset.btCap);
@@ -217,7 +232,7 @@ function plot(ui, state, def, now) {
   const art = `<img class="px bs-bimg" src="${buildingArt(state, def)}" alt="" draggable="false">`;
   if (!access.available) {
     return `<div class="bs-plot locked" style="${style}" data-building="${def.id}" title="${escapeHtml(`${def.name} : ${access.reason}`)}" aria-label="${escapeHtml(`${def.name} : ${access.reason}`)}">${art}
-      <span class="bs-tag lock">${img('icon_lock')}${escapeHtml(shortReason(access.reason))}</span></div>`;
+      ${PHONE ? `<i class="bs-lockic" aria-hidden="true">${img('icon_lock')}</i><span class="bs-tag lock"><span class="bs-nm">${escapeHtml(shortName(def))}</span><small class="bs-why2">${escapeHtml(phoneReason(access.reason))}</small></span>` : `<span class="bs-tag lock">${img('icon_lock')}${escapeHtml(shortReason(access.reason))}</span>`}</div>`;
   }
   const b = bastionOf(state);
   const slot = b.buildings[def.id];
@@ -228,7 +243,7 @@ function plot(ui, state, def, now) {
   if (slot?.build) {
     const f = slot.worker ? productionFactor(state, def.id) : 0;
     const r = buildRemaining(state, def.id);
-    job = `<span class="bs-job">${jobBar(slot.build, f, now, 'build')}${Number.isFinite(r) ? `<span class="bs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="bs-time bad">en pause</span>'}</span>`;
+    job = `<span class="bs-job">${jobBar(slot.build, f, now, 'build')}${Number.isFinite(r) ? `<span class="bs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${PHONE ? shortTime(formatDuration(r / 1000)) : formatDuration(r / 1000)}</span>` : `<span class="bs-time bad">${PHONE ? 'pause' : 'en pause'}</span>`}</span>`;
   } else if (def.id === 'forge' && b.orders.some((o) => !o.ready)) {
     const o = b.orders.find((x) => !x.ready);
     job = `<span class="bs-job work">${jobBar(o, productionFactor(state, 'forge'), now, 'work')}</span>`;
@@ -241,7 +256,7 @@ function plot(ui, state, def, now) {
   return `<button class="bs-plot${sel ? ' sel' : ''}${missing ? ' idle' : ''}" style="${style}" data-action="bastion-open" data-value="${def.id}" data-building="${def.id}" aria-label="${escapeHtml(def.name)}">
       ${art}${lv >= 1 && !slot?.build ? life(def.id) : ''}${c ? workerSprite(c, def) : ''}
       ${missing ? '<span class="bs-need" title="Il manque un ouvrier : touche pour en poser un"><i aria-hidden="true">⛏</i><b>+</b></span>' : ''}${ready ? '<i class="bs-dot" aria-hidden="true"></i>' : ''}
-      <span class="bs-tag">${lvTag}${escapeHtml(def.name)}</span>${job}</button>`;
+      ${PHONE ? `${missing ? '<b class="bs-lvl need bs-pill">+ Ouvrier</b>' : def.existing ? '' : `<b class="bs-lvl bs-chip-lv">${lv < 1 ? '0' : lv}</b>`}<span class="bs-tag"><span class="bs-nm">${escapeHtml(shortName(def))}</span></span>` : `<span class="bs-tag">${lvTag}${escapeHtml(def.name)}</span>`}${job}</button>`;
 }
 
 function kickRibbon(ui) {
