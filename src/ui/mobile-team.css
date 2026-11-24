@@ -190,3 +190,32 @@
 #app.m-phone #exp-sheet .mt-pick + .m-card, #app.m-phone #exp-sheet .m-btn-gold { flex: none; }
 #app.m-phone .mt-frame > .m-title b { font-size: 20px; }
 #app.m-phone .mt-frame > .m-title .m-title-in { min-width: 0; padding: 0 12px; }
+
+
+/* ---- v10.12 : carte du Bastion sur téléphone — noms courts lisibles (≥ 11 px), carte plus haute, rien ne se chevauche.
+   Le décor est étiré en hauteur (les dalles deviennent plus hautes : la place du nom) ; plus de + / − (deux doigts restent). */
+#app.m-phone:is(#app) .mt-bs .bs-village { margin: 0 -6px; overflow: hidden; }
+#app.m-phone:is(#app) .mt-bs .bs-village .bs-world { aspect-ratio: 384 / 310; width: 100%; border-width: 2px; border-radius: 10px; }
+#app.m-phone .mt-bs .bs-zoom { display: none; }
+#app.m-phone .mt-bs .bs-ground { object-fit: fill; }
+#app.m-phone .mt-bs .bs-village .bs-plot { width: 14% !important; overflow: visible; }
+/* zone de toucher ≥ 44 px même quand le bâtiment est petit */
+#app.m-phone .mt-bs .bs-plot::before { content: ''; position: absolute; left: -8px; right: -8px; top: -4px; bottom: -14px; min-width: 44px; }
+#app.m-phone .mt-bs .bs-plot.locked::before { display: none; }
+/* nom : une ligne, posé devant le bâtiment, jamais plus large que la case */
+#app.m-phone .mt-bs .bs-plot .bs-tag { bottom: -11px; max-width: none; overflow: visible; text-overflow: clip; font-size: 11px !important; line-height: 14px; padding: 1px 3px; gap: 0; border-radius: 8px; font-weight: 800; letter-spacing: -.1px; }
+#app.m-phone .mt-bs .bs-plot .bs-tag .bs-nm { display: block; white-space: nowrap; }
+#app.m-phone .mt-bs .bs-plot .bs-tag.lock { display: block; width: max-content; max-width: calc(135% - 4px); padding: 1px 3px 2px; text-align: center; font-weight: 700; }
+#app.m-phone .mt-bs .bs-village.age-2 .bs-plot .bs-tag.lock { max-width: calc(108% - 4px); }
+#app.m-phone .mt-bs .bs-village.age-5 .bs-plot .bs-tag.lock { max-width: calc(125% - 4px); }
+#app.m-phone .mt-bs .bs-plot .bs-tag.lock .bs-why2 { display: block; font-size: 11px; font-weight: 600; line-height: 13px; white-space: normal; text-wrap: balance; color: #cfd6e6; }
+#app.m-phone .mt-bs .bs-plot .bs-lockic { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: rgba(12, 17, 32, .85); pointer-events: none; z-index: 1; }
+#app.m-phone .mt-bs .bs-plot .bs-lockic img { width: 14px; height: 14px; }
+/* niveau : pastille au coin bas-droit ; « + Ouvrier » : pilule orange sur le bâtiment */
+#app.m-phone .mt-bs .bs-plot .bs-chip-lv { position: absolute; right: -6px; bottom: 6px; z-index: 3; display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 3px; box-sizing: border-box; border-radius: 9px; background: #e8b64a; color: #2a1a05; border: 1px solid #2a1a05; font-size: 11px; font-weight: 900; line-height: 1; pointer-events: none; }
+#app.m-phone .mt-bs .bs-plot .bs-pill { position: absolute; left: 50%; bottom: 7px; transform: translateX(-50%); z-index: 3; width: max-content; padding: 1px 3px; border-radius: 8px; background: #f08a24; color: #fff; border: 1px solid #fff; font-size: 11px; font-weight: 900; line-height: 14px; letter-spacing: -.45px; white-space: nowrap; pointer-events: none; }
+#app.m-phone .mt-bs .bs-plot .bs-need { right: -7px; top: 0; width: 28px; height: 28px; z-index: 3; }
+/* minuteur au-dessus du toit */
+#app.m-phone .mt-bs .bs-plot .bs-job { left: -12%; right: -12%; top: -9px; z-index: 4; }
+#app.m-phone .mt-bs .bs-plot .bs-job:has(.bs-time) .bs-bar { display: none; }
+#app.m-phone .mt-bs .bs-plot .bs-job .bs-time { font-size: 11px; line-height: 14px; padding: 0 4px; white-space: nowrap; }
