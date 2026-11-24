@@ -246,3 +246,7 @@
   #app.m-phone .m-btn-gold { animation: none; }
   #app.m-phone .m-sheet { animation: none; }
 }
+
+/* v10.12 (fusion) : un seul « ? » par écran — celui du cartouche (il ouvre la même aide) ; le ✕ du panneau reste. */
+#app.m-phone #panel:has(#panel-body .m-title) #panel-help { display: none !important; }
+#app.m-phone #panel:has(#panel-body .m-title) > header { grid-template-columns: minmax(0, 1fr) auto; }
