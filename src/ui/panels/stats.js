@@ -49,7 +49,7 @@ const sLine = (label, value, note = '') => mStat('icon_book', label, `${value}${
 function sBars(rows, total) {
   const max = Math.max(1, ...rows.map((r) => r.value));
   return `<div class="m-card mp-tbars">${rows.map((r) => {
-    const inner = `<span class="mp-tb-label">${r.label}</span><span class="mp-tb-track"><i style="width:${(r.value / max) * 100}%"></i></span><span class="mp-tb-val">${formatDuration(r.value)}<small>${pct(r.value, total)}</small></span>`;
+    const inner = `<span class="mp-tb-label" title="${escapeHtml(r.label)}">${r.label}</span><span class="mp-tb-track"><i style="width:${(r.value / max) * 100}%"></i></span><span class="mp-tb-val">${formatDuration(r.value)}<small>${pct(r.value, total)}</small></span>`;
     return r.action ? `<button type="button" class="mp-tbar" data-action="stats-zone" data-value="${r.action}">${inner}</button>` : `<div class="mp-tbar">${inner}</div>`;
   }).join('')}</div>`;
 }
@@ -60,7 +60,7 @@ function sRuns(title, runs, best, current, count) {
     ${runs.length ? sLine('Moyenne', formatDuration(average(runs)), `sur ${runs.length}`) : ''}${last ? sLine('La dernière', formatDuration(last)) : ''}</div>`;
 }
 
-function statsPhone(ui, state) {
+function statsPhone(ui, state, phone = true) {
   const t = state.times;
   const zone = ui.view.statsZone ?? 'all';
   const campaign = t.modes.campaign;
@@ -109,7 +109,8 @@ export default {
   title: 'Statistiques',
   icon: 'icon_book',
   render(ui, state) {
-    if (isMPhone(ui)) return statsPhone(ui, state);
+    // v10.13 : le PC aussi en kit (cadre, cartouche, puces, fiche latérale) ; isMPhone ne sert plus qu'à la mise en page.
+    return statsPhone(ui, state, isMPhone(ui));
     const t = state.times;
     const zone = ui.view.statsZone ?? 'all';
     const campaign = t.modes.campaign;

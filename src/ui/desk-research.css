@@ -1,0 +1,173 @@
+/* v10.13 (§ 7) : Bastion › Recherches sur PC, en kit « vrai jeu » (maquette m07). PC SEULEMENT : tout sous #app:not(.m-phone).
+   Cadre .m-frame (desk-kit.css) > cartouche + « ‹ Carte du Bastion » / ressources + grille .d-cols2 :
+     colonne de gauche : 3 branches en grandes tuiles, paliers I à V, le livre (page claire et unie, nœuds de 112 px, nom en dessous) ;
+     colonne de droite : le détail (image, avant » après, coûts en cases, raison, doré, ouvriers). */
+
+/* ---------- Haut du cadre : retour à gauche, ressources à droite ---------- */
+#app:not(.m-phone) .rs-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; }
+#app:not(.m-phone) .rs-top .m-btn { height: 44px; font-size: 16px; }
+#app:not(.m-phone) .rs-res { display: inline-flex; gap: 8px; align-items: center; }
+#app:not(.m-phone) .rs-pill {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; box-sizing: border-box; border-radius: 19px;
+  background: var(--m-card); border: 1px solid var(--m-gold); color: var(--m-text); font-size: 16px; font-weight: 800;
+}
+#app:not(.m-phone) .rs-pill img { width: 20px; height: 20px; image-rendering: pixelated; }
+@container mframe (min-width: 880px) {
+  #app:not(.m-phone) .rs-top { position: absolute; z-index: 3; top: 20px; left: 22px; right: 78px; margin: 0; flex-wrap: nowrap; pointer-events: none; }
+  #app:not(.m-phone) .rs-top > * { pointer-events: auto; }
+}
+
+/* ---------- Colonnes : le livre prend la place, le détail à droite ---------- */
+#app:not(.m-phone) .rs-cols { align-items: start; }
+@container mframe (min-width: 780px) {
+  #app:not(.m-phone) .rs-cols { grid-template-columns: minmax(0, 1fr) 440px; }
+}
+@container mframe (min-width: 1180px) {
+  #app:not(.m-phone) .rs-cols { grid-template-columns: minmax(0, 1fr) 465px; }
+}
+#app:not(.m-phone) .rs-main { min-width: 0; }
+
+/* ---------- Trois branches : grandes tuiles illustrées avec sous-titre ---------- */
+#app:not(.m-phone) .rs-branches { display: flex; gap: 10px; margin: 0 0 12px; }
+#app:not(.m-phone) .rs-branch {
+  flex: 1 1 0; min-width: 0; box-sizing: border-box; margin: 0; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px;
+  min-height: 112px; border: 2px solid #34447c; border-radius: 14px; background: linear-gradient(180deg, #22305f, #161f40); color: var(--m-soft); text-align: center; cursor: pointer;
+}
+#app:not(.m-phone) .rs-branch img { width: 52px; height: 52px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-bt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#app:not(.m-phone) .rs-bt b { font-size: 19px; font-weight: 900; line-height: 1.1; color: inherit; }
+#app:not(.m-phone) .rs-bt small { font-size: 13px; font-weight: 700; line-height: 1.25; color: var(--m-soft); overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .rs-branch:hover { color: var(--m-text); border-color: var(--m-gold); }
+#app:not(.m-phone) .rs-branch.on { color: #fff; border-color: var(--m-gold-hi); background: linear-gradient(180deg, #3a3f6e, #1d2650); box-shadow: 0 0 16px rgba(243, 210, 122, .33), inset 0 0 0 1px var(--m-gold); }
+@container mframe (min-width: 1180px) {
+  #app:not(.m-phone) .rs-branch { flex-direction: row; justify-content: flex-start; min-height: 86px; padding: 8px 12px; gap: 12px; text-align: left; }
+}
+
+/* ---------- Paliers I à V ---------- */
+#app:not(.m-phone) .rs-tiers { display: flex; gap: 8px; margin: 0 0 14px; }
+#app:not(.m-phone) .rs-tier {
+  flex: 1 1 0; min-width: 0; box-sizing: border-box; margin: 0; padding: 4px 2px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border: 2px solid #34447c; border-radius: 10px; background: #18223f; color: var(--m-soft); font: 900 15px/1.15 system-ui, sans-serif; cursor: pointer; white-space: nowrap;
+}
+#app:not(.m-phone) .rs-tier img { width: 16px; height: 16px; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-tier small { font-size: 12px; font-weight: 900; color: var(--m-ok); }
+#app:not(.m-phone) .rs-tier:hover { color: var(--m-text); border-color: var(--m-gold); }
+#app:not(.m-phone) .rs-tier.on { color: var(--m-gold-hi); border-color: var(--m-gold); background: #2b3666; }
+#app:not(.m-phone) .rs-tier.off { opacity: .62; }
+@container mframe (min-width: 1180px) {
+  #app:not(.m-phone) .rs-tier { flex-direction: row; gap: 8px; min-height: 46px; padding: 0 6px; }
+}
+
+/* ---------- Le livre : une page claire et unie (parchemin) ---------- */
+#app:not(.m-phone) .rs-book {
+  position: relative; box-sizing: border-box; padding: 18px 14px 26px; border-radius: 16px; border: 3px solid #8a6a3a;
+  background: linear-gradient(#f4e3bd, #e5cc95); box-shadow: inset 0 0 40px rgba(138, 90, 42, .53), 0 4px 0 #5a3d1c;
+}
+#app:not(.m-phone) .rs-gate {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 26px; padding: 10px 14px; box-sizing: border-box;
+  border-radius: 12px; border: 2px solid #e0a21f; background: #3a2410; color: #ffe9b0;
+}
+#app:not(.m-phone) .rs-gate > img { width: 44px; height: 44px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-gate-t { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+#app:not(.m-phone) .rs-gate-t b { font-size: 17px; font-weight: 800; line-height: 1.2; }
+#app:not(.m-phone) .rs-gate-t small { font-size: 14px; font-weight: 600; line-height: 1.3; color: #e8cf9a; }
+#app:not(.m-phone) .rs-gate.shut { border-color: #8a6a3a; }
+#app:not(.m-phone) .rs-gate.shut > img { width: 30px; height: 30px; }
+#app:not(.m-phone) .rs-gate .rs-gate-btn { margin-left: auto; width: auto; height: 46px; color: #ffe08a; background: #54391a; border-color: #e0a21f; font-size: 17px; }
+#app:not(.m-phone) .rs-gate .rs-gate-btn:hover { background: #6a4820; border-color: #ffd45a; }
+
+#app:not(.m-phone) .rs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 50px; }
+#app:not(.m-phone) .rs-cell { position: relative; display: flex; justify-content: center; align-items: flex-start; padding: 8px 0 0; min-width: 0; }
+
+#app:not(.m-phone) .rs-node {
+  --c: #b08a50; position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 190px; box-sizing: border-box;
+  margin: 0; padding: 0 4px; border: 0; background: none; color: #3a2410; text-align: center; cursor: pointer; font-family: system-ui, sans-serif;
+}
+#app:not(.m-phone) .rs-node.got { --c: #6f9a3c; }
+#app:not(.m-phone) .rs-node.maxed { --c: #2f9a50; }
+#app:not(.m-phone) .rs-node.key { --c: #b8862a; }
+#app:not(.m-phone) .rs-node.locked { --c: #8a6a3a; }
+#app:not(.m-phone) .rs-node.active { --c: #e0a21f; }
+#app:not(.m-phone) .rs-c {
+  position: relative; flex: none; width: 112px; height: 112px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%;
+  border: 4px solid var(--c); background: radial-gradient(#fff7e0, #e4c98e);
+  box-shadow: 0 4px 0 #8a6a3a, 0 0 0 4px #f4e3bd, 0 0 18px color-mix(in srgb, var(--c) 60%, transparent);
+}
+#app:not(.m-phone) .rs-c > img { width: 76px; height: 76px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-node.locked .rs-c > img { filter: grayscale(1) opacity(.6); }
+#app:not(.m-phone) .rs-node.locked .rs-c { background: radial-gradient(#efe6cf, #cdb98c); box-shadow: 0 4px 0 #8a6a3a, 0 0 0 4px #f4e3bd; }
+#app:not(.m-phone) .rs-lv {
+  position: absolute; left: 50%; bottom: -13px; transform: translateX(-50%); padding: 1px 10px; border-radius: 8px; background: #3a2410; color: #ffe9b0;
+  font: 900 14px/20px system-ui, sans-serif; font-style: normal; white-space: nowrap;
+}
+#app:not(.m-phone) .rs-lk {
+  position: absolute; right: -2px; top: -4px; width: 30px; height: 30px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%;
+  background: #3a2410; border: 2px solid #f4e3bd; font: 900 16px/1 system-ui, sans-serif; font-style: normal; color: #ffe9b0;
+}
+#app:not(.m-phone) .rs-lk img { width: 16px; height: 16px; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-lk.ok { background: #2f9a50; color: #fff; }
+#app:not(.m-phone) .rs-name { display: block; width: 100%; margin: 20px 0 0; font-size: 18px; font-weight: 800; line-height: 1.15; color: #3a2410; overflow-wrap: normal; hyphens: none; text-wrap: balance; }
+#app:not(.m-phone) .rs-sub { display: block; width: 100%; margin: 3px 0 0; font-size: 14px; font-weight: 700; line-height: 1.25; color: #6a4a20; overflow-wrap: normal; hyphens: none; text-wrap: balance; }
+#app:not(.m-phone) .rs-sub img { width: 14px; height: 14px; vertical-align: -2px; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-sub .rs-time { font-variant-numeric: tabular-nums; font-weight: 900; color: #8a4a00; }
+#app:not(.m-phone) .rs-node.locked .rs-name { color: #6b5a3e; }
+#app:not(.m-phone) .rs-node.locked .rs-sub { color: #6b5a3e; }
+#app:not(.m-phone) .rs-node:hover .rs-c { filter: brightness(1.06); }
+#app:not(.m-phone) .rs-node.sel .rs-c { border-color: #e0a21f; box-shadow: 0 4px 0 #8a6a3a, 0 0 0 4px #f4e3bd, 0 0 0 9px #ffd45a, 0 0 28px #ffd45a; }
+#app:not(.m-phone) .rs-node.active .rs-c { animation: rs-pulse 2.2s ease-in-out infinite; }
+#app:not(.m-phone) .rs-node.fresh .rs-c { animation: rs-pop .9s ease-out 1; }
+@keyframes rs-pulse { 0%, 100% { box-shadow: 0 4px 0 #8a6a3a, 0 0 0 4px #f4e3bd, 0 0 8px #e0a21f; } 50% { box-shadow: 0 4px 0 #8a6a3a, 0 0 0 4px #f4e3bd, 0 0 24px #ffd45a; } }
+@keyframes rs-pop { 0% { transform: scale(.8); } 60% { transform: scale(1.08); } 100% { transform: none; } }
+
+/* liens en pointillés : de bord de cercle à bord de cercle (jamais sur le texte, qui est SOUS les cercles) */
+#app:not(.m-phone) .rs-link { position: absolute; display: block; pointer-events: none; --d: #a7803f; }
+#app:not(.m-phone) .rs-link.lit { --d: #b8681a; }
+#app:not(.m-phone) .rs-link.l, #app:not(.m-phone) .rs-link.r {
+  top: calc(8px + 56px - 3px); height: 6px; width: max(0px, calc(50% - 56px - 10px));
+  background: radial-gradient(circle, var(--d) 2.6px, transparent 3.1px) 0 50% / 12px 6px repeat-x;
+}
+#app:not(.m-phone) .rs-link.l { left: 0; } #app:not(.m-phone) .rs-link.r { right: 0; }
+#app:not(.m-phone) .rs-link.v {
+  left: calc(50% - 3px); width: 6px; top: -44px; height: 36px;
+  background: radial-gradient(circle, var(--d) 2.6px, transparent 3.1px) 50% 0 / 6px 12px repeat-y;
+}
+
+/* ---------- Détail à droite ---------- */
+#app:not(.m-phone) .rs-detail { display: flex; flex-direction: column; margin: 0; padding: 16px; }
+#app:not(.m-phone) .rs-art {
+  position: relative; height: 200px; box-sizing: border-box; display: grid; place-items: center; border-radius: 14px; border: 2px solid var(--m-gold);
+  background: radial-gradient(circle at 50% 55%, rgba(255, 207, 122, .35), #0b1124 72%) center / cover; background-blend-mode: normal;
+  overflow: hidden;
+}
+#app:not(.m-phone) .rs-art > img { width: 150px; height: 150px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .55)); position: relative; }
+#app:not(.m-phone) .rs-badge { position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 999px; background: rgba(0, 0, 0, .72); border: 1px solid var(--m-gold); color: #fff; font-size: 13px; font-weight: 800; }
+#app:not(.m-phone) .rs-h { display: flex; align-items: baseline; gap: 10px; margin: 12px 0 0; }
+#app:not(.m-phone) .rs-h b { font-size: 26px; font-weight: 900; line-height: 1.1; min-width: 0; }
+#app:not(.m-phone) .rs-h span { margin-left: auto; flex: none; font-size: 15px; font-weight: 700; color: var(--m-soft); white-space: nowrap; }
+#app:not(.m-phone) .rs-line { margin: 4px 0 12px; font-size: 15px; line-height: 1.3; color: var(--m-soft); }
+#app:not(.m-phone) .rs-detail .m-stat.big { margin: 0 0 4px; }
+#app:not(.m-phone) .rs-detail .m-stat.big .m-v .up { color: var(--m-ok); }
+#app:not(.m-phone) .rs-arrow { font-style: normal; color: var(--m-gold-hi); margin: 0 2px; }
+#app:not(.m-phone) .rs-detail .m-costs { justify-content: center; gap: 18px; margin: 14px 0 10px; }
+#app:not(.m-phone) .rs-why { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0 0 10px; font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--m-ko); text-align: center; }
+#app:not(.m-phone) .rs-why img { width: 18px; height: 18px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .rs-why.ok { color: var(--m-ok); }
+#app:not(.m-phone) .rs-keep { margin: 10px 0 0; font-size: 13px; font-weight: 700; color: var(--m-soft); text-align: center; }
+#app:not(.m-phone) .rs-run { margin: 6px 0 12px; }
+#app:not(.m-phone) .rs-bar { height: 12px; border-radius: 6px; background: var(--m-bg2); border: 1px solid #000; overflow: hidden; }
+#app:not(.m-phone) .rs-bar > i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); }
+#app:not(.m-phone) .rs-runl { display: block; margin-top: 6px; font-size: 15px; font-weight: 800; text-align: center; color: var(--m-gold-hi); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .rs-wh { margin: 22px 0 8px; font-size: 14px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--m-gold-hi); }
+#app:not(.m-phone) .rs-ws { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+#app:not(.m-phone) .rs-w {
+  min-width: 0; min-height: 80px; box-sizing: border-box; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: 12px; border: 2px solid #5be37d; background: #132a1e; color: #cfeedd; font-size: 12px; text-align: center;
+}
+#app:not(.m-phone) .rs-w img { width: 30px; height: 30px; image-rendering: pixelated; object-fit: contain; }
+#app:not(.m-phone) .rs-w b { max-width: 100%; font-size: 12px; font-weight: 800; line-height: 1.1; overflow-wrap: normal; }
+#app:not(.m-phone) .rs-w.busy { border-color: var(--m-gold); background: #2a2410; color: #ffe9b0; }
+#app:not(.m-phone) .rs-wt { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--m-gold-hi); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  #app:not(.m-phone) .rs-node.active .rs-c, #app:not(.m-phone) .rs-node.fresh .rs-c { animation: none; }
+}

@@ -89,7 +89,9 @@ test('chaque compétence de chaque classe : data-vfx de la fiche = effet calcul�
       assert.ok(VFX[`sk_${fx}`], `${cls}/${c.id} : sk_${fx} absent du catalogue`);
       assert.ok(FX_NAMES.includes(fx), `${cls}/${c.id} : ${fx} absent des sorts de combat`);
       assert.match(sheet, /width="160" height="160"/, 'vignette de 160 px');
-      assert.match(html, new RegExp(`<canvas class="px sk-vignette sk-mini" width="48" height="48" data-vfx="sk_${fx}"`), 'petite vignette de 48 px sur la case');
+      // v10.13 (lot 4) : la fiche PC est l'aperçu en combat (effet animé entre le héros et deux monstres) ; les cartes ont leur grande icône.
+      assert.match(html, /class="dsk-prev sk2-sheet"/, 'aperçu en combat');
+      assert.match(html, new RegExp(`data-value="s:${c.id}"`), 'carte de la compétence');
     }
   }
 });

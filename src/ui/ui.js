@@ -3,6 +3,7 @@
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
+import { buildCombatConsole } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
 import { equipFly } from './equip-fx.js'; // v10.6 (parties 4 et 6)
 import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
@@ -162,7 +163,8 @@ import { newItemsInBag } from '../core/journal.js';
 import { measureFarmRate } from '../core/offline.js';
 import { claimables, claimablesByTab } from '../core/claimables.js';
 import { isPhone, pref, reduceMotion, setPref } from './prefs.js';
-import { interfaceExtraPhone } from './panels/profile-m.js'; // v10.12
+import { interfaceExtraPhone, mpFold } from './panels/profile-m.js'; // v10.12 (mpFold : v10.13)
+import { mBtn } from './mobile-kit.js'; // v10.13
 import { mountShowcase } from './showcase.js';
 import { showHowTo } from './learn.js'; // v10.1
 import { HERALD_TASKS, chronicleNow, heraldState, heraldTask } from '../core/chronicles.js'; // v9.11 (7)
@@ -248,7 +250,7 @@ export function journalHtml(j) {
 
 // Disposition téléphone : écran tactile étroit (boosts regroupés, fiche en bas, action collée en bas).
 function phoneLayout() {
-  return isPhone();
+  return isPhone() || (typeof document !== 'undefined' && Boolean(document.getElementById('app')?.classList.contains('m-phone') || document.getElementById('app')?.classList.contains('hud-narrow'))); // v10.13 : une fenêtre étroite (kit téléphone) range aussi les boosts derrière « Boosts »
 }
 
 function boostDuration(sec) {
@@ -301,6 +303,31 @@ export class UI {
     window.addEventListener('pointerup', () => { this.pointerDown = false; this.userAt = performance.now(); }, { capture: true });
     window.addEventListener('pointercancel', () => { this.pointerDown = false; });
     root.addEventListener('keydown', () => { this.userAt = performance.now(); }, { capture: true });
+    // v10.13 (lot 4) : Compétences sur PC — glisser une carte (ou une place) sur une place de la barre de combat.
+    root.addEventListener('dragstart', (e) => {
+      const el = e.target instanceof Element ? e.target.closest('[data-skill-drag]') : null;
+      if (!el) return;
+      this.dragSkill = el.dataset.skillDrag; this.pointerDown = false;
+      e.dataTransfer?.setData('text/plain', `skill:${this.dragSkill}`);
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      el.classList.add('dragging');
+    });
+    root.addEventListener('dragend', () => { this.dragSkill = null; root.querySelectorAll('.dragging, .drop-on').forEach((n) => n.classList.remove('dragging', 'drop-on')); this.invalidate(); });
+    root.addEventListener('dragover', (e) => {
+      const el = this.dragSkill && e.target instanceof Element ? e.target.closest('[data-slot-drop]') : null;
+      if (!el) return;
+      e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      root.querySelectorAll('.drop-on').forEach((n) => { if (n !== el) n.classList.remove('drop-on'); });
+      el.classList.add('drop-on');
+    });
+    root.addEventListener('drop', (e) => {
+      const el = this.dragSkill && e.target instanceof Element ? e.target.closest('[data-slot-drop]') : null;
+      if (!el) return;
+      e.preventDefault();
+      const id = this.dragSkill; this.dragSkill = null;
+      if (this.actions.setSkillSlot?.(id, Number(el.dataset.slotDrop))) { this.view.skillSlot = null; this.view.skillSel = `s:${id}`; this.invalidate(); }
+      else this.toast('Apprends d\'abord cette compétence (1 point)', '#ffb36b');
+    });
     // v9.0 : liste déroulante ouverte = aucun redessin du panneau (avant, un monstre tué juste après le clic
     // d'ouverture redessinait le panneau et refermait la liste). Elle est « fermée » au choix ou en la quittant.
     this.selectOpenAt = 0;
@@ -417,6 +444,7 @@ export class UI {
     installShortcuts(this);
     this.lootBag = new LootBag(this); // v9.7.1 : sac de butin dans la scène
     this.hudQuests = new HudQuests(this); // v10.6 (partie 2) : quêtes et événements toujours visibles
+    buildCombatConsole(this); // v10.13 (8.4) : sorts, vague, PV, Sceau et coffre dans une seule console
     installHoldToRepeat(root);
     installTips(root);
     // Balayage horizontal entre onglets (tactile seulement), hors carte, arbre et barre d'onglets.
@@ -562,32 +590,13 @@ export class UI {
 
   // Paramètres › Interface : réglages propres à cet appareil (mode compact, combat, animations, taille…).
   interfaceExtra() {
-    if (this.root.classList.contains('m-phone')) return interfaceExtraPhone(pref); // v10.12 : version kit mobile
-    const selBox = (name, options) => `<select data-action="device-pref" data-key="${name}" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<option value="${v}" ${String(pref(name)) === String(v) ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-    // v10.12 : sur téléphone, plus de <select> : une rangée de puces (même action, via mp-pick)
-    const sel = (name, options) => (this.root.classList.contains('m-phone')
-      ? `<div class="m-chips mp-chips" role="group" aria-label="${escapeHtml(options.label)}">${options.items.map(([v, l]) => `<button type="button" class="m-chip${String(pref(name)) === String(v) ? ' on' : ''}" aria-pressed="${String(pref(name)) === String(v)}" data-action="mp-pick" data-for="device-pref" data-key="${name}" data-value="${v}">${l}</button>`).join('')}</div>`
-      : selBox(name, options));
-    const check = (name, label) => `<label class="toggle"><input type="checkbox" data-action="device-pref" data-key="${name}" ${pref(name) === true ? 'checked' : ''}> ${label}</label>`;
-    const keys = Object.keys(KEY_LABELS).map((action) => `<div class="key-row"><span>${KEY_LABELS[action]}</span>
-      <button class="btn small key-btn${this.view.keyCapture === action ? ' armed' : ''}" data-action="capture-key" data-value="${action}">${this.view.keyCapture === action ? 'Appuie sur une touche…' : `<kbd>${escapeHtml(keyLabel(action))}</kbd>`}</button></div>`).join('');
-    return `<div class="card"><div class="section-title">Cet appareil</div>
-        <div class="muted">Ces réglages restent sur cet appareil (PC ou téléphone), hors de la sauvegarde.</div>
-        <div class="pref-grid">
-          <span>Combat</span>${sel('combat', { label: 'Combat', items: [['simple', 'Simple (l\'essentiel)'], ['full', 'Complet (tout afficher)']] })}
-          <span>Animations</span>${sel('motion', { label: 'Réduire les animations', items: [['auto', 'Auto (réglage du système)'], ['reduce', 'Réduites'], ['full', 'Complètes']] })}
-          <span>Taille de l'interface</span>${sel('uiScale', { label: 'Taille de l\'interface', items: [['auto', 'Auto'], [100, '100 %'], [125, '125 %'], [150, '150 %'], [200, '200 %']] })}
-        </div>
-        ${check('compact', '<b>Mode compact</b> : listes serrées, sans descriptions (joueurs expérimentés)')}
-        ${check('qtyMenu', '<b>Quantité en un bouton</b> (essai) : Max, ×100, ×10, ×1 se déplient d\'un bouton dans Améliorations')}
-        ${check('skillGrid', '<b>Compétences en grille</b> (essai) : 9 icônes avec niveau et +, le texte au toucher')}
-        ${check('bossFocus', '<b>Mode boss réduit</b> (essai) : pendant un boss, les boutons autour de la scène s\'estompent (complet au méga boss)')}
-        ${check('panelFold', '<b>Panneau à deux hauteurs</b> (essai) : ▼ rétracte le panneau pour agrandir la scène, choix mémorisé par écran')}
-        ${check('colorAid', '<b>Aide aux couleurs</b> : lettre de rareté sur les objets (C, R, É, L), pastilles en anneau')}
-        ${check('contrast', '<b>Contraste élevé</b> : textes plus contrastés, sans décor animé')}
-      </div>
-      ${isPhone() ? '' : fold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="muted">Clique une touche puis appuie sur la nouvelle. Une touche déjà utilisée est refusée.</div>
-        <div class="key-grid">${keys}</div><button class="btn small" data-action="reset-keys">Touches par défaut</button>`)}`;
+    // v10.13 (lot profil) : le PC aussi en kit (puces et interrupteurs, plus de liste déroulante) ; mêmes réglages, mêmes actions (device-pref via mp-pick).
+    const base = interfaceExtraPhone(pref);
+    if (this.root.classList.contains('m-phone') || isPhone()) return base;
+    const keys = Object.keys(KEY_LABELS).map((action) => `<div class="mp-key"><span>${KEY_LABELS[action]}</span>
+      ${mBtn(this.view.keyCapture === action ? 'Appuie sur une touche…' : keyLabel(action), { action: 'capture-key', value: action, cls: `auto mp-keybtn${this.view.keyCapture === action ? ' armed' : ''}` })}</div>`).join('');
+    return `${base}${mpFold(this, 'keys', 'Raccourcis clavier : changer une touche', `<div class="m-card"><div class="mp-note">Clique une touche puis appuie sur la nouvelle. Une touche déjà utilisée est refusée.</div>
+        <div class="mp-keys">${keys}</div>${mBtn('Touches par défaut', { action: 'reset-keys' })}</div>`)}`;
   }
 
   openSearch() {
@@ -834,6 +843,12 @@ export class UI {
   }
 
   // `view` (v9.1.0) : vue à montrer (segment, objet choisi…) — un conseil arrive ainsi au bon endroit.
+  // v10.13 (lot 6) : Équipement ne se fait que dans Héros › Équipement ; ouvre l'onglet avec ce personnage choisi dans la rangée « qui »
+  // (mêmes champs que l'action gear-who).
+  openGearFor(id) {
+    this.openTab('inventory', { gearWho: id, sheetOpen: null, selectedItemId: null, eqSlot: null, eqChange: false, eqQuick: null, eqTab: 'gear' });
+  }
+
   openTab(tab, view = null) {
     if (tab !== 'dungeons') { if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); } // v10.1
     this.layerHost?.('unit-host', '');
@@ -984,7 +999,16 @@ export class UI {
         break;
       }
       case 'buy-amount': local(() => { v.buyAmount = value; v.qtyOpen = false; }); break;
-      case 'skill-sel': local(() => { v.skillSel = v.skillSel === value ? null : value; }); break; // v9.1.3 : case de la grille
+      case 'skill-sel': { // v9.1.3 : case de la grille · v10.13 (lot 4) : sur PC, la carte reste choisie ; avec une place de la barre armée, elle s'y met
+        const [kind, sid] = String(value).split(':');
+        if (v.skillSlot != null && kind === 's') {
+          if (a.setSkillSlot?.(sid, v.skillSlot)) v.skillSlot = null; else this.toast('Apprends d\'abord cette compétence (1 point)', '#ffb36b');
+        }
+        local(() => { v.skillSel = value; v.mDSkMode = kind === 'r' ? 'r' : 's'; });
+        break;
+      }
+      case 'skill-slot-pick': local(() => { v.skillSlot = v.skillSlot === Number(value) ? null : Number(value); }); break; // v10.13 (lot 4) : arme une place de la barre
+      case 'skill-slot-set': { const [sid, n] = String(value).split('|'); if (a.setSkillSlot?.(sid, Number(n))) local(() => { v.skillSlot = null; }); break; } // v10.13 (lot 4) : « Mettre dans la barre »
       case 'qty-toggle': local(() => { v.qtyOpen = !v.qtyOpen; }); break; // v9.1.3 (A22)
       case 'upgrade-cat': local(() => { v.upgradeCat = value; }); break;
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
@@ -1066,6 +1090,8 @@ export class UI {
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
       // v9.3.4 : popup de détail d'un compagnon.
       case 'comp-tab': local(() => { v.compTab = value; }); break;
+      case 'comp-filter': local(() => { const [k, x] = String(value).split('|'); if (k === 'rar') v.compRar = x === 'all' ? null : x; else if (k === 'el') v.compEl = x === 'all' ? null : x; }); break; // v10.13 (lot 6) : filtres Rareté / Élément en puces
+      case 'gear-for': this.openGearFor(value); break; // v10.13 (lot 6) : « Objets portés › » (fiche d'un compagnon) → Héros › Équipement, ce compagnon choisi
       case 'skill-pop': local(() => { v.skillPop = value || null; }); break;
       case 'unit-tab': local(() => { v.unitTab = value; v.skillPop = null; }); break;
       case 'unit-show': local(() => { v.unitShow = value; }); break;
@@ -1894,7 +1920,8 @@ export class UI {
     this.setText('strip-gold', formatNumber(state.gold));
     if (this.layout === 'strip') this.setText('strip-info', `Niv. ${state.level} · Étape ${state.stage}`); // v9.7.1 : ligne compacte
     this.setText('gems', formatNumber(state.gems));
-    this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))}/${formatNumber(stats.maxHp)}`);
+    this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))} / ${formatNumber(stats.maxHp)}`);
+    { const hf = this.$('hp-fill'); if (hf) { const w = `${Math.round(Math.max(0, Math.min(1, world.hero.hp / Math.max(1, stats.maxHp))) * 1000) / 10}%`; if (hf.style.width !== w) hf.style.width = w; } } // v10.13 : barre de PV de la console
     this.setText('level-badge', `Niv. ${state.level}`);
     const xpRatio = state.xp / xpForLevel(state.level);
     if (Math.abs(xpRatio - (this.lastHud.xp ?? -1)) > 0.002) {
@@ -1941,7 +1968,7 @@ export class UI {
     const now0 = performance.now();
     const userRecent = now0 - this.userAt < 400;
     const holding = document.body.classList.contains('hold-repeating');
-    const pointer = this.pointerDown && !holding;
+    const pointer = (this.pointerDown || !!this.dragSkill) && !holding;
     // Liste ouverte (au plus 60 s, au cas où sa fermeture n'aurait pas été vue).
     const selectOpen = this.selectOpenAt > 0 && now0 - this.selectOpenAt < 60000;
     const busy = pointer || selectOpen;
@@ -2020,7 +2047,7 @@ export class UI {
       el.id = 'env-chip';
       el.dataset.open = 'campaign';
       el.addEventListener('click', () => this.toggleTab('campaign'));
-      this.$('stage-area').appendChild(el);
+      (this.console?.querySelector('.cc-wave') ?? this.$('stage-area')).appendChild(el); // v10.13 : dans la console du bas
     }
     const key = env ? `${env.zone}|${Math.round(env.countered)}|${Math.round(env.pct * 10)}` : '';
     if (el.dataset.key === key) return;
@@ -2060,10 +2087,11 @@ export class UI {
       return;
     }
     const zone = zoneForStage(state.stage);
-    this.$('zone-name').textContent = `${zone.name} ${stageLabel(state.stage)}`;
     // v9.3.1 : type des ennemis du monde (icône), pour composer l'équipe.
     const ze = ELEMENTS[zoneElement(ZONES.indexOf(zone))];
-    if (ze) this.$('zone-name').textContent += ` ${ze.icon}`;
+    // v10.13 (8.2) : titre en 3 morceaux (crâne, nom, pastille « ×2 ☾ ») : la carte de zone a trois lignes.
+    const [labelBase, labelMult] = String(stageLabel(state.stage)).split(' ×');
+    this.$('zone-name').innerHTML = `<img class="px zn-skull" src="${icon('icon_skull', 2)}" alt=""><span class="zn-t">${zone.name} ${labelBase}</span>${labelMult || ze ? `<i class="zn-x">${labelMult ? `×${labelMult}` : ''}${ze ? ` ${ze.icon}` : ''}</i>` : ''}`;
     this.$('zone-name').title = ze ? `Ennemis de type ${ze.name}` : '';
     const every = BALANCE.stages.bossEvery;
     const first = Math.floor((state.stage - 1) / every) * every + 1;
@@ -2516,6 +2544,35 @@ export class UI {
     play.classList.remove('col-row');
     if (this.layout === 'strip') { play.classList.remove('band109'); return; }
     const ground = parseFloat(getComputedStyle(play).getPropertyValue('--ground-px')) || 0;
+    // v10.13 (8.4) : console du bas (combat-console.js). Les éléments sont rangés par le CSS : on ne place plus rien à la
+    // main ; on règle seulement la hauteur du sol pour que la console tienne juste dessous (ni chevauchement, ni mur vide).
+    const cc = this.console;
+    if (cc?.isConnected) {
+      // Scène étroite sur PC (panneau ouvert à côté, moins de 820 px) : même mise en page compacte que le téléphone (classe hud-narrow).
+      const narrow = !this.root.classList.contains('m-phone') && area.clientWidth < 820;
+      if (narrow !== this.root.classList.contains('hud-narrow')) { this.root.classList.toggle('hud-narrow', narrow); this.hudQuests?.update(this.state, true); }
+      const phoneMode = (area.clientWidth < 560 && area.clientHeight > area.clientWidth) || narrow;
+      play.classList.toggle('phone-band', phoneMode); play.classList.toggle('band109', !phoneMode);
+      for (const el of [this.$('env-chip'), this.$('scene-bottom'), this.$('loot-bag'), hud]) {
+        if (el && (el.style.top || el.style.left || el.style.width)) for (const k of ['top', 'left', 'right', 'bottom', 'width', 'height', 'transform', 'maxWidth']) el.style[k] = '';
+      }
+      const A0 = area.getBoundingClientRect();
+      const kz = A0.width / Math.max(1, area.clientWidth);
+      let H0 = area.clientHeight;
+      const tb = this.$('tabs');
+      if (tb?.offsetParent) { const t = (tb.getBoundingClientRect().top - A0.top) / kz; if (t > 0 && t < H0) H0 = t; }
+      const bottomPad = 8;
+      cc.style.bottom = `${Math.round(area.clientHeight - H0 + bottomPad)}px`;
+      const r0 = this.renderer;
+      if (r0 && this.resizeScene && !r0.liftShrinking && area.clientHeight > 0 && ground && cc.offsetHeight > 0) { // console cachée (page plein écran) : le sol ne bouge pas
+        const depth = Math.max(0, ground - (r0.groundY ?? 0) * (r0.scale ?? 1));
+        const top = H0 - bottomPad - cc.offsetHeight; // haut de la console (px CSS de la scène)
+        const cap = Math.max(0.5, Math.min(0.9, (top + 6 - depth) / area.clientHeight));
+        const cur = r0.liftCap ?? 1;
+        if (Math.abs(cap - cur) > 0.01) { r0.liftCap = cap; r0.liftShrinking = true; this.resizeScene(); setTimeout(() => { r0.liftShrinking = false; this.layoutColumn(); }, 0); }
+      }
+      return;
+    }
     const place0 = (el, top) => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = '50%'; el.style.transform = 'translateX(-50%)'; };
     // Limite basse : le bas de la scène, ou le haut de la barre d'onglets si elle passe par-dessus.
     const aTop = area.getBoundingClientRect().top;

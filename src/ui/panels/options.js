@@ -375,7 +375,7 @@ function generalPhone(ui, state) {
     ${mpSec('Zone de danger')}<div class="m-card mp-dz">${mBtn('Réinitialiser la partie…', { action: 'reset', cls: 'mp-danger' })}<div class="mp-note">Efface tout sur cet appareil. Exporte avant.</div></div>`;
 }
 
-function interfacePhone(ui, state) {
+function interfacePhone(ui, state, phone = true) {
   const cur = state.ui.theme ?? 'knight';
   const theme = THEMES.find((t) => t.id === cur);
   const themes = () => `<div class="mp-themes">${THEMES.map((t) => { const mine = ownsTheme(state, t.id);
@@ -395,7 +395,8 @@ function interfacePhone(ui, state) {
     ${sw('Noms des sorts', 'skill-names', state.ui.skillNames !== false, '', 'Au-dessus des unités')}${sw('Fil des gains', 'gain-feed', state.ui.feed !== false, '', 'À gauche de la scène')}
     ${sw('Grandes auras 5★', 'big-auras', state.ui.bigAuras === true, '', 'Sinon un simple liseré')}${sw('Mesures anonymes', 'metrics-opt-in', state.ui.metricsOptIn === true, '', 'Aucun identifiant')}
     ${mpField('Veillée automatique', mpChips('vigil-auto', [['never', 'Jamais'], ['phone', 'Téléphone'], ['always', 'Toujours']], state.ui.vigil ?? 'phone'), 'Après 5 min sans toucher')}
-    ${mBtn('Veillée au Camp', { action: 'sleep-mode', icon: 'icon_star' })}<div class="mp-gap"></div>${mBtn('Journal de la session', { action: 'show-journal', icon: 'icon_book' })}`;
+    ${phone ? '' : `${mpSec('Raccourcis clavier')}<div class="m-card"><div class="mp-note">${shortcutsSummary()}</div>${mBtn('Tout voir (K)', { action: 'show-shortcuts' })}</div>`}
+    ${mBtn('Veillée au Camp', { action: 'sleep-mode', icon: 'icon_star' })}<div class="mp-gap"></div>${mBtn(phone ? 'Journal de la session' : 'Journal de la session (J)', { action: 'show-journal', icon: 'icon_book' })}`;
 }
 
 function soundPhone(ui) {
@@ -412,14 +413,10 @@ export default {
   render(ui, state) {
     const tabs = optionTabs(ui);
     const tab = tabs.some(([id]) => id === ui.view.optTab) ? ui.view.optTab : 'general';
-    const seg = `<div class="seg" role="tablist">${tabs.map(([id, label]) => `<button class="seg-btn${id === tab ? ' active' : ''}" role="tab"
-      aria-selected="${id === tab}" data-action="opt-tab" data-value="${id}">${label}</button>`).join('')}</div>`;
-    if (isMPhone(ui)) {
-      const body = tab === 'interface' ? interfacePhone(ui, state) : tab === 'sound' ? soundPhone(ui) : tab === 'window' ? kitify(windowOptions(ui)) : generalPhone(ui, state);
-      const ico = { general: 'icon_gear', interface: 'icon_star', sound: 'icon_bolt', window: 'icon_map' };
-      return mpFrame('icon_gear', 'Paramètres', `${mModes(tabs.map(([id, label]) => ({ id, label, icon: ico[id] ?? 'icon_gear', action: 'opt-tab', value: id })), tab, { size: 64 })}${body}`);
-    }
-    const body = tab === 'interface' ? interfaceTab(ui, state) : tab === 'sound' ? soundOptions(ui) : tab === 'window' ? windowOptions(ui) : generalTab(ui, state);
-    return seg + body;
+    // v10.13 : le PC aussi en kit (cadre, cartouche, modes, puces, interrupteurs) ; seul le détail du téléphone (touches, taille) change.
+    const phone = isMPhone(ui);
+    const body = tab === 'interface' ? interfacePhone(ui, state, phone) : tab === 'sound' ? soundPhone(ui) : tab === 'window' ? kitify(windowOptions(ui)) : generalPhone(ui, state);
+    const ico = { general: 'icon_gear', interface: 'icon_star', sound: 'icon_bolt', window: 'icon_map' };
+    return mpFrame('icon_gear', 'Paramètres', `${mModes(tabs.map(([id, label]) => ({ id, label, icon: ico[id] ?? 'icon_gear', action: 'opt-tab', value: id })), tab, { size: 64 })}${body}`);
   },
 };

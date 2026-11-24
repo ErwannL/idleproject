@@ -47,7 +47,7 @@ test('10.11 (4) : grand écran — combat recentré, rangée d\'actions et barre
   const ui = src('src/ui/ui.js');
   assert.match(ui, /const rowW = Math\.min\(area\.clientWidth - 16, 1200\);/);
   assert.match(ui, /Math\.max\(0\.55, Math\.min\(0\.86, \(H - need\)/);
-  assert.match(src('src/ui/hud-quests.js'), /AW \/ 2 - used \/ 2/);
+  assert.match(src('src/ui/hud-quests.js'), /la rangée est calée à droite/); // v10.13 (8.1) : la rangée d'événements est calée à droite (maquette m08), plus centrée
   assert.match(src('src/ui/layout109.css'), /width: min\(1400px, calc\(100% - 32px\)\)/);
 });
 

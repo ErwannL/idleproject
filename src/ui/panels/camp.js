@@ -147,7 +147,7 @@ function tick(ui) {
   for (const el of root.querySelectorAll('[data-bt-end]')) {
     const left = Number(el.dataset.btEnd) - now;
     if (el.dataset.btSpan) el.style.width = `${(Math.max(0, Math.min(1, 1 - left / Number(el.dataset.btSpan))) * 100).toFixed(1)}%`;
-    else { const text = left <= 0 ? (PHONE && el.dataset.btShort ? 'fini' : 'terminé') : `${el.dataset.btShort ? '' : 'encore '}${PHONE && el.dataset.btShort ? shortTime(formatDuration(left / 1000)) : formatDuration(left / 1000)}`; if (el.textContent !== text) el.textContent = text; }
+    else { const text = left <= 0 ? ((PHONE || el.dataset.btTiny) && el.dataset.btShort ? 'fini' : 'terminé') : `${el.dataset.btShort ? '' : 'encore '}${(PHONE || el.dataset.btTiny) && el.dataset.btShort ? shortTime(formatDuration(left / 1000)) : formatDuration(left / 1000)}`; if (el.textContent !== text) el.textContent = text; }
   }
   for (const el of root.querySelectorAll('[data-bt-stock]')) {
     const cap = Number(el.dataset.btCap);
@@ -415,7 +415,9 @@ function researchTreePhone(ui, state, now) {
   const all = [...regular, ...keys];
   const lockMsg = lib < 1 ? `${img('icon_lock')} Construis la Bibliothèque` : page > age ? `${img('icon_lock')} Âge ${AGES[page - 1].roman} : ${escapeHtml(AGES[page - 1].name)}` : '';
   const path = all.map((r, i) => `${keys.length && r === keys[0] ? '<div class="mr-keyhead"><i></i><span>Nœuds clés</span><i></i></div>' : ''}${mrNode(ui, state, r, now, i === all.length - 1)}`).join('');
-  return `<div class="mr-view">${head}<div class="mr-tiers">${tiers}</div>${branches}
+  const gate = libGate(state); // v10.13 (§ 7) : bandeau « Bibliothèque à construire »
+  const gateHtml = gate ? `<div class="m-card mr-gate"><img class="px" src="${researchArt('lessons')}" alt=""><span class="mr-gate-t"><b>${gate.title}</b><small>${escapeHtml(gate.sub)}</small></span>${mBtn(gate.label, { action: gate.action, value: 'library', cls: 'auto' })}</div>` : '';
+  return `<div class="mr-view">${gateHtml}${head}<div class="mr-tiers">${tiers}</div>${branches}
     <div class="mr-pathhead tier-${page}"><b>Palier ${AGES[page - 1].roman}</b><span>${escapeHtml(AGES[page - 1].name)}</span></div>
     ${lockMsg ? `<p class="mr-lock">${lockMsg}</p>` : ''}<div class="m-card mr-path${lockMsg ? ' closed' : ''}">${path}</div></div>`;
 }
@@ -446,10 +448,158 @@ function researchSheetPhone(ui, state, now) {
     } else {
       const dur = f > 0 ? formatDuration(cost.ms / f / 1000) : `${formatDuration(cost.ms / 1000)} · à l'arrêt`;
       mid = `${fx}<div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: num })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: num })}</div>${mStat('icon_timer', 'Durée', dur)}`;
-      btn = mBtnGold(st.level ? 'Améliorer' : 'Lancer', { action: 'bastion-research', value: def.id, disabled: !can.ok }) + (can.ok ? '' : `<small class="mr-why">${escapeHtml(can.reason)}</small>`);
+      const gate = libGate(state); // v10.13 (§ 7) : la raison claire, et le bouton qui y mène
+      btn = gate ? `<p class="mr-why big">${img('icon_lock')} Il faut d'abord la Bibliothèque</p>${mBtnGold(gate.big, { action: gate.action, value: 'library' })}`
+        : mBtnGold(st.level ? 'Améliorer' : 'Lancer', { action: 'bastion-research', value: def.id, disabled: !can.ok }) + (can.ok ? '' : `<small class="mr-why">${escapeHtml(can.reason)}</small>`);
     }
   }
   return `<div class="mr-body">${top}${mid}${btn}<p class="mr-note">Gardées après les Renaissances.</p></div>`;
+}
+
+// ---------------------------------------------------------------- v10.13 (§ 7) : Recherches sur PC, en kit
+// « ‹ Carte du Bastion » + ressources → 3 branches en grandes tuiles → paliers I à V → le livre (page claire, nœuds de 112 px, nom en
+// dessous, liens en pointillés entre les cercles) ; à droite le détail (image, avant » après, coûts en cases, raison, bouton doré,
+// ouvriers). Mêmes actions qu'avant (bastion-view / -branch / -page / -res / -research). Le téléphone garde researchTreePhone.
+const BRANCH_SUB = { combat: 'Dégâts, vie, critique', team: 'Équipe et familiers', economy: 'Or, butin, temps' };
+const pageList = (branchId, tier) => [...RESEARCH.filter((r) => r.branch === branchId && (r.tier ?? 1) === tier && !r.keystone),
+  ...(tier === 3 ? RESEARCH.filter((r) => r.branch === branchId && r.keystone) : [])];
+const rsCount = (state, list) => `${list.reduce((n, r) => n + researchStatus(state, r.id).level, 0)}/${list.reduce((n, r) => n + r.max, 0)}`;
+
+// Bibliothèque pas construite : null si elle l'est, sinon ce qu'on dit au joueur et l'action du bouton « Construire › ».
+function libGate(state) {
+  if (buildingLevel(state, 'library') >= 1) return null;
+  const slot = bastionOf(state)?.buildings?.library;
+  const acc = buildingAccess(state, 'library');
+  if (slot?.build) {
+    const left = buildRemaining(state, 'library');
+    return { title: 'La Bibliothèque est en chantier.', sub: Number.isFinite(left) ? `Encore ${formatDuration(left / 1000)} avant de lancer des recherches.` : 'Pose un ouvrier pour finir le chantier.', action: 'bastion-open', label: 'Voir ›', big: 'Voir le chantier ›' };
+  }
+  const cost = buildCost(state, 'library');
+  const time = cost ? formatDuration(cost.ms / 1000) : '';
+  const sub = acc.available ? `Construis-la au Bastion (1 ouvrier, ${time}) pour lancer tes recherches.` : `${acc.reason || 'Pas encore ouverte'} : elle mène toutes les recherches.`;
+  const direct = acc.available && canBuild(state, 'library').ok;
+  return { title: 'La Bibliothèque n\'est pas construite.', sub, action: direct ? 'bastion-build' : 'bastion-open', label: 'Construire ›', big: 'Construire la Bibliothèque ›' };
+}
+const rsLockText = (st) => (st.ageLock ? `Âge ${st.ageLock.roman} requis` : st.lockedBy ? `${st.lockedBy.name} ${Math.min(RESEARCH_UNLOCK_LEVEL, st.lockedBy.max)}` : '');
+const rsRemain = (state, id, now) => {
+  const r = researchRemaining(state, id);
+  return Number.isFinite(r) ? `<span class="rs-time" data-bt-short="1" data-bt-end="${Math.round(now + r)}">${formatDuration(r / 1000)}</span>` : '<span class="rs-time bad">en pause</span>';
+};
+
+function rsNode(ui, state, def, now, curId) {
+  const st = researchStatus(state, def.id);
+  const seen = (ui.view.resSeen ??= {});
+  const fresh = st.unlocked && seen[def.id] === false;
+  seen[def.id] = Boolean(st.unlocked);
+  const sub = st.active ? `En cours · ${rsRemain(state, def.id, now)}` : !st.unlocked ? `${img('icon_lock')} ${escapeHtml(rsLockText(st))}` : st.maxed ? 'Niveau maximal' : escapeHtml(def.text);
+  const cls = `${st.active ? ' active' : ''}${!st.unlocked ? ' locked' : ''}${st.maxed ? ' maxed' : ''}${st.level ? ' got' : ''}${def.keystone ? ' key' : ''}${fresh ? ' fresh' : ''}${curId === def.id ? ' sel' : ''}`;
+  return `<button type="button" class="rs-node${cls}" data-action="bastion-res" data-value="${def.id}" aria-pressed="${curId === def.id}" aria-label="${escapeHtml(`${def.name}, niveau ${st.level} sur ${def.max}`)}">
+      <span class="rs-c"><img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><i class="rs-lv num">${st.level} / ${def.max}</i>${!st.unlocked ? `<i class="rs-lk">${img('icon_lock')}</i>` : st.maxed ? '<i class="rs-lk ok">✓</i>' : ''}</span>
+      <b class="rs-name">${escapeHtml(def.name)}</b><span class="rs-sub">${sub}</span></button>`;
+}
+
+function rsBook(ui, state, now, list, tier, age, curId) {
+  const gate = libGate(state);
+  let banner = '';
+  if (gate) banner = `<div class="rs-gate"><img class="px" src="${researchArt('lessons')}" alt=""><span class="rs-gate-t"><b>${gate.title}</b><small>${escapeHtml(gate.sub)}</small></span>${mBtn(gate.label, { action: gate.action, value: 'library', cls: 'auto rs-gate-btn' })}</div>`;
+  else if (tier > age) banner = `<div class="rs-gate shut">${img('icon_lock')}<span class="rs-gate-t"><b>Palier ${AGES[tier - 1].roman} fermé</b><small>S'ouvre à l'Âge ${AGES[tier - 1].roman} : ${escapeHtml(AGES[tier - 1].name)}</small></span></div>`;
+  // liens en pointillés : de la gauche vers la droite sur une rangée de 3, et un trait vertical sous la première de chaque rangée
+  const lit = (r) => (researchStatus(state, r.id).unlocked ? ' lit' : '');
+  const cells = list.map((r, i) => {
+    const col = i % 3;
+    const left = col > 0 ? `<i class="rs-link l${lit(r)}" aria-hidden="true"></i>` : '';
+    const right = col < 2 && list[i + 1] ? `<i class="rs-link r${lit(list[i + 1])}" aria-hidden="true"></i>` : '';
+    const up = i >= 3 && col === 0 ? `<i class="rs-link v${lit(r)}" aria-hidden="true"></i>` : '';
+    return `<div class="rs-cell">${rsNode(ui, state, r, now, curId)}${left}${right}${up}</div>`;
+  });
+  return `<div class="rs-book${gate || tier > age ? ' closed' : ''}">${banner}<div class="rs-grid">${cells.join('')}</div></div>`;
+}
+
+// Les ouvriers du Bastion (places) : posé (compagnon + bâtiment + temps restant du chantier ou de la recherche) ou libre.
+function rsWorkers(state, now) {
+  const placed = BUILDINGS.filter((d) => !d.existing && workerOf(state, d.id));
+  const total = Math.max(workerSlots(state), placed.length, 1);
+  const cells = [];
+  for (const d of placed) {
+    const c = companionById(workerOf(state, d.id));
+    const src = c ? companionStill(c).match(/src="([^"]+)"/)?.[1] : null;
+    const job = d.id === 'library' ? bastionOf(state).research.active[0] : null;
+    const left = job ? researchRemaining(state, job.id) : buildRemaining(state, d.id);
+    const time = Number.isFinite(left) && left > 0 ? `<span class="rs-wt" data-bt-short="1" data-bt-tiny="1" data-bt-end="${Math.round(now + left)}">${shortTime(formatDuration(left / 1000))}</span>` : '<span class="rs-wt">en poste</span>';
+    cells.push(`<span class="rs-w busy" title="${escapeHtml(`${c?.name ?? 'Ouvrier'} : ${d.name}`)}">${src ? `<img class="px" src="${escapeHtml(src)}" alt="">` : img('icon_upgrade')}<b>${escapeHtml(shortName(d))}</b>${time}</span>`);
+  }
+  while (cells.length < total) cells.push(`<span class="rs-w free">${img('icon_upgrade')}<b>Libre</b></span>`);
+  return `<div class="rs-wh">Ouvriers · ${placed.length} / ${total} au travail</div><div class="rs-ws">${cells.join('')}</div>`;
+}
+
+function rsDetail(state, now, def) {
+  const st = researchStatus(state, def.id);
+  const f = productionFactor(state, 'library');
+  const lib = buildingLevel(state, 'library');
+  const gate = libGate(state);
+  const branch = RESEARCH_BRANCHES.find((b) => b.id === def.branch);
+  const tier = def.tier ?? 1;
+  const num = (n) => formatNumber(Math.floor(n));
+  const art = `<div class="rs-art" style="background-image:url(${ART('research_tree_bg')})"><img class="px" src="${researchArt(def.id)}" alt="" draggable="false"><span class="rs-badge">${escapeHtml(branch?.name ?? '')} · ${def.keystone ? 'Nœud clé' : `Palier ${AGES[tier - 1].roman}`}</span></div>`;
+  const head = `<div class="rs-h"><b>${escapeHtml(def.name)}</b><span class="num">Niv. ${st.level} / ${def.max}</span></div><p class="rs-line">${escapeHtml(def.text)} à chaque niveau.</p>`;
+  const bIcon = `file:${ART(`research_branch_${def.branch}`)}`;
+  const split = (t) => t.match(/^([+−\-×]?\d+(?:,\d+)?(?: ?%| h)?)\s*(.*)$/) ?? [t, t, ''];
+  const label = (w) => { const x = w.replace(/^(?:de |d'|du |des |à )/, ''); return x.charAt(0).toUpperCase() + x.slice(1); }; // « de dégâts » → « Dégâts »
+  let body = '';
+  let reason = '';
+  let btn = '';
+  if (st.maxed) {
+    const [, tot, what] = split(researchText(def, st.level));
+    body = `<div class="m-stat big">${img(bIcon)}<span class="m-k">${escapeHtml(label(what) || 'Effet total')}</span><b class="m-v up">${escapeHtml(tot)}</b></div>`;
+    reason = '✓ Niveau maximal atteint';
+  } else {
+    const [, nextV, what] = split(researchText(def, st.level + 1));
+    const curV = st.level ? split(researchText(def, st.level))[1] : /^[+−-]/.test(nextV) ? nextV.replace(/\d+(?:,\d+)?/, '0') : '—';
+    const fx = `<div class="m-stat big">${img(bIcon)}<span class="m-k">${escapeHtml(label(what) || 'Effet')}</span><b class="m-v">${escapeHtml(curV)} <i class="rs-arrow">»</i> <span class="up">${escapeHtml(nextV)}</span></b></div>`;
+    const cost = researchCost(state, def.id);
+    const can = canResearch(state, def.id);
+    const dur = formatDuration((f > 0 ? cost.ms / f : cost.ms) / 1000);
+    const costs = `<div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: num })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: num })}<span class="m-cost ok"><span class="m-cost-ico">${img('icon_timer')}</span><span class="m-cost-n">${escapeHtml(dur)}</span></span></div>`;
+    if (st.active) {
+      const pct = (Math.max(0, Math.min(1, 1 - st.active.left / st.active.total)) * 100).toFixed(1);
+      body = `${fx}<div class="rs-run"><div class="rs-bar"><i style="width:${pct}%"${f > 0 ? ` data-bt-end="${Math.round(now + st.active.left / f)}" data-bt-span="${Math.round(st.active.total / f)}"` : ''}></i></div><span class="rs-runl">En cours · ${rsRemain(state, def.id, now)}</span></div>`;
+      btn = mBtnGold('En cours', { disabled: true });
+    } else {
+      body = `${fx}${costs}`;
+      if (lib < 1) { reason = `${img('icon_lock')} Il faut d'abord la Bibliothèque`; btn = mBtnGold(gate?.big ?? 'Construire la Bibliothèque ›', { action: gate?.action ?? 'bastion-open', value: 'library' }); }
+      else if (!st.unlocked) { reason = `${img('icon_lock')} ${escapeHtml(can.reason)}`; btn = mBtnGold('Verrouillée', { disabled: true }); }
+      else {
+        if (!can.ok) reason = escapeHtml(can.reason);
+        else if (!(f > 0)) reason = 'Pose un ouvrier à la Bibliothèque : sans lui, le temps ne passe pas.';
+        btn = mBtnGold('Lancer', { action: 'bastion-research', value: def.id, disabled: !can.ok });
+      }
+    }
+  }
+  return `<aside class="m-card rs-detail" aria-label="Détail de la recherche">${art}${head}${body}${reason ? `<p class="rs-why${st.maxed ? ' ok' : ''}">${reason}</p>` : ''}${btn}
+      <p class="rs-keep">✓ Gardées après chaque Renaissance</p>${rsWorkers(state, now)}</aside>`;
+}
+
+function researchDesk(ui, state, now) {
+  const v = ui.view;
+  const age = Math.max(1, bastionAge(state));
+  const page = Math.min(5, Math.max(1, Number(v.resPage) || 1));
+  const branch = RESEARCH_BRANCHES.find((b) => b.id === v.resBranch) ?? RESEARCH_BRANCHES[0];
+  const list = pageList(branch.id, page);
+  // le détail : la recherche touchée ; sinon celle en cours sur cette page ; sinon la première de la page
+  const def = RESEARCH.find((r) => r.id === v.bastionRes) ?? list.find((r) => researchStatus(state, r.id).active) ?? list[0] ?? RESEARCH[0];
+  const branches = RESEARCH_BRANCHES.map((br) => {
+    const on = br.id === branch.id;
+    return `<button type="button" class="rs-branch${on ? ' on' : ''}" role="tab" aria-selected="${on}" data-action="bastion-branch" data-value="${br.id}"><img class="px" src="${ART(`research_branch_${br.id}`)}" alt=""><span class="rs-bt"><b>${escapeHtml(br.name)}</b><small>${BRANCH_SUB[br.id] ?? ''} · ${rsCount(state, pageList(br.id, page))}</small></span></button>`;
+  }).join('');
+  const tiers = [1, 2, 3, 4, 5].map((t) => {
+    const open = t <= age;
+    const on = t === page;
+    return `<button type="button" class="rs-tier${on ? ' on' : ''}${open ? '' : ' off'}" role="tab" aria-selected="${on}" data-action="bastion-page" data-value="${t}"${open ? '' : ` title="S'ouvre à l'Âge ${AGES[t - 1].roman} : ${escapeHtml(AGES[t - 1].name)}"`}>${open ? '' : img('icon_lock')}<span>Palier ${AGES[t - 1].roman}</span>${on && open ? `<small class="num">${rsCount(state, list)}</small>` : ''}</button>`;
+  }).join('');
+  const res = `<span class="rs-res"><span class="rs-pill" data-gloss="gold">${coin()}<b class="num">${formatNumber(Math.floor(state.gold))}</b></span><span class="rs-pill" data-gloss="shards">${shard()}<b class="num">${formatNumber(state.materials.shards)}</b></span></span>`;
+  return `<div class="m-frame m-hero rs-frame">${mTitle(`file:${ART('research_node_book')}`, 'Recherches', true)}
+    <div class="rs-top">${mBtn('‹ Carte du Bastion', { action: 'bastion-view', value: 'map', cls: 'auto' })}${res}</div>
+    <div class="d-cols2 rs-cols"><div class="rs-main"><div class="rs-branches" role="tablist">${branches}</div><div class="rs-tiers" role="tablist">${tiers}</div>${rsBook(ui, state, now, list, page, age, def.id)}</div>${rsDetail(state, now, def)}</div></div>`;
 }
 
 // ---------------------------------------------------------------- la fiche du bâtiment
@@ -814,6 +964,7 @@ function renderBastion(ui, state) {
   const narrow = ui.root?.classList.contains('page-narrow') || !page;
   // Sur grand écran la fiche est toujours là : le bâtiment en cours (sinon la Forge) est choisi d'office.
   if (view === 'map' && !v.bastionSel && !narrow) v.bastionSel = BUILDINGS.find((d) => bastionOf(state).buildings[d.id]?.build)?.id ?? 'forge';
+  if (view === 'research') return researchDesk(ui, state, now); // v10.13 (§ 7) : cadre du kit PC
   if ((ui.root?.clientWidth ?? 9999) > 600 && view !== 'research') return renderBastionDesk(ui, state, now, v.bastionView === 'workers' ? 'workers' : 'map'); // v10.13 : Carte et Ouvriers dans le cadre du kit PC
   const side = view === 'research' ? researchSheet(ui, state, now) : buildingSheet(ui, state, now);
   const open = Boolean(side) && (view === 'research' ? Boolean(v.bastionRes) || !narrow : Boolean(v.bastionSel));

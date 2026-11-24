@@ -1,0 +1,162 @@
+/* v10.13 (lot 6) : Équipe › Compagnons sur PC (maquette m06). HTML : src/ui/panels/companions-desk.js. Tout sous #app:not(.m-phone).
+   Gauche : bandeau « Ton équipe » (décor du monde actuel), préréglages, filtres, grille de 7 colonnes de cartes portrait.
+   Droite : la fiche du compagnon choisi, toujours visible (colonne .d-cols2 du kit, repliée sous la grille si le cadre est étroit). */
+
+#app:not(.m-phone) .dc-frame .dc-main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* ---------- Bandeau « Ton équipe » ---------- */
+#app:not(.m-phone) .dc-team {
+  position: relative; box-sizing: border-box; height: 212px; border-radius: 16px; border: 2px solid var(--m-gold); overflow: hidden;
+  image-rendering: pixelated; box-shadow: inset 0 0 36px rgba(0, 0, 0, .55);
+}
+#app:not(.m-phone) .dc-team::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .35), transparent 38%, rgba(0, 0, 0, .25)); pointer-events: none; }
+#app:not(.m-phone) .dc-team-lbl { position: absolute; left: 16px; top: 12px; z-index: 2; font: 900 22px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 2px 0 #000, 0 0 8px #000; }
+#app:not(.m-phone) .dc-team-pw { position: absolute; right: 14px; top: 10px; z-index: 2; padding: 5px 12px; border-radius: 10px; background: rgba(0, 0, 0, .74); border: 1px solid var(--m-gold); color: var(--m-gold-hi); font: 800 15px/1.2 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .dc-team-pw b { font-weight: 900; }
+#app:not(.m-phone) .dc-units { position: absolute; z-index: 1; left: 8px; right: 8px; bottom: 12px; top: 48px; display: flex; justify-content: space-around; align-items: flex-end; gap: 6px; }
+#app:not(.m-phone) .dc-u { flex: 1 1 0; min-width: 0; max-width: 150px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+#app:not(.m-phone) .dc-u-btn { position: relative; display: grid; place-items: end center; box-sizing: border-box; width: 100%; max-width: 112px; aspect-ratio: 1; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; }
+#app:not(.m-phone) .dc-u-btn img, #app:not(.m-phone) .dc-u-btn canvas { width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; filter: drop-shadow(0 4px 3px rgba(0, 0, 0, .65)); }
+#app:not(.m-phone) .dc-u.hero .dc-u-btn { cursor: default; }
+#app:not(.m-phone) .dc-u.hero .dc-u-btn canvas { height: auto; max-height: 100%; }
+#app:not(.m-phone) .dc-u.on .dc-u-btn img { filter: drop-shadow(0 0 7px var(--m-gold-hi)) drop-shadow(0 4px 3px rgba(0, 0, 0, .65)); }
+#app:not(.m-phone) .dc-u-btn:hover img { filter: brightness(1.12) drop-shadow(0 4px 3px rgba(0, 0, 0, .65)); }
+#app:not(.m-phone) .dc-u.empty .dc-u-btn { place-items: center; width: 76px; height: 76px; margin-bottom: 4px; border: 2px dashed rgba(255, 255, 255, .55); border-radius: 12px; background: rgba(0, 0, 0, .35); color: var(--m-gold-hi); font: 900 30px/1 system-ui, sans-serif; cursor: default; }
+#app:not(.m-phone) .dc-rank { position: relative; z-index: 2; display: inline-block; padding: 3px 10px; margin: 0; border-radius: 8px; border: 1px solid var(--m-gold); background: rgba(0, 0, 0, .74); color: #fff; font: 900 13px/1.1 system-ui, sans-serif; }
+#app:not(.m-phone) button.dc-rank { cursor: pointer; appearance: none; color: var(--m-soft); }
+#app:not(.m-phone) button.dc-rank:hover { color: #fff; border-color: var(--m-gold-hi); }
+#app:not(.m-phone) .dc-rank.front { background: #1a5aa8; border-color: #8ec3ff; }
+
+/* ---------- Préréglages (sombres) et « Meilleure équipe » ---------- */
+#app:not(.m-phone) .dc-presets { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
+#app:not(.m-phone) .dc-presets button.m-btn { flex: 1 1 130px; width: auto; height: 44px; padding: 0 12px; font-size: 14px; gap: 8px; }
+#app:not(.m-phone) .dc-presets button.m-btn span { white-space: normal; line-height: 1.1; }
+#app:not(.m-phone) .dc-presets .m-btn-gold { flex: 1.4 1 220px; width: auto; height: 48px; min-height: 48px; font-size: 17px; padding: 0 14px; gap: 8px; }
+#app:not(.m-phone) .dc-presets .m-btn-gold img { width: 22px; height: 22px; }
+
+/* ---------- Filtres (puces, jamais de liste déroulante) ---------- */
+#app:not(.m-phone) .dc-filters { align-items: center; margin: 0; padding: 2px; gap: 8px; }
+#app:not(.m-phone) .dc-filters .m-chip { height: 36px; font-size: 14px; padding: 0 12px; }
+#app:not(.m-phone) .dc-filters .m-chip.on { color: #fff; background: #2b3666; border-color: var(--m-gold-hi); box-shadow: inset 0 0 0 1px var(--m-gold); }
+#app:not(.m-phone) .dc-flbl { color: var(--m-soft); font: 800 13px/1 system-ui, sans-serif; }
+#app:not(.m-phone) .dc-sep { flex: none; width: 1px; height: 24px; margin: 0 4px; background: var(--m-card-line); }
+
+/* ---------- Grille de 7 colonnes de cartes portrait ---------- */
+/* 7 colonnes au plus (cartes de 80 à 96 px) ; moins quand la colonne est étroite */
+#app:not(.m-phone) .dc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(80px, calc((100% - 48px) / 7)), 1fr)); gap: 8px; }
+#app:not(.m-phone) .dc-card {
+  --rc: var(--m-r-common); position: relative; appearance: none; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px;
+  min-width: 0; margin: 0; padding: 28px 1px 7px; border-radius: 14px; border: 3px solid var(--rc); color: var(--m-text); text-align: center; cursor: pointer; font-family: system-ui, sans-serif;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--rc) 32%, #141c3b), #0d1430);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, .5), 0 0 8px -3px var(--rc);
+}
+#app:not(.m-phone) .dc-card.r-common { --rc: var(--m-r-common); } #app:not(.m-phone) .dc-card.r-rare { --rc: var(--m-r-rare); } #app:not(.m-phone) .dc-card.r-epic { --rc: var(--m-r-epic); }
+#app:not(.m-phone) .dc-card.r-legendary { --rc: var(--m-r-legendary); } #app:not(.m-phone) .dc-card.r-mythic { --rc: var(--m-r-mythic); } #app:not(.m-phone) .dc-card.r-astral { --rc: var(--m-r-astral); }
+#app:not(.m-phone) .dc-card.r-ascendant { --rc: var(--m-r-ascendant); }
+#app:not(.m-phone) .dc-card:hover { filter: brightness(1.12); }
+#app:not(.m-phone) .dc-card.sel { outline: 3px solid #fff; outline-offset: 2px; }
+#app:not(.m-phone) .dc-card.in { box-shadow: inset 0 0 12px rgba(0, 0, 0, .5), 0 0 10px 0 #5be37d; }
+#app:not(.m-phone) .dc-pic { display: grid; place-items: center; width: 100%; }
+#app:not(.m-phone) .dc-pic img { display: block; width: 100%; max-width: 96px; aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .dc-name { display: block; max-width: 100%; margin-top: -4px; font: 800 12px/1.1 system-ui, sans-serif; letter-spacing: -.45px; overflow-wrap: anywhere; hyphens: none; }
+#app:not(.m-phone) .dc-name.long { letter-spacing: -.8px; }
+#app:not(.m-phone) .dc-stars { color: var(--m-gold-hi); font-size: 13px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+#app:not(.m-phone) .dc-stars i { font-style: normal; color: #44507a; }
+#app:not(.m-phone) .dc-stars.none { color: #44507a; }
+#app:not(.m-phone) .dc-lv { position: absolute; left: 5px; top: 8px; padding: 0 5px; border-radius: 6px; background: rgba(0, 0, 0, .66); font: 900 12px/17px system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .dc-in { position: absolute; left: 50%; transform: translateX(-50%); top: -12px; z-index: 1; padding: 0 7px; border-radius: 6px; background: #1d7a3a; border: 1px solid #5be37d; color: #eafff0; font: 900 12px/17px system-ui, sans-serif; white-space: nowrap; box-shadow: 0 1px 3px rgba(0, 0, 0, .7); }
+#app:not(.m-phone) .dc-in.away { background: #6b4a12; border-color: var(--m-gold); color: #ffe7a0; }
+#app:not(.m-phone) .dc-bang { position: absolute; top: -8px; right: -8px; z-index: 2; min-width: 22px; height: 22px; padding: 0; border-radius: 11px; background: #e03b3b; border: 2px solid #fff; box-sizing: border-box; color: #fff; font: 900 13px/18px system-ui, sans-serif; text-align: center; font-style: normal; }
+#app:not(.m-phone) .dc-card.locked { --rc: #555e80; background: linear-gradient(180deg, #2a3150, #161b30); box-shadow: inset 0 0 12px rgba(0, 0, 0, .5); color: var(--m-soft); }
+#app:not(.m-phone) .dc-card.locked .dc-pic { padding: 18px 0 12px; }
+#app:not(.m-phone) .dc-card.locked .dc-pic img { max-width: 56px; opacity: .9; }
+#app:not(.m-phone) .dc-note { margin: 0; padding: 18px; text-align: center; color: var(--m-soft); font-size: 15px; }
+
+/* ---------- Conseils (volet replié) ---------- */
+#app:not(.m-phone) .dc-tips { margin: 0; border-radius: 14px; background: var(--m-card); border: 1px solid var(--m-card-line); color: var(--m-text); }
+#app:not(.m-phone) .dc-tips .fold-head { padding: 12px 14px; font-size: 15px; font-weight: 800; color: var(--m-text); min-height: 44px; }
+#app:not(.m-phone) .dc-tips .fold-sum, #app:not(.m-phone) .dc-tips .muted, #app:not(.m-phone) .dc-tips small { font-size: 13px; }
+#app:not(.m-phone) .dc-tips .fold-body { padding: 4px 14px 14px; font-size: 14px; }
+
+/* ---------- La fiche (colonne de droite, toujours visible) ---------- */
+#app:not(.m-phone) .dc-sheet {
+  --rc: var(--m-r-common); box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px;
+  background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 16px; color: var(--m-text);
+}
+#app:not(.m-phone) .dc-sheet.r-rare { --rc: var(--m-r-rare); } #app:not(.m-phone) .dc-sheet.r-epic { --rc: var(--m-r-epic); } #app:not(.m-phone) .dc-sheet.r-legendary { --rc: var(--m-r-legendary); }
+#app:not(.m-phone) .dc-sheet.r-mythic { --rc: var(--m-r-mythic); } #app:not(.m-phone) .dc-sheet.r-astral { --rc: var(--m-r-astral); } #app:not(.m-phone) .dc-sheet.r-ascendant { --rc: var(--m-r-ascendant); }
+@media (min-height: 1000px) { #app:not(.m-phone) .dc-sheet { position: sticky; top: 6px; } }
+#app:not(.m-phone) .dc-art {
+  position: relative; box-sizing: border-box; height: 270px; overflow: hidden; border-radius: 14px; border: 2px solid var(--rc);
+  background: radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--rc) 45%, transparent), #0b1124 72%); display: grid; place-items: center;
+}
+#app:not(.m-phone) .dc-art-in { display: grid; place-items: end center; width: 100%; height: 100%; padding-top: 22px; box-sizing: border-box; }
+#app:not(.m-phone) .dc-art-in img, #app:not(.m-phone) .dc-art-in canvas { display: block; width: auto; height: 100%; max-width: 100%; object-fit: contain; object-position: 50% 100%; opacity: 1; }
+#app:not(.m-phone) .dc-art-in canvas, #app:not(.m-phone) .dc-art-in img:not(.hd-art) { height: auto; max-height: 200px; width: auto; min-height: 120px; }
+#app:not(.m-phone) .dc-art-in .hd-art { image-rendering: pixelated; }
+#app:not(.m-phone) .dc-art-in .hd-art.px-hd, #app:not(.m-phone) .dc-art-in .hd-art.real { image-rendering: auto; }
+#app:not(.m-phone) .dc-art-in.silhouette img { filter: brightness(0) opacity(.55); }
+#app:not(.m-phone) .dc-art .showcase, #app:not(.m-phone) .dc-art > :not(.dc-art-in):not(.dc-play) { max-width: 100%; max-height: 100%; }
+#app:not(.m-phone) .dc-play { position: absolute; left: 10px; top: 10px; z-index: 2; appearance: none; margin: 0; height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid var(--m-gold); background: rgba(0, 0, 0, .72); color: #fff; font: 800 14px/1 system-ui, sans-serif; cursor: pointer; }
+#app:not(.m-phone) .dc-play:hover { border-color: var(--m-gold-hi); color: var(--m-gold-hi); }
+#app:not(.m-phone) .dc-id { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+#app:not(.m-phone) .dc-sname { font: 900 26px/1.1 system-ui, sans-serif; text-shadow: 0 2px 0 #000; }
+#app:not(.m-phone) .dc-slv { color: var(--m-soft); font: 700 15px/1.2 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .dc-stars.big { margin-left: auto; font-size: 17px; letter-spacing: 2px; }
+#app:not(.m-phone) .dc-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+#app:not(.m-phone) .dc-pill { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 11px; border-radius: 13px; font: 900 14px/1 system-ui, sans-serif; color: #fff; background: #35416c; white-space: nowrap; }
+#app:not(.m-phone) .dc-pill img { width: 16px; height: 16px; image-rendering: pixelated; }
+#app:not(.m-phone) .dc-pill.r-common { background: #4a5170; } #app:not(.m-phone) .dc-pill.r-rare { background: #1a5aa8; } #app:not(.m-phone) .dc-pill.r-epic { background: #6a2fb0; }
+#app:not(.m-phone) .dc-pill.r-legendary { background: #9a5a0a; color: #ffe7a0; } #app:not(.m-phone) .dc-pill.r-mythic { background: #8a2230; } #app:not(.m-phone) .dc-pill.r-astral { background: #0f6f86; } #app:not(.m-phone) .dc-pill.r-ascendant { background: #5a3a96; }
+#app:not(.m-phone) .dc-pill.el { background: color-mix(in srgb, var(--ec, #5a6a90) 34%, #141c3b); border: 1px solid var(--ec, #5a6a90); color: #fff; }
+#app:not(.m-phone) .dc-pill.role { background: color-mix(in srgb, var(--rc, #5a6a90) 32%, #141c3b); border: 1px solid var(--rc, #5a6a90); }
+#app:not(.m-phone) .dc-st3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#app:not(.m-phone) .dc-st3 > span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; background: #1d2850; border: 1px solid var(--m-card-line); min-width: 0; }
+#app:not(.m-phone) .dc-st3 img { width: 26px; height: 26px; image-rendering: pixelated; }
+#app:not(.m-phone) .dc-st3 b { font: 900 20px/1.1 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .dc-st3 small { color: var(--m-soft); font: 700 13px/1.1 system-ui, sans-serif; text-align: center; }
+#app:not(.m-phone) .dc-sk { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#app:not(.m-phone) .dc-skill {
+  appearance: none; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; margin: 0; padding: 8px 5px 9px; border-radius: 12px; border: 2px solid #34447c;
+  background: #1a2448; color: var(--m-text); text-align: center; cursor: pointer; font-family: system-ui, sans-serif;
+}
+#app:not(.m-phone) .dc-skill:hover { border-color: #5668a8; }
+#app:not(.m-phone) .dc-skill.on { border-color: var(--m-gold-hi); box-shadow: 0 0 12px rgba(243, 210, 122, .35); }
+#app:not(.m-phone) .dc-skill-ic { position: relative; display: grid; place-items: center; width: 52px; height: 52px; }
+#app:not(.m-phone) .dc-skill-ic img { width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .dc-skill-lv { position: absolute; right: -10px; bottom: -4px; padding: 0 5px; border-radius: 6px; background: #000c; border: 1px solid var(--m-gold); color: var(--m-gold-hi); font: 900 12px/16px system-ui, sans-serif; font-style: normal; white-space: nowrap; }
+#app:not(.m-phone) .dc-skill b { font: 900 14px/1.1 system-ui, sans-serif; overflow-wrap: anywhere; }
+#app:not(.m-phone) .dc-skill small { color: var(--m-soft); font: 600 13px/1.15 system-ui, sans-serif; overflow-wrap: anywhere; }
+#app:not(.m-phone) .dc-awake { color: var(--m-soft); font: 700 14px/1.25 system-ui, sans-serif; }
+#app:not(.m-phone) .dc-awake.on { color: var(--m-ok); }
+#app:not(.m-phone) .dc-sheet .up-bubble { margin: 0; padding: 12px; border-radius: 12px; background: #121a36; border: 1px solid var(--m-card-line); font-size: 14px; }
+#app:not(.m-phone) .dc-sheet .up-bubble p { margin: 6px 0; font-size: 14px; }
+#app:not(.m-phone) .dc-sheet .up-bubble .btn, #app:not(.m-phone) .dc-sheet .up-bubble .btn.tiny { font-size: 13px; min-height: 36px; }
+#app:not(.m-phone) .dc-story { padding: 12px; border-radius: 12px; background: #121a36; border: 1px solid var(--m-card-line); font-size: 14px; line-height: 1.35; }
+#app:not(.m-phone) .dc-story p { margin: 0 0 8px; font-size: 14px; }
+#app:not(.m-phone) .dc-story .section-title, #app:not(.m-phone) .dc-story small { font-size: 13px; }
+#app:not(.m-phone) .dc-up { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#app:not(.m-phone) .dc-up .m-cost { flex: none; }
+#app:not(.m-phone) .dc-up button.m-btn { flex: 1 1 auto; width: auto; }
+#app:not(.m-phone) .dc-up.max { justify-content: center; }
+#app:not(.m-phone) .dc-max { color: var(--m-ok); font: 900 16px/1 system-ui, sans-serif; }
+#app:not(.m-phone) .dc-sheet .m-btn-gold { flex: none; }
+#app:not(.m-phone) .dc-pair { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
+#app:not(.m-phone) .dc-pair button.m-btn { width: 100%; }
+#app:not(.m-phone) .dc-replace { margin: 0; }
+#app:not(.m-phone) .dc-replace > b { display: block; margin-bottom: 8px; font-size: 16px; }
+#app:not(.m-phone) .dc-replace .m-btn { margin-top: 10px; }
+
+/* ---------- Largeurs : le cadre décide (container query « mframe », px CSS) ---------- */
+@container mframe (min-width: 780px) and (max-width: 1179px) {
+  #app:not(.m-phone) .dc-cols { grid-template-columns: minmax(0, 1fr) 410px; } /* fiche un peu plus étroite : la grille garde 6 colonnes */
+}
+@container mframe (max-width: 779px) { /* une colonne : bandeau, préréglages, FICHE, puis filtres et grille (la fiche reste en haut) */
+  #app:not(.m-phone) .dc-frame .dc-main { display: contents; }
+  #app:not(.m-phone) .dc-team { order: 1; } #app:not(.m-phone) .dc-presets { order: 2; } #app:not(.m-phone) .dc-sheet { order: 3; }
+  #app:not(.m-phone) .dc-filters { order: 4; } #app:not(.m-phone) .dc-grid, #app:not(.m-phone) .dc-note { order: 5; } #app:not(.m-phone) .dc-tips { order: 6; }
+  #app:not(.m-phone) .dc-frame > .m-title .m-title-in { padding: 0 34px; min-width: 0; }
+  #app:not(.m-phone) .dc-frame > .m-title b { font-size: 22px; }
+  #app:not(.m-phone) .dc-pw-x { display: none; }
+  #app:not(.m-phone) .dc-team-lbl { font-size: 20px; }
+}

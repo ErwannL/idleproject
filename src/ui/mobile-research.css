@@ -103,3 +103,13 @@
 #app.m-phone .mr-body .m-btn-gold { margin-top: 4px; }
 #app.m-phone .mr-why { display: block; margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--m-ko); }
 #app.m-phone .mr-note { margin: 10px 0 0; text-align: center; font-size: 12px; color: var(--m-soft); }
+
+/* v10.13 (§ 7) : bandeau « Bibliothèque à construire » (haut de l'écran) et raison claire dans la fiche */
+#app.m-phone .mr-gate { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border-color: var(--m-gold); background: #3a2410; color: #ffe9b0; }
+#app.m-phone .mr-gate > img { width: 40px; height: 40px; flex: none; image-rendering: pixelated; }
+#app.m-phone .mr-gate-t { flex: 1 1 150px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+#app.m-phone .mr-gate-t b { font-size: 14px; font-weight: 800; line-height: 1.2; }
+#app.m-phone .mr-gate-t small { font-size: 12px; font-weight: 600; line-height: 1.25; color: #e8cf9a; }
+#app.m-phone .mr-gate .m-btn { margin-left: auto; color: #ffe08a; border-color: var(--m-gold); background: #54391a; }
+#app.m-phone .mr-why.big { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 8px 0 8px; font-size: 14px; font-weight: 800; }
+#app.m-phone .mr-why.big img { width: 16px; height: 16px; image-rendering: pixelated; }

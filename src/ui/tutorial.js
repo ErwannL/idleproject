@@ -109,14 +109,20 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
       document.getElementById('tuto-layer')?.remove();
     }, { once: true });
   }
-  const r = el.getBoundingClientRect();
+  // v10.13 : l'interface peut être zoomée (taille « Auto » : zoom CSS de la page) ; le calque est en px CSS, les rectangles et la
+  // fenêtre en px d'écran : tout est ramené en px CSS, sinon le doigt et la bulle sortent de l'écran (zoom 125 %).
+  const Z = parseFloat(document.documentElement.style.zoom) || 1;
+  const r0 = el.getBoundingClientRect();
+  const r = { left: r0.left / Z, right: r0.right / Z, top: r0.top / Z, bottom: r0.bottom / Z, width: r0.width / Z, height: r0.height / Z };
+  const innerWidth = window.innerWidth / Z, innerHeight = window.innerHeight / Z;
   const finger = layer.querySelector('.tuto-finger');
   const bubble = layer.querySelector('.tuto-bubble');
   finger.hidden = !step.finger;
   // v9.8 (0.1) : cible dans la barre de gauche : le doigt pointe depuis la droite, la bulle suit à droite du doigt.
   // v10.11 (7) : seulement quand le menu est une colonne ; menu du bas : le doigt se pose au centre du bouton visé.
   const tabsEl = el.closest('#tabs');
-  const tabsBox = tabsEl?.getBoundingClientRect();
+  const tb0 = tabsEl?.getBoundingClientRect();
+  const tabsBox = tb0 && { width: tb0.width / Z, height: tb0.height / Z };
   const side = Boolean(tabsEl && tabsBox && tabsBox.height > tabsBox.width);
   const bottomBar = Boolean(tabsEl && !side);
   finger.classList.toggle('side', side);
@@ -129,7 +135,12 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   const h = bubble.offsetHeight || 60;
   const midY = Math.round(Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)));
   const gap = side && step.finger ? 48 : 12;
-  if (r.right + gap + bw <= innerWidth - 8) { bubble.style.left = `${Math.round(r.right + gap)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
+  // v10.13 (8.5) : une bulle d'info sur une cible de la moitié droite (le bonus du moment) s'ouvre vers la gauche, jamais hors de l'écran.
+  const rightFits = r.right + gap + bw <= innerWidth - 8;
+  const preferLeft = !step.finger && r.left > innerWidth * 0.55 && r.left - 12 - bw >= 8;
+  const preferBelow = !step.finger && r.left > innerWidth * 0.5 && r.top < innerHeight * 0.35; // cible en haut à droite : la bulle passe dessous, alignée à droite
+  if (preferBelow) { bubble.style.left = `${Math.round(Math.max(8, Math.min(innerWidth - bw - 8, r.right - bw)))}px`; bubble.style.top = `${Math.round(r.bottom + 8)}px`; bubble.style.bottom = ''; }
+  else if (rightFits && !preferLeft) { bubble.style.left = `${Math.round(r.right + gap)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
   else if (r.left - 12 - bw >= 8) { bubble.style.left = `${Math.round(r.left - 12 - bw)}px`; bubble.style.top = `${midY}px`; bubble.style.bottom = ''; }
   else {
     const below = r.top < innerHeight / 2;
@@ -137,4 +148,5 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     bubble.style.top = below ? `${Math.round(r.bottom + (step.finger ? 40 : 8))}px` : '';
     bubble.style.bottom = below ? '' : `${Math.round(innerHeight - r.top + 8)}px`;
   }
+  { const bl = parseFloat(bubble.style.left); if (Number.isFinite(bl) && bl + bw > innerWidth - 8) bubble.style.left = `${Math.max(8, Math.round(innerWidth - 8 - bw))}px`; }
 }
