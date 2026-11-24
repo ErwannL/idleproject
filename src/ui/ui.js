@@ -1821,7 +1821,7 @@ export class UI {
       this.lastHud.xp = xpRatio;
     }
     this.setText('top-level', `Niv. ${state.level}`);
-    this.setText('auto-toggle', state.autoAdvance ? '⏵ Avance auto' : '⏸ Reste sur l\'étape');
+    this.setText('auto-toggle', state.autoAdvance ? '▶\uFE0E Avance auto' : '❚❚ Reste sur l\'étape');
     this.speed = simSpeed(state);
     this.$('speed-toggle').classList.toggle('hidden', unlockedSpeeds(state).length < 2 && !state.cheats.skipBattle);
     this.root.classList.toggle('speed-max', simSpeed(state) >= 100);
@@ -2195,6 +2195,12 @@ export class UI {
     const txt = m.text;
     if (this.lastHud.nextUnlock !== txt) { this.lastHud.nextUnlock = txt; this.$('next-unlock-text').textContent = txt; }
     this.$('next-unlock-fill').style.width = `${Math.round(m.ratio * 100)}%`;
+    // v10.12 : sur téléphone, la consigne se pose juste sous la carte de l'étape (elle passait dessus quand la rangée
+    // Roue / Coffre poussait la carte vers le bas).
+    if (this.phone && typeof document !== 'undefined') {
+      const zc = this.$('zone-card')?.getBoundingClientRect(), sa = this.$('stage-area')?.getBoundingClientRect();
+      if (zc && sa && zc.height) el.style.setProperty('top', `${Math.round(zc.bottom - sa.top + 6)}px`, 'important');
+    } else el.style.removeProperty('top');
   }
 
   dropChest(stage) {
