@@ -2,7 +2,10 @@
 //   node tools/mobile-audit.mjs [--sizes 390x844,412x915] [--tabs inventory,shop] [--out docs/screenshots/v10.12] [--games endgame,fresh]
 // Contrôles : 1 pas de défilement horizontal · 2 pas de boutons qui se chevauchent · 3 boutons d'au moins 44 px de haut ·
 // 4 un .m-title et au plus un .m-btn-gold visible · 5 aucun <select> visible · 6 stabilité (fiche ouverte/fermée : même scrollTop ;
-// changer de mode : même haut de cadre) · 7 aucun mot coupé au milieu. Code de sortie 1 au moindre défaut.
+// changer de mode : même haut de cadre) · 7 aucun mot coupé au milieu · 8 image d'événement entièrement dans son cadre ·
+// 9 une image chargée pour chaque objet, compétence, branche de talent, compagnon et recherche affichés (et aucune <img> cassée) ·
+// 10 aucun texte sous 11 px · 11 aucun texte tronqué (scrollWidth > clientWidth avec ellipsis / overflow caché) ·
+// 12 un seul bouton VISUELLEMENT doré (fond or, pas seulement .m-btn-gold). Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -10,8 +13,8 @@ import { join } from 'node:path';
 import { startServer } from './serve.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
-const ALL_TABS = ['inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé' };
+const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -21,7 +24,7 @@ const out = opt('out', 'docs/screenshots/v10.12');
 const games = opt('games', 'endgame,fresh').split(',').map((s) => s.trim());
 
 // --- Contrôles exécutés dans la page (1 à 5 et 7) -----------------------------------------------------------------------
-function inPage() {
+function inPage(isCombat) {
   const issues = [];
   const add = (check, msg) => issues.push({ check, msg });
   const vw = window.innerWidth;
@@ -75,7 +78,7 @@ function inPage() {
   }
   // 4. cartouche + un seul bouton doré
   const titles = [...document.querySelectorAll('#panel .m-title, #modal:not(.hidden) .m-title')].filter(visible);
-  if (!titles.length && !document.querySelector('#modal:not(.hidden)')) add(4, 'aucun .m-title visible');
+  if (!isCombat && !titles.length && !document.querySelector('#modal:not(.hidden)')) add(4, 'aucun .m-title visible');
   const golds = [...document.querySelectorAll('#panel .m-btn-gold, #modal .m-btn-gold')].filter(visible);
   if (golds.length > 1) add(4, `${golds.length} .m-btn-gold visibles : ${golds.map(name).join(' | ')}`);
   // 5. <select>
@@ -97,6 +100,75 @@ function inPage() {
       if (tops.size > 1) add(7, `mot coupé : « ${t} »`);
     }
   }
+  // 8. image d'événement : (a) pastilles d'événements du HUD (.hq-ev-art) : l'image tient entièrement dans son carré, le carré dans l'écran ;
+  //    (b) onglet Événement : affiche, carte d'image et bandeau défilant dans le cadre ; les images des cartes dans leur carte.
+  for (const art of document.querySelectorAll('#hq-events .hq-ev-art')) {
+    const ar = art.getBoundingClientRect();
+    if (ar.width < 1 || getComputedStyle(art.closest('#hq-events')).visibility === 'hidden') continue;
+    if (ar.left < -1 || ar.right > vw + 1) add(8, `${name(art)} sort de l'écran (${Math.round(ar.left)}..${Math.round(ar.right)})`);
+    for (const im of art.querySelectorAll('img')) {
+      const r = im.getBoundingClientRect();
+      if (r.left < ar.left - 0.5 || r.right > ar.right + 0.5 || r.top < ar.top - 0.5 || r.bottom > ar.bottom + 0.5) add(8, `image d'événement ${Math.round(r.width)}×${Math.round(r.height)} sort de son carré ${Math.round(ar.width)}×${Math.round(ar.height)}`);
+      if (!im.complete || im.naturalWidth < 1) add(8, `image d'événement non chargée : ${(im.getAttribute('src') ?? '').slice(-40)}`);
+    }
+  }
+  if (document.querySelector('#panel .ev-grand, #panel .ev-small, #panel .ev-poster, #panel .ev-lanterns')) {
+    const frame = document.querySelector('#panel .m-frame') ?? body;
+    const fr = frame.getBoundingClientRect();
+    for (const el of document.querySelectorAll('#panel .ev-grand, #panel .ev-small, #panel .ev-poster, #panel .ev-lanterns')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 1) continue;
+      if (r.left < fr.left - 1 || r.right > fr.right + 1 || r.left < -1 || r.right > vw + 1) add(8, `${name(el)} dépasse de son cadre (${Math.round(r.left)}..${Math.round(r.right)} pour ${Math.round(fr.left)}..${Math.round(fr.right)})`);
+      const cs = getComputedStyle(el);
+      if (/url\(/.test(cs.backgroundImage) && !/cover|contain|%/.test(cs.backgroundSize)) add(8, `${name(el)} : fond d'affiche en taille « ${cs.backgroundSize} » (peut être rogné)`);
+    }
+    // les nœuds du bandeau défilant tiennent dans leur chemin (le chemin lui-même défile dans .ev-lanterns)
+    for (const lanes of document.querySelectorAll('#panel .ev-lanes')) {
+      const lr = lanes.getBoundingClientRect();
+      for (const n of lanes.querySelectorAll('.lt-node')) { const r = n.getBoundingClientRect(); if (r.left < lr.left - 1 || r.right > lr.right + 1 || r.top < lr.top - 20 || r.bottom > lr.bottom + 1) add(8, `${name(n)} sort du chemin illustré`); }
+    }
+    for (const im of document.querySelectorAll('#panel .ev-poster img, #panel .ev-item img, #panel .ev-mission img, #panel .ev-give img')) {
+      if (!visible(im)) continue;
+      const r = im.getBoundingClientRect();
+      const host = im.parentElement.closest('.m-card, .ev-poster, .ev-grand, .ev-small, button') ?? frame;
+      const h = host.getBoundingClientRect();
+      if (r.left < h.left - 1.5 || r.right > h.right + 1.5 || r.top < h.top - 1.5 || r.bottom > h.bottom + 1.5) add(8, `${name(im)} sort de ${name(host)} (${Math.round(r.width)}×${Math.round(r.height)})`);
+    }
+  }
+  // 9. images : aucune <img> visible cassée ; chaque objet / compétence / branche / compagnon / recherche affiché porte une image chargée
+  for (const im of document.querySelectorAll('#panel img, #modal:not(.hidden) img')) {
+    if (!visible(im) || im.dataset.fallback === 'remove') continue;
+    if (!im.complete || im.naturalWidth < 1) add(9, `<img> non chargée : ${(im.getAttribute('src') ?? '').slice(-40)}`);
+  }
+  const ENTITY = '.m-tile:not(.empty), .m-branch, .m-tnode, .mr-medal, .bs-node, .mt-ucard, .m-comp, .m-compcard, .m-unit, .m-sk-prev'; // objets, compétences, branches, talents, recherches, compagnons
+  for (const el of document.querySelectorAll(ENTITY)) {
+    if (!visible(el)) continue;
+    const imgs = [...el.querySelectorAll('img')].filter((i) => i.naturalWidth > 0 && i.complete && i.getBoundingClientRect().width > 4);
+    const bgs = [el, ...el.querySelectorAll('*')].some((n) => /url\(/.test(getComputedStyle(n).backgroundImage) || n.matches?.('canvas'));
+    if (!imgs.length && !bgs) add(9, `${name(el)} sans image chargée`);
+  }
+  // 10. texte sous 11 px
+  const seenSmall = new Set();
+  for (const el of (root ?? document).querySelectorAll('*')) {
+    if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length)) continue;
+    if (el.closest('svg, script, style') || !visible(el)) continue;
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    if (fs < 11 - 0.01) { const k = `${el.className}|${fs}`; if (!seenSmall.has(k)) { seenSmall.add(k); add(10, `${name(el)} : ${fs} px`); } }
+  }
+  // 11. texte tronqué : débordement caché ou ellipsis, horizontal ou en hauteur (line-clamp)
+  for (const el of (root ?? document).querySelectorAll('*')) {
+    if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length)) continue;
+    if (!visible(el)) continue;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'inline' || el.clientWidth < 1) continue;
+    const hidX = cs.overflowX !== 'visible' && cs.overflowX !== 'auto' && cs.overflowX !== 'scroll', hidY = cs.overflowY === 'hidden' || cs.overflowY === 'clip';
+    if ((hidX || cs.textOverflow === 'ellipsis') && el.scrollWidth > el.clientWidth + 1) add(11, `${name(el)} tronqué en largeur (${el.scrollWidth} > ${el.clientWidth})`);
+    else if (hidY && el.scrollHeight > el.clientHeight + 2 && el.clientHeight > 0) add(11, `${name(el)} tronqué en hauteur (${el.scrollHeight} > ${el.clientHeight})`);
+  }
+  // 12. un seul bouton d'action visuellement doré (fond or), qu'il porte .m-btn-gold ou non (puces, modes et cases sélectionnés = états, exclus)
+  const goldish = (cs) => [...(cs.backgroundImage + ' ' + cs.backgroundColor).matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].some((x) => +x[1] > 200 && +x[2] > 140 && +x[3] < 130);
+  const vGold = [...document.querySelectorAll('#panel button, #panel [data-action], #modal:not(.hidden) button')].filter((b) => !b.disabled && !b.classList.contains('disabled') && !b.matches('.m-chip, .m-mode, .map-dot, .m-tile, .m-node, .m-tnode, .subtab') && !b.closest('#panel-subtabs') && visible(b) && goldish(getComputedStyle(b)));
+  if (vGold.length > 1) add(12, `${vGold.length} boutons dorés : ${vGold.map(name).join(' | ')}`);
   return issues;
 }
 
@@ -164,14 +236,21 @@ for (const game of games) {
     await closeAll();
     for (const tab of tabs) {
       const rec = { game, size: `${width}x${height}`, tab, issues: [], skipped: null };
+      if (tab === 'combat') { // écran de combat (panneau fermé) : pastilles d'événements du HUD
+        await page.evaluate(() => { try { __idle.ui.closePanel(); } catch (e) { /* rien */ } });
+        await page.waitForTimeout(1200);
+        await closeAll();
+        rec.issues.push(...await page.evaluate(inPage, true));
+      } else {
       await page.evaluate((t) => { try { __idle.ui.openTab(t); } catch (e) { /* onglet inconnu */ } }, tab);
       await page.waitForTimeout(1500);
       await closeAll();
       const opened = await page.evaluate((t) => __idle.ui.tab === t && !document.querySelector('#panel')?.classList.contains('hidden'), tab);
       if (!opened) rec.skipped = 'onglet fermé (pas encore débloqué ?)';
       else {
-        rec.issues.push(...await page.evaluate(inPage));
+        rec.issues.push(...await page.evaluate(inPage, false));
         rec.issues.push(...await stability(page));
+      }
       }
       const file = join(out, `${width}x${height}-${game === 'fresh' ? 'neuve-' : ''}${tab}.jpg`);
       await page.screenshot({ path: file, type: 'jpeg', quality: 75 });
