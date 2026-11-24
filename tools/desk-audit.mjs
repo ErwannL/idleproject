@@ -162,6 +162,25 @@ async function openCompanionSheet(page) {
   });
 }
 
+// Bastion › Recherches (PC) : le livre avec la Bibliothèque construite (une recherche en cours), sans Bibliothèque (bandeau « Construire › »),
+// un nœud fermé, une autre branche et un autre palier. Sans effet si le Bastion n'est pas encore ouvert (partie neuve).
+async function researchViews(g, rec) {
+  const go = async (js, arg) => { const ok = await g.page.evaluate(js, arg); await g.page.waitForTimeout(500); await closeAll(g.page); return ok; };
+  const view = () => go(() => { document.querySelectorAll('[data-action="bastion-kick-ok"], [data-action="bastion-age-ok"]').forEach((b) => b.click()); const u = window.__idle.ui; if (!window.__idle.state.bastion) return false; u.view.bastionView = 'research'; u.view.bastionRes = null; u.invalidate(); return true; });
+  const setLib = (level) => go((lv) => { const b = window.__idle.state.bastion; if (!b) return false; const l = b.buildings.library; l.level = lv; l.build = null; b.research.active.length = 0; if (lv) { b.research.levels.sharp = Math.max(b.research.levels.sharp ?? 0, 4); b.research.active.push({ id: 'steel', left: 300000, total: 480000, level: 1 }); } window.__idle.ui.invalidate(); return true; }, level);
+  if (!await view()) return;
+  if (!await setLib(3)) return;
+  await view();
+  await rec('camp/recherches-avec-bibliotheque', 'camp--recherches-avec-bibliotheque');
+  if (await go(() => { const n = [...document.querySelectorAll('#panel-body [data-action="bastion-res"].locked')].pop(); if (!n) return false; n.click(); return true; })) await rec('camp/recherche-fermee', 'camp--recherche-fermee');
+  if (await go(() => { const n = document.querySelector('#panel-body [data-action="bastion-branch"][data-value="team"]'); if (!n) return false; n.click(); return true; })) await rec('camp/recherches-branche', 'camp--recherches-branche');
+  if (await go(() => { const n = document.querySelector('#panel-body [data-action="bastion-page"][data-value="2"]'); if (!n) return false; n.click(); return true; })) await rec('camp/recherches-palier-2', 'camp--recherches-palier-2');
+  await go(() => { const v = window.__idle.ui.view; v.resBranch = 'combat'; v.resPage = 1; v.bastionRes = null; window.__idle.ui.invalidate(); return true; });
+  await setLib(0);
+  await view();
+  await rec('camp/recherches-sans-bibliotheque', 'camp--recherches-sans-bibliotheque');
+}
+
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 export async function runAudit(argv) {
   const opt = makeOpt(argv);
@@ -189,6 +208,7 @@ export async function runAudit(argv) {
           if (!await clickMode(g.page, m)) continue;
           await record(g, game, w, h, tab, `${tab}/${m.value || m.label}`, 'tab', `${tab}--${slug(m.value || m.label)}`);
         }
+        if (tab === 'camp') await researchViews(g, (view, name) => record(g, game, w, h, tab, view, 'tab', name)); // v10.13 (§ 7) : Bastion › Recherches
         if (tab === 'inventory') {
           await openTab(g.page, tab);
           if (await openItemSheet(g.page)) { await g.page.waitForTimeout(600); await record(g, game, w, h, tab, 'fiche-objet', 'tab', 'fiche-objet'); }
