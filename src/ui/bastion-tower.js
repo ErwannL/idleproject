@@ -5,7 +5,7 @@
 import { bastionOf } from '../core/bastion.js';
 import { bastionBadge } from './panels/camp.js';
 
-const AVOID = ['next-action', 'hud', 'progress', 'news', 'strip-bar', 'skill-bar', 'loot-bag', 'zone-card', 'quest-banner', 'goals-pill', 'auto-toggle', 'speed-toggle', 'boost-group', 'rift-chip', 'weak-spot', 'scene-bottom'];
+const AVOID = ['combat-console', 'next-action', 'hud', 'progress', 'news', 'strip-bar', 'skill-bar', 'loot-bag', 'zone-card', 'quest-banner', 'goals-pill', 'auto-toggle', 'speed-toggle', 'boost-group', 'rift-chip', 'weak-spot', 'scene-bottom'];
 const hit = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
 let last = 0;

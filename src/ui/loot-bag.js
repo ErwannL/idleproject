@@ -26,7 +26,7 @@ export class LootBag {
     this.btn.setAttribute('aria-expanded', 'false');
     // Rien de visible : pastille, flèche et bulle sont dessinées dans la scène ; ces textes servent aux lecteurs d'écran.
     // v10.9 (partie 4) : le coffre est un vrai bouton, toujours visible, à sa place fixe en bas à droite (grille du bas).
-    this.btn.innerHTML = '<img class="px lb-art" src="assets/ui/art102/loot_chest.png" alt=""><b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span>';
+    this.btn.innerHTML = '<img class="px lb-art" src="assets/ui/art102/loot_chest.png" alt=""><b class="lb-count"></b><i class="lb-up hidden">▲</i><span class="lb-bubble hidden"></span><small class="lb-name">Butin</small>';
     this.btn.addEventListener('click', () => this.toggle());
     area?.appendChild(this.btn);
     this.sheet = document.createElement('div');
