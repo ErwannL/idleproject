@@ -1,6 +1,8 @@
 // v9.3.4 (h) : premières minutes. Un doigt animé montre le geste utile (Dégâts, premier objet, recyclage au premier
 // sac plein, premier compagnon) et des bulles courtes expliquent le bonus « ×1,5 » et « Tout récupérer ».
 // Une étape à la fois ; toucher la cible (ou « OK ») la termine pour de bon (state.ui.hints, déjà sauvegardé).
+import { adviceScreen } from '../core/guide.js';
+import { isUpgrade } from '../core/inventory.js';
 const has = (state, id) => (state.ui?.hints ?? []).includes(id);
 
 // v9.3.5 : actions guidées dans l'ordre des premières minutes — équiper le premier objet, acheter Dégâts, apprendre
@@ -8,7 +10,7 @@ const has = (state, id) => (state.ui?.hints ?? []).includes(id);
 const MENU = (m) => `#tabs button[data-menu="${m}"]`;
 export const TUTO_STEPS = [
   { id: 'tuto-item', finger: true, text: 'Nouvel objet : touche « Équiper »',
-    when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3,
+    when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3 && s.inventory.some((i) => isUpgrade(s, i)), // v10.13 (9) : seulement s'il y a un objet à équiper
     targets: ['.eq-sheet [data-action="equip"]', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
   { id: 'tuto-damage', finger: true, text: 'Touche ici : plus de Dégâts',
     when: (s) => (s.upgrades?.damage ?? 0) < 1,
@@ -33,6 +35,15 @@ export const TUTO_STEPS = [
     when: () => true, targets: ['[data-action="claim-everything"]'] },
 ];
 
+// v10.13 (9) : l'écran que chaque étape du doigt fait ouvrir. Le doigt ne s'affiche que s'il mène au même écran que le Sceau
+// (une seule prochaine action conseillée : plus d'allers-retours entre deux onglets).
+export const STEP_SCREEN = { 'tuto-item': 'inventory', 'tuto-damage': 'upgrades', 'tuto-skill': 'skills', 'tuto-summon': 'summon', 'tuto-companion': 'companions', 'tuto-recycle': 'inventory' };
+export function stepAgrees(step, advice) {
+  const screen = adviceScreen(advice);
+  const mine = STEP_SCREEN[step.id];
+  return !screen || !mine || !advice || screen === mine;
+}
+
 function visible(el) {
   if (!el || !el.isConnected) return false;
   const r = el.getBoundingClientRect();
@@ -45,12 +56,13 @@ const NAV = '#tabs, #panel-subtabs, .seg, nav, [role="tablist"], #topbar';
 const isNav = (sel) => sel.startsWith('#tabs') || sel.startsWith('[data-sub');
 // v9.7.1 : une bulle par écran ouvert au plus (par session) : écran → étape déjà montrée.
 const shownOn = new Map();
-export function pickStep(state, root, full, panelOpen = false, screen = panelOpen ? 'panel' : 'scene') {
+export function pickStep(state, root, full, panelOpen = false, screen = panelOpen ? 'panel' : 'scene', advice = null) {
   // Rien pendant le prologue, le tutoriel, une fenêtre ou une animation (fenêtres en file, une seule à la fois).
   if (typeof document !== 'undefined' && document.querySelector('#prologue, .tour, .cinematic, .summon-fx, #modal:not(.hidden), #loot-sheet:not(.hidden), .howto-card, .learn-card')) return null;
   const already = shownOn.get(screen);
   for (const st of TUTO_STEPS) {
     if (has(state, st.id) || !st.when(state, full)) continue;
+    if (!stepAgrees(st, advice)) continue; // v10.13 (9) : le Sceau conseille autre chose : lui seul parle
     if (!st.finger && panelOpen) continue; // v9.8 : les bulles d'info ne se montrent que sur la scène (plus sur chaque écran)
     if (already && already !== st.id) return null;
     // v9.8 (0.1) : cible directe d'abord ; sinon le menu ou l'onglet qui y mène (seul chemin vers la cible).
@@ -78,12 +90,12 @@ export function markDone(state, id) {
 
 // Dessine (ou retire) le doigt et la bulle. Appelé avec le rafraîchissement des pastilles (2 fois par seconde).
 let latest = null;
-export function updateTutorial(state, root, full, panelOpen = false, translate = (x) => x) {
+export function updateTutorial(state, root, full, panelOpen = false, translate = (x) => x, advice = null) {
   latest = state;
   if (typeof document === 'undefined') return;
   let layer = document.getElementById('tuto-layer');
   const screen = panelOpen ? `panel:${root.querySelector('#panel h2')?.textContent ?? ''}` : 'scene';
-  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen, screen);
+  const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen, screen, advice);
   if (!pick) { layer?.remove(); return; }
   if (!layer) {
     layer = document.createElement('div');

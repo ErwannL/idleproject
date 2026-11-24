@@ -91,10 +91,20 @@ export function nextAction(state, ctx = {}, balance = BALANCE) {
     const notion = NOTION_OF[n.id];
     if (notion && ctx.learned && !ctx.learned.includes(notion)) { ctx.wantLearn ??= notion; continue; }
     // v10.1 (P1) : une consigne qui ne ferait qu'ouvrir l'écran déjà ouvert laisse la place à la suivante.
-    if (ctx.tab && n.tab === ctx.tab && !n.action && !n.view) continue;
+    if (ctx.tab && n.tab === ctx.tab && !n.action && !n.view) { ctx.here ??= n; continue; } // v10.13 (9) : ctx.here = le conseil « déjà fait » (le doigt s'y règle aussi)
     return { ...n, why: n.why ?? whyOf(n, state, balance) };
   }
   return null;
+}
+
+// v10.13 (9) : une seule source de vérité pour « où mène la prochaine action conseillée » — le Sceau, le doigt du tutoriel
+// et les tests de parcours (tools/e2e-beginner.mjs) lisent tous cet écran. null : aucun écran précis (une action sur place).
+const ACTION_SCREEN = { 'equip-best': 'inventory', buy: 'upgrades', 'distribute-skills': 'skills', 'cast-first': 'skills', 'place-companion': 'companions',
+  'apply-team': 'companions', 'upgrade-companion': 'companions', 'recycle-useless': 'inventory' };
+const ID_SCREEN = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', level: 'companions', rebirth: 'tree', fusion: 'forge', recycle: 'inventory' };
+export function adviceScreen(n) {
+  if (!n) return null;
+  return n.tab ?? ACTION_SCREEN[n.action] ?? ID_SCREEN[n.id] ?? null;
 }
 
 function whyOf(n, state, balance) {
