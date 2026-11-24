@@ -107,8 +107,9 @@ test('10.6 (4) : toucher une case filtre le sac ; 7 puces, tri par gain, pastill
   const ui = src('src/ui/ui.js');
   assert.match(ui, /case 'eq-slot':[^\n]*this\.state\.ui\.slotFilter = value/);
   assert.match(ui, /case 'select-item':[^\n]*v\.itemPop = /);
-  const inv = src('src/ui/panels/inventory.js');
-  for (const k of ['eq-bag-title', 'Meilleur gain d\\\'abord', 'eq-gain', 'itemPopup(']) assert.ok(inv.includes(k), k);
+  // v10.13 : le sac PC est dans equip-desk.js (7 boutons de filtre à icône, tri par gain, pastille ±%, « Niv. N » sur la case de 64 px)
+  const inv = src('src/ui/panels/equip-desk.js');
+  for (const k of ['de-filters', 'badge: badge(i)', 'size: 64', "sortBy === 'gain'", 'de-lv']) assert.ok(inv.includes(k), k);
   const sheet = src('src/ui/panels/equip-sheet.js');
   for (const k of ['ip-verdict good', 'ip-verdict bad', 'data-action="equip"', 'data-action="forge-go"', 'data-action="recycle"', 'itemPic(item, 104)']) assert.ok(sheet.includes(k), k);
   assert.match(src('src/ui/equip-fx.js'), /EQUIP_FLY_MS = 600/);

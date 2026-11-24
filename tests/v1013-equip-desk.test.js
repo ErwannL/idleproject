@@ -137,3 +137,10 @@ test('téléphone inchangé : même fiche kit mobile, aucune classe PC', () => {
   const html = inventoryPanel.render(phoneUi({ selectedItemId: w.id, sheetOpen: 'item', itemTab: 'reforge' }), s);
   assert.ok(html.includes('class="m-frame em"') && !html.includes('de-cols') && !html.includes('de-rcard'));
 });
+
+test('anglais : étiquettes de la fiche PC et « Objet dépassé » / « Trouver mieux »', async () => {
+  const { translate } = await import('../src/i18n/en.js');
+  for (const [fr, en] of [['Reforger', 'Reforge'], ['Relance orientée', 'Targeted reroll'], ['Changer le type', 'Change the type'], ['Garder', 'Keep'], ['Revenir', 'Revert'],
+    ['Trouver mieux ›', 'Find better ›'], ['Équipement rapide · toute l\'équipe', 'Quick gear · whole team'], ['Sac 12 / 100', 'Bag 12 / 100'],
+    ['⚠ Objet dépassé · Niv. 310, ton étape : 325', '⚠ Outdated item · Lv. 310, your stage: 325']]) assert.equal(translate(fr), en, fr);
+});
