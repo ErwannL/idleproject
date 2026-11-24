@@ -1,4 +1,4 @@
-package com.erwannl.idlerpg;
+package com.ascendrya.app;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;

@@ -26,7 +26,9 @@
     "test:exe": "node tools/desktop-smoke.mjs",
     "test:upgrade": "node tools/upgrade-smoke.mjs",
     "e2e:beginner": "node tools/e2e-beginner.mjs",
-    "capture": "node tools/capture.mjs"
+    "capture": "node tools/capture.mjs",
+    "dist:linux": "electron-builder --linux --x64 --publish never",
+    "dist:mac": "electron-builder --mac --universal --publish never"
   },
   "devDependencies": {
     "@capacitor/android": "^7.6.10",
@@ -61,6 +63,35 @@
         "nsis"
       ],
       "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Game",
+      "icon": "build/icon.png",
+      "artifactName": "IdleRPG-${version}.AppImage",
+      "executableName": "ascendrya",
+      "synopsis": "Ascendrya, un RPG incrémental"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.games",
+      "icon": "build/icon-mac.png",
+      "artifactName": "IdleRPG-${version}-mac.zip",
+      "identity": null
     },
     "nsis": {
       "artifactName": "IdleRPG-${version}-setup.exe",
