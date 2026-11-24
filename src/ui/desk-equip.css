@@ -284,16 +284,28 @@
 
 /* 1366 x 768 : trois colonnes resserrées (le sac garde ses cases de 64 px) */
 @container mframe (min-width: 940px) and (max-width: 1099px) {
-  #app:not(.m-phone) .de-cols { grid-template-columns: 300px 350px minmax(0, 1fr); gap: 12px; }
+  #app:not(.m-phone) .de-cols { grid-template-columns: 260px 300px minmax(0, 1fr); gap: 12px; }
   #app:not(.m-phone) .de-cols > :nth-child(n + 3) { grid-column: auto; }
   #app:not(.m-phone) .de-col.m-card { padding: 12px; }
-  #app:not(.m-phone) .de-slots .m-grid { grid-template-columns: repeat(3, 88px); }
-  #app:not(.m-phone) .de-slots .m-tile.s96 { --m-s: 88px; }
-  #app:not(.m-phone) .de-char { grid-template-columns: 120px minmax(0, 1fr); gap: 10px; }
-  #app:not(.m-phone) .de-bag .m-grid { grid-template-columns: repeat(5, 64px); }
-  #app:not(.m-phone) .de-whos { gap: 8px; }
+  #app:not(.m-phone) .de-slots .m-grid { grid-template-columns: repeat(3, 80px); gap: 12px 0; }
+  #app:not(.m-phone) .de-slots .m-tile.s96 { --m-s: 80px; }
+  #app:not(.m-phone) .de-char { grid-template-columns: 100px minmax(0, 1fr); gap: 8px; height: 170px; }
+  #app:not(.m-phone) .em-art, #app:not(.m-phone) .em-id { height: 170px; }
+  #app:not(.m-phone) .de-bag .m-grid { grid-template-columns: repeat(5, 50px); }
+  #app:not(.m-phone) .de-bag .m-tile.s64 { --m-s: 50px; }
+  #app:not(.m-phone) .de-bag .m-tile .m-gain { font-size: 12px; padding: 0 2px; letter-spacing: -.3px; }
+  #app:not(.m-phone) .de-lv { font-size: 12px; letter-spacing: -.4px; }
+  #app:not(.m-phone) .de-fbtn { width: 36px; height: 38px; } #app:not(.m-phone) .de-fbtn img { width: 28px; height: 28px; }
+  #app:not(.m-phone) .de-filters { gap: 4px; }
+  #app:not(.m-phone) .de-rars-k { display: none; }
+  #app:not(.m-phone) .de-rbtn { width: 28px; height: 28px; }
+  #app:not(.m-phone) .de-whos { gap: 6px; }
   #app:not(.m-phone) .em-who { width: 58px; height: 58px; }
-  #app:not(.m-phone) .em-pow .m-power { font-size: 22px; }
+  #app:not(.m-phone) .em-who canvas, #app:not(.m-phone) .em-who img.still { width: 46px; height: 46px; }
+  #app:not(.m-phone) .em-cname { font-size: 18px; }
+  #app:not(.m-phone) .em-pow .m-power { font-size: 20px; }
+  #app:not(.m-phone) .de-who .m-stats2 .m-stat .m-v { font-size: 16px; }
+  #app:not(.m-phone) .de-who .m-stats2 .m-stat { padding: 6px 8px; }
 }
 
 /* ---------- Fiche : la tête et les statistiques défilent SEULES, les modes et le panneau restent visibles en bas ---------- */
@@ -401,7 +413,7 @@
 }
 /* fiche de 340 à 519 px sur une fenêtre basse (1920 x 1080) : les trois cartes de Reforger côte à côte, compactes */
 @container dcol (min-width: 340px) and (max-width: 519px) {
-  @media (min-height: 801px) and (max-height: 1100px) {
+  @media (max-height: 1100px) {
     #app:not(.m-phone) .de-rcards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     #app:not(.m-phone) .de-rcard { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; text-align: center; justify-items: center; align-content: start; padding: 6px; }
     #app:not(.m-phone) .de-rart { grid-row: auto; grid-column: 1; width: 100%; height: 64px; min-height: 0; max-height: none; }
@@ -430,3 +442,8 @@
 @media (max-height: 800px) {
   #app:not(.m-phone) .de-det:has(.de-panel-equip) .de-scroll { display: none; }
 }
+
+/* un seul doré à l'écran : les puces « allumées » du sac ne sont pas dorées */
+#app:not(.m-phone) .de-bag .m-chip[aria-pressed="true"], #app:not(.m-phone) .de-bag .m-chip.on, #app:not(.m-phone) .em-bag-head .m-chip.on { background: linear-gradient(180deg, #3a4a80, #222f5e); color: var(--m-text); border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold); }
+/* les statistiques qui ne tiennent pas sont masquées (equip-desk.js, fitDeskStats), jamais dessinées sous les modes */
+#app:not(.m-phone) .de-scroll { overflow: hidden; }

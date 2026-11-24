@@ -269,3 +269,16 @@ function reforgePanel(ui, state, item) {
   const current = !prev && (item.affixes ?? []).length ? `<p class="em-note de-current">Effet actuel : ✦ ${(item.affixes ?? []).map((a) => e(affixText(a))).join(' · ')}. Le nouveau s'affiche avant de le garder.</p>` : '';
   return `<div class="de-rhead"><b>Reforger</b><span>tu as ${img('icon_shard')} ${e(num(shards))} éclats</span></div>${ab}${cards}${list}${current}`;
 }
+
+// Après le rendu : dans la fiche, les lignes de statistiques qui ne tiennent pas dans leur zone sont masquées (visibility), jamais coupées en deux
+// ni dessinées sous les modes. Appelé par inventory.js (afterRender).
+export function fitDeskStats(body) {
+  for (const box of body.querySelectorAll('.de-det .de-scroll')) {
+    const rows = [...box.children, ...box.querySelectorAll('.de-stats > *')];
+    for (const r of rows) r.style.visibility = '';
+    const lim = box.getBoundingClientRect().bottom + 0.5;
+    for (const r of rows) if (r.getBoundingClientRect().bottom > lim && !r.classList.contains('de-stats')) r.style.visibility = 'hidden';
+    const st = box.querySelector('.de-stats');
+    if (st && st.getBoundingClientRect().top >= lim) st.style.visibility = 'hidden';
+  }
+}
