@@ -17,7 +17,7 @@ import { invFeatureOpen } from '../../core/unlocks.js';
 import { itemIconUrl } from '../../render/pixel.js';
 import { effectText, escapeHtml, fold, icon, img, itemFrame } from '../common.js';
 import { isPhoneView, phoneAfter, phoneView } from './equip-phone.js'; // v10.12 : version téléphone (kit mobile)
-import { deskView } from './equip-desk.js'; // v10.13 : version PC (trois colonnes, style de la Forge)
+import { deskView, fitDeskStats } from './equip-desk.js'; // v10.13 : version PC (trois colonnes, style de la Forge)
 
 export function visibleItems(state) {
   return listInventory(state, { slot: state.ui.slotFilter, sortBy: state.ui.sortBy, rarity: state.ui.rarityFilter ?? 'all' });
@@ -86,6 +86,7 @@ export default {
   // Téléphone : la rangée des personnages se centre et le glissé change de place. PC (equip-desk.js) : rien à repositionner.
   afterRender(ui, body) {
     if (isPhoneView(ui)) { phoneAfter(ui, body); return; } // v10.12 : téléphone (kit mobile)
+    fitDeskStats(body); // v10.13 : PC (equip-desk.js) : masque les statistiques qui ne tiennent pas
   },
   render(ui, state) {
     const v = ui.view;
