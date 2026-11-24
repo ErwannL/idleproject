@@ -334,3 +334,10 @@ html.reduce-motion #app:not(.m-phone) .d-bs .d-bs-res .m-chip.warn { animation: 
 #app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-tip .btn { min-height: 36px; padding: 0 10px; }
 #app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-hero-b { width: 150px; height: 150px; bottom: 0; }
 #app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-shead { bottom: 8px; left: 12px; background: rgba(8, 12, 24, .7); padding: 2px 8px; border-radius: 8px; }
+
+/* Looks : la puce de quantité active n'est pas dorée (un seul doré : « Tout acheter ») ; « Nouvel âge » brille dans le bandeau d'âge */
+#app#app:not(.m-phone) .d-upg .buy-amounts .chip-btn.active { color: #fff; background: #26346a; border-color: var(--m-gold-hi); box-shadow: inset 0 0 0 1px var(--m-gold); }
+#app#app:not(.m-phone) .d-bs .bs-age.fresh { animation: d-age-glow 3s ease-out 1; }
+#app#app:not(.m-phone) .d-bs .bs-age.fresh::before { content: 'NOUVEL ÂGE'; font-size: 12px; font-weight: 900; letter-spacing: .12em; color: var(--age); }
+@keyframes d-age-glow { 0%, 60% { box-shadow: 0 0 18px 4px var(--age); } 100% { box-shadow: 0 0 0 0 transparent; } }
+#app#app:not(.m-phone) .d-forge .eq-q:not([open]) > .eq-rule { display: none; }

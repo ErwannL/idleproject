@@ -206,9 +206,9 @@ function phoneUpgrade(ui, state, now) {
   const cells = all.map((r) => fgTile(r.item, { action: 'forge-up-sel', id: r.item.id, selected: r.item.id === sel.item.id }));
   let main = '';
   if (!p.atMax) {
-    if (sel.unit) main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'gear-up', value: sel.item.id, disabled: !p.canPay });
-    else if (weak) main = `<p class="m-note em-weak">${escapeHtml(weakLabel(state, sel.item))}</p>${mBtn('Trouver mieux ›', { action: 'find-better', value: sel.slot })}${mBtnGold(`Renforcer +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) })}`;
-    else main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) });
+    if (sel.unit) main = mBtnGold('Améliorer', { action: 'gear-up', value: sel.item.id, disabled: !p.canPay });
+    else if (weak) main = `<p class="m-note em-weak">${escapeHtml(weakLabel(state, sel.item))}</p>${mBtn('Trouver mieux ›', { action: 'find-better', value: sel.slot })}${mBtnGold('Améliorer', { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) })}`;
+    else main = mBtnGold('Améliorer', { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) });
   }
   const costs = p.atMax || !p.cost ? '' : `<div class="m-costs">${mCost('icon_shard', state.materials.shards, p.cost.shards, { fmt: formatNumber })}${mCost('coin', state.gold, p.cost.gold, { fmt: formatNumber })}</div>`;
   return `${fgArt('upgrade')}<p class="m-fg-phrase">Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.</p>
