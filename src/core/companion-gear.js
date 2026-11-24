@@ -217,3 +217,28 @@ export function sanitizeCompanionGear(state, raw, { isValid = () => false, clean
     }
   }
 }
+
+// v10.12.1 (téléphone, Équipement › Améliorer) : « Tout améliorer » d'un compagnon. Même renfort et mêmes coûts qu'un
+// appui sur « Améliorer » (upgradeGear) ; toujours la pièce la moins chère d'abord, tant que l'or et les éclats suffisent,
+// jamais au-delà du maximum. → { n, gold, shards }.
+export function upgradeAllGear(state, unitId, killGold, max = 60) {
+  const gold0 = state.gold, shards0 = state.materials.shards;
+  let n = 0;
+  for (let i = 0; i < max; i++) {
+    const rows = Object.values(unitGear(state, unitId)).filter(Boolean).map((it) => ({ it, p: gearUpgradePreview(state, it, killGold) })).filter((r) => !r.p.atMax && r.p.canPay);
+    rows.sort((a, b) => a.p.cost.gold - b.p.cost.gold);
+    if (!rows.length || !upgradeGear(state, rows[0].it.id, killGold)) break;
+    n++;
+  }
+  return { n, gold: gold0 - state.gold, shards: shards0 - state.materials.shards };
+}
+// Pourquoi « Tout améliorer » (compagnon) n'a rien à faire : null s'il y a un renfort payable, sinon une ligne courte.
+export function upgradeAllGearWhy(state, unitId, killGold) {
+  const rows = Object.values(unitGear(state, unitId)).filter(Boolean).map((it) => gearUpgradePreview(state, it, killGold));
+  if (!rows.length) return 'Rien de porté';
+  const open = rows.filter((p) => !p.atMax);
+  if (!open.length) return 'Tout est au maximum';
+  if (open.some((p) => p.canPay)) return null;
+  const p = open.sort((a, b) => a.cost.gold - b.cost.gold)[0];
+  return p.lack.shards > 0 ? `Il manque ${p.lack.shards} éclat${p.lack.shards > 1 ? 's' : ''}` : 'Il manque de l\'or';
+}
