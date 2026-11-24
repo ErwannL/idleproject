@@ -13,7 +13,7 @@
 //   mTabs(items, current)               Onglets d'un menu (icône + nom, 64 px). items : [{ id, label, icon, action, value, badge }].
 //                                       mTabs([{ id: 'sets', label: 'Sets', icon: 'icon_book', action: 'inv-mode', value: 'sets' }], 'sets')
 //   mModes(items, current, opts?)       Rangée de modes (72 px ; opts.size = 64 pour les fiches ; opts.arrow = flèche sous le choisi). Mêmes items.
-//   mTile(item, opts)                   Case d'objet (item : { name, rarity, upgrades, slot, locked… }) ; opts : { size: 48|56|64|80|96,
+//   mTile(item, opts)                   Case d'objet (item : { name, rarity, upgrades, slot, locked… }) ; opts : { size: 48|56|64|72|80|96|110 (72 et 110 : PC, voir desk-kit.css),
 //                                       action, id, value, attrs, up (▲), badge ('+817 %'), bang (« ! »), empty (silhouette), slot, label, selected, plus, pips }.
 //                                       mTile(item, { size: 80, action: 'select-item', up: true })
 //   mPips(rarity)                       Pastilles de rareté (1 Commun … 7 Ascendant, ordre de RARITIES). mPips('epic') → 3 pastilles.
@@ -64,7 +64,7 @@ export const mModes = (items = [], current, opts = {}) => `<div class="m-modes${
 export function mTile(item, opts = {}) {
   const it = item ?? {};
   const rarity = RANK[it.rarity] ? it.rarity : 'common';
-  const size = [48, 56, 64, 80, 96].includes(opts.size) ? opts.size : 64;
+  const size = [48, 56, 64, 72, 80, 96, 110].includes(opts.size) ? opts.size : 64;
   const empty = opts.empty || !item;
   const slot = opts.slot ?? it.slot;
   const pic = empty
