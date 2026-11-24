@@ -104,10 +104,12 @@ test('partie 2 (10.13) : un renfort presque sans effet le dit (« Objet dépass�
   assert.ok(!ZERO.test(textOf(html)), textOf(html).match(/.{20}\+0.{10}/)?.[0]);
   // Même texte dans la fiche de l'Équipement et dans l'atelier 2 ; aucune fiche PC ne parle de remettre au niveau.
   const pages = [inventoryPanel.render(uiWith({ selectedItemId: dagger.id }), s), forgePanel.render(uiWith({ forgeSeg: 'upgrade', forgeUpSel: dagger.id }), s)];
-  for (const page of pages) {
-    assert.ok(page.includes(html));
-    assert.ok(!/sharpen|Remettre au niveau|remettre au niveau/.test(page));
-  }
+  for (const page of pages) assert.ok(!/sharpen|Remettre au niveau|remettre au niveau/.test(page));
+  assert.ok(pages[1].includes(html), 'la Forge garde la section de renfort');
+  // v10.13 : la fiche PC de l'Équipement (kit) dit le retard dans l'en-tête, avec « Trouver mieux », et garde Améliorer en doré.
+  assert.ok(textOf(pages[0]).includes(`⚠ Objet dépassé · Niv. 3, ton étape : ${levelForStage(s.maxStage)}`), 'étiquette dans la fiche PC');
+  assert.ok(pages[0].includes('data-action="find-better" data-value="weapon"'));
+  assert.match(pages[0], /class="m-btn-gold"\s+data-action="upgrade-item"/, 'Améliorer est le bouton doré');
   // Sans retard de niveau : l'étiquette générale, et toujours « Trouver mieux ».
   const t = lagging(); t.equipment.weapon.level = levelForStage(t.maxStage);
   const q = forge.upgradePreview(t, t.equipment.weapon);
@@ -211,16 +213,25 @@ test('Personnage : gabarit de page, icônes 48 px, noms d\'objets sur une ligne,
   for (let i = 0; i < 30; i++) s.inventory.push(generateItem(s, rng, { level: 100 + i }));
   for (const it of [...s.inventory]) inv.equipItem(s, it.id);
   const html = inventoryPanel.render(uiWith(), s);
-  for (const cls of ['class="eq pg', 'class="pg-top eq-top"', 'class="pg-main eq-pgmain"', 'class="pg-side eq-side-sheet"']) assert.ok(html.includes(cls), cls);
-  assert.equal((html.match(/class="eq-slot[ "]/g) ?? []).length, 6, '6 places');
-  assert.equal((html.match(/<span class="eq-slot-box"><img class="px eq-ico"/g) ?? []).length, Object.values(s.equipment).filter(Boolean).length, 'icônes de place en 48 px');
-  for (const m of html.matchAll(/<small class="eq-slot-name">([^<]*)<\/small>/g)) assert.ok(!/ /.test(m[1].trim()), `un seul mot sous la place : « ${m[1]} »`);
-  assert.ok(!html.includes('Tes ressources</span>') && html.includes('aria-label="Tes ressources"'), 'bandeau des ressources en icônes');
-  assert.ok(!html.includes('class="eq-tip"'), 'l\'aide de la place passe au survol');
-  assert.ok(!html.includes('data-action="reforge"'), '« Changer l\'effet » replié derrière « Plus »');
-  // Le renfort est dans la fiche, avant ce que l'objet donne (objet porté).
-  const sheet = html.slice(html.indexOf('class="pg-side'));
-  assert.ok(sheet.indexOf('data-action="upgrade-item"') > 0 && sheet.indexOf('data-action="upgrade-item"') < sheet.indexOf('Ce qu'), 'Renforcer avant « Ce qu\'il donne »');
+  // v10.13 : PC en kit (equip-desk.js) : un cadre, trois colonnes (personnage · sac · détails), cases illustrées, aucune liste déroulante.
+  for (const cls of ['class="m-frame de"', 'class="d-cols3a de-cols"', 'class="de-col de-who"', 'class="m-card de-col de-bag"', 'class="m-card de-col de-det"']) assert.ok(html.includes(cls), cls);
+  assert.equal((html.match(/data-action="eq-slot"/g) ?? []).length, 6, '6 places');
+  const places = html.slice(html.indexOf('de-slots'), html.indexOf('class="m-stats2"'));
+  assert.equal((places.match(/<img class="px m-tile-img" src="assets\/ui\/art106\/item_/g) ?? []).length, Object.values(s.equipment).filter(Boolean).length, 'chaque objet porté a son image');
+  for (const m of places.matchAll(/<small>([^<]*)<\/small>/g)) assert.ok(!/ /.test(m[1].trim()), `un seul mot sous la place : « ${m[1]} »`);
+  assert.ok(!html.includes('<select') && html.includes('class="de-filters"'), 'filtres en boutons à icône');
+  assert.ok(!html.includes('data-action="reforge"'), 'Reforger : les trois cartes sont dans le mode Reforger');
+  // Le mode Reforger montre ses trois cartes illustrées toujours visibles (pas de pli « Plus »).
+  const worn = Object.values(s.equipment).find((i) => i && forge.canReforge(i));
+  if (worn) {
+    const rf = inventoryPanel.render(uiWith({ selectedItemId: worn.id, itemTab: 'reforge' }), s);
+    assert.equal((rf.match(/class="de-rcard[ "]/g) ?? []).length, 3, 'trois cartes');
+    assert.ok(rf.includes('data-action="reforge"') && rf.includes('data-action="rf-pick"') && rf.includes('data-action="retype-item"'));
+    assert.ok(!rf.includes('Plus : '), 'plus de pli « Plus… »');
+  }
+  // Améliorer est le bouton doré de la fiche (objet porté), avec « +N » +N+1 » et les coûts en cases.
+  const sheet = html.slice(html.indexOf('class="m-card de-col de-det"'));
+  assert.ok(sheet.includes('data-action="upgrade-item"') && sheet.includes('em-lvlup') && sheet.includes('m-cost'), 'Améliorer, +N » +N+1 et coûts dans la fiche');
 });
 
 test('10.13 (§ 2) : fiche téléphone — étiquette « Objet dépassé » + « Trouver mieux », Améliorer en doré, aucun « Remettre au niveau »', () => {

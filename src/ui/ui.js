@@ -1069,6 +1069,10 @@ export class UI {
       case 'fuse-set': local(() => { v.fuseSet = { ...(v.fuseSet ?? {}), [value]: el.dataset.set }; }); break; // v9.1.3 (doc3 lot 5)
       case 'fuse-include': local(() => { v.fusionInclude = { ...(v.fusionInclude ?? {}), [value]: !v.fusionInclude?.[value] }; }); break;
       case 'reforge': a.reforge(id); break;
+      case 'rf-pick': local(() => { v.rfPickOpen = v.rfPickOpen === value ? null : value; }); break; // v10.13 : « Choisir… » ouvre la liste des effets (Relance orientée)
+      case 'reforge-keep': local(() => { v.rfPrev = null; }); break; // v10.13 : « Garder » le nouvel effet
+      case 'reforge-revert': a.reforgeRevert(id); break; // v10.13 : « Revenir » à l'ancien effet
+      case 'retype-item': a.retypeItem(id); break; // v10.13 : Reforger › Changer le type
       case 'target-reroll': { // v9.1.3 (doc3 lot 3) : relance orientée, 1er appui arme, 2e confirme
         const k = `${id}|${value}`;
         if (v.rerollArmed !== k) { local(() => { v.rerollArmed = k; }); clearTimeout(this.rerollTimer); this.rerollTimer = setTimeout(() => { v.rerollArmed = null; this.invalidate(); }, BULK_CONFIRM_MS); break; }
@@ -2839,6 +2843,16 @@ export class UI {
     if (!best) return;
     const v = this.view ?? {};
     Object.assign(v, { eqTab: 'gear', selectedItemId: best.item.id, sheetOpen: 'item', eqSlot: null, eqChange: false, eqQuick: null, itemPop: best.item.id });
+    this.invalidate?.();
+  }
+
+  // v10.13 (§ 3) : ouvre Héros › Équipement sur un personnage choisi : 'hero' ou l'id d'un compagnon (lien « Objets portés › » de Compagnons).
+  // C'est ici, et seulement ici, qu'on équipe les objets d'un compagnon.
+  openGearFor(who = 'hero') {
+    const st = this.state;
+    const ok = who === 'hero' || (st?.companions?.equipped ?? []).includes(who);
+    this.closeModal?.();
+    this.openTab('inventory', { gearWho: ok ? who : 'hero', eqTab: 'gear', invTab: 'bag', selectedItemId: null, sheetOpen: null, eqSlot: null, eqChange: false, eqQuick: null, itemTab: null, itemMore: null, itemPop: null });
     this.invalidate?.();
   }
 

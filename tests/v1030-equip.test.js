@@ -226,7 +226,9 @@ test('Forge : renforcer depuis l\'atelier 2 = même section et même résultat q
     const section = reinforceSection(uiWith(), s, item);
     const sheet = inventoryPanel.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item' }), s);
     const atelier = forgePanel.render(uiWith({ forgeSeg: 'upgrade', forgeUpSel: item.id }), s);
-    assert.ok(sheet.includes(section), `${item.name} : section de la fiche`);
+    // v10.13 : la fiche PC est en kit (equip-desk.js) : mêmes chiffres, même action ; la section « Renforcer » d'origine reste celle de la Forge.
+    assert.ok(sheet.includes(`data-action="upgrade-item" data-id="${item.id}"`), `${item.name} : même action dans la fiche`);
+    assert.ok(sheet.includes('m-cost') && /<b>\+\d+<\/b><i>»<\/i><b class="up">\+\d+<\/b>/.test(sheet), `${item.name} : +N » +N+1 et coûts dans la fiche`);
     assert.ok(atelier.includes(section), `${item.name} : même section dans la Forge`);
     assert.ok(section.includes(`data-action="upgrade-item" data-id="${item.id}"`), 'même action des deux côtés');
   }
@@ -309,33 +311,35 @@ test('Équipement rapide : le « avant → après » de la confirmation est le r
   assert.equal(inv.unequipItem(s, slot), false);
 });
 
-test('fiche d\'objet : coût pièce par pièce (« tu as » / « il manque »), bandeau « ce qui bloque », compagnon à 3 places', () => {
+test('fiche d\'objet : coût pièce par pièce (cases vertes / rouges), bandeau « ce qui bloque », compagnon à 3 places', () => {
   const s = rich();
   s.equipment.weapon = makeItem(s, 'short_sword', 'epic', 139, BALANCE, new Rng(1));
   let html = inventoryPanel.render(uiWith(), s);
-  assert.ok(html.includes('tu as ') && !html.includes('il manque '));
-  assert.match(html, /Renforcer : <b>\+0 → \+1<\/b>/);
-  assert.match(html, /Stat renforcée : <b>Dégâts<\/b>/);
+  // v10.13 : fiche PC en kit : coûts en cases (vert si on peut payer, rouge s'il manque), « +0 » +1 » en gros.
+  assert.ok(html.includes('m-cost ok') && !html.includes('m-cost ko'));
+  assert.match(html, /<b>\+0<\/b><i>»<\/i><b class="up">\+1<\/b>/);
+  assert.match(reinforceSection(uiWith(), s, s.equipment.weapon), /Stat renforcée : <b>Dégâts<\/b>/); // la section de la Forge garde sa ligne
   s.materials.shards = 0;
   html = inventoryPanel.render(uiWith(), s);
-  assert.match(html, /il manque 2<\/span><button class="eq-where" data-gloss="shards">Où en gagner<\/button><button class="eq-plusbtn" data-gloss="shards"/);
-  assert.match(html, /data-action="upgrade-item"[^>]*disabled/);
-  // Au maximum : bandeau rouge. Avant l'étape 40 il annonce le Bastion ; ensuite il mène à la Forge du Bastion.
+  assert.match(html, /m-cost ko/);
+  assert.match(html, /disabled data-action="upgrade-item"/);
+  // Au maximum : étiquette et bouton. Avant l'étape 40 : le Bastion ouvre à l'étape 40 ; ensuite la Forge du Bastion.
   s.materials.shards = 1e6;
   while (forge.upgradeItem(s, s.equipment.weapon.id, null));
   html = inventoryPanel.render(uiWith(), s);
-  assert.ok(html.includes('Au-delà de +10 : Forge du Bastion niveau 1 requise ›') && html.includes('data-action="bastion-open" data-value="forge"'));
+  assert.ok(html.includes('Renforcé au maximum (+10)') && html.includes('Forge du Bastion niveau 1 requise') && html.includes('data-action="bastion-open" data-value="forge"'));
   const early = rich(20); early.equipment.weapon = makeItem(early, 'short_sword', 'common', 5, BALANCE, new Rng(1));
   while (forge.upgradeItem(early, early.equipment.weapon.id, null));
   assert.ok(inventoryPanel.render(uiWith(), early).includes('Au-delà de +5 : le Bastion ouvre à l\'étape 40'));
-  // Compagnon : 3 places, onglets Étoiles et Compétences, tuiles Attaque / PV / Défense / Recharge.
+  // Compagnon : 3 places, boutons Étoiles et Compétences, tuiles Attaque / PV / Défense / Recharge.
   const e = endgame();
   const id = e.companions.equipped[0];
   const unit = inventoryPanel.render(uiWith({ gearWho: id }), e);
-  assert.equal((unit.match(/class="eq-slot[ "]/g) ?? []).length, 3);
-  for (const t of ['Vue d\'ensemble', 'Équipement', 'Étoiles', 'Compétences', 'Attaque', 'PV', 'Défense', 'Recharge']) assert.ok(unit.includes(`>${t}<`), t);
+  assert.equal((unit.match(/data-action="eq-slot"/g) ?? []).length, 3);
+  for (const t of ['Équipement rapide', 'Étoiles', 'Compétences']) assert.ok(unit.includes(`<span>${t}`), t);
+  for (const t of ['Attaque', 'PV', 'Défense', 'Recharge']) assert.ok(unit.includes(`<span class="m-k">${t}</span>`), t);
   const hero = inventoryPanel.render(uiWith(), e);
-  assert.ok(!hero.includes('data-value="stars"') && hero.includes('Dégâts/s') && hero.includes('Critique'), 'héros : pas d\'onglet Étoiles');
+  assert.ok(!hero.includes('data-value="stars"') && hero.includes('Dégâts/s') && hero.includes('Critique'), 'héros : pas de bouton Étoiles');
 });
 
 test('glossaire et phrase de la Forge', () => {

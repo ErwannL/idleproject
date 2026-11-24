@@ -34,57 +34,62 @@ function midState() {
 }
 
 // v10.3 (8) : la fiche d'objet n'est plus une fenêtre par-dessus : elle est toujours là, à côté du personnage.
-test('v10.3 : fiche d\'objet toujours visible — part de puissance, « Ce qu\'elle donne », Renforcer, Équiper / Recycler, sans fenêtre', () => {
+// v10.13 : fiche PC en kit (equip-desk.js) : troisième colonne « Détails de l'équipement », trois modes Améliorer · Reforger · Équiper.
+test('v10.3 : fiche d\'objet toujours visible — part de puissance, niveau d\'objet, modes, Équiper / Recycler, sans fenêtre', () => {
   const s = midState();
   const item = s.inventory[0];
   const html = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item' }), s);
-  assert.ok(html.includes('class="eq-sheet') && !html.includes('unit-pop'), 'fiche dans la page, pas de fenêtre');
-  assert.match(html, /Ce qu'(elle|il) donne/);
-  assert.match(html, /Niveau d'objet<\/span><b class="num">\d+<\/b>/, 'le niveau de l\'objet est dans la fiche');
-  assert.match(html, /data-action="equip"|data-action="gear-equip"|Pour : /);
-  assert.ok(html.includes('data-action="recycle"'));
-  assert.ok(html.includes('data-action="upgrade-item"') && !html.includes('Effets visuels en combat'), 'Renforcer visible sans clic de plus');
-  assert.ok(html.includes('data-action="lock"') && html.includes('data-action="to-stash"'), 'Protéger et Ranger visibles');
-  // Objet porté : Renforcer tout de suite, « Retirer », « Changer », sa part de la puissance, aucun bouton « Équipé » grisé.
+  assert.ok(html.includes('class="m-card de-col de-det"') && !html.includes('unit-pop'), 'fiche dans la page, pas de fenêtre');
+  assert.match(html, /Niveau d&#39;objet<\/span><b class="m-v">\d+<\/b>/, 'le niveau de l\'objet est dans la fiche');
+  for (const m of ['up', 'reforge', 'equip']) assert.ok(html.includes(`data-action="item-tab" data-value="${m}"`), `mode ${m}`);
+  assert.match(html, /data-action="equip"|data-action="gear-equip"|Pour : /, 'objet du sac : Équiper tout de suite');
+  assert.ok(html.includes('data-action="lock"') && html.includes('data-action="item-more"'), 'Protéger et « ⋯ » visibles');
+  const more = inventory.render(uiWith({ selectedItemId: item.id, sheetOpen: 'item', itemMore: item.id }), s);
+  assert.ok(more.includes('data-action="recycle"') && more.includes('data-action="to-stash"'), '« ⋯ » : Ranger et Recycler');
+  assert.ok(inventory.render(uiWith({ selectedItemId: item.id, itemTab: 'up' }), s).includes('data-action="upgrade-item"'), 'mode Améliorer : le bouton Améliorer');
+  // Objet porté : Améliorer tout de suite, « Retirer » et les objets à mettre à la place dans le mode Équiper, sa part de la puissance.
   const worn = s.inventory.find((i) => i.slot === 'helmet') ?? s.inventory[1];
   s.inventory.splice(s.inventory.indexOf(worn), 1);
   s.equipment[worn.slot === 'earring' ? 'amulet' : worn.slot] = worn;
   const wornHtml = inventory.render(uiWith({ selectedItemId: worn.id, sheetOpen: 'item' }), s);
-  assert.ok(wornHtml.includes('data-action="upgrade-item"'), 'objet porté : Renforcer visible tout de suite');
-  assert.ok(wornHtml.includes('data-action="eq-unequip"') && wornHtml.includes('data-action="eq-change"'));
+  assert.ok(wornHtml.includes('data-action="upgrade-item"'), 'objet porté : Améliorer visible tout de suite');
   assert.match(wornHtml, /de ta puissance totale/);
+  assert.ok(inventory.render(uiWith({ selectedItemId: worn.id, itemTab: 'equip' }), s).includes('data-action="eq-unequip"'), 'mode Équiper : Retirer');
   assert.ok(!/<button class="btn" disabled>Équipé<\/button>/.test(wornHtml));
   // Rien de touché : la fiche montre quand même le premier objet porté (jamais d'écran sans fiche).
   const idle = inventory.render(uiWith(), s);
-  assert.ok(idle.includes('class="eq-sheet'), 'fiche présente sans toucher');
+  assert.ok(idle.includes('class="m-card de-col de-det"'), 'fiche présente sans toucher');
 });
 
-test('Équipement : 6 places autour du héros, bandeau des ressources, filtres rangés, Équipement rapide seulement s\'il sert', () => {
+test('Équipement : 6 places, filtres en boutons à icône (sans liste), Équipement rapide seulement s\'il sert', () => {
   const s = createNewState(NOW);
   let html = inventory.render(uiWith(), s);
-  assert.equal((html.match(/class="eq-slot[ "]/g) ?? []).length, 6, '6 places pour le héros');
-  assert.ok(html.includes('Tes ressources') && html.includes('data-gloss="shards"') && html.includes('pour les compagnons'));
-  assert.ok(!html.includes('<div class="section-title">Sac</div>'));
-  // v10.6 (partie 4) : 7 puces illustrées toujours visibles (Tout et une par place) ; le reste reste derrière « Filtres ».
+  assert.equal((html.match(/data-action="eq-slot"/g) ?? []).length, 6, '6 places pour le héros');
+  assert.ok(html.includes('class="m-frame de"') && html.includes('Équipement rapide · toute l&#39;équipe') && html.includes('data-action="gear-team"'));
+  assert.ok(!html.includes('<select'), 'plus de liste déroulante');
+  // v10.13 : 7 boutons à icône toujours visibles (Tout et une par place) ; les réglages sont derrière le bouton du sac.
   assert.equal((html.match(/data-action="filter" data-value=/g) ?? []).length, 7);
-  assert.ok(!html.includes('data-action="eq-quick"'), 'sac vide : rien à équiper');
+  assert.ok(/disabled data-action="eq-quick" data-value="hero"/.test(html), 'sac vide : rien à équiper');
   s.inventory.push(generateItem(s, new Rng(1), { level: 5, slot: 'ring' }));
   html = inventory.render(uiWith(), s);
-  assert.match(html, /data-action="eq-quick" data-value="hero">Équipement rapide \(1 ▲\)/, 'emplacement vide : utile');
-  // La confirmation montre l'avant → après avant d'équiper.
+  assert.match(html, /data-action="eq-quick" data-value="hero"/);
+  assert.ok(!/disabled data-action="eq-quick" data-value="hero"/.test(html) && html.includes('Équipement rapide (1)'), 'emplacement vide : utile');
+  // La confirmation montre l'avant » après avant d'équiper.
   const confirm = inventory.render(uiWith({ eqQuick: 'hero' }), s);
-  assert.ok(confirm.includes('data-action="eq-quick-ok"') && confirm.includes('Avant → après'));
+  assert.ok(confirm.includes('data-action="eq-quick-ok"') && confirm.includes('class="em-ba"') && confirm.includes('Puissance'));
 });
 
-test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus répété ; fusion par groupe repliée', () => {
+test('réglages du sac : une phrase, recyclage en lot, règle automatique ; le Coffre garde le rangement des mannequins', () => {
   const s = midState();
-  const html = inventory.render(uiWith({ bagMenu: true }, ['bag-settings']), s); // v9.3.4 : derrière ⚙
+  s.ui.recycle = { mode: 'off', rarities: ['common'], slots: [] };
+  const html = inventory.render(uiWith({ bagMenu: true }), s); // derrière le bouton des réglages, à la place du sac
   const body = html.slice(html.indexOf('Réglages du sac'));
-  for (const id of ['bag-lot', 'bag-rule', 'bag-advanced']) assert.ok(body.includes(`data-value="${id}"`), id);
+  for (const a of ['bulk-recycle', 'recycle-useless', 'bulk-rarity-set']) assert.ok(body.includes(`data-action="${a}"`), a);
   assert.ok(!body.includes('data-action="auto-mannequin"'));
-  assert.ok(!body.includes('data-action="recycle-mode"'), 'le mode est en réglage avancé');
-  const adv = inventory.render(uiWith({ bagMenu: true }, ['bag-settings', 'bag-advanced']), s);
-  assert.ok(adv.includes('data-action="recycle-mode"'));
+  assert.ok(!body.includes('data-action="recycle-mode-set"'), 'le mode est dans la règle automatique, une fois activée');
+  s.ui.recycle = { mode: 'pickup', rarities: ['common'], slots: ['weapon'] };
+  const adv = inventory.render(uiWith({ bagMenu: true }), s);
+  assert.ok(adv.includes('data-action="recycle-mode-set"'));
   // v10.3 (9) : la fusion est dans l'onglet Forge (atelier 3) ; une mise par bouton, avec sa mise et sa chance.
   const forge = forgePanel.render(uiWith({ forgeSeg: 'fuse' }), s);
   for (const m of forge.matchAll(/data-action="fuse" data-value="[^"]+" data-stake="(\d)">([^<]+)</g)) assert.match(m[2], new RegExp(`${m[1]} (objets )?· \\d+ %`));
@@ -93,11 +98,11 @@ test('réglages du sac : une phrase et 3 replis ; rangement des mannequins plus 
 test('builds en cartes : résumé et Équiper sur la carte', () => {
   const s = midState();
   s.loadouts[1] = { ...s.loadouts[1], team: [], gear: { weapon: 'x', helmet: null }, powers: ['a'] };
-  const html = inventory.render(uiWith({ bagMenu: true }, ['inv-builds']), s); // v9.3.4 : derrière ⚙
-  assert.equal((html.match(/class="card build-card/g) ?? []).length, s.loadouts.length);
+  const html = inventory.render(uiWith({ bagMenu: true }), s); // derrière le bouton des réglages
+  assert.equal((html.match(/class="m-card em-build"/g) ?? []).length, s.loadouts.length);
   assert.ok(html.includes('data-action="apply-build" data-value="1"'));
   assert.ok(!html.includes('data-action="apply-build" data-value="0"'), 'build vide : pas d\'Équiper');
-  assert.ok(html.includes('1/7 objets') && html.includes('1 pouvoir'));
+  assert.ok(html.includes('1 objets'));
 });
 
 test('v10.13 (lot 6) : Compagnons PC — fiche toujours visible (pas de fenêtre), 3 compétences illustrées, Mettre dans l\'équipe, Objets portés ; grille de cartes portrait', () => {
