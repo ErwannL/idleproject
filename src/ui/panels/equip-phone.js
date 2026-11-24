@@ -18,7 +18,7 @@ import { upgradeAllGearWhy, bestGearFor, canEquip as unitCanEquip, classLabel, g
 import { elementBadge, unitElement } from '../../core/elements.js';
 import { formatStat } from '../../core/format.js';
 import { heroById } from '../../core/heroes.js';
-import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canTargetReroll, fusableRarities, reforgeCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking, weakLabel } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canRetype, canTargetReroll, fusableRarities, reforgeCost, retypeCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking, weakLabel } from '../../core/forge.js';
 import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bulkRecycleCandidates, recycleRules, teamUpgradeFor } from '../../core/inventory.js';
 import { BIND_MODES } from '../../core/loadouts.js';
 import { xpForLevel } from '../../core/level.js';
@@ -57,6 +57,8 @@ export const ICON_MORE = SVG('<circle cx="5" cy="12" r="2.2" fill="currentColor"
 export const isPhoneView = (ui) => Boolean(ui?.root?.classList?.contains('m-phone')) || (ui?.root?.clientWidth ?? 9999) <= 600;
 
 export const pill = (cls, text, extra = '') => `<span class="em-pill ${cls}"${extra}>${e(text)}</span>`;
+const AFFIX_ICONS = { critChance: 'icon_crit', lifesteal: 'icon_lifesteal', thorns: 'icon_shield', goldPct: 'icon_gold', damageVsBossPct: 'icon_boss', damageVsNormalPct: 'icon_skull', regenPct: 'icon_regen', dropChance: 'icon_chest' };
+export const affixIcon = (type) => img(AFFIX_ICONS[type] ?? 'icon_star'); // l'icône de l'effet spécial (fiche d'objet du téléphone)
 export const rarPill = (rarity) => pill(`r-${rarity}`, rarityLabel(rarity));
 export const ratio = (a, b) => (b > 0 ? Math.max(0, Math.min(1, a / b)) : 0);
 // Coût sans « tu as » (la place manque dans une ligne) : vert si on peut payer, rouge sinon.
@@ -95,6 +97,15 @@ export function phoneAfter(ui, body) {
   const row = body.querySelector('.em-whos-row');
   const on = row?.querySelector('.em-who.on');
   if (row && on) row.scrollLeft = Math.max(0, on.offsetLeft - (row.clientWidth - on.offsetWidth) / 2);
+  const eff = body.querySelector('.em-effects') ?? document.querySelector('#eq-sheet .em-effects'); // Reforger › « Choisir… » : la liste des effets s'ouvre dans le panneau, on la met en vue une seule fois
+  const vw = ui.view ?? {};
+  if (!eff) { vw.rfPickSeen = null; vw.rfSelSeen = null; }
+  else {
+    if (vw.rfPickSeen !== vw.rfPickOpen) { vw.rfPickSeen = vw.rfPickOpen; eff.scrollIntoView?.({ block: 'nearest' }); }
+    const go = eff.nextElementSibling; // « Relancer : … » : une fois l'effet choisi, le bouton est mis en vue
+    const key = `${vw.rerollType}|${vw.rerollArmed ?? ''}`;
+    if (go?.classList.contains('m-btn') && vw.rfSelSeen !== key) { vw.rfSelSeen = key; go.scrollIntoView?.({ block: 'nearest' }); }
+  }
   const panel = ui.$?.('panel') ?? document.getElementById('panel');
   if (!panel || panel.dataset.emSwipe) return;
   panel.dataset.emSwipe = '1';
@@ -299,6 +310,43 @@ function reforgeRows(ui, state, item) {
     ${ok ? '' : '<p class="em-note">Pas d\'effet spécial à changer.</p>'}${target}`;
 }
 
+// v10.13.1 (§ 1) : Reforger dans la fiche d'objet du téléphone : les trois choix sont visibles sans rien déplier, en cartes l'une sous l'autre
+// (image à gauche, titre, une ligne, coût en éclats, bouton à droite). Mêmes actions que le PC : reforge, rf-pick (liste des effets), reroll-pick,
+// target-reroll, retype-item ; après un changement d'effet : Avant » Après avec « Garder » (reforge-keep) ou « Revenir » (reforge-revert).
+const RF_ART = { effect: 'fuse', target: 'upgrade', type: 'craft' }; // les mêmes illustrations que sur PC (assets/ui/art104/forge_step_*.png)
+function reforgeCards(ui, state, item) {
+  const v = ui.view;
+  const shards = state.materials.shards;
+  const ok = canReforge(item);
+  const cost = reforgeCost(state);
+  const canT = canTargetReroll(item);
+  const tCost = canT ? targetRerollCost(item) : 0;
+  const canType = canRetype(item);
+  const tyCost = retypeCost();
+  const prevRaw = v.rfPrev?.id === item.id ? v.rfPrev : null;
+  const prev = prevRaw && prevRaw.snap && prevRaw.snap.upgrades === (item.upgrades ?? 0) && prevRaw.snap.level === item.level ? prevRaw : null;
+  const choices = canT ? targetRerollChoices(item) : [];
+  const sel = choices.includes(v.rerollType) ? v.rerollType : null;
+  const pickOpen = canT && v.rfPickOpen === item.id;
+  const card = (key, title, line, costHtml, btn, note = '', open = '') => `<div class="em-rcard${key === 'effect' && !prev && ok ? ' main' : ''}${note ? ' off' : ''}"><img class="px em-rart" src="assets/ui/art104/forge_step_${RF_ART[key]}.png" alt="">
+      <div class="em-rmid"><b>${e(title)}</b><small>${e(note || line)}</small>${note ? '' : costHtml}</div>${btn}</div>${open}`;
+  const effectBtn = ok && !prev ? mBtnGold('Changer', { action: 'reforge', id: item.id, disabled: shards < cost }) : mBtn('Changer', { action: 'reforge', id: item.id, disabled: !ok || shards < cost });
+  const armed = v.rerollArmed === `${item.id}|${sel}`;
+  // Liste des effets (avec leur icône) : s'ouvre par « Choisir… » ; un effet choisi, « Relancer » demande une confirmation.
+  const list = !pickOpen ? '' : `<div class="em-effects" role="group" aria-label="Effet voulu">${choices.map((t) => `<button type="button" class="em-eff${t === sel ? ' on' : ''}" data-action="reroll-pick" data-value="${t}" aria-pressed="${t === sel}">${affixIcon(t)}<span>${e(KEEP_AFFIX_LABELS[t] ?? t)}</span></button>`).join('')}</div>
+    ${sel ? mBtn(`${armed ? 'Confirmer' : 'Relancer'} : ${KEEP_AFFIX_LABELS[sel] ?? sel} (${num(tCost)} éclats)`, { action: 'target-reroll', id: item.id, value: sel, disabled: shards < tCost, cls: armed ? 'armed' : '' }) : '<p class="em-note">Choisis un effet.</p>'}`;
+  const fx = (arr) => (arr ?? []).length ? arr.map((a) => `<div class="em-fx">${affixIcon(a.type)}<span>${e(affixText(a))}</span></div>`).join('') : '<div class="em-fx none"><span>Aucun effet</span></div>';
+  const ab = !prev ? '' : `<div class="em-ab"><div class="em-ab-col"><h5>Avant</h5>${fx(prev.snap.affixes)}</div><i aria-hidden="true">»</i><div class="em-ab-col new"><h5>Après</h5>${fx(item.affixes)}</div></div>
+    <div class="em-ab-btns">${mBtnGold('Garder', { action: 'reforge-keep' })}${mBtn('Revenir', { action: 'reforge-revert', id: item.id })}</div>`;
+  const typeLine = `${itemBase(item.baseId).name} » autre arme`;
+  // « Choisir… » ouvert : seule la carte « Relance orientée » reste, avec la liste des effets et la confirmation sous elle (rien à chercher en défilant).
+  const effectCard = pickOpen ? '' : card('effect', 'Changer l\'effet', 'Nouvel effet au hasard', costOnly('icon_shard', cost, shards >= cost), effectBtn, ok ? '' : 'Pas d\'effet spécial à changer.');
+  const typeCard = pickOpen ? '' : card('type', 'Changer le type', typeLine, costOnly('icon_shard', tyCost, shards >= tyCost), mBtn('Changer', { action: 'retype-item', id: item.id, disabled: !canType || shards < tyCost }), canType ? '' : item.slot === 'weapon' ? 'Aucun autre modèle pour cette arme.' : 'Pour les armes seulement.');
+  return `${pickOpen ? '' : ab}<div class="em-rcards">${effectCard}
+    ${card('target', 'Relance orientée', 'Tu choisis l\'effet voulu', costOnly('icon_shard', tCost, shards >= tCost), mBtn(pickOpen ? 'Fermer' : 'Choisir…', { action: 'rf-pick', value: item.id, disabled: !canT }), canT ? '' : 'Épique et Légendaire seulement.', list)}
+    ${typeCard}</div>`;
+}
+
 function reforgeList(ui, state) {
   const worn = Object.entries(state.equipment).filter(([, it]) => it && canReforge(it));
   const blocks = worn.map(([slot, it]) => `<div class="em-rf"><div class="em-rf-head">${mTile(it, { size: 56, action: 'eq-slot', value: slot, id: it.id, plus: '' })}<div class="em-row-mid"><b>${e(it.name)}</b><small>${e(HERO_SLOTS[slot])}${(it.affixes ?? []).length ? ` · ${it.affixes.map((a) => e(affixText(a))).join(' · ')}` : ''}</small></div></div>${reforgeRows(ui, state, it)}</div>`).join('');
@@ -450,16 +498,21 @@ function itemSheet(ui, state, ctx) {
   const menu = menuOpen ? `<div class="em-menu" role="menu">${mBtn('Ranger dans la Réserve', { action: 'to-stash', id: item.id, disabled: stashFull })}${base.signature ? mBtn('Exposer au Musée', { action: 'to-museum', id: item.id }) : ''}
       ${mBtn(`Recycler +${num(recycleValue(item, BALANCE, recycleLevelOf(state)))}${mats.shards ? ` +${mats.shards} éclats` : ''}`, { action: 'recycle', id: item.id, disabled: item.locked })}</div>` : '';
   const nav = heroWorn ? slotNav(state, null, hslot) : wearUnit ? slotNav(state, wearUnit, eqSlot(item)) : '';
-  const head = `<div class="em-top em-swipe">${nav}<div class="em-head">${mTile(item, { size: 96, plus: '' })}
-      <div class="em-hid"><b class="em-name">${e(item.name)}</b><div class="em-pills">${rarPill(item.rarity)}${ups ? pill('plus', `+${ups}`) : ''}${base.signature ? pill('role', 'Ancestral') : ''}</div>
-        ${pv.max ? `<div class="em-lvl"><span>Niv. ${pv.level}/${pv.max}</span>${mBar(ratio(pv.level, pv.max))}</div>` : ''}</div>
-      <div class="em-hact">${lock}${more}</div></div>${menu}</div>`;
+  // v10.13.1 (§ 1) : grande case 84 px (cadre de rareté, « +3 » dessus), nom, pastilles rareté et place, « Renfort +3 / 13 », cadenas ;
+  // l'étiquette « Objet dépassé » et « Trouver mieux » sous l'en-tête quand le renfort n'apporte presque rien (l'action `find-better` existe déjà).
+  let weak = false;
+  if (!wearer && !pv.atMax) { const g = upgradeGainPct(pv); weak = g !== null && g < WEAK_GAIN_PCT; }
+  const oldTag = weak ? `<div class="em-old" role="note"><b>${e(weakLabel(state, item))}</b>${mBtn('Trouver mieux ›', { action: 'find-better', value: hslot, cls: 'auto' })}</div>` : '';
+  const head = `<div class="em-top em-swipe">${nav}<div class="em-head">${mTile(item, { size: 96, plus: ups ? `+${ups}` : '' })}
+      <div class="em-hid"><b class="em-name">${e(item.name)}</b><div class="em-pills">${rarPill(item.rarity)}${pill('slot', wearUnit ? slotName(wearUnit, eqSlot(item)) : HERO_SLOTS[hslot] ?? '')}${base.signature ? pill('role', 'Ancestral') : ''}</div>
+        ${pv.max ? `<span class="em-lvl">Renfort +${pv.level} <small>/ ${pv.max}</small></span>` : ''}</div>
+      <div class="em-hact">${lock}${more}</div></div>${menu}</div>${oldTag}`;
   // Statistiques : la principale en grand, puis les autres, les effets spéciaux et le grand effet.
   const entries = Object.entries(item.stats);
   const mainKey = item.stats.damage != null ? 'damage' : item.stats.maxHp != null ? 'maxHp' : entries[0]?.[0];
   const statRows = [...entries.filter(([k]) => k === mainKey), ...entries.filter(([k]) => k !== mainKey)]
     .map(([k, val]) => mStat(STAT_ICONS[k], STAT_LABELS[k], formatStat(k, val, true), k === mainKey)).join('');
-  const affixes = (item.affixes ?? []).map((a) => `<div class="m-stat em-affix"><i>✦</i><span class="m-k">${affixText(a)}</span></div>`).join('');
+  const affixes = (item.affixes ?? []).map((a) => `<div class="m-stat em-affix">${affixIcon(a.type)}<span class="m-k">${e(affixText(a))}</span>${worn ? '<b class="m-v em-on">actif</b>' : ''}</div>`).join('');
   const unitGives = wearUnit || (unit && !heroWorn) ? `<div class="m-stat em-affix"><i>✦</i><span class="m-k">Sur un compagnon : ${e(statText(gearStats(item, state))) || 'aucun bonus'}</span></div>` : '';
   const set = setById(item.set);
   const sw = set ? setCounts(state.equipment)[set.id] ?? 0 : 0;
@@ -470,10 +523,10 @@ function itemSheet(ui, state, ctx) {
   const modes = mModes([{ id: 'up', label: 'Améliorer', icon: 'icon_upgrade', action: 'item-tab', value: 'up' }, { id: 'reforge', label: 'Reforger', icon: 'icon_anvil', action: 'item-tab', value: 'reforge' },
     { id: 'equip', label: worn ? 'Changer' : 'Équiper', icon: 'icon_hero', action: 'item-tab', value: 'equip' }], mode, { size: 64, arrow: true });
   let panel;
-  if (mode === 'up') panel = upPanel(state, item, wearer, pv);
-  else if (mode === 'reforge') panel = wearer ? '<p class="em-note">Les pièces d\'un compagnon ne se reforgent pas.</p>' : reforgeRows(ui, state, item);
+  if (mode === 'up') panel = upPanel(state, item, wearer, pv, { headTag: true });
+  else if (mode === 'reforge') panel = wearer ? '<p class="em-note">Les pièces d\'un compagnon ne se reforgent pas.</p>' : reforgeCards(ui, state, item);
   else panel = equipPanel(ui, state, ctx, item, flags);
-  return sheet('Détails de l\'équipement', `${head}${scroll}<div class="em-dock">${modes}<div class="em-panel" role="tabpanel">${panel}</div></div>`);
+  return sheet('Détails de l\'équipement', `${head}${scroll}<div class="em-dock">${modes}<div class="em-panel em-panel-${mode}" role="tabpanel">${panel}</div></div>`);
 }
 
 // Panneau « Améliorer » : +N » +N+1, la ligne qui monte, les coûts, UN bouton doré.
