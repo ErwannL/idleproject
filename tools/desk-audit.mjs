@@ -36,8 +36,20 @@ export function inPage(kind) {
   const tabName = window.__idle?.ui?.tab;
   const name = (el) => `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).slice(0, 2).join('.')}` : ''} « ${(el.textContent || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 24)} »`;
   const clip = kind === 'tab' && body ? body.getBoundingClientRect() : { left: 0, top: 0, right: vw, bottom: window.innerHeight };
-  const shown = (el) => { // affiché : taille non nulle, ni masqué ni transparent (sans test de recouvrement), dans la zone visible
+  // rectangle réellement visible : celui de l'élément, rogné par les zones qui défilent (overflow auto / scroll / hidden) qui le contiennent
+  const rectOf = (el) => {
     const r = el.getBoundingClientRect();
+    let { left, top, right, bottom } = r;
+    for (let n = el.parentElement; n && n !== document.body && n !== document.documentElement && n.id !== 'panel-body'; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (!/(auto|scroll|hidden|clip)/.test(`${cs.overflowY} ${cs.overflowX}`)) continue;
+      const a = n.getBoundingClientRect();
+      left = Math.max(left, a.left); top = Math.max(top, a.top); right = Math.min(right, a.right); bottom = Math.min(bottom, a.bottom);
+    }
+    return { left, top, right, bottom, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+  };
+  const shown = (el) => { // affiché : taille non nulle, ni masqué ni transparent (sans test de recouvrement), dans la zone visible
+    const r = rectOf(el);
     if (r.width < 1 || r.height < 1) return false;
     for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
       const cs = getComputedStyle(n);
@@ -84,10 +96,10 @@ export function inPage(kind) {
   boxes = [...new Set(boxes)];
   const seen = new Set();
   for (let i = 0; i < boxes.length; i++) {
-    const a = boxes[i].getBoundingClientRect();
+    const a = rectOf(boxes[i]);
     for (let j = i + 1; j < boxes.length; j++) {
       if (boxes[i].contains(boxes[j]) || boxes[j].contains(boxes[i])) continue;
-      const b = boxes[j].getBoundingClientRect();
+      const b = rectOf(boxes[j]);
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left), oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
       if (ox > 2 && oy > 2) { const m = `${name(boxes[i])} et ${name(boxes[j])} (${Math.round(ox)}x${Math.round(oy)} px)`; if (!seen.has(m)) { seen.add(m); add(2, m); } }
     }

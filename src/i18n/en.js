@@ -2118,3 +2118,7 @@ import { EXACT_1013_HUD, OVERRIDE_1013_HUD, patterns1013Hud } from './en-1013-hu
 Object.assign(EXACT, OVERRIDE_1013_HUD);
 for (const [k, v] of Object.entries(EXACT_1013_HUD)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1013Hud());
+// v10.13 (lot 3) : Héros › Équipement et fiche d'objet sur PC, « Objet dépassé » (./en-1013-equip.js).
+import { EXACT_1013_EQUIP, patterns1013Equip } from './en-1013-equip.js';
+for (const [k, v] of Object.entries(EXACT_1013_EQUIP)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1013Equip());

@@ -54,10 +54,11 @@ test('10.7 (6) : fenêtre très large — compétences et Sceau sur une ligne, s
   assert.match(src('src/render/scene.js'), /cssWidth \/ cssHeight > 2\.1 \? 0\.86 : 0\.74/);
 });
 
-test('10.7 (3) : titre du sac juste (+N portés), fiche de droite sur l\'objet porté, flèche vers l\'objet, portrait entier', () => {
-  const inv = src('src/ui/panels/inventory.js');
-  assert.ok(inv.includes('eq-worn-n') && inv.includes('ip-left') && inv.includes('const worn0 = state.equipment[heroSlot(item)]'));
-  assert.equal((inv.match(/<select data-action="rarity-filter"/g) ?? []).length, 1, 'plus de <select> en double');
+test('10.7 (3) : titre du sac juste, un seul jeu de filtres sans <select>, flèche vers l\'objet, portrait entier', () => {
+  // v10.13 : vue PC en kit (equip-desk.js) : titre « Sac N / 100 », filtres en boutons à icône, plus aucun <select>
+  const inv = src('src/ui/panels/equip-desk.js');
+  assert.ok(inv.includes('Sac ${state.inventory.length} / ${size}') && !inv.includes('<select'), 'plus de <select>');
+  assert.ok(src('src/ui/panels/inventory.js').includes('deskView') && !src('src/ui/panels/inventory.js').includes('eq-pop'), 'ancien rendu PC retiré');
   assert.match(src('src/ui/hud106.css'), /\.eq-doll \.eq-art \{ max-height: min\(340px, 42vh\);/);
 });
 

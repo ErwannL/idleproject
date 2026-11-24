@@ -37,6 +37,8 @@ const num = formatNumber;
 const AFFIX_ICONS = { critChance: 'icon_crit', lifesteal: 'icon_lifesteal', thorns: 'icon_shield', goldPct: 'icon_gold', damageVsBossPct: 'icon_boss', damageVsNormalPct: 'icon_skull', regenPct: 'icon_regen', dropChance: 'icon_chest' };
 const affixIcon = (type) => img(AFFIX_ICONS[type] ?? 'icon_star');
 const FILTER_SLOTS = Object.keys(HERO_SLOTS);
+const FILTER_ICON = { weapon: 'weapon_sword', helmet: 'helmet_helm', armor: 'armor_plate', amulet: 'amulet_ruby', ring: 'ring_signet', bracelet: 'bracelet_cuff' }; // vraies icônes d'objets, en couleur
+const filterArt = (slot) => `<img class="px" src="assets/ui/art106/item_${FILTER_ICON[slot] ?? 'weapon_sword'}.png" alt="">`;
 const slotArt = (slot, cls = '') => `<img class="px ${cls}" src="assets/ui/art106/slot_empty_${e(SIL(slot))}.png" alt="">`;
 const withLvl = (html, level) => html.replace(/<\/(button|span)>$/, `<span class="de-lv">Niv. ${e(level)}</span></$1>`); // « Niv. 310 » en bas de la case, comme la maquette
 const RF_ART = { effect: 'fuse', target: 'upgrade', type: 'craft' }; // illustrations existantes (assets/ui/art104/forge_step_*.png), voir LISTE-PIXELLAB.md
@@ -133,7 +135,7 @@ function bagColumn(ui, state, ctx) {
   const tiles = list.map((i) => withLvl(mTile(i, { size: 64, pips: false, action: 'select-item', id: i.id, up: unit ? ctx.unitIds.has(i.id) : Boolean(ctx.gains.get(i.id)?.up), badge: badge(i), selected: ctx.item?.id === i.id, attrs: usableBy(i) ? '' : 'data-dim="1"' }), i.level));
   // Filtres : un bouton à icône par place (plus de liste déroulante), puis la rareté en gemmes de couleur.
   const fb = (value, label, art, on) => `<button type="button" class="de-fbtn${on ? ' on' : ''}" data-action="filter" data-value="${value}" aria-pressed="${on}" aria-label="${e(label)}" title="${e(label)}">${art}</button>`;
-  const slotRow = `<div class="de-filters" role="group" aria-label="Filtrer par place">${fb('all', 'Tout', img('icon_bag'), slotF === 'all')}${FILTER_SLOTS.map((s) => fb(s, PLURAL[s] ?? HERO_SLOTS[s], slotArt(s), slotF === s)).join('')}</div>`;
+  const slotRow = `<div class="de-filters" role="group" aria-label="Filtrer par place">${fb('all', 'Tout', img('icon_bag'), slotF === 'all')}${FILTER_SLOTS.map((s) => fb(s, PLURAL[s] ?? HERO_SLOTS[s], filterArt(s), slotF === s)).join('')}</div>`;
   const rb = (value, label, on, cls) => `<button type="button" class="de-rbtn ${cls}${on ? ' on' : ''}" data-action="rarity-set" data-value="${value}" aria-pressed="${on}" aria-label="${e(label)}" title="${e(label)}"><i></i></button>`;
   const rarRow = `<div class="de-rars" role="group" aria-label="Filtrer par rareté"><span class="de-rars-k">Rareté</span>${rb('all', 'Toutes les raretés', rarF === 'all', 'all')}${RARITIES.map((r) => rb(r.id, r.label, rarF === r.id, `r-${r.id}`)).join('')}</div>`;
   const sortRow = v.sortMenu ? `<div class="m-chips" role="group" aria-label="Trier par">${Object.entries(SORT_LABELS).map(([k, l]) => mChip(l, { action: 'sort-set', value: k, on: sortBy === k })).join('')}</div>` : '';
@@ -156,12 +158,13 @@ function detailColumn(ui, state, ctx) {
   let body;
   const quickN = unit ? ctx.unitIds.size : ctx.plan.changes.length;
   if (tab === 'sets') body = `${detTitle('Ensembles')}${back()}${setsList(state)}`;
-  else if (tab === 'stars' && unit) body = `${detTitle(`Étoiles de ${unit.name}`)}${back()}${starsPanel(state, ctx)}`;
-  else if (tab === 'skills' && unit) body = `${detTitle(`Compétences de ${unit.name}`)}${back()}${skillsPanel(ui, state, ctx)}`;
+  else if (tab === 'stars' && unit) body = `${detTitle(`Étoiles · ${unit.name}`)}${back()}${starsPanel(state, ctx)}`;
+  else if (tab === 'skills' && unit) body = `${detTitle(`Compétences · ${unit.name}`)}${back()}${skillsPanel(ui, state, ctx)}`;
   else if (v.eqQuick === ctx.who && quickN) {
     body = `${detTitle('Équipement rapide')}${quickRows(state, ctx)}<div class="de-actions">${mBtnGold('Confirmer', { action: 'eq-quick-ok', value: ctx.who })}${mBtn('Annuler', { action: 'eq-quick', value: '' })}</div>`;
   } else if (item) body = itemDetail(ui, state, ctx);
   else body = emptyDetail(state, ctx);
+  if (!body.includes('class="de-dock"')) body = `<div class="de-scroll">${body}</div>`;
   return `<section class="m-card de-col de-det" aria-label="Détails de l'équipement">${body}</section>`;
 }
 
@@ -227,7 +230,8 @@ function itemDetail(ui, state, ctx) {
   if (mode === 'up') panel = upPanel(state, item, wearer, pv, { headTag: true });
   else if (mode === 'reforge') panel = wearer ? '<p class="em-note">Les pièces d\'un compagnon ne se reforgent pas.</p>' : reforgePanel(ui, state, item);
   else panel = equipPanel(ui, state, ctx, item, flags);
-  return `${detTitle('Détails de l\'équipement', `${lock}${more}`, menu)}${head}${stats}${modes}<div class="de-panel de-panel-${mode}" role="tabpanel">${panel}</div>`;
+  // La tête reste en haut, les statistiques défilent seules si la fenêtre est basse ; les modes et le panneau (Améliorer, Reforger, Équiper) restent en bas, visibles.
+  return `<div class="de-fixtop">${detTitle('Détails de l\'équipement', `${lock}${more}`, menu)}${head}</div><div class="de-scroll">${stats}</div><div class="de-dock">${modes}<div class="de-panel de-panel-${mode}" role="tabpanel">${panel}</div></div>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -248,7 +252,7 @@ function reforgePanel(ui, state, item) {
   const sel = choices.includes(v.rerollType) ? v.rerollType : null;
   const pickOpen = canT && v.rfPickOpen === item.id;
   const card = (key, title, line, costHtml, btn, disabledNote = '') => `<div class="de-rcard${key === 'effect' && !prev && ok ? ' main' : ''}${disabledNote ? ' off' : ''}"><img class="px de-rart" src="assets/ui/art104/forge_step_${RF_ART[key]}.png" alt="">
-      <b>${e(title)}</b><small>${e(disabledNote || line)}</small><div class="de-rcost">${costHtml}</div>${btn}</div>`;
+      <b>${e(title)}</b><small>${e(disabledNote || line)}</small>${disabledNote ? '' : `<div class="de-rcost">${costHtml}</div>`}${btn}</div>`;
   const effectBtn = ok && !prev ? mBtnGold('Changer', { action: 'reforge', id: item.id, disabled: shards < cost }) : mBtn('Changer', { action: 'reforge', id: item.id, disabled: !ok || shards < cost });
   const armed = v.rerollArmed === `${item.id}|${sel}`;
   const cards = `<div class="de-rcards">
