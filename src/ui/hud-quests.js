@@ -119,9 +119,9 @@ function carnetHtml(c, phone) {
   if (phone) return `<button class="hq-carnet-chip" data-action="open-tab" data-value="daybook">${img('icon_trophy')}<b>Carnet ${c.done}/${c.total}</b></button>`;
   const rows = c.list.map((t) => {
     const act = t.done ? 'data-action="open-tab" data-value="daybook"' : t.action ? `data-action="${t.action}"` : `data-action="open-tab" data-value="${t.tab}"`;
-    return `<button class="hq-task${t.done ? ' done' : ''}" ${act}>${img(t.icon)}<span>${escapeHtml(t.title)}</span><b class="num">${t.done ? '✓' : `${t.n}/${t.target}`}</b></button>`;
+    return `<button class="hq-task${t.done ? ' done' : ''}" ${act}>${img(t.icon)}<span>${escapeHtml(t.title)}</span><b class="num">${t.done ? '✓ ' : ''}${Math.min(t.n, t.target)}/${t.target}</b></button>`;
   }).join('');
-  return `<button class="hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour ${c.done}/${c.total} ›</button>${rows}`;
+  return `<button class="hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour · ${c.done} / ${c.total} ›</button>${rows}`;
 }
 // v10.7 (partie 2) : une rangée accrochée sous la bande du haut. max : nombre d'icônes qui tiennent dans la largeur
 // libre (entre la carte de zone et les boosts) ; le reste passe dans « + », qui déplie une seconde rangée.
@@ -130,9 +130,12 @@ export const shortName = (x) => SHORT[x.id] ?? x.name;
 function columnHtml(items, max, expanded) {
   const cut = items.length > max ? Math.max(1, max - 1) : items.length;
   const shown = expanded ? items : items.slice(0, cut);
-  const more = items.length > cut ? `<button class="hq-ev hq-more" data-action="hq-more" aria-label="Plus d'événements" aria-expanded="${expanded}"><span class="hq-ev-art">${expanded ? '−' : '+'}</span><small>${expanded ? 'Moins' : `${items.length - cut} de plus`}</small></button>` : '';
-  return shown.map((x) => `<button class="hq-ev${x.hot ? ' hot' : ''}" data-hq="${x.id}" data-action="${x.action}" ${x.value ? `data-value="${x.value}"` : ''} title="${escapeHtml(x.title ?? x.name)}">
-      <span class="hq-ev-art"><img class="px" src="${x.art}" alt="">${x.timer ? `<i class="hq-ev-timer">${escapeHtml(x.timer)}</i>` : ''}</span>
+  const more = items.length > cut ? `<button class="hq-ev hq-more" data-action="hq-more" aria-label="Plus d'événements" aria-expanded="${expanded}"><span class="hq-ev-art"><span class="hq-more-sign">${expanded ? '−' : '+'}</span></span><i class="hq-ev-timer empty">·</i><small>${expanded ? 'Moins' : `${items.length - cut} de plus`}</small></button>` : '';
+  // v10.13 (8.1) : cadre carré (image centrée, contain), minuteur en pastille SOUS le cadre (elle mord sur son bord bas),
+  // nom dessous, pastille rouge hors de l'image ; bord vert quand c'est prêt. Sans minuteur, la pastille garde sa place.
+  return shown.map((x) => `<button class="hq-ev${x.hot ? ' hot' : ''}${x.ready ? ' ready' : ''}" data-hq="${x.id}" data-action="${x.action}" ${x.value ? `data-value="${x.value}"` : ''} title="${escapeHtml(x.title ?? x.name)}">
+      <span class="hq-ev-art"><img class="px" src="${x.art}" alt=""></span>
+      <i class="hq-ev-timer${x.timer ? '' : ' empty'}">${escapeHtml(x.timer || '·')}</i>
       ${x.badge ? `<b class="hq-dot">${x.badge > 9 ? '9+' : x.badge}</b>` : ''}<small>${escapeHtml(shortName(x))}</small></button>`).join('') + more;
 }
 function bountyHtml(b) {
@@ -173,7 +176,7 @@ export class HudQuests {
     }, true);
   }
 
-  get phone() { return Boolean(this.ui.phone) || (this.ui.root?.clientWidth ?? 1000) < 560; }
+  get phone() { return Boolean(this.ui.phone) || (this.ui.root?.clientWidth ?? 1000) < 560 || Boolean(this.ui.root?.classList.contains('hud-narrow')); } // v10.13 : scène étroite (panneau ouvert à côté) : mise en page compacte
   // v10.6 (partie 7) : scène très large et basse (fenêtre large) : Carnet en puce, événements en rangée en haut à droite,
   // pour ne jamais recouvrir l'équipe ni le coffre.
   get wide() { const a = this.root.parentElement; return Boolean(a && a.clientWidth > 2 * a.clientHeight); }
@@ -229,17 +232,18 @@ export class HudQuests {
     let left = 6, right = AW - 6;
     if (!this.phone) {
       const z = vis('zone-card'); if (z) left = z.right - A.left + 8;
-      for (const id of ['boost-group', 'skill-bar', 'rush-bar', 'auto-toggle']) { const r = vis(id); if (r && r.left - A.left > left + 60) right = Math.min(right, r.left - A.left - 8); }
+      // v10.13 (8.5) : les boosts et « Auto » sont sous la rangée (plus à côté) : seule la carte de zone borne la rangée.
+      for (const id of []) { const r = vis(id); if (r && r.left - A.left > left + 60) right = Math.min(right, r.left - A.left - 8); }
     }
     const w = Math.max(80, right - left);
     const st = this.events.style;
     // v10.11 (4) : la rangée est centrée dans l'espace libre entre la carte de zone et les boosts.
     const used = Math.min(w, this.events.scrollWidth || w);
-    const leftC = !this.phone && AW >= 1300 ? Math.max(left, Math.min(right - used, AW / 2 - used / 2)) : left;
+    const leftC = left; // v10.13 : la rangée est calée à droite (CSS), plus centrée
     const L = `${Math.round(leftC)}px`, W = `${Math.round(w - (leftC - left))}px`;
     if (st.left !== L) st.left = L;
     if (st.maxWidth !== W) st.maxWidth = W;
-    const cell = this.phone ? 58 : 70;
+    const cell = this.phone ? 62 : 92; // v10.13 : cadre 76 px (56 sur téléphone) + écart
     return Math.max(2, Math.floor((w - 12) / cell));
   }
 
@@ -251,10 +255,13 @@ export class HudQuests {
     this.last = now;
     const ui = this.ui;
     const calm = ui.calmStart?.(state) ?? { early: false };
-    const off = ui.layout === 'strip' || calm.early || ui.arenaOpen || Boolean(state.dungeon || state.tower || state.challenge);
+    // v10.13 (8.6) : une partie avancée (sauvegarde chargée, 0 s de jeu) montre ses événements tout de suite.
+    const advanced = (state.records?.rebirths ?? 0) > 0 || (state.records?.bestStage ?? state.maxStage ?? 1) >= 20 || Boolean(state.unlocks?.legacy);
+    const off = ui.layout === 'strip' || (calm.early && !advanced) || ui.arenaOpen || Boolean(state.dungeon || state.tower || state.challenge);
     this.root.classList.toggle('hidden', off);
     this.root.classList.toggle('hq-phone', this.phone);
     this.root.classList.toggle('hq-wide', !this.phone && this.wide);
+    this.root.classList.toggle('hq-short', !this.phone && (this.root.parentElement?.clientHeight ?? 999) < 700); // v10.13 : scène basse (1366 × 768) : lignes de 36 px
     if (off) return;
     const t = Date.now();
     // v10.8 (partie 1) : mur doux — bloqué depuis 30 min de jeu sur la même étape : la carte « Comment devenir plus fort »
@@ -276,7 +283,7 @@ export class HudQuests {
     this.path.classList.toggle('ready', Boolean(q?.ready));
     // 2. Carnet du jour
     const c = carnetTop(state, daybookOpen(ui), t);
-    const ch = c.total ? carnetHtml(c, this.phone || this.wide) : ''; // fenêtre large : puce, pour ne pas couvrir l'équipe
+    const ch = c.total ? carnetHtml(c, this.phone || (this.wide && (this.root.parentElement?.clientHeight ?? 0) < 560)) : ''; // v10.13 : puce seulement si la scène est vraiment basse
     if (this.carnet.dataset.h !== ch) { this.carnet.dataset.h = ch; this.carnet.innerHTML = ch; }
     this.carnet.classList.toggle('hidden', !ch);
     // 4. Prime du Héraut (avant la colonne : une prime rangée y prend sa place)

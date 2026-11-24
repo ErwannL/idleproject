@@ -3,6 +3,7 @@
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
+import { buildCombatConsole } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
 import { equipFly } from './equip-fx.js'; // v10.6 (parties 4 et 6)
 import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour du Bastion sur la scène
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
@@ -248,7 +249,7 @@ export function journalHtml(j) {
 
 // Disposition téléphone : écran tactile étroit (boosts regroupés, fiche en bas, action collée en bas).
 function phoneLayout() {
-  return isPhone();
+  return isPhone() || (typeof document !== 'undefined' && Boolean(document.getElementById('app')?.classList.contains('m-phone') || document.getElementById('app')?.classList.contains('hud-narrow'))); // v10.13 : une fenêtre étroite (kit téléphone) range aussi les boosts derrière « Boosts »
 }
 
 function boostDuration(sec) {
@@ -417,6 +418,7 @@ export class UI {
     installShortcuts(this);
     this.lootBag = new LootBag(this); // v9.7.1 : sac de butin dans la scène
     this.hudQuests = new HudQuests(this); // v10.6 (partie 2) : quêtes et événements toujours visibles
+    buildCombatConsole(this); // v10.13 (8.4) : sorts, vague, PV, Sceau et coffre dans une seule console
     installHoldToRepeat(root);
     installTips(root);
     // Balayage horizontal entre onglets (tactile seulement), hors carte, arbre et barre d'onglets.
@@ -1894,7 +1896,8 @@ export class UI {
     this.setText('strip-gold', formatNumber(state.gold));
     if (this.layout === 'strip') this.setText('strip-info', `Niv. ${state.level} · Étape ${state.stage}`); // v9.7.1 : ligne compacte
     this.setText('gems', formatNumber(state.gems));
-    this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))}/${formatNumber(stats.maxHp)}`);
+    this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))} / ${formatNumber(stats.maxHp)}`);
+    { const hf = this.$('hp-fill'); if (hf) { const w = `${Math.round(Math.max(0, Math.min(1, world.hero.hp / Math.max(1, stats.maxHp))) * 1000) / 10}%`; if (hf.style.width !== w) hf.style.width = w; } } // v10.13 : barre de PV de la console
     this.setText('level-badge', `Niv. ${state.level}`);
     const xpRatio = state.xp / xpForLevel(state.level);
     if (Math.abs(xpRatio - (this.lastHud.xp ?? -1)) > 0.002) {
@@ -2020,7 +2023,7 @@ export class UI {
       el.id = 'env-chip';
       el.dataset.open = 'campaign';
       el.addEventListener('click', () => this.toggleTab('campaign'));
-      this.$('stage-area').appendChild(el);
+      (this.console?.querySelector('.cc-wave') ?? this.$('stage-area')).appendChild(el); // v10.13 : dans la console du bas
     }
     const key = env ? `${env.zone}|${Math.round(env.countered)}|${Math.round(env.pct * 10)}` : '';
     if (el.dataset.key === key) return;
@@ -2060,10 +2063,11 @@ export class UI {
       return;
     }
     const zone = zoneForStage(state.stage);
-    this.$('zone-name').textContent = `${zone.name} ${stageLabel(state.stage)}`;
     // v9.3.1 : type des ennemis du monde (icône), pour composer l'équipe.
     const ze = ELEMENTS[zoneElement(ZONES.indexOf(zone))];
-    if (ze) this.$('zone-name').textContent += ` ${ze.icon}`;
+    // v10.13 (8.2) : titre en 3 morceaux (crâne, nom, pastille « ×2 ☾ ») : la carte de zone a trois lignes.
+    const [labelBase, labelMult] = String(stageLabel(state.stage)).split(' ×');
+    this.$('zone-name').innerHTML = `<img class="px zn-skull" src="${icon('icon_skull', 2)}" alt=""><span class="zn-t">${zone.name} ${labelBase}</span>${labelMult || ze ? `<i class="zn-x">${labelMult ? `×${labelMult}` : ''}${ze ? ` ${ze.icon}` : ''}</i>` : ''}`;
     this.$('zone-name').title = ze ? `Ennemis de type ${ze.name}` : '';
     const every = BALANCE.stages.bossEvery;
     const first = Math.floor((state.stage - 1) / every) * every + 1;
@@ -2516,6 +2520,35 @@ export class UI {
     play.classList.remove('col-row');
     if (this.layout === 'strip') { play.classList.remove('band109'); return; }
     const ground = parseFloat(getComputedStyle(play).getPropertyValue('--ground-px')) || 0;
+    // v10.13 (8.4) : console du bas (combat-console.js). Les éléments sont rangés par le CSS : on ne place plus rien à la
+    // main ; on règle seulement la hauteur du sol pour que la console tienne juste dessous (ni chevauchement, ni mur vide).
+    const cc = this.console;
+    if (cc?.isConnected) {
+      // Scène étroite sur PC (panneau ouvert à côté, moins de 820 px) : même mise en page compacte que le téléphone (classe hud-narrow).
+      const narrow = !this.root.classList.contains('m-phone') && area.clientWidth < 820;
+      if (narrow !== this.root.classList.contains('hud-narrow')) { this.root.classList.toggle('hud-narrow', narrow); this.hudQuests?.update(this.state, true); }
+      const phoneMode = (area.clientWidth < 560 && area.clientHeight > area.clientWidth) || narrow;
+      play.classList.toggle('phone-band', phoneMode); play.classList.toggle('band109', !phoneMode);
+      for (const el of [this.$('env-chip'), this.$('scene-bottom'), this.$('loot-bag'), hud]) {
+        if (el && (el.style.top || el.style.left || el.style.width)) for (const k of ['top', 'left', 'right', 'bottom', 'width', 'height', 'transform', 'maxWidth']) el.style[k] = '';
+      }
+      const A0 = area.getBoundingClientRect();
+      const kz = A0.width / Math.max(1, area.clientWidth);
+      let H0 = area.clientHeight;
+      const tb = this.$('tabs');
+      if (tb?.offsetParent) { const t = (tb.getBoundingClientRect().top - A0.top) / kz; if (t > 0 && t < H0) H0 = t; }
+      const bottomPad = 8;
+      cc.style.bottom = `${Math.round(area.clientHeight - H0 + bottomPad)}px`;
+      const r0 = this.renderer;
+      if (r0 && this.resizeScene && !r0.liftShrinking && area.clientHeight > 0 && ground && cc.offsetHeight > 0) { // console cachée (page plein écran) : le sol ne bouge pas
+        const depth = Math.max(0, ground - (r0.groundY ?? 0) * (r0.scale ?? 1));
+        const top = H0 - bottomPad - cc.offsetHeight; // haut de la console (px CSS de la scène)
+        const cap = Math.max(0.5, Math.min(0.9, (top + 6 - depth) / area.clientHeight));
+        const cur = r0.liftCap ?? 1;
+        if (Math.abs(cap - cur) > 0.01) { r0.liftCap = cap; r0.liftShrinking = true; this.resizeScene(); setTimeout(() => { r0.liftShrinking = false; this.layoutColumn(); }, 0); }
+      }
+      return;
+    }
     const place0 = (el, top) => { el.style.top = `${Math.round(top)}px`; el.style.bottom = 'auto'; el.style.left = '50%'; el.style.transform = 'translateX(-50%)'; };
     // Limite basse : le bas de la scène, ou le haut de la barre d'onglets si elle passe par-dessus.
     const aTop = area.getBoundingClientRect().top;
