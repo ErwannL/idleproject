@@ -269,3 +269,58 @@
   #app:not(.m-phone) .d-adv .tnode { width: 104px; }
   #app:not(.m-phone) .d-renaitre { height: 64px; min-height: 64px; font-size: 22px; }
 }
+
+/* ---------- Écrans bas (1366 x 768) : la Renaissance tient sans défiler, « Renaître » visible ---------- */
+@media (max-height: 820px) {
+  #app:not(.m-phone) .d-tal-rebirth > .m-modes { margin-bottom: 8px; }
+  #app:not(.m-phone) .d-tal-rebirth > .m-modes .m-mode { height: 52px; flex-direction: row; gap: 10px; font-size: 15px; }
+  #app:not(.m-phone) .d-tal-rebirth > .m-modes .m-mode img { width: 26px; height: 26px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph { gap: 14px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main { gap: 8px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-sec { display: none; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx { min-height: 0; padding: 10px; gap: 6px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx img { width: 130px; height: 130px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx-n { font-size: 24px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ba { padding: 6px 10px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ba small { font-size: 13px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ba b { font-size: 28px; line-height: 1.1; }
+  #app:not(.m-phone) .d-tal-rebirth .d-gets { gap: 8px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-tal .rb-tile, #app:not(.m-phone) .d-tal-rebirth .rb-tile { padding: 6px 8px; gap: 8px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-rb-ico { width: 44px; height: 44px; border-width: 2px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-rb-ico img { width: 26px; height: 26px; }
+  #app:not(.m-phone) .d-tal-rebirth .rb-tile b { font-size: 19px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-what { padding: 8px 12px; gap: 4px 14px; font-size: 13px; margin: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #app:not(.m-phone) .d-tal-rebirth .d-what-top { font-size: 13px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-keep, #app:not(.m-phone) .d-tal-rebirth .d-lose { gap: 2px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-worth { padding: 6px 12px; font-size: 14px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-renaitre { height: 56px; min-height: 56px; font-size: 22px; margin-top: 0; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .m-btn { height: 44px; min-height: 44px; }
+}
+
+/* panneau étroit : Renaissance compacte, « Renaître » visible sans défiler */
+@container mframe (max-width: 640px) {
+  #app:not(.m-phone) .d-tal-rebirth .d-sec { display: none; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph, #app:not(.m-phone) .d-tal-rebirth .d-ph-main { gap: 8px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx { padding: 6px 12px; gap: 2px 12px; flex-wrap: nowrap; justify-content: flex-start; text-align: left; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx img { width: 84px; height: 84px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx-n { font-size: 22px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-phx .rb-total { display: none; }
+  #app:not(.m-phone) .d-tal-rebirth .d-gets { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  #app:not(.m-phone) .d-tal-rebirth .rb-tile { flex-direction: column !important; text-align: center !important; padding: 6px 4px; gap: 4px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-rb-ico { width: 40px; height: 40px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-rb-ico img { width: 24px; height: 24px; }
+  #app:not(.m-phone) .d-tal-rebirth .rb-tile b { font-size: 17px; }
+  #app:not(.m-phone) .d-tal-rebirth .rb-tile span:not(.d-rb-ico) { font-size: 12px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ba { padding: 6px 8px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ba b { font-size: 24px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-what { padding: 8px 10px; font-size: 13px; gap: 3px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-what-top { font-size: 13px; }
+  #app:not(.m-phone) .d-tal-rebirth .d-worth { padding: 6px 10px; font-size: 13px; }
+}
+@container mframe (max-width: 640px) {
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .d-what { order: 3; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .d-worth { order: 2; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .d-why { order: 2; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .d-renaitre { order: 1; }
+  #app:not(.m-phone) .d-tal-rebirth .d-ph-main > .m-btn { order: 1; }
+}
