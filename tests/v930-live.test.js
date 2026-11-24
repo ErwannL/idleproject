@@ -470,7 +470,7 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
   const token = (await (await fetch(`${base}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'erwann', password: 'motdepasse-admin-1' }) })).json()).token;
   const up = (kind, body, tok = token) => fetch(`${base}/api/admin/video`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'X-Kind': kind }, body });
   const pub = async () => (await fetch(`${base}/api/site/video`)).json();
-  assert.deepEqual(await pub(), { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' });
+  assert.deepEqual(await pub(), { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' });
   assert.equal((await up('video', Buffer.from('pas une vidéo du tout'))).status, 415);
   assert.equal((await fetch(`${base}/api/admin/video`, { method: 'POST', headers: { 'X-Kind': 'video' }, body: Buffer.alloc(20) })).status, 401);
   const mp4 = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from('ftypisom'), Buffer.alloc(64)]);
@@ -478,6 +478,7 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
   let v = await pub();
   assert.match(v.mp4, /^assets\/uploads\/video\/.+-site\.mp4$/);
   assert.equal(v.webm, null, 'l\'ancien WebM n\'est plus proposé');
+  assert.equal(v.poster, null, 'jamais l\'image de l\'ancienne vidéo sous une nouvelle vidéo');
   assert.ok(existsSync(`${uploadsDir}/video/${v.mp4.split('/').pop()}`));
   assert.equal((await fetch(`${base}/${v.mp4}`)).status, 200, 'servie par le site');
   const png = Buffer.concat([Buffer.from([0x89]), Buffer.from('PNG\r\n\x1a\n'), Buffer.alloc(32)]);
@@ -486,7 +487,7 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
   assert.match(v.poster, /\.png$/); assert.match(v.mp4, /\.mp4$/);
   await fetch(`${base}/api/admin/video`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
   assert.equal((await pub()).mp4, 'assets/trailer.mp4');
-  assert.match(readFileSync('site/site.js', 'utf8'), /fetch\('api\/site\/video'\)/);
+  assert.match(readFileSync('site/site.js', 'utf8'), /fetch\('api\/site\/video'/);
   assert.match(readFileSync('site/admin/index.html', 'utf8'), /data-tab="site-video"/);
 });
 
@@ -538,4 +539,25 @@ test('site : robots.txt et sitemap.xml servis, adresse canonique unique (sans ww
   const robots = await fetch(`${base}/robots.txt`); assert.equal(robots.status, 200); assert.match(await robots.text(), /Sitemap: https:\/\/ascendrya\.com\/sitemap\.xml/);
   const map = await fetch(`${base}/sitemap.xml`); assert.equal(map.status, 200); assert.match(await map.text(), /<loc>https:\/\/ascendrya\.com\/<\/loc>/);
   assert.match(readFileSync(new URL('../site/index.html', import.meta.url), 'utf8'), /<link rel="canonical" href="https:\/\/ascendrya\.com\/">/);
+});
+
+test('site : une vidéo envoyée reçoit une version téléphone (540 px) et une image d\'aperçu tirée d\'elle (ffmpeg)', async (t) => {
+  const { execFileSync } = await import('node:child_process');
+  try { execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' }); } catch { t.skip('ffmpeg absent'); return; }
+  const { mkdtempSync, existsSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const uploadsDir = mkdtempSync(`${tmpdir()}/upv-`);
+  const db = openDatabase(':memory:');
+  const app = createApp({ db, siteDir: '', webDir: '', uploadsDir, adminPasswordHash: await hashPassword('motdepasse-admin-1') });
+  const server = createServer(app); server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  t.after(() => { server.close(); db.close(); });
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const token = (await (await fetch(`${base}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'erwann', password: 'motdepasse-admin-1' }) })).json()).token;
+  const body = readFileSync(new URL('../site/assets/trailer-phone.mp4', import.meta.url));
+  assert.equal((await fetch(`${base}/api/admin/video`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'X-Kind': 'video' }, body })).status, 201);
+  let v = null;
+  for (let i = 0; i < 120 && !(v?.phone && v?.poster); i++) { await new Promise((r) => setTimeout(r, 500)); v = await (await fetch(`${base}/api/site/video`)).json(); }
+  assert.match(v.phone ?? '', /-phone\.mp4$/);
+  assert.match(v.poster ?? '', /-poster\.jpg$/);
+  assert.ok(existsSync(`${uploadsDir}/video/${v.phone.split('/').pop()}`));
 });

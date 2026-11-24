@@ -253,11 +253,13 @@ function renderSocials() {
 // « économiser les données » ou lecture automatique bloquée. ----------
 let reelPaused = false;
 // Vidéo choisie dans l'admin (sinon la vidéo d'origine) : { mp4, webm, poster }.
-const REEL_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' };
-const reelConfig = fetch('api/site/video').then((r) => (r.ok ? r.json() : REEL_DEFAULT)).catch(() => REEL_DEFAULT).then((c) => {
-  if (c.poster && c.poster !== REEL_DEFAULT.poster) {
-    $('#reel').poster = c.poster;
-    const m = $('.hero .media'); if (m) m.style.backgroundImage = `url("${c.poster}")`;
+const REEL_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' };
+const reelConfig = fetch('api/site/video', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : REEL_DEFAULT)).catch(() => REEL_DEFAULT).then((c) => {
+  // Une vidéo envoyée depuis l'admin : son image d'aperçu, ou aucune (jamais l'image de l'ancienne vidéo).
+  if (c.poster !== REEL_DEFAULT.poster) {
+    const v = $('#reel'), m = $('.hero .media');
+    if (c.poster) v.poster = c.poster; else v.removeAttribute('poster');
+    if (m) m.style.backgroundImage = c.poster ? `url("${c.poster}")` : 'none';
   }
   return c;
 });
@@ -266,7 +268,9 @@ async function startReel() {
   if (calm || navigator.connection?.saveData) return;
   const small = matchMedia('(max-width: 720px)').matches;
   const c = await reelConfig;
-  v.innerHTML = `${c.webm ? `<source src="${esc(c.webm)}" type="video/webm">` : ''}${c.mp4 ? `<source src="${esc(c.mp4)}" type="video/mp4">` : ''}`;
+  // Téléphone : la version légère (540 px) si elle existe — la vidéo d'origine, trop lourde, saccade.
+  v.innerHTML = small && c.phone ? `<source src="${esc(c.phone)}" type="video/mp4">`
+    : `${c.webm ? `<source src="${esc(c.webm)}" type="video/webm">` : ''}${c.mp4 ? `<source src="${esc(c.mp4)}" type="video/mp4">` : ''}`;
   v.preload = small ? 'metadata' : 'auto';
   v.addEventListener('playing', () => { v.classList.add('on'); $('#reel-toggle').hidden = false; }, { once: true });
   v.load();

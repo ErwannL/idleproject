@@ -6,6 +6,7 @@ import { createReadStream, mkdirSync, readdirSync, statSync, writeFileSync } fro
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
+import { execFile } from 'node:child_process';
 import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
 import { createGuilds, GuildError } from './guilds.mjs'; // v9.3.2 : guildes et World Boss
 import { MAIL_LIMITS, confirmationEmail, friendJoinedEmail } from './mailer.mjs'; // emails de la préinscription (Brevo)
@@ -59,7 +60,7 @@ export function safeAssetName(original) {
 }
 // Vidéo du site (admin) : MP4 ou WebM jusqu'à 80 Mo, image d'aperçu jusqu'à 3 Mo ; type réel vérifié par sa signature.
 export const VIDEO_MAX_BYTES = 80 * 1024 * 1024;
-export const SITE_VIDEO_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', poster: 'assets/trailer-poster.webp' };
+export const SITE_VIDEO_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' };
 export function detectVideoType(buf) {
   if (buf.length >= 12 && buf.toString('latin1', 4, 8) === 'ftyp') return 'mp4';
   if (buf.length >= 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3) return 'webm';
@@ -1173,8 +1174,9 @@ export function createApp({
       const cur = readVideoMeta() ?? {};
       const path = `assets/uploads/video/${file}`;
       // Une nouvelle vidéo remplace les deux formats (l'ancien WebM ou MP4 n'est plus proposé) ; l'aperçu est gardé.
-      const next = kind === 'poster' ? { ...cur, poster: path } : { poster: cur.poster, mp4: ext === 'mp4' ? path : null, webm: ext === 'webm' ? path : null };
+      const next = kind === 'poster' ? { ...cur, poster: path, posterAuto: false } : { poster: cur.posterAuto ? undefined : cur.poster, mp4: ext === 'mp4' ? path : null, webm: ext === 'webm' ? path : null, phone: null };
       writeVideoMeta(next);
+      if (kind === 'video') makeVideoVariants(join(dir, file), file.replace(/\.\w+$/, ''), Boolean(next.poster));
       return { status: 201, body: { ...siteVideo(), size: data.length } };
     } },
     { method: 'DELETE', path: /^\/api\/admin\/video$/, handler: ({ req }) => { requireAdmin(req); writeVideoMeta(null); return { body: siteVideo() }; } },
@@ -1236,7 +1238,24 @@ export function createApp({
     const m = readVideoMeta();
     if (!m) return { ...SITE_VIDEO_DEFAULT };
     const custom = m.mp4 || m.webm;
-    return { mp4: custom ? m.mp4 ?? null : SITE_VIDEO_DEFAULT.mp4, webm: custom ? m.webm ?? null : SITE_VIDEO_DEFAULT.webm, poster: m.poster ?? SITE_VIDEO_DEFAULT.poster };
+    // Nouvelle vidéo sans image d'aperçu (pas encore faite) : pas d'image du tout, jamais celle de l'ancienne vidéo.
+    return { mp4: custom ? m.mp4 ?? null : SITE_VIDEO_DEFAULT.mp4, webm: custom ? m.webm ?? null : SITE_VIDEO_DEFAULT.webm,
+      phone: custom ? m.phone ?? null : null, poster: m.poster ?? (custom ? null : SITE_VIDEO_DEFAULT.poster) };
+  }
+  // Après un envoi : version légère pour téléphone (540 px, H.264, sans son, lecture immédiate) et image d'aperçu tirée
+  // de la vidéo, faites en tâche de fond par ffmpeg s'il est installé (sinon la vidéo d'origine sert partout).
+  function makeVideoVariants(src, base, hasPoster) {
+    const dir = join(uploadsDir, 'video');
+    const run = (args) => new Promise((ok) => execFile('ffmpeg', args, { timeout: 10 * 60_000 }, (err) => ok(!err)));
+    (async () => {
+      const phone = `${base}-phone.mp4`, still = `${base}-poster.jpg`;
+      const okPhone = await run(['-loglevel', 'error', '-y', '-i', src, '-an', '-vf', 'scale=-2:540,fps=30', '-c:v', 'libx264', '-profile:v', 'main', '-preset', 'veryfast', '-crf', '28', '-maxrate', '1500k', '-bufsize', '3000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(dir, phone)]);
+      const okStill = hasPoster ? false : await run(['-loglevel', 'error', '-y', '-ss', '1', '-i', src, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4', join(dir, still)]);
+      const cur = readVideoMeta();
+      if (!cur || !String(cur.mp4 ?? cur.webm ?? '').includes(base)) return; // une autre vidéo a été envoyée entre-temps
+      writeVideoMeta({ ...cur, ...(okPhone ? { phone: `assets/uploads/video/${phone}` } : {}), ...(okStill ? { poster: `assets/uploads/video/${still}`, posterAuto: true } : {}) });
+      log(`vidéo du site : ${okPhone ? 'version téléphone faite' : 'pas de version téléphone (ffmpeg absent ?)'}${okStill ? ', aperçu fait' : ''}`);
+    })();
   }
 
   async function serveStatic(req, res, pathname) {
