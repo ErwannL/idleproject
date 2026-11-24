@@ -1,0 +1,260 @@
+diff --git a/package-lock.json b/package-lock.json
+index 440750c5..6d7dfdc1 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "idle-rpg",
+-  "version": "10.11.3",
++  "version": "10.11.4",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "idle-rpg",
+-      "version": "10.11.3",
++      "version": "10.11.4",
+       "dependencies": {
+         "@capacitor/local-notifications": "^7.0.7"
+       },
+diff --git a/package.json b/package.json
+index c0a46012..b8fd2c5e 100644
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "idle-rpg",
+   "productName": "Ascendrya",
+-  "version": "10.11.3",
++  "version": "10.11.4",
+   "private": true,
+   "description": "RPG idle 2D en pixel art pour PC (fenêtre compacte).",
+   "author": "ErwannL",
+diff --git a/src/ui/bastion-cards.js b/src/ui/bastion-cards.js
+index 1c6cb173..4e9257ec 100644
+--- a/src/ui/bastion-cards.js
++++ b/src/ui/bastion-cards.js
+@@ -28,6 +28,6 @@ export function maybeBastionCard(ui, st) {
+     <p><b>À quoi ça sert :</b> ${escapeHtml(first ? 'Tes compagnons libres y travaillent. Premier bâtiment : la Forge du forgeron.' : def.role)}</p><p><b>Ce que ça rapporte :</b> ${escapeHtml(GAIN[def.id] ?? '')}</p>
+     <div class="row-between"><button class="btn btn-gold" type="button" data-go>Essayer maintenant</button><button class="btn small" type="button" data-close>Plus tard</button></div></div>`;
+   el.querySelector('[data-close]').addEventListener('click', () => el.remove());
+-  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionView = 'map'; ui.view.bastionSel = def.id; ui.openTab('camp'); });
++  el.querySelector('[data-go]').addEventListener('click', () => { el.remove(); ui.view.bastionView = 'map'; ui.view.bastionSel = def.id; ui.openTab('camp'); if (ui.tab !== 'camp') ui.toast?.('Le Bastion s\'ouvre avec sa mini-quête'); });
+   host.appendChild(el);
+ }
+diff --git a/src/ui/learn.js b/src/ui/learn.js
+index b26bbee3..0ee77cc6 100644
+--- a/src/ui/learn.js
++++ b/src/ui/learn.js
+@@ -61,7 +61,10 @@ export function maybeLearnCard(ui, st) {
+   // 30 boss) a déjà vu toutes les notions dont l'étape est dépassée.
+   if ((st.records?.bossesDefeated ?? 0) > 30) for (const x of LEARN) if (stage > x.stage && !learned(st).includes(x.id)) learned(st).push(x.id);
+   // v10.2 (4.1) : une notion demandée par le Sceau passe avant son étape ; sinon l'ordre des étapes.
+-  const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id));
++  // v10.11.4 : une carte n'arrive que quand son écran est vraiment ouvert (« Essayer maintenant » menait nulle part
++  // quand l'onglet était encore fermé par sa mini-quête) ; elle attend sinon, sans être marquée comme vue.
++  const ready = (x) => !x.tab || ui.tabVisible?.[x.tab] !== false;
++  const L = LEARN.find((x) => x.id === ui.wantLearn && !learned(st).includes(x.id) && ready(x)) ?? LEARN.find((x) => stage >= x.stage && !learned(st).includes(x.id) && ready(x));
+   if (!L) return;
+   learned(st).push(L.id);
+   const host = ui.$('stage-area');
+@@ -75,7 +78,10 @@ export function maybeLearnCard(ui, st) {
+   el.querySelector('[data-go]').addEventListener('click', () => {
+     el.remove();
+     if (L.id === 'lootbag') ui.lootBag?.toggle?.(true);
+-    else if (L.tab) ui.openTab(L.tab);
++    else if (L.tab) {
++      ui.openTab(L.tab);
++      if (ui.tab !== L.tab) ui.toast?.(`${L.title} : termine la mini-quête en cours pour l'ouvrir`); // jamais un bouton sans effet
++    }
+   });
+   host.appendChild(el);
+ }
+diff --git a/src/ui/mobile1012.css b/src/ui/mobile1012.css
+index 2b563fdb..9098c152 100644
+--- a/src/ui/mobile1012.css
++++ b/src/ui/mobile1012.css
+@@ -100,3 +100,48 @@
+   #app#app.page-ui #panel#panel#panel { background: linear-gradient(180deg, #0b1226, #0a0f1f) !important; }
+ }
+ .prologue2 .pro-rebirth:has(.pro-choice:not(.hidden)) .pro-circle { display: none; } /* le halo passait sur « Ton nom » */
++
++/* v10.11.4 : on touche le monstre. Une cible dorée pulse sur le monstre à frapper, le doigt tape dessus. */
++.prologue2 .pro-target { position: absolute; left: 0; top: 0; z-index: 4; width: 0; height: 0; pointer-events: none; }
++.prologue2 .pro-target.hidden { display: none; }
++.prologue2 .pro-ring { position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; border-radius: 50%; border: 3px solid #ffd23f;
++  box-shadow: 0 0 14px #ffb300, inset 0 0 10px rgba(255, 210, 63, .5); animation: pro-ring 0.9s ease-in-out infinite; }
++.prologue2 .pro-target.big .pro-ring { left: -52px; top: -52px; width: 104px; height: 104px; }
++.prologue2 .pro-tfinger { position: absolute; left: 6px; top: 8px; font-size: 34px; animation: pro-tap 900ms ease-in-out infinite; filter: drop-shadow(0 2px 2px #000); }
++.prologue2 .pro-target b { position: absolute; left: 50%; top: -62px; transform: translateX(-50%); white-space: nowrap; font: 900 16px system-ui, sans-serif; color: #ffe9a8;
++  text-transform: uppercase; letter-spacing: .06em; text-shadow: 0 2px 0 #000, 0 0 10px #ff9d2a; }
++.prologue2 .pro-target.big b { top: -84px; }
++.prologue2:not(.qte) .pro-target .pro-tfinger, .prologue2:not(.qte) .pro-target b { display: none; }
++@keyframes pro-ring { 50% { transform: scale(1.18); opacity: .7; } }
++@keyframes pro-tap { 50% { transform: translate(-4px, -8px) scale(.92); } }
++
++/* v10.11.4 : haut de l'écran de jeu sur téléphone, compact et sans chevauchement.
++   Rangée 1 : événements (Roue, Coffre… en petites icônes) | Avance auto. Rangée 2 : carte de l'étape | objectifs et
++   Carnet en puces. Rangée 3 : Chemin du héros sur une ligne. Le combat garde toute la place en dessous. */
++@media (max-width: 600px) {
++  #hud106.hq-phone #hq-events { top: 4px !important; left: 6px !important; height: auto !important; padding: 3px 6px 4px !important; gap: 4px !important; border: 2px solid #4a3058; border-radius: 12px; align-items: flex-start; }
++  #hud106.hq-phone #hq-events .hq-ev { width: 42px; }
++  #hud106.hq-phone #hq-events .hq-ev-art { width: 34px; height: 34px; border-radius: 9px; }
++  #hud106.hq-phone #hq-events .hq-ev-art img { width: 28px; height: 28px; }
++  #hud106.hq-phone #hq-events small { margin-top: 5px; font-size: 9px; max-width: 44px; line-height: 1.1; }
++  #hud106.hq-phone #hq-events .hq-ev-timer { font-size: 8px; bottom: -6px; padding: 0 3px; }
++  #hud106.hq-phone #hq-events .hq-dot { transform: scale(.8); transform-origin: top right; }
++  #hud106.hq-phone #hq-events .hq-more .hq-ev-art { font-size: 18px; }
++  #stage-area:has(#hud106.hq-phone:not(.hidden)) #auto-toggle { top: 10px !important; right: 6px !important; left: auto !important; }
++  #stage-area:has(#hud106.hq-phone:not(.hidden)) #zone-card { top: 68px !important; left: 6px !important; }
++  #stage-area:has(#hud106.hq-phone:not(.hidden)) #goals-pill { top: 70px !important; left: auto !important; right: 6px !important; }
++  #hud106.hq-phone #hq-left { top: 132px !important; gap: 6px; }
++  #hud106.hq-phone #hq-left > #hq-carnet { position: absolute !important; top: -36px !important; right: 0 !important; left: auto !important; }
++  #hud106.hq-phone .hq-carnet-chip { padding: 3px 9px; font-size: 11px; }
++  #hud106.hq-phone .hq-carnet-chip img { width: 16px; height: 16px; }
++  #hud106.hq-phone .hq-carnet-done { padding: 4px 9px; font-size: 11px; max-width: 196px; }
++  #hud106.hq-phone .hq-carnet-done img { width: 18px; height: 18px; }
++  #hud106.hq-phone #hq-path { padding: 4px 8px !important; gap: 8px; }
++  #hud106.hq-phone #hq-path .hq-world { width: 30px; height: 30px; }
++  #hud106.hq-phone #hq-path .hq-kicker { font-size: 9px; }
++  #hud106.hq-phone #hq-path .hq-title { font-size: 12.5px; }
++  #hud106.hq-phone #hq-path .hq-btn { padding: 4px 10px; font-size: 12px; }
++  #hud106.hq-phone #hq-bounty { top: 196px; }
++}
++/* Arène : le bouton « Combattre » collé en bas a un fond plein (les étages ne passent plus dessous en transparence). */
++.ct-go { background: #0f1628; box-shadow: 0 -8px 12px #0f1628; }
+diff --git a/src/ui/prologue.js b/src/ui/prologue.js
+index 93e85029..a1b19fb6 100644
+--- a/src/ui/prologue.js
++++ b/src/ui/prologue.js
+@@ -16,7 +16,7 @@
+ import { SceneRenderer } from '../render/scene.js';
+ import { WorldBossScene } from '../render/world-boss-scene.js';
+ import { WorldBossFight } from '../core/world-boss.js';
+-import { createCombat, step } from '../core/combat.js';
++import { createCombat, step, tapHit } from '../core/combat.js';
+ import { makeItem } from '../core/loot.js';
+ import { Rng } from '../core/rng.js';
+ import { ZONES } from '../data/zones.js';
+@@ -32,9 +32,9 @@ export const PROLOGUE_SCENES = SCENES;
+ export const PROLOGUE_LINES = [
+   [1, 'Les ruines d\'Ascendrya. Tu marches, au sommet de ta force.'],
+   [7, 'Des monstres !'],
+-  [9, 'Touche le bouton qui brille : ta compétence !'], // v10.12 : le temps ralentit tant que le joueur n'a pas touché
++  [9, 'Touche les monstres pour frapper !'], // v10.11.4 : on touche le monstre (cible dessus), chaque appui frappe
+   [20, 'Le sol tremble…'],
+-  [24, 'Frappe-le de toutes tes forces !'],
++  [24, 'Touche le Colosse : frappe-le de toutes tes forces !'],
+   [33, 'Tes coups l\'effleurent à peine.'],
+   [42, 'Chaque coup du géant te fait plier.'],
+   [50, 'La Prêtresse et la Pyromancienne accourent !'],
+@@ -123,6 +123,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+     <div class="pro-slow" aria-hidden="true"></div><div class="pro-flash" aria-hidden="true"></div>
+     <div class="pro-title" aria-live="polite"><small></small><b></b></div>
+     <div class="pro-dmg" aria-hidden="true"></div>
++    <div class="pro-target hidden" aria-hidden="true"><i class="pro-ring"></i><span class="pro-tfinger">👆</span><b>Touche !</b></div>
+     <div class="pro-hud"><div class="pro-who"><b>Héros</b> <span class="num">Niv. 60</span><i class="pro-hp"><i></i></i></div>
+       <div class="pro-cboss hidden"><b>Colosse des Anciens</b><i class="pro-bhp"><i></i></i></div></div>
+     <div class="pro-dialog" aria-live="polite"><p></p></div>
+@@ -144,7 +145,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+   const fired = new Set();
+   const once = (key, fn) => { if (!fired.has(key)) { fired.add(key); fn(); } };
+   // v10.12 : mise en scène « film d'action » — cartons de titre, éclairs d'impact, ralenti tant que le joueur n'a pas touché.
+-  let scale = 1, qte = null, titleTimer = 0;
++  let scale = 1, qte = null, titleTimer = 0, lastTap = 0;
+   const title = (big, small = '', kind = '') => {
+     const box = q('.pro-title');
+     box.className = `pro-title show ${kind}`;
+@@ -166,6 +167,21 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+     d.textContent = text;
+     void d.offsetWidth; d.classList.add('on');
+   };
++  // Cible posée sur le monstre à frapper (le premier vivant), en coordonnées d'écran.
++  const target = q('.pro-target');
++  const placeTarget = (show) => {
++    const sc = wb?.r ?? r;
++    const w = wb ? fight.world : world;
++    const foe = show && sc && w ? (wb ? fight.boss : null) ?? (w.enemies ?? []).filter((e) => e.hp > 0).sort((a, b) => a.x - b.x)[0] : null;
++    target.classList.toggle('hidden', !foe);
++    if (!foe) return;
++    const rect = canvas.getBoundingClientRect(), box = el.getBoundingClientRect();
++    const k = rect.width / Math.max(1, sc.width);
++    const x = rect.left - box.left + (sc.wx(foe.x) + (sc.centerShift ?? 0) + (wb ? 14 : 0)) * k + (wb ? rect.width * 0.2 : 0); // le Colosse est dessiné large
++    const y = rect.top - box.top + (sc.groundY - (wb ? 60 : 16)) * (rect.height / Math.max(1, sc.height));
++    target.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
++    target.classList.toggle('big', Boolean(wb));
++  };
+   // Moments où le joueur doit agir : le temps ralentit (×0,15) jusqu'à l'appui, ou 6 s réelles (puis l'action part seule).
+   const QTE = [{ at: 9, kind: 'skill' }, { at: 24.3, kind: 'skill' }, { at: 56.2, kind: 'ally' }];
+   const startQte = (i) => { qte = { i, real: 0 }; el.classList.add('qte'); };
+@@ -232,6 +248,18 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+       setTimeout(() => act2(other), 450);
+     }
+     if (kind === 'skill') {
++      // v10.11.4 : l'appui frappe vraiment : coups du joueur sur les monstres (chiffres de dégâts du moteur), éclats sur
++      // la cible ; dans la marche, les monstres tombent.
++      try {
++        const [gs, gw, sc] = wb ? [fight.state, fight.world, wb.r] : [state, world, r];
++        // Dans la marche, chaque monstre visible tombe sous la salve (le héros est au sommet de sa force).
++        if (!wb) { const one = (gw.heroStats?.damage ?? 1) * 0.09; for (const e of gw.enemies ?? []) if (e.hp > 0 && !e.boss) e.hp = Math.min(e.hp, one); }
++        for (let n = 0; n < (wb ? 2 : 4); n++) {
++          const hit = tapHit(gs, gw, rng);
++          if (!hit) break;
++          sc.burst(sc.wx(hit.x) + (sc.centerShift ?? 0), sc.groundY - 18, n ? '#ffd23f' : '#ffffff', 12, 60);
++        }
++      } catch (err) { console.warn('prologue tap', err); }
+       const tgt = wb ? fight.state : state;
+       tgt.skillAuto = true; // une seule salve : remis à false au pas suivant
+       const w = wb ? fight.world : world;
+@@ -299,7 +327,8 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+     q('.pro-hp > i').style.width = `${s.heroHp}%`;
+     q('.pro-cboss').classList.toggle('hidden', s.scene === 'march' || s.scene === 'rebirth');
+     q('.pro-bhp > i').style.width = `${s.bossHp}%`;
+-    q('.pro-skill').classList.toggle('hidden', !s.skillPrompt);
++    q('.pro-skill').classList.add('hidden'); // v10.11.4 : plus de bouton « Frappe » : on touche le monstre
++    placeTarget(s.skillPrompt);
+     q('.pro-heal').classList.toggle('hidden', !s.allyPrompt);
+     q('.pro-fire').classList.toggle('hidden', !s.allyPrompt);
+     if (s.shake && !reduced) { const sc = wb?.r ?? r; sc.shake = Math.max(sc.shake ?? 0, 4); } // secousse du moteur (le canvas garde son échelle)
+@@ -379,6 +408,7 @@ export function playPrologue({ reduced = false, state: game = null, onDone = ()
+   el.addEventListener('click', (e) => {
+     if (fired.has('rebirth') || e.target.closest('button, input, label')) return;
+     if (qte) { const k = QTE[qte.i].kind; if (k === 'skill') act('skill'); else { act('priestess'); } return; } // en ralenti, tout l'écran compte
++    if (prologueState(t).skillPrompt) { const now = performance.now(); if (now - lastTap > 250) { lastTap = now; act('skill'); } return; } // chaque appui frappe
+     const nxt = PROLOGUE_LINES.find(([at]) => at > t + 0.05);
+     if (nxt && nxt[0] - t < 8) t = nxt[0];
+   });
+diff --git a/src/ui/ui.js b/src/ui/ui.js
+index 430144ec..a5b1e9eb 100644
+--- a/src/ui/ui.js
++++ b/src/ui/ui.js
+@@ -2198,8 +2198,9 @@ export class UI {
+     // v10.12 : sur téléphone, la consigne se pose juste sous la carte de l'étape (elle passait dessus quand la rangée
+     // Roue / Coffre poussait la carte vers le bas).
+     if (this.phone && typeof document !== 'undefined') {
+-      const zc = this.$('zone-card')?.getBoundingClientRect(), sa = this.$('stage-area')?.getBoundingClientRect();
+-      if (zc && sa && zc.height) el.style.setProperty('top', `${Math.round(zc.bottom - sa.top + 6)}px`, 'important');
++      const sa = this.$('stage-area')?.getBoundingClientRect();
++      const below = ['zone-card', 'hq-left'].map((id) => document.getElementById(id)?.getBoundingClientRect()).filter((b) => b?.height);
++      if (sa && below.length) el.style.setProperty('top', `${Math.round(Math.max(...below.map((b) => b.bottom)) - sa.top + 6)}px`, 'important'); // v10.11.4 : sous la carte de l'étape et le Chemin du héros
+     } else el.style.removeProperty('top');
+   }
+ 
+@@ -2289,7 +2290,7 @@ export class UI {
+     const count = this.$('count-hero');
+     if (count) {
+       count.classList.toggle('hidden', !fresh || this.tab === 'inventory');
+-      count.textContent = `${fresh > 99 ? '99+' : fresh} ${fresh > 1 ? 'objets' : 'objet'}`; // v9.3.5 : chiffre avec sa légende
++      count.textContent = this.phone ? (fresh > 99 ? '99+' : String(fresh)) : `${fresh > 99 ? '99+' : fresh} ${fresh > 1 ? 'objets' : 'objet'}`; // v10.11.4 : téléphone, le chiffre seul (la légende passait sur l'icône Héros) // v9.3.5 : chiffre avec sa légende
+       count.title = `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''} dans le sac`;
+       count.setAttribute('aria-label', `${fresh} objet${fresh > 1 ? 's' : ''} neuf${fresh > 1 ? 's' : ''}`);
+     }
+diff --git a/src/version.js b/src/version.js
+index 3e0891e8..80ba8181 100644
+--- a/src/version.js
++++ b/src/version.js
+@@ -1,3 +1,3 @@
+ // Version du jeu (identique à package.json, vérifiée par tests/v78.test.js).
+-export const GAME_VERSION = '10.11.3';
++export const GAME_VERSION = '10.11.4';
+ export const REPO = 'ErwannL/idleproject';
