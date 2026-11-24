@@ -558,3 +558,11 @@
 #app:not(.m-phone) .cb-frame .arena-tile b { font-size: 24px; text-shadow: 0 2px 0 #000, 0 0 8px #000; color: var(--m-text); }
 #app:not(.m-phone) .cb-frame .arena-tile span { font-size: 15px; font-weight: 800; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
 #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) { opacity: 1 !important; animation: none !important; transition: none !important; } /* le cadre ne s'estompe pas à l'ouverture (le cartouche doit toujours être visible) */
+
+/* ---------- Un seul doré : « Entrer » sombre sauf le donjon conseillé ; pendant l'écran de fin de l'Arène, rien d'autre n'est doré ---------- */
+#app:not(.m-phone) .cb-frame .dgm-side .m-btn { background: #1a2448; border: 2px solid var(--m-btn-line); color: var(--m-text); }
+#app:not(.m-phone) .cb-frame .dgm-side .m-btn.dgm-rec { background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; color: #2a1a05; }
+#app:not(.m-phone):has(.am-end:not(.hidden)) #panel :is(.btn-gold, .m-btn-gold) { background: #1a2448; border-color: var(--m-btn-line); color: var(--m-text); box-shadow: none; animation: none; }
+/* puces et pastilles « choisies » : bleu clair à bord doré (le doré plein est réservé à l'action conseillée) */
+#app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-chip:is(.on, [aria-pressed="true"]) { background: linear-gradient(180deg, #3a4a8e, #26346a); color: #fff; border-color: var(--m-gold-hi); box-shadow: 0 0 10px rgba(243, 210, 122, .35); }
+#app:not(.m-phone) .cb-frame .map-dot.selected { background: #2a3a78; color: #fff; border-color: var(--m-gold-hi); box-shadow: 0 0 0 3px rgba(243, 210, 122, .6); }
