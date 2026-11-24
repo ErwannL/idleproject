@@ -53,6 +53,8 @@ const CLASS_COLOR = { pyromancer: '#ff6a2a', stormcaller: '#7fd6ff', necromancer
 const TYPE_COLOR = { hit: '#ff9a4a', aoe: '#c86bff', buff: '#ffc23a', holy: '#ffe680' };
 const skillColor = (sk) => CLASS_COLOR[sk.id.split('_')[0]] ?? TYPE_COLOR[sk.type] ?? '#9fc3ff';
 // v10.0 (2) : actions sans doigt, et écran ouvert par chaque action du Sceau (un écran jamais ouvert = guidage).
+// v10.13 (9) : cette action conseillée ouvre-t-elle un autre écran que celui où le joueur se trouve ? (acheter, répartir, placer… se font sur place)
+const leavesScreen = (n, tab) => { const s = adviceScreen(n); return Boolean(s) && s !== tab && (!n.action || n.action === 'equip-best'); };
 const NO_FINGER = new Set(['claim', 'lootbag', 'level', 'mentor', 'retry', 'goal', 'advance']);
 const SEAL_TAB = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', rebirth: 'tree', forge: 'forge' };
 // v10.1 : bouton à entourer quand le Sceau ouvre un écran : [sélecteur, consigne d'une ligne].
@@ -138,7 +140,7 @@ import { BANNER_RULES } from '../data/banners.js';
 import { TOWER, towerTimeLeft } from '../core/tower.js';
 import { cheatTimes, simSpeed, unlockedSpeeds } from '../core/cheats.js';
 import { PRESTIGE } from '../data/prestige.js';
-import { PANEL_HELP, betterItem, nextAction } from '../core/guide.js';
+import { PANEL_HELP, betterItem, nextAction, bestOpenUpgrade, adviceScreen } from '../core/guide.js';
 import hero from './panels/hero.js';
 import looks from './panels/looks.js'; // v9.2.2
 import inbox from './panels/inbox.js';
@@ -2326,7 +2328,7 @@ export class UI {
     // v9.3.9 (3.7) : le tutoriel ne commence qu'à la fin du prologue (et du titre qui le suit).
     const cutscene = document.getElementById('prologue') || document.querySelector('#stage-area .cinematic');
     if (cutscene) document.getElementById('tuto-layer')?.remove();
-    else try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab)); } catch { /* le tutoriel ne bloque jamais le jeu */ }
+    else try { updateTutorial(state, this.root, state.inventory.length >= BALANCE.loot.inventorySize, Boolean(this.tab), undefined, (this.sealAction?.id === 'claim' ? this.sealBase : this.sealAction) ?? this.hereAction ?? null); } catch { /* le tutoriel ne bloque jamais le jeu */ }
     // v9.1.3 : fenêtre « À récupérer » ouverte → mise à jour quand la liste change.
     const claimsKey = this.claims.map((c) => c.key).join() + state.inbox.length;
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);
@@ -2346,7 +2348,9 @@ export class UI {
     const nowMs = Date.now();
     const aside = new Set(Object.entries(this.sealAside ?? {}).filter(([, t]) => t > nowMs).map(([id]) => id));
     const nctx = { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab, learned: state.unlocks && !state.unlocks.legacy ? (state.ui.learned ?? []) : null };
+    this.nctx = nctx;
     this.next = nextAction(state, nctx);
+    this.hereAction = nctx.here ?? null; // v10.13 (9) : conseil dont l'écran est déjà ouvert (le doigt du tutoriel s'y règle)
     this.wantLearn = nctx.wantLearn ?? null; // v10.2 (4.1) : la carte de cette notion passe en premier // v9.3.5
     for (const menu of MENUS) {
       const red = menu.tabs.some((t) => byTab[t] && this.tabVisible[t] !== false);
@@ -2386,11 +2390,8 @@ export class UI {
   // v9.9 (K2) : Sceau d'action — un seul gros bouton au bas de la scène, même liste de priorités que la carte
   // « Prochaine étape » : mini-quête, récompense, objet meilleur, amélioration, contenu du jour, mur (Renaître).
   // Couleur selon l'action ; disparaît quand rien d'utile n'est à faire ; doigt animé les 30 premières minutes.
-  updateNextAction() {
-    const btn = this.$('next-action');
-    if (!btn) return;
-    const st = this.state;
-    let n = this.next;
+  // v10.13 (9) : le conseil du Sceau pour un candidat donné (mini-quête, mentor) — une seule fonction, lue par le Sceau comme par le doigt.
+  resolveSeal(n, st) {
     const q = st && currentQuest(st);
     // v10.1 (P1) : une consigne de quête mise de côté (revenue 3 fois) ne repasse pas devant pendant 10 minutes.
     if (q && !((this.sealAside?.quest ?? 0) > Date.now())) {
@@ -2407,7 +2408,9 @@ export class UI {
         // v10.1 (P1) : « Lance une compétence à la main » : le Sceau la lance lui-même (le joueur voit le geste).
         if (q.id === 'skills' && i === 2) n = { id: 'quest', text: 'Lance une compétence à la main', action: 'cast-first' };
         // v10.1 (P1) : l'écran de la quête est déjà ouvert → le Sceau propose l'action utile suivante (amélioration…).
-        if (n.tab === this.tab && !n.action && !n.view && n0) n = n0;
+        // v10.13 (9) : …sauf si cette autre action ferait quitter l'écran de la quête (le Sceau envoyait Compétences ↔ Équipement
+        // en boucle) : elle attend que la quête soit faite, ou qu'elle puisse se faire ici (acheter, répartir…).
+        if (n.tab === this.tab && !n.action && !n.view && n0 && !leavesScreen(n0, this.tab)) n = n0;
       }
     }
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
@@ -2416,6 +2419,27 @@ export class UI {
       const t = mentorTips(st, { wall: true })[0];
       if (t) n = { id: 'mentor', text: t.text, tab: t.tab, view: t.view, point: t.point };
     }
+    return n;
+  }
+
+  // Bouton « Prochaine action » (suite) : voir le commentaire plus haut.
+  updateNextAction() {
+    const btn = this.$('next-action');
+    if (!btn) return;
+    const st = this.state;
+    let n = this.resolveSeal(this.next, st);
+    // v10.13 (9) : derrière « Tout récupérer » (un appui, sur place), le conseil de fond que le doigt du tutoriel doit suivre.
+    this.sealBase = n?.id === 'claim' && this.nctx ? this.resolveSeal(nextAction(st, { ...this.nctx, claims: [], here: undefined }), st) : null;
+    // v10.13 (9) : de l'or attend (une amélioration abordable) et le même conseil reste affiché sans être suivi depuis 40 s :
+    // il laisse la place 60 s, « Améliore tes Dégâts » reprend la main (jamais 60 s sans conseil utile).
+    if (n && st) {
+      const waits = this.tabVisible?.upgrades !== false && (() => { const u = bestOpenUpgrade(st); return Boolean(u) && u.cost <= st.gold; })();
+      const same = this.sealStale?.key === n.id ? this.sealStale : (this.sealStale = { key: n.id, since: Date.now() });
+      if (waits && n.id !== 'upgrade' && !['claim', 'goal', 'advance', 'retry', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) && Date.now() - same.since > 40000
+        && !this.calmStart(st).busy) {
+        (this.sealAside ??= {})[n.id] = Date.now() + 60000; this.sealStale = null; this.lastHud.badgeTime = 0;
+      }
+    } else this.sealStale = null;
     this.sealAction = n;
     const useless = !n || ['advance', 'mode-dungeon', 'mode-tower', 'mode-world', 'mode-challenge'].includes(n.id) || (n.id === 'quest' && n.action === 'none')
       || this.calmStart(st).busy; // v10.1 : le Sceau reste caché tant qu'une bulle de tutoriel est ouverte
@@ -2666,7 +2690,7 @@ export class UI {
     // v9.3.5 : un clic fait l'action (équiper tout, placer, améliorer, monter, recycler).
     else if (n.action === 'lootbag') this.lootBag?.toggle(true); // v9.7.1
     else if (n.action === 'place-companion') this.actions.toggleCompanion(n.value);
-    else if (n.action === 'buy') { this.actions.buy(n.value, n.amount ?? '1'); (this.sealAside ??= {}).upgrade = Date.now() + 150000; } // v10.2 (4.3) : tout l'or utile d'un coup, puis 2 min 30 sans « Améliorer »
+    else if (n.action === 'buy') { this.actions.buy(n.value, n.amount ?? '1'); (this.sealAside ??= {}).upgrade = Date.now() + 45000; } // v10.2 (4.3) : tout l'or utile d'un coup ; v10.13 (9) : puis 45 s sans « Améliorer » (2 min 30 laissaient l'or dormir sans aucun conseil)
     else if (n.action === 'upgrade-companion') this.actions.upgradeCompanion(n.value);
     else if (n.action === 'apply-team') this.actions.applyTeam(); // v9.5.0 (3.6)
     else if (n.action === 'recycle-useless') this.actions.recycleUseless();
