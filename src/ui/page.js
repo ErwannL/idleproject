@@ -14,6 +14,8 @@ import { isPhone } from './prefs.js';
 
 // Panneaux ouverts en page (les autres gardent le volet latéral : Améliorations, Missions, Carnet, Boutique…).
 export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); // v10.6 (5) : les Améliorations en page // v10.4 (6) : le Bastion
+// v10.11 (6) : onglets qui se jouent dans la scène (jamais en page sur téléphone).
+export const SCENE_TABS = new Set(['arena']);
 // Conditions par panneau : (ui) => booléen.
 export const PAGE_WHEN = {};
 
@@ -22,7 +24,8 @@ export const PAGE_WHEN = {};
 export function pageActive(ui) {
   if (!ui?.tab || (ui.layout && ui.layout !== 'tall')) return false;
   // v10.11 (6) : téléphone — tous les onglets en plein écran (le contenu commence en haut, pas à mi-hauteur).
-  if ((ui?.root?.clientWidth ?? 9999) <= 600) return true;
+  // (sauf l'Arène : sa carte se joue dans la scène, qu'une page cacherait).
+  if ((ui?.root?.clientWidth ?? 9999) <= 600 && !SCENE_TABS.has(ui.tab)) return true;
   return PAGE_TABS.has(ui.tab) || Boolean(PAGE_WHEN[ui.tab]?.(ui));
 }
 

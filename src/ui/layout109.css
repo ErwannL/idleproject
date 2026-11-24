@@ -264,7 +264,7 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
    mêmes bords. Assez de place : la mini-fenêtre reste à gauche, hors de la colonne. */
 @media (min-width: 1300px) {
   #app#app.page-ui:not(.page-narrow) #panel#panel #panel-body { padding-left: max(12px, calc((100% - 1600px) / 2)) !important; padding-right: max(12px, calc((100% - 1600px) / 2)) !important; box-sizing: border-box; }
-  #app#app.page-ui:not(.page-narrow) #panel#panel #panel-body:not(:has(> .pg)) { padding-top: calc(var(--pg-mini-h, 160px) - 64px) !important; }
+  #app#app.page-ui:not(.page-narrow) #panel#panel #panel-body:not(:has(> .pg)) { padding-top: calc(var(--pg-mini-h, 160px) - 50px) !important; }
 }
 @media (min-width: 2220px) {
   #app#app.page-ui:not(.page-narrow) .pg-top { margin-left: 0 !important; }
@@ -303,3 +303,6 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
 .bs-hand-bubble { max-width: 220px; padding: 8px 12px; border-radius: 10px; background: #fff3d8; color: #3a2410; font: 800 13px/1.3 system-ui, sans-serif; box-shadow: 0 4px 12px #000a; text-align: center; }
 @keyframes bs-hand-tap { 50% { transform: translateY(-6px); } }
 html.reduce-motion .bs-hand-finger { animation: none; }
+/* v10.11 (boucle) : Apparences — l'étiquette de rareté reste au-dessus du dessin ; le grand dessin de l'aperçu tient dans sa case. */
+#app .look-card .look-badge { z-index: 4; }
+#app#app .look-preview-pic > img.look-hd { left: 0 !important; transform: none !important; height: 100% !important; object-position: left bottom; }
