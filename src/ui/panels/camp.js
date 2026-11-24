@@ -233,7 +233,7 @@ function plot(ui, state, def, now) {
   const art = `<img class="px bs-bimg" src="${buildingArt(state, def)}" alt="" draggable="false">`;
   if (!access.available) {
     return `<div class="bs-plot locked" style="${style}" data-building="${def.id}" title="${escapeHtml(`${def.name} : ${access.reason}`)}" aria-label="${escapeHtml(`${def.name} : ${access.reason}`)}">${art}
-      ${PHONE ? `<i class="bs-lockic" aria-hidden="true">${img('icon_lock')}</i><span class="bs-tag lock"><span class="bs-nm">${escapeHtml(shortName(def))}</span><small class="bs-why2">${escapeHtml(phoneReason(access.reason))}</small></span>` : `<span class="bs-tag lock">${img('icon_lock')}${escapeHtml(shortReason(access.reason))}</span>`}</div>`;
+      ${PHONE ? `<i class="bs-lockic" aria-hidden="true">${img('icon_lock')}</i><span class="bs-tag lock"><span class="bs-nm">${escapeHtml(shortName(def))}</span><small class="bs-why2">${escapeHtml(phoneReason(access.reason))}</small></span>` : (DESK ? `<span class="bs-tag lock stack"><span class="bs-nm">${img('icon_lock')}${escapeHtml(shortName(def))}</span><small class="bs-why2">${escapeHtml(phoneReason(access.reason))}</small></span>` : `<span class="bs-tag lock">${img('icon_lock')}${escapeHtml(shortReason(access.reason))}</span>`)}</div>`;
   }
   const b = bastionOf(state);
   const slot = b.buildings[def.id];
@@ -257,7 +257,7 @@ function plot(ui, state, def, now) {
   return `<button class="bs-plot${sel ? ' sel' : ''}${missing ? ' idle' : ''}" style="${style}" data-action="bastion-open" data-value="${def.id}" data-building="${def.id}" aria-label="${escapeHtml(def.name)}">
       ${art}${lv >= 1 && !slot?.build ? life(def.id) : ''}${c ? workerSprite(c, def) : ''}
       ${missing ? '<span class="bs-need" title="Il manque un ouvrier : touche pour en poser un"><i aria-hidden="true">⛏</i><b>+</b></span>' : ''}${ready ? '<i class="bs-dot" aria-hidden="true"></i>' : ''}
-      ${PHONE ? `${missing ? '<b class="bs-lvl need bs-pill">+ Ouvrier</b>' : def.existing ? '' : `<b class="bs-lvl bs-chip-lv">${lv < 1 ? '0' : lv}</b>`}<span class="bs-tag"><span class="bs-nm">${escapeHtml(shortName(def))}</span></span>` : `<span class="bs-tag">${lvTag}${escapeHtml(DESK ? shortName(def) : def.name)}</span>`}${job}</button>`;
+      ${PHONE ? `${missing ? '<b class="bs-lvl need bs-pill">+ Ouvrier</b>' : def.existing ? '' : `<b class="bs-lvl bs-chip-lv">${lv < 1 ? '0' : lv}</b>`}<span class="bs-tag"><span class="bs-nm">${escapeHtml(shortName(def))}</span></span>` : `<span class="bs-tag${DESK && missing ? ' stack' : ''}">${lvTag}${DESK ? `<span class="bs-nm">${escapeHtml(shortName(def))}</span>` : escapeHtml(def.name)}</span>`}${job}</button>`;
 }
 
 function kickRibbon(ui) {
