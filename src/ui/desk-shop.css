@@ -108,3 +108,24 @@
 #app:not(.m-phone) .d-look-show .sc-ico { font-size: 12px; }
 #app:not(.m-phone) .d-look-show { max-width: 640px; margin: 14px auto 0; }
 #app:not(.m-phone) .d-look-showh { text-align: center; font-size: 17px; font-weight: 900; margin: 0 0 8px; }
+
+/* ---------- Habillage : le cadre porte son cartouche ; ni bannière illustrée, ni phrase d'accroche, ni titre / « ? » d'en-tête (⤢ et ✕ restent) ---------- */
+#app:not(.m-phone) #panel-body:has(> :is(.d-shop, .d-summon, .d-looks)) > .art-banner-wrap, #app:not(.m-phone) #panel-body:has(> :is(.d-shop, .d-summon, .d-looks)) > .tab-lead,
+#app:not(.m-phone) #panel-body:has(> :is(.d-shop, .d-summon, .d-looks)) > .intro-card { display: none; }
+#app:not(.m-phone) #panel:has(#panel-body > :is(.d-shop, .d-summon, .d-looks)) > header { min-height: 0; height: 44px; padding: 4px 12px; justify-content: flex-end; gap: 8px; }
+#app:not(.m-phone) #panel:has(#panel-body > :is(.d-shop, .d-summon, .d-looks)) > header :is(#panel-icon, #panel-title, #panel-crest, #panel-extra, #panel-help) { display: none !important; }
+
+/* ---------- Invocation : ×1 / ×10 visibles sans défiler à 1366 x 768 ---------- */
+#app:not(.m-phone) .m-sum-head { height: 64px; margin-bottom: 10px; }
+#app:not(.m-phone) .m-sum-body { min-height: 0; margin-bottom: 10px; }
+#app:not(.m-phone) .m-sum-feature { min-height: 0; padding: 8px 18px; }
+#app:not(.m-phone) .m-sum-feature .eco-feature-art { width: 120px; height: 120px; }
+#app:not(.m-phone) .m-sum-feature .eco-feature-art img, #app:not(.m-phone) .m-sum-feature .eco-feature-art canvas { max-width: 120px; max-height: 120px; }
+#app:not(.m-phone) .m-sum-body .m-grid { --cols: 5 !important; max-width: none; gap: 8px; }
+#app:not(.m-phone) .m-sum-body .m-tile { --m-s: 72px; }
+#app:not(.m-phone) .m-sum-body .m-tilewrap > small { font-size: 12px; }
+#app:not(.m-phone) .m-sum-fav { margin-bottom: 6px; }
+#app:not(.m-phone) .m-sum-gauge { margin-bottom: 8px; }
+#app:not(.m-phone) .m-sum-card { padding: 12px; }
+#app:not(.m-phone) .d-summon .m-mode { height: 72px; }
+#app:not(.m-phone) .m-sum-row { margin-bottom: 8px; }
