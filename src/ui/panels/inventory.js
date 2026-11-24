@@ -35,6 +35,7 @@ import { changeSheet, emptySlotSheet, femSlot, itemPopup, itemSheet, pctText, st
 import { companionPortrait, companionStill } from './expeditions.js';
 import { recycleButton } from './forge.js';
 import { skillBubble, skillIcons } from './unit-popup.js';
+import { isPhoneView, phoneAfter, phoneView } from './equip-phone.js'; // v10.12 : version téléphone (kit mobile)
 
 const PROFILE_ICONS = { attack: 'icon_damage', survival: 'icon_defense', fortune: 'icon_gold' };
 const PROFILE_TIPS = { attack: 'Pour passer un boss : les dégâts d\'abord', survival: 'Pour tenir dans un monde dur : la survie d\'abord', fortune: 'Pour farmer : l\'or et le butin d\'abord' };
@@ -47,9 +48,9 @@ export function visibleItems(state) {
 // ---------------------------------------------------------------------------------------------------------------
 // Personnages : le héros puis les compagnons de l'équipe (les familiers ne portent rien).
 const teamOf = (state) => (state.companions?.equipped ?? []).map((id) => companionById(id)).filter((c) => c?.kind === 'ally');
-const unitPower = (state, c) => Math.round(100 * companionMultiplier(state, c.id));
+export const unitPower = (state, c) => Math.round(100 * companionMultiplier(state, c.id));
 // Une amélioration est possible (pastille rouge « ! ») : meilleur objet, renforcement payable, compétence payable.
-function heroTodo(state, plan) {
+export function heroTodo(state, plan) {
   return plan.changes.length > 0 || Object.values(state.equipment).some((it) => it && upgradePreview(state, it).canPay);
 }
 
@@ -64,7 +65,7 @@ function resourceBand(state) {
 }
 
 // Raccourcis du Bastion (partie 10) : chantiers visibles et accessibles depuis l'équipement.
-function bastionShortcuts(state) {
+export function bastionShortcuts(state) {
   if (!bastion.bastionOpen(state)) return '';
   const list = bastion.bastionShortcuts?.(state, Date.now()) ?? [];
   if (!list.length) return '';
@@ -337,7 +338,7 @@ function bagSection(ui, state, ctx) {
 // v9.5.2 (2.3) : bandeau Ensembles — pour chaque ensemble entamé : pièces portées / possédées, prochain palier, spécialité
 // et où trouver les pièces manquantes (le monde de l'ensemble).
 // v9.8 (B2) : sous le sac, replié par défaut (le titre donne le nombre d'ensembles entamés).
-function setsBanner(ui, state) {
+export function setsBanner(ui, state) {
   const worn = setCounts(state.equipment);
   const owned = {};
   for (const i of [...state.inventory, ...(state.stash ?? []), ...Object.values(state.equipment).filter(Boolean)]) if (i?.set) owned[i.set] = (owned[i.set] ?? 0) + 1;
@@ -538,6 +539,7 @@ export default {
   // Téléphone : à l'ouverture de la feuille du bas, les places remontent en haut du panneau et la feuille s'arrête
   // juste dessous : les places restent visibles au-dessus de la fiche (sauf fenêtre trop basse : la fiche d'abord).
   afterRender(ui, body) {
+    if (isPhoneView(ui)) { phoneAfter(ui, body); return; } // v10.12 : téléphone (kit mobile)
     // v10.4 (partie 7) : la rangée des personnages dépasse → ombre au bord droit (elle défile au doigt).
     const whos = body.querySelector('.eq-top > .eq-whos');
     if (whos) {
@@ -604,11 +606,14 @@ export default {
       if (slotKeys.includes(v.eqSlot)) { item = worn[v.eqSlot] ?? null; if (!item) slot = v.eqSlot; }
       else { const first = slotKeys.find((s) => worn[s]); if (first) item = worn[first]; else slot = slotKeys[0]; }
     }
-    const TABS = unit ? [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement']];
+    const phone = isPhoneView(ui);
+    const TABS = phone ? (unit ? [['gear', 'Équipement'], ['up', 'Améliorer'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['gear', 'Équipement'], ['up', 'Améliorer'], ['reforge', 'Reforger'], ['sets', 'Sets']])
+      : unit ? [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement'], ['stars', 'Étoiles'], ['skills', 'Compétences']] : [['overview', 'Vue d\'ensemble'], ['gear', 'Équipement']];
     const tab = TABS.some(([id]) => id === v.eqTab) ? v.eqTab : 'gear';
     const unitIds = new Set(unit ? bestGearFor(state, unit.id) : []);
     const unitSlots = new Set([...state.inventory, ...(state.stash ?? [])].filter((i) => unitIds.has(i.id)).map((i) => eqSlot(i)));
     const ctx = { who, unit, team, order: ['hero', ...team.map((c) => c.id)], st, gains, best, plan, sel: { item, slot }, tab, unitIds, unitSlots };
+    if (phone) return phoneView(ui, state, { ...ctx, item, slot, invTab }); // v10.12 : téléphone = kit mobile (equip-phone.js)
     const isWorn = item && (Object.values(state.equipment).some((i) => i?.id === item.id) || Boolean(wearerOf(state, item.id)));
     const quickN = unit ? unitIds.size : plan.changes.length;
     let sheet;

@@ -144,7 +144,7 @@ export function reinforceSection(ui, state, item, { wearer = wearerOf(state, ite
 }
 
 // Grand effet de l'objet, et s'il est actif (un seul à la fois).
-function majorLine(state, item) {
+export function majorLine(state, item) {
   const m = MAJOR_EFFECTS[item.major];
   if (!m) return '';
   const act = activeMajor(state);
@@ -197,6 +197,17 @@ function compareRows(state, item) {
     row('Armure', cur.armor, next.armor, (v) => formatDecimal(v), ' %'),
     row('Critique', cur.critChance, next.critChance, (v) => formatDecimal(v), ' %'),
     row('Or', cur.goldPct, next.goldPct, (v) => formatDecimal(v), ' %')].join('');
+}
+
+// v10.12 (téléphone) : les mêmes lignes « avant → après », en données : [{ label, a, b, up }] (texte déjà formaté).
+export function compareList(state, item) {
+  const cur = computeHeroStats(state);
+  const next = statsWithItem(state, item);
+  const int = (v) => formatNumber(Math.round(v));
+  const defs = [['Dégâts/s', 'dps', int, ''], ['Vie', 'maxHp', int, ''], ['Vitesse', 'attacksPerSecond', (v) => formatDecimal(v, 2), '/s'],
+    ['Armure', 'armor', (v) => formatDecimal(v), ' %'], ['Critique', 'critChance', (v) => formatDecimal(v), ' %'], ['Or', 'goldPct', (v) => formatDecimal(v), ' %']];
+  return defs.filter(([, k]) => Math.abs(next[k] - cur[k]) >= 0.001)
+    .map(([label, k, fmt, unit]) => ({ label, a: `${fmt(cur[k])}${unit}`, b: `${fmt(next[k])}${unit}`, up: next[k] > cur[k] }));
 }
 
 // Fiche d'un objet (porté par le héros, porté par un compagnon, ou dans le sac).
