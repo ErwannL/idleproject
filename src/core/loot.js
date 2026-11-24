@@ -187,7 +187,7 @@ export function rerollAffixes(item, rng, balance = BALANCE, forced = null) {
   item.affixes = [...main, ...rollAffixes(item.slot, item.rarity, rng, balance, main.map((a) => a.type), forced)];
 }
 
-// Recalcule les statistiques après un changement de niveau (réaffûtage) ou une amélioration.
+// Recalcule les statistiques après un changement de niveau ou une amélioration.
 export function refreshItemStats(item, balance = BALANCE) {
   const base = itemBase(item.baseId);
   const rarity = rarityById(item.rarity);

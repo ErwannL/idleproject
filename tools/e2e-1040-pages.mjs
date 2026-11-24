@@ -138,16 +138,16 @@ for (const [w, h] of [[1116, 993], [1280, 720], [1716, 1000]]) {
     ok(`${tag} : compagnon › ${t === 'stars' ? 'Étoiles' : 'Compétences'} — fiche visible`, sh[0] === true, JSON.stringify(sh));
     await page.screenshot({ path: `${out}/personnage-${t}-${w}.png` });
   }
-  // Renfort presque sans effet : une arme très en retard → on le dit et on propose « Remettre au niveau ».
+  // Renfort presque sans effet : une arme très en retard → on le dit et on affiche « Objet dépassé » et « Trouver mieux ».
   await page.evaluate(async () => {
     const { makeItem } = await import('./src/core/loot.js'); const s = __idle.state;
     const old = s.equipment.weapon; s.inventory.push(old); s.equipment.weapon = makeItem(s, 'dagger', 'common', 3);
     Object.assign(__idle.ui.view, { gearWho: 'hero', eqTab: 'gear', selectedItemId: s.equipment.weapon.id }); __idle.ui.renderPanel(s);
   });
   await page.waitForTimeout(250);
-  const weak = await page.evaluate(() => ({ note: document.querySelector('.eq-side-sheet .eq-weak')?.textContent.trim(), sharpen: Boolean(document.querySelector('.eq-side-sheet .eq-sharpen')) }));
-  const weakVis = await visible(page, '.eq-side-sheet .eq-sharpen');
-  ok(`${tag} : renfort presque sans effet — dit franchement, « Remettre au niveau » visible`, /^Presque sans effet : cet objet est d'un niveau trop bas/.test(weak.note ?? '') && weak.sharpen && weakVis[0] === true, JSON.stringify({ weak, weakVis }));
+  const weak = await page.evaluate(() => ({ note: document.querySelector('.eq-side-sheet .eq-weak')?.textContent.trim(), find: Boolean(document.querySelector('.eq-side-sheet .eq-find')), gone: !/Remettre au niveau/.test(document.querySelector('.eq-side-sheet')?.textContent ?? '') }));
+  const weakVis = await visible(page, '.eq-side-sheet .eq-find');
+  ok(`${tag} : renfort presque sans effet — dit franchement, « Trouver mieux » visible, plus de « Remettre au niveau »`, /^⚠ Objet dépassé · Niv\. 3, ton étape : \d+/.test(weak.note ?? '') && weak.find && weak.gone && weakVis[0] === true, JSON.stringify({ weak, weakVis }));
   ok(`${tag} : aucun « +0,01 % » dans la fiche de l'arme en retard`, (await zeroOffers(page)).length === 0, JSON.stringify(await zeroOffers(page)));
   await page.screenshot({ path: `${out}/personnage-faible-${w}.png` });
   // --- Forge : les 4 ateliers et la fusion détaillée, sans défiler ; atelier 2 jamais à +0 %.
@@ -171,10 +171,10 @@ for (const [w, h] of [[1116, 993], [1280, 720], [1716, 1000]]) {
     const z = await zeroOffers(page); const same = await sameRows(page);
     if (z.length || same.length) ok(`${tag} : Forge › ${seg} sans « +0 % » ni ligne identique`, false, JSON.stringify({ z, same }));
     if (seg === 'upgrade') {
-      const r = await visible(page, '.fg-side .fg-sheet [data-action="upgrade-item"], .fg-side .fg-sheet .eq-sharpen');
+      const r = await visible(page, '.fg-side .fg-sheet [data-action="upgrade-item"]');
       ok(`${tag} : Forge › Renforcer — l'action de la fiche visible sans défiler`, r.some(Boolean), JSON.stringify(r));
       const line = await page.evaluate(() => document.querySelectorAll('.fg-now')[1].textContent.trim());
-      ok(`${tag} : atelier 2 — « ${line} »`, !/\+0(?:,0\d?)? %/.test(line) && (/de puissance$/.test(line) || /^Remettre au niveau/.test(line)), line);
+      ok(`${tag} : atelier 2 — « ${line} »`, !/\+0(?:,0\d?)? %/.test(line) && (/de puissance$/.test(line) || /^(Rien d'utile|Tes objets|Équipe d'abord|Il manque)/.test(line) || / : \+?\d/.test(line)), line);
     }
     await page.screenshot({ path: `${out}/forge-${seg}-${w}.png` });
   }

@@ -185,7 +185,7 @@ export function snap(state) {
 
 const CLAIM_BIG = new Set(['claim-everything', 'claim-all', 'claim-all-expeditions', 'claim-all-events']);
 const CHEST = new Set(['claim-event', 'claim-mission-bonus']); // récupérations sans préfixe « claim »
-const FORGE = new Set(['upgrade-item', 'sharpen', 'reforge', 'target-reroll', 'craft', 'upgrade-companion']);
+const FORGE = new Set(['upgrade-item', 'reforge', 'target-reroll', 'craft', 'upgrade-companion']);
 
 export function clickFx(ui, event, run) {
   const el = event.target.closest?.('[data-action]');

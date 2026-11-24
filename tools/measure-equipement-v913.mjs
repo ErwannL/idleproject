@@ -125,7 +125,6 @@ P(`| Fabriquer (Rare ou mieux) | ${f.craftShards} | ${per(f.craftShards)} |`);
 P(`| Fabriquer (Épique ou mieux) | ${f.epicCraft.shards} | ${per(f.epicCraft.shards)} |`);
 P(`| Relancer les effets | ${f.reforgeShards} | ${per(f.reforgeShards)} |`);
 P(`| Renforcer (1er niveau / 10e) | ${f.upgradeShards} / ${f.upgradeShards * 10} | ${per(f.upgradeShards * 5.5)} (moy.) |`);
-P(`| Réaffûter (par niveau, Rare → Légendaire) | ${f.sharpenShardsPerLevel * 2} → ${f.sharpenShardsPerLevel * 5} | — | — | — |`);
 P();
 
 // --- 3. Part de l'équipement -------------------------------------------------------------------------------

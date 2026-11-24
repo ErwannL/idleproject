@@ -136,6 +136,8 @@ export function bestPerSlot(state, balance = BALANCE, gains = heroGains(state, b
   }
   return best;
 }
+// v10.13 (§ 2) : « Trouver mieux » : y a-t-il dans le sac un objet meilleur que celui porté à cette place ? (null sinon)
+export const betterForSlot = (state, slot, balance = BALANCE) => bestPerSlot(state, balance)[slot]?.item ?? null;
 // « Équipement rapide » du héros : équipe le meilleur objet de chaque place. Renvoie le nombre d'objets équipés.
 export function quickEquipHero(state, balance = BALANCE) {
   let n = 0;

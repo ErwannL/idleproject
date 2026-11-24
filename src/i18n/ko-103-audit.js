@@ -2,7 +2,7 @@
 // (« coffre » de rangement → « Réserve », onglet Arène, dos de carte doré). Branché à la fin de ./ko.js.
 let LK = () => null;
 const tr = (s) => LK(s) ?? s;
-const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
+const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : « Trouver mieux » cherche un meilleur objet dans le sac, sinon à la Forge. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
 const GUIDE_FINDS_FR = 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont à la Réserve ; sac et Réserve pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.';
 export const EXACT_103A = {
   "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place dans la Réserve": "각 부위의 가장 좋은 아이템을 장착해요. 착용 중이던 아이템은 보관함으로 가요",
@@ -30,7 +30,7 @@ export const EXACT_103A = {
   'Sac et Réserve pleins : libère de la place pour récupérer les objets.': '가방과 보관함이 가득 찼어요: 아이템을 받으려면 자리를 비우세요.',
   'Objet en attente (sac et Réserve pleins)': '대기 중인 아이템 (가방·보관함 가득)',
   'Impossible : pas un objet ancestral, ou sac et Réserve pleins.': '불가: 유물 아이템이 아니거나 가방과 보관함이 가득 찼어요.',
-  [GUIDE_BAG_FR]: '아이템은 레벨과 함께 성장해요: 재연마는 아이템을 최고 스테이지 레벨로 올려요. 대장간은 10스테이지, 보관함은 20스테이지에 열려요: 보관함은 절대 분해되지 않는 아이템과 가장 좋은 세트 부위를 보관해요(세트 필터, 「착용」). 빌드는 팀, 장비, 직업, 권능, 스킬을 저장해요. 자동 분해와 합성: 가방 설정.',
+  [GUIDE_BAG_FR]: '아이템은 레벨과 함께 성장해요: «더 좋은 것 찾기»는 가방에서, 없으면 대장간에서 더 좋은 아이템을 찾아요. 대장간은 10스테이지, 보관함은 20스테이지에 열려요: 보관함은 절대 분해되지 않는 아이템과 가장 좋은 세트 부위를 보관해요(세트 필터, 「착용」). 빌드는 팀, 장비, 직업, 권능, 스킬을 저장해요. 자동 분해와 합성: 가방 설정.',
   [GUIDE_FINDS_FR]: '발견물(상자, 보석, 포털)은 전투 중에 나타나요. 가방이 가득 차면 아이템은 보관함으로 가요. 가방과 보관함이 모두 가득 차면 아이템이 든 보상은 여기서 기다려요. 상인은 임무 › 오늘에 있어요.',
 };
 // Placés AVANT les autres motifs (voir ./ko.js) : « Tri : … » et « … en attente … » existent déjà avec l'ancien mot.

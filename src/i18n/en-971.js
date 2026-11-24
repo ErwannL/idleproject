@@ -573,7 +573,6 @@ export const EXACT_971 = {
   "recharge": "cooldown",
   "butin": "loot",
   "Renforcer": "Reinforce",
-  "Remettre au niveau": "Level up to stage",
   "Changer l'effet": "Change effect",
   "Nouveaux effets spéciaux au hasard": "New random special effects",
   "Aucun effet spécial": "No special effect",

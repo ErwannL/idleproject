@@ -66,7 +66,7 @@ test('10.8 (3) : 7 raretés ; Mythique ×6,5, Astral ×10, Ascendant ×15 ; jama
   const rng = new Rng(3);
   const m = makeItem(s, 'short_sword', 'mythic', 100, BALANCE, rng), e = makeItem(s, 'short_sword', 'epic', 100, BALANCE, rng);
   assert.ok(m.stats.damage > e.stats.damage);
-  assert.ok(BALANCE.forge.sharpenRarityFactor.mythic < BALANCE.forge.sharpenRarityFactor.legendary, 'remise au niveau moins chère');
+  assert.ok(!('sharpenRarityFactor' in BALANCE.forge), 'plus de remise au niveau (10.13)');
   for (const f of ['frame_astral', 'frame_ascendant', 'tear_ascendrya']) assert.ok(existsSync(`assets/ui/art108/${f}.png`), f);
   assert.ok(existsSync('assets/ui/art106/frame_mythic.png'));
 });

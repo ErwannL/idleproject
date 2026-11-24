@@ -318,7 +318,7 @@ export const BALANCE = {
     shards: { common: 1, rare: 3, epic: 18, legendary: 50 }, // v9.1.3 : + les anciennes essences (1 et 3) × 10
   },
 
-  // Forge : fabrication ciblée, relance des effets, réaffûtage au niveau actuel.
+  // Forge : fabrication ciblée, relance des effets.
   forge: {
     craftShards: 25,
     craftGoldKills: 25, // coût en or = 25 × l'or d'un ennemi de l'étape max
@@ -331,7 +331,6 @@ export const BALANCE = {
     // gear = arme, casque, armure ; accessory = collier, boucles, bague, bracelet. Provisoires.
     targetReroll: { epic: { gear: 100, accessory: 140 }, legendary: { gear: 60, accessory: 80 } },
     targetRerollExcluded: ['dropChance'], // additif (core/combat.js) : changerait toute l'échelle du butin
-    sharpenShardsPerLevel: 2, // réaffûtage : éclats par niveau gagné × facteur de rareté
     // Amélioration d'un objet : chaque niveau augmente une de ses statistiques (au hasard) de 12 %.
     maxUpgrades: { common: 5, rare: 5, epic: 10, legendary: 10 },
     upgradeBoostPct: 12,
@@ -350,7 +349,6 @@ export const BALANCE = {
     },
     // v9.1.3 (doc3 lot 5) : héritage d'ensemble en fusion : chance min(pièces × 20, 40) % (« Aucun » possible).
     fusionSetInherit: { perPiece: 20, max: 40 },
-    sharpenRarityFactor: { common: 1, rare: 2, epic: 3, legendary: 5, mythic: 3, astral: 4, ascendant: 5 }, // v10.8 (3) : Mythique et au-delà se remettent au niveau à moitié prix // réaffûtage : facteur de rareté
   },
 
   // Événements discrets pendant le farm (aucun ne demande de surveiller l'écran).

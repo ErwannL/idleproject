@@ -16,7 +16,7 @@ export const EXACT_1040_PAGES = {
   'presque pareille': '거의 같음',
   'presque sans effet': '거의 효과 없음',
   'Fabriquer un meilleur objet ›': '더 좋은 장비 제작 ›',
-  'Plus : changer l\'effet, remettre au niveau': '더 보기: 효과 변경, 레벨 맞추기',
+  'Plus : changer l\'effet': '더 보기: 효과 변경',
   'Ancestral': '고대',
   'Remplies avec tes moins bons objets. Jamais pris : objet porté, protégé (cadenas), ancestral.':
     '가장 약한 장비로 채웁니다. 착용 중, 보호(자물쇠), 고대 장비는 절대 쓰지 않습니다.',
@@ -26,7 +26,6 @@ export const EXACT_1040_PAGES = {
 };
 export const patterns1040Pages = (lookup = () => null) => { LK = lookup; return [
   [/^: cet objet est d'un niveau trop bas \((\d+) → (\d+)\)\.$/, (m) => `: 장비 레벨이 너무 낮습니다 (${m[1]} → ${m[2]}).`],
-  [/^Remettre au niveau : (.+) niv\. (\d+) → (\d+)$/, (m) => `레벨 맞추기: ${t(m[1])} Lv. ${m[2]} → ${m[3]}`],
   [/^Les (\d+) cases$/, (m) => `${m[1]}칸`],
   [/^×(\d+)$/, (m) => `×${m[1]}`],
   [/^(.+) : (.+) · (Commun|Rare|Épique|Légendaire|Mythique)$/, (m) => `${t(m[1])}: ${t(m[2])} · ${t(m[3])}`],

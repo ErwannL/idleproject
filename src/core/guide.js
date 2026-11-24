@@ -351,7 +351,7 @@ export const PANEL_HELP = {
   },
   inventory: {
     short: 'La flèche verte marque un objet meilleur que celui porté. « Équiper le meilleur » équipe tout d\'un coup.',
-    more: 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
+    more: 'Les objets grandissent avec leur niveau : « Trouver mieux » cherche un meilleur objet dans le sac, sinon à la Forge. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.',
   },
   hero: {
     short: 'Votre fiche : dégâts/s, niveau et équipement. Classe, Apparence et Records sont dans les segments du haut.',

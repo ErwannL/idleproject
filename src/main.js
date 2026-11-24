@@ -47,7 +47,7 @@ import { finishGlobalBoss, globalBossLeft, runSurvival, startGlobalBoss } from '
 import { autoFormation, claimSeason, claimStarChest, playFloor, setFormation, sweepFloor } from './core/arena-cards.js'; // v10.1 (P4)
 import { claimExpedition, expeditionType, relaunchExpeditions, sendAllExpeditions, startExpedition } from './core/expeditions.js';
 import { endChallenge, startChallenge } from './core/challenge.js';
-import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, sharpenItem, targetReroll, upgradeAllHero, upgradeAllHeroWhy, upgradeItem } from './core/forge.js';
+import { autoFuse, craftItem, fuseAll, fuseItems, fusionFailText, fusionKeep, reforgeItem, targetReroll, upgradeAllHero, upgradeAllHeroWhy, upgradeItem } from './core/forge.js';
 import { normalizePool, summon } from './core/gacha.js';
 import { setActiveHero } from './core/heroes.js';
 import { addToInventory, betterItems, bulkRecycleCandidates, equipBest, GEAR_PROFILES, equipItem, isUpgrade, quickEquipHero, recycleItem, recycleMatching, recycleRules, sweepInventory, toggleLock, unequipItem } from './core/inventory.js';
@@ -383,7 +383,6 @@ const actions = {
   },
   reforge(id) { done(reforgeItem(state, id, rng), 'Effets spéciaux relancés'); },
   targetReroll(id, type) { done(targetReroll(state, id, type, rng), 'Effet relancé'); }, // v9.1.3 (doc3 lot 3), hors REPEATABLE
-  sharpen(id) { done(sharpenItem(state, id), 'Objet réaffûté'); },
   upgradeItem(id) {
     const stat = upgradeItem(state, id, rng);
     if (stat) sound.play('upgrade');

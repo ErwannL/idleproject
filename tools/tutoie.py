@@ -26,7 +26,6 @@ PAIRS = [
  ("vous perdez ", "tu perds "),
  (" % de vos PV max par seconde", " % de tes PV max par seconde"),
  ("Chaque ligne indique son gain en dégâts/s : à vous de choisir.", "Chaque ligne indique son gain en dégâts/s : à toi de choisir."),
- ("Réaffûter remonte un objet au niveau de votre étape max.", "Réaffûter remonte un objet au niveau de ton étape max."),
  ("et mesure votre r", "et mesure ton r"),
  ("Un point par niveau du héros, à placer où vous voulez.", "Un point par niveau du héros, à placer où tu veux."),
  ("Glissez ou utilisez la molette pour vous déplacer, Ctrl + molette pour zoomer.", "Glisse ou utilise la molette pour te déplacer, Ctrl + molette pour zoomer."),

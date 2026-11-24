@@ -18,10 +18,9 @@ import { upgradeAllGearWhy, bestGearFor, canEquip as unitCanEquip, classLabel, g
 import { elementBadge, unitElement } from '../../core/elements.js';
 import { formatStat } from '../../core/format.js';
 import { heroById } from '../../core/heroes.js';
-import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canTargetReroll, fusableRarities, reforgeCost, sharpenCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canTargetReroll, fusableRarities, reforgeCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking, weakLabel } from '../../core/forge.js';
 import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bulkRecycleCandidates, recycleRules, teamUpgradeFor } from '../../core/inventory.js';
 import { BIND_MODES } from '../../core/loadouts.js';
-import { levelForStage } from '../../core/combat.js';
 import { xpForLevel } from '../../core/level.js';
 import { itemBase, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { skillLevels } from '../../core/progression.js';
@@ -285,7 +284,6 @@ function reforgeRows(ui, state, item) {
   const shards = state.materials.shards;
   const cost = reforgeCost(state);
   const ok = canReforge(item);
-  const sharpen = sharpenCost(state, item);
   let target = '';
   if (canTargetReroll(item)) {
     const choices = targetRerollChoices(item);
@@ -298,13 +296,11 @@ function reforgeRows(ui, state, item) {
   }
   return `<div class="em-act"><span class="em-act-ico">${img('icon_star')}</span><div class="em-act-mid"><b>Changer l'effet</b>${costOnly('icon_shard', cost, shards >= cost)}</div>
       ${mBtn('Changer', { action: 'reforge', id: item.id, disabled: !(ok && shards >= cost) })}</div>
-    ${ok ? '' : '<p class="em-note">Pas d\'effet spécial à changer.</p>'}${target}
-    <div class="em-act"><span class="em-act-ico">${img('icon_shard')}</span><div class="em-act-mid"><b>Remettre au niveau</b>${sharpen ? costOnly('icon_shard', sharpen, shards >= sharpen) : '<small>Déjà au niveau</small>'}</div>
-      ${mBtn('Remettre', { action: 'sharpen', id: item.id, disabled: !(sharpen && shards >= sharpen) })}</div>`;
+    ${ok ? '' : '<p class="em-note">Pas d\'effet spécial à changer.</p>'}${target}`;
 }
 
 function reforgeList(ui, state) {
-  const worn = Object.entries(state.equipment).filter(([, it]) => it && (canReforge(it) || sharpenCost(state, it) > 0));
+  const worn = Object.entries(state.equipment).filter(([, it]) => it && canReforge(it));
   const blocks = worn.map(([slot, it]) => `<div class="em-rf"><div class="em-rf-head">${mTile(it, { size: 56, action: 'eq-slot', value: slot, id: it.id, plus: '' })}<div class="em-row-mid"><b>${e(it.name)}</b><small>${e(HERO_SLOTS[slot])}${(it.affixes ?? []).length ? ` · ${it.affixes.map((a) => e(affixText(a))).join(' · ')}` : ''}</small></div></div>${reforgeRows(ui, state, it)}</div>`).join('');
   return `<div class="m-card em-reforge">${blocks || mEmpty('Aucun objet porté à reforger.', { icon: 'icon_anvil' })}${mBtn('Forge : recycler et fusionner', { action: 'forge-go', value: 'recycle', icon: 'icon_anvil' })}</div>`;
 }
@@ -495,14 +491,14 @@ function upPanel(state, item, wearer, p) {
   }
   const gain = upgradeGainPct(p);
   const weak = gain !== null && gain < WEAK_GAIN_PCT;
-  const sharpen = weak ? sharpenCost(state, item) : 0;
   const rows = p.rows.filter((r) => r.before !== r.after).slice(0, 1).map((r) => ba(rowLabel(r), rowVal(r, r.before), rowVal(r, r.after))).join('');
   const upBtn = { action: 'upgrade-item', id: item.id, disabled: Boolean(p.lack.shards || p.lack.gold), attrs: `data-cost="${p.cost.gold}" data-currency="gold"` };
   const costs = `<div class="m-costs">${mCost('icon_shard', state.materials.shards, p.cost.shards, { fmt: num })}${mCost('coin', state.gold, p.cost.gold, { fmt: num })}</div>`;
-  if (weak) { // « Presque sans effet » : le bouton doré propose mieux (10.4), Améliorer devient secondaire
-    const note = `<p class="em-note em-weak"><b>Presque sans effet</b>${sharpen ? ` : niveau d'objet ${item.level} » ${levelForStage(state.maxStage)}` : ''}</p>`;
-    const main = sharpen ? mBtnGold(`Remettre au niveau (${num(sharpen)} éclats)`, { action: 'sharpen', id: item.id, disabled: state.materials.shards < sharpen }) : mBtnGold('Fabriquer un meilleur objet', { action: 'forge-go', value: 'craft' });
-    return `${note}${rows}${costs}${mBtn(`Améliorer +${p.level + 1}`, upBtn)}${main}`;
+  if (weak) { // v10.13 (§ 2) : étiquette « Objet dépassé » + « Trouver mieux », le bouton doré reste « Améliorer » (ou « Équiper » si l'objet n'est pas porté)
+    const note = `<p class="em-note em-weak"><b>${e(weakLabel(state, item))}</b></p>`;
+    const worn = Object.values(state.equipment).some((i) => i?.id === item.id);
+    const gold = worn ? mBtnGold('Améliorer', upBtn) : mBtnGold('Équiper', { action: 'equip', id: item.id });
+    return `${note}${rows}${costs}${mBtn('Trouver mieux ›', { action: 'find-better', value: heroSlot(item) })}${worn ? '' : mBtn('Améliorer', upBtn)}${gold}`;
   }
   const power = !p.power ? '' : ba(p.power.worn ? 'Puissance' : 'Puissance (équipé)', num(p.power.before), num(p.power.after));
   return `<div class="em-lvlup"><b>+${p.level}</b><i>»</i><b class="up">+${p.level + 1}</b></div>${rows}${power}${costs}${mBtnGold('Améliorer', upBtn)}`;

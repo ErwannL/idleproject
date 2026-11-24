@@ -8,7 +8,7 @@ import { bastionOpen } from '../../core/bastion.js';
 import { levelForStage } from '../../core/combat.js';
 import { companionById, skillKillGold } from '../../core/companions.js';
 import { gearStats, gearUpgradePreview, slotName, statText, unitGear } from '../../core/companion-gear.js';
-import { WEAK_GAIN_PCT, craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, gainsPower, sharpenCost, upgradeAdvice } from '../../core/forge.js';
+import { WEAK_GAIN_PCT, craftCost, craftOdds, estimateGainPct, fusionGroups, fusionKeep, fusionPreview, gainsPower, outdatedLevel, upgradeAdvice, weakLabel } from '../../core/forge.js';
 import { recycleGoldOf, uselessItems } from '../../core/inventory.js';
 import { recycleMaterials } from '../../core/loot.js';
 import { setById } from '../../core/sets.js';
@@ -46,10 +46,9 @@ const teamOf = (state) => (state.companions?.equipped ?? []).map((id) => compani
 export function forgeNow(state) {
   const p = uselessPreview(state);
   const count = BALANCE.forge.fusionCount;
-  // v10.4 (partie 2) : jamais « +0 % » — le meilleur gain réel, sinon « Remettre au niveau », sinon la statistique nommée.
+  // v10.4 (partie 2) : jamais « +0 % » — le meilleur gain réel, sinon la statistique nommée.
   const advice = upgradeAdvice(state);
   const ranking = advice.ranking;
-  const lvlNow = levelForStage(state.maxStage);
   const first = ranking.find((r) => !r.preview.atMax && r.gainPct >= WEAK_GAIN_PCT) ?? ranking.find((r) => !r.preview.atMax);
   const groups = fusionGroups(state, BALANCE, fusionKeep(state));
   const order = ['common', 'rare', 'epic', 'legendary'];
@@ -66,7 +65,6 @@ export function forgeNow(state) {
     // v10.4 : `item` = l'objet proposé (choisi d'office dans l'atelier 2).
     upgrade: advice.kind === 'upgrade' ? { ok: true, item: advice.row.item, text: `${advice.row.item.name} +${advice.row.preview.level} → +${advice.row.preview.level + 1} : ${pctText(advice.row.gainPct)} de puissance` }
       : first && first.gainPct >= WEAK_GAIN_PCT ? { ok: false, text: first.preview.lack.shards ? `Il manque ${plural(first.preview.lack.shards, 'éclat', 'éclats')} pour ${first.item.name} +${first.preview.level + 1}` : `Il manque ${formatNumber(first.preview.lack.gold)} or pour ${first.item.name} +${first.preview.level + 1}` }
-      : advice.kind === 'sharpen' ? { ok: advice.canPay, item: advice.item, text: `Remettre au niveau : ${advice.item.name} niv. ${advice.item.level} → ${lvlNow}` }
       : advice.kind === 'stat' ? { ok: true, item: advice.row.item, text: `${advice.row.item.name} +${advice.row.preview.level} → +${advice.row.preview.level + 1} : ${statGainText(advice.row.preview)}` }
       : first ? { ok: false, text: 'Rien d\'utile à renforcer : fusionne ou fabrique mieux.' }
       : { ok: false, text: ranking.length ? 'Tes objets portés sont au maximum.' : 'Équipe d\'abord un objet.' },
@@ -96,7 +94,7 @@ function upgradeBody(ui, state, ranking, suggested = null) {
   const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all.find((r) => r.item.id === suggested?.id) ?? all[0];
   const row = (r) => {
     const p = r.preview;
-    const weak = !r.unit && !p.atMax && r.gainPct < WEAK_GAIN_PCT && (gainsPower(r) || sharpenCost(state, r.item) > 0);
+    const weak = !r.unit && !p.atMax && r.gainPct < WEAK_GAIN_PCT && (gainsPower(r) || outdatedLevel(state, r.item) > 0);
     const gain = p.atMax ? `au maximum (+${p.max})` : r.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ')
       : weak ? 'presque sans effet' : gainsPower(r) ? `${pctText(r.gainPct)} de puissance` : escapeHtml(statGainText(p));
     return `<button class="fg-up-row r-${r.item.rarity}${r.item.id === sel.item.id ? ' on' : ''}" data-action="forge-up-sel" data-id="${r.item.id}" aria-pressed="${r.item.id === sel.item.id}">${itemTile(r.item)}
@@ -202,16 +200,14 @@ function phoneUpgrade(ui, state, now) {
   if (!all.length) return `${fgArt('upgrade')}<p class="m-fg-phrase">Tu ne portes encore aucun objet. Équipe-toi d'abord.</p>${mBtnGold('Ouvrir l\'Équipement', { action: 'open-tab', value: 'inventory' })}`;
   const sel = all.find((r) => r.item.id === ui.view.forgeUpSel) ?? all.find((r) => r.item.id === now.upgrade.item?.id) ?? all[0];
   const p = sel.preview;
-  const weak = !sel.unit && !p.atMax && sel.gainPct < WEAK_GAIN_PCT && (gainsPower(sel) || sharpenCost(state, sel.item) > 0);
+  const weak = !sel.unit && !p.atMax && sel.gainPct < WEAK_GAIN_PCT && (gainsPower(sel) || outdatedLevel(state, sel.item) > 0);
   const gain = p.atMax ? `au maximum (+${p.max})` : sel.unit ? p.rows.map((x) => `${x.key === 'cd' ? '−' : '+'}${formatDecimal(x.after - x.before, 2)} %`).join(' · ')
     : weak ? 'presque sans effet' : gainsPower(sel) ? `${pctText(sel.gainPct)} de puissance` : statGainText(p);
   const cells = all.map((r) => fgTile(r.item, { action: 'forge-up-sel', id: r.item.id, selected: r.item.id === sel.item.id }));
-  const sharpen = weak ? sharpenCost(state, sel.item) : 0;
   let main = '';
   if (!p.atMax) {
     if (sel.unit) main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'gear-up', value: sel.item.id, disabled: !p.canPay });
-    else if (weak && sharpen) main = mBtnGold('Remettre au niveau', { action: 'sharpen', id: sel.item.id, attrs: `data-cost="${sharpen}" data-currency="shards"`, disabled: state.materials.shards < sharpen });
-    else if (weak) main = `${mBtnGold('Fabriquer un meilleur objet', { action: 'forge-go', value: 'craft' })}${mBtn(`Renforcer quand même +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) })}`;
+    else if (weak) main = `<p class="m-note em-weak">${escapeHtml(weakLabel(state, sel.item))}</p>${mBtn('Trouver mieux ›', { action: 'find-better', value: sel.slot })}${mBtnGold(`Renforcer +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) })}`;
     else main = mBtnGold(`Renforcer +${p.level + 1}`, { action: 'upgrade-item', id: sel.item.id, attrs: `data-cost="${p.cost.gold}" data-currency="gold"`, disabled: Boolean(p.lack.shards || p.lack.gold) });
   }
   const costs = p.atMax || !p.cost ? '' : `<div class="m-costs">${mCost('icon_shard', state.materials.shards, p.cost.shards, { fmt: formatNumber })}${mCost('coin', state.gold, p.cost.gold, { fmt: formatNumber })}</div>`;

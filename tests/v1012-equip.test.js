@@ -53,7 +53,7 @@ test('10.12 (équipement) : le rendu téléphone est bâti avec le kit (cadre, c
   assert.match(js, /mModes\(/);
   assert.match(js, /mSheet\(/);
   assert.match(js, /'Détails de l\\'équipement'/);
-  for (const action of ['gear-who', 'eq-slot', 'eq-quick', 'select-item', 'eq-tab', 'item-tab', 'upgrade-item', 'gear-up', 'upgrade-all', 'reforge', 'target-reroll', 'sharpen', 'equip', 'gear-equip', 'lock', 'to-stash', 'to-museum', 'recycle', 'eq-unequip', 'gear-unequip', 'bag-menu', 'filter']) {
+  for (const action of ['gear-who', 'eq-slot', 'eq-quick', 'select-item', 'eq-tab', 'item-tab', 'upgrade-item', 'gear-up', 'upgrade-all', 'reforge', 'target-reroll', 'find-better', 'equip', 'gear-equip', 'lock', 'to-stash', 'to-museum', 'recycle', 'eq-unequip', 'gear-unequip', 'bag-menu', 'filter']) {
     assert.ok(js.includes(`'${action}'`) || js.includes(`"${action}"`), `action ${action} gardée`);
   }
   assert.ok(!/<select/.test(js), 'aucun <select> sur téléphone');

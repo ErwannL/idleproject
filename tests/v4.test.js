@@ -12,7 +12,8 @@ import { companionEffects, toggleCompanion, upgradeCompanion } from '../src/core
 import { claimContract, trackContracts } from '../src/core/contracts.js';
 import { canEnterDungeon, setDungeonPath, startDungeon } from '../src/core/dungeon.js';
 import { buyFromMerchant, claimEvent, dismissEvent, rollEvent } from '../src/core/events.js';
-import { craftItem, reforgeItem, sharpenItem } from '../src/core/forge.js';
+import * as forgeApi from '../src/core/forge.js';
+import { craftItem, reforgeItem } from '../src/core/forge.js';
 import { summon, summonOdds } from '../src/core/gacha.js';
 import { heroEffects, setActiveHero } from '../src/core/heroes.js';
 import { addToInventory, recycleItem } from '../src/core/inventory.js';
@@ -202,7 +203,7 @@ test('événements discrets : coffre, marchand, élite et vague, jamais bloquant
   if (left) assert.ok(dismissEvent(state, left.id));
 });
 
-test('recyclage : éclats (v9.1.3 : essences fondues) ; forge : fabrication ciblée, relance d\'effets, réaffûtage', () => {
+test('recyclage : éclats (v9.1.3 : essences fondues) ; forge : fabrication ciblée, relance d\'effets ; plus d\'affûtage (10.13)', () => {
   const state = createNewState(NOW, 1);
   const epic = makeItem(state, 'dagger', 'epic', 1, BALANCE, new Rng(1));
   addToInventory(state, epic);
@@ -226,13 +227,9 @@ test('recyclage : éclats (v9.1.3 : essences fondues) ; forge : fabrication cibl
   }
   assert.ok(changed, 'effets relancés');
 
-  const old = makeItem(state, 'short_sword', 'rare', 2);
-  addToInventory(state, old);
-  const damage = old.stats.damage;
-  assert.ok(sharpenItem(state, old.id));
-  assert.equal(old.level, 10);
-  assert.ok(old.stats.damage > damage);
-  assert.equal(sharpenItem(state, old.id), false, 'déjà au niveau maximum');
+  // v10.13 (§ 2) : « Remettre au niveau » n'existe plus (aucun export sharpen* dans la Forge ni dans l'équilibrage).
+  assert.deepEqual(Object.keys(forgeApi).filter((k) => /sharpen/i.test(k)), []);
+  assert.deepEqual(Object.keys(BALANCE.forge).filter((k) => /sharpen/i.test(k)), []);
 });
 
 test('donjon : clé, salles, chemin modifiable, boss avec pouvoir et butin ciblé', () => {

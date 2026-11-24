@@ -90,40 +90,86 @@ test('socle : mode d\'emploi en tête de page.js, feuille liée dans index.html,
 });
 
 // ------------------------------------------------------------------------------------------- partie 2 : gain réel
-test('partie 2 : un renfort presque sans effet (< 0,5 %) le dit et propose « Remettre au niveau », sans « +0,01 % »', () => {
+test('partie 2 (10.13) : un renfort presque sans effet le dit (« Objet dépassé ») et propose « Trouver mieux », sans « +0,01 % » ni « Remettre au niveau »', () => {
   const s = lagging();
   const dagger = s.equipment.weapon;
   const p = forge.upgradePreview(s, dagger);
   assert.ok(!p.atMax && forge.weakUpgrade(p), `cas voulu : gain ${forge.upgradeGainPct(p)} %`);
   const html = reinforceSection(uiWith(), s, dagger);
-  assert.match(textOf(html), /Presque sans effet : cet objet est d'un niveau trop bas \(3 → \d+\)/);
-  assert.ok(html.includes(`data-action="sharpen" data-id="${dagger.id}"`), 'propose « Remettre au niveau de ton étape »');
-  assert.match(html, /btn btn-gold eq-do eq-sharpen/, 'le mieux à faire est le bouton doré');
-  assert.ok(!/class="btn btn-gold eq-do" data-action="upgrade-item"/.test(html), 'Renforcer n\'est plus mis en avant');
+  assert.ok(textOf(html).includes(`⚠ Objet dépassé · Niv. 3, ton étape : ${levelForStage(s.maxStage)}`), textOf(html));
+  assert.ok(html.includes('data-action="find-better" data-value="weapon"'), 'propose « Trouver mieux » sur cette place');
+  assert.match(textOf(html), /Trouver mieux ›/);
+  assert.ok(!/sharpen|Remettre au niveau/i.test(html), 'plus de « Remettre au niveau »');
+  assert.match(html, /class="btn btn-gold eq-do" data-action="upgrade-item"/, 'le bouton doré reste celui du renfort');
   assert.ok(!ZERO.test(textOf(html)), textOf(html).match(/.{20}\+0.{10}/)?.[0]);
-  // Même texte dans la fiche de l'Équipement et dans l'atelier 2.
-  assert.ok(inventoryPanel.render(uiWith({ selectedItemId: dagger.id }), s).includes(html));
-  assert.ok(forgePanel.render(uiWith({ forgeSeg: 'upgrade', forgeUpSel: dagger.id }), s).includes(html));
-  // Sans retard de niveau : « un autre objet ira mieux ici » et Fabriquer.
+  // Même texte dans la fiche de l'Équipement et dans l'atelier 2 ; aucune fiche PC ne parle de remettre au niveau.
+  const pages = [inventoryPanel.render(uiWith({ selectedItemId: dagger.id }), s), forgePanel.render(uiWith({ forgeSeg: 'upgrade', forgeUpSel: dagger.id }), s)];
+  for (const page of pages) {
+    assert.ok(page.includes(html));
+    assert.ok(!/sharpen|Remettre au niveau|remettre au niveau/.test(page));
+  }
+  // Sans retard de niveau : l'étiquette générale, et toujours « Trouver mieux ».
   const t = lagging(); t.equipment.weapon.level = levelForStage(t.maxStage);
   const q = forge.upgradePreview(t, t.equipment.weapon);
-  if (forge.weakUpgrade(q)) assert.match(textOf(reinforceSection(uiWith(), t, t.equipment.weapon)), /Presque sans effet sur ta puissance : un autre objet ira mieux ici/);
+  if (forge.weakUpgrade(q)) {
+    const h = reinforceSection(uiWith(), t, t.equipment.weapon);
+    assert.match(textOf(h), /⚠ Presque sans effet sur ta puissance/);
+    assert.match(textOf(h), /Trouver mieux ›/);
+  }
 });
 
-test('partie 2 : l\'atelier 2 ne propose jamais un renfort à +0 % — meilleur gain réel, sinon Remettre au niveau', () => {
+test('10.13 (§ 2) : aucune fonction sharpen* exportée, aucune clé d\'équilibrage, une vieille sauvegarde se charge sans erreur', async () => {
+  for (const mod of [forge, inv]) assert.deepEqual(Object.keys(mod).filter((k) => /sharpen/i.test(k)), []);
+  assert.deepEqual(Object.keys(BALANCE.forge).filter((k) => /sharpen/i.test(k)), []);
+  const { sanitizeState } = await import('../src/core/state.js');
+  const old = JSON.parse(JSON.stringify(rich(139)));
+  old.ui = { ...old.ui, sharpenFx: true, lastSharpen: 3 }; // champs liés d'une vieille sauvegarde
+  old.sharpened = { x: 1 };
+  old.inventory = old.inventory.slice(0, 3).map((i) => ({ ...i, sharpened: true }));
+  const loaded = sanitizeState(old, BALANCE, Date.now());
+  assert.ok(loaded && Array.isArray(loaded.inventory));
+  assert.ok(forgePanel.render(uiWith({ forgeSeg: 'upgrade' }), loaded).length > 100);
+});
+
+test('10.13 (§ 2) : « Trouver mieux » ouvre le sac filtré sur la place, trié par gain — sinon la Forge › Fabriquer sur cette place', async () => {
+  const { UI } = await import('../src/ui/ui.js');
+  for (const withBetter of [true, false]) {
+    const s = lagging();
+    s.inventory = [];
+    if (withBetter) {
+      const good = makeItem(s, 'short_sword', 'legendary', levelForStage(s.maxStage), BALANCE, new Rng(9));
+      s.inventory.push(good);
+    }
+    const calls = [];
+    const view = { selectedItemId: 'x', sheetOpen: 'item' };
+    const fake = { state: s, view, closeModal() {}, invalidate() {}, openTab: (t, v) => { calls.push(t); Object.assign(view, v ?? {}); } };
+    UI.prototype.findBetter.call(fake, 'weapon');
+    assert.equal(!!inv.betterForSlot(s, 'weapon'), withBetter);
+    if (withBetter) {
+      assert.deepEqual(calls, ['inventory']);
+      assert.equal(s.ui.slotFilter, 'weapon');
+      assert.equal(s.ui.sortBy, 'gain');
+      assert.equal(view.sheetOpen, null, 'la fiche se ferme : on voit le sac');
+    } else {
+      assert.deepEqual(calls, ['forge']);
+      assert.equal(view.forgeSeg, 'craft');
+      assert.equal(view.craftSlot, 'weapon');
+    }
+  }
+});
+
+test('partie 2 : l\'atelier 2 ne propose jamais un renfort à +0 % — meilleur gain réel, sinon la statistique nommée', () => {
   const s = lagging();
   const now = forgeNow(s);
   const advice = forge.upgradeAdvice(s);
   assert.ok(!ZERO.test(now.upgrade.text), now.upgrade.text);
+  assert.ok(['upgrade', 'stat', 'none'].includes(advice.kind), advice.kind);
   if (advice.kind === 'upgrade') {
     assert.ok(advice.row.gainPct >= forge.WEAK_GAIN_PCT);
     assert.notEqual(advice.row.item.id, s.equipment.weapon.id, 'la dague en retard n\'est pas proposée');
     assert.match(now.upgrade.text, /: \+\d+(,\d)? % de puissance$/);
-  } else {
-    assert.equal(advice.kind, 'sharpen');
-    assert.equal(now.upgrade.text, `Remettre au niveau : ${s.equipment.weapon.name} niv. 3 → ${levelForStage(s.maxStage)}`);
   }
-  // Seule la dague portée : tout est trop bas → « Remettre au niveau », jamais « Dague +0 → +1 : +0 % ».
+  // Seule la dague portée : tout est trop bas : jamais « Dague +0 → +1 : +0 % ».
   const solo = rich(139); solo.equipment.weapon = makeItem(solo, 'dagger', 'common', 3, BALANCE, new Rng(2));
   const ring = makeItem(solo, 'band_ring_ruby', 'legendary', levelForStage(139), BALANCE, new Rng(3)); solo.equipment.ring = ring;
   for (let i = 0; i < 3; i++) forge.upgradeItem(solo, ring.id, null);
@@ -174,4 +220,21 @@ test('Personnage : gabarit de page, icônes 48 px, noms d\'objets sur une ligne,
   // Le renfort est dans la fiche, avant ce que l'objet donne (objet porté).
   const sheet = html.slice(html.indexOf('class="pg-side'));
   assert.ok(sheet.indexOf('data-action="upgrade-item"') > 0 && sheet.indexOf('data-action="upgrade-item"') < sheet.indexOf('Ce qu'), 'Renforcer avant « Ce qu\'il donne »');
+});
+
+test('10.13 (§ 2) : fiche téléphone — étiquette « Objet dépassé » + « Trouver mieux », Améliorer en doré, aucun « Remettre au niveau »', () => {
+  const s = lagging();
+  const dagger = s.equipment.weapon;
+  const phone = (view) => ({ view: { open: new Set(), closed: new Set(), ...view }, tabVisible: {}, root: { classList: { contains: () => true }, clientWidth: 412 } });
+  for (const itemTab of ['up', 'reforge', 'equip']) {
+    const html = inventoryPanel.render(phone({ selectedItemId: dagger.id, sheetOpen: 'item', itemTab }), s);
+    assert.ok(!/sharpen|Remettre/.test(html), `onglet ${itemTab} : plus de remise au niveau`);
+    if (itemTab === 'up') {
+      assert.ok(textOf(html).includes(`⚠ Objet dépassé · Niv. 3, ton étape : ${levelForStage(s.maxStage)}`), textOf(html).slice(0, 400));
+      assert.ok(html.includes('data-action="find-better" data-value="weapon"'));
+      assert.match(html, /m-btn-gold[^>]*data-action="upgrade-item"|data-action="upgrade-item"[^>]*m-btn-gold/, 'Améliorer est le bouton doré');
+    }
+  }
+  // « Reforger » ne liste plus d'objet seulement parce qu'il est en retard de niveau.
+  assert.ok(!/Remettre/.test(inventoryPanel.render(phone({ eqTab: 'reforge' }), s)));
 });

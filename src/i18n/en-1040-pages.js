@@ -16,7 +16,7 @@ export const EXACT_1040_PAGES = {
   'presque pareille': 'almost the same',
   'presque sans effet': 'almost no effect',
   'Fabriquer un meilleur objet ›': 'Craft a better item ›',
-  'Plus : changer l\'effet, remettre au niveau': 'More: change the effect, bring up to level',
+  'Plus : changer l\'effet': 'More: change the effect',
   'Ancestral': 'Ancestral',
   'Remplies avec tes moins bons objets. Jamais pris : objet porté, protégé (cadenas), ancestral.':
     'Filled with your weakest items. Never taken: equipped, protected (padlock) or ancestral items.',
@@ -26,7 +26,6 @@ export const EXACT_1040_PAGES = {
 };
 export const patterns1040Pages = (lookup = () => null) => { LK = lookup; return [
   [/^: cet objet est d'un niveau trop bas \((\d+) → (\d+)\)\.$/, (m) => `: this item's level is too low (${m[1]} → ${m[2]}).`],
-  [/^Remettre au niveau : (.+) niv\. (\d+) → (\d+)$/, (m) => `Bring up to level: ${t(m[1])} lv. ${m[2]} → ${m[3]}`],
   [/^Les (\d+) cases$/, (m) => `The ${m[1]} slots`],
   [/^×(\d+)$/, (m) => `×${m[1]}`],
   [/^(.+) : (.+) · (Commun|Rare|Épique|Légendaire|Mythique)$/, (m) => `${t(m[1])}: ${t(m[2])} · ${t(m[3])}`],

@@ -2,7 +2,7 @@
 // (« coffre » de rangement → « Réserve », onglet Arène, dos de carte doré). Branché à la fin de ./en.js.
 let LK = () => null;
 const tr = (s) => LK(s) ?? s;
-const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : Réaffûter remonte un objet au niveau de ton étape max. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
+const GUIDE_BAG_FR = 'Les objets grandissent avec leur niveau : « Trouver mieux » cherche un meilleur objet dans le sac, sinon à la Forge. La Forge s\'ouvre à l\'étape 10 et la Réserve à l\'étape 20 : elle garde des objets jamais recyclés et les meilleures pièces d\'ensemble (filtre Ensemble, « Porter ») ; les Builds enregistrent équipe, équipement, classe, pouvoirs et compétences. Recyclage et fusion automatiques : Réglages du sac.';
 const GUIDE_FINDS_FR = 'Les trouvailles (coffres, gemmes, portails) arrivent pendant le combat. Sac plein : les objets vont à la Réserve ; sac et Réserve pleins : les récompenses avec un objet attendent ici. Les marchands sont dans Missions › Aujourd\'hui.';
 export const EXACT_103A = {
   "Équipe la meilleure pièce de chaque emplacement ; l'objet porté prend sa place dans la Réserve": "Equips the best piece of each slot; the worn item takes its place in Storage",
@@ -30,7 +30,7 @@ export const EXACT_103A = {
   'Sac et Réserve pleins : libère de la place pour récupérer les objets.': 'Bag and Storage full: free up space to collect the items.',
   'Objet en attente (sac et Réserve pleins)': 'Item on hold (bag and Storage full)',
   'Impossible : pas un objet ancestral, ou sac et Réserve pleins.': 'Impossible: not an ancestral item, or bag and Storage full.',
-  [GUIDE_BAG_FR]: 'Items grow with their level: Resharpen brings an item up to your max stage level. The Forge opens at stage 10 and Storage at stage 20: it keeps items that are never recycled and the best set pieces (Set filter, “Wear”); Builds save team, gear, class, powers and skills. Automatic recycling and fusion: Bag settings.',
+  [GUIDE_BAG_FR]: 'Items grow with their level: Find better looks for a better item in your bag, otherwise at the Forge. The Forge opens at stage 10 and Storage at stage 20: it keeps items that are never recycled and the best set pieces (Set filter, “Wear”); Builds save team, gear, class, powers and skills. Automatic recycling and fusion: Bag settings.',
   [GUIDE_FINDS_FR]: 'Finds (chests, gems, portals) arrive during combat. Bag full: items go to Storage; bag and Storage full: rewards with an item wait here. Merchants are in Missions › Today.',
 };
 // Placés AVANT les autres motifs (voir ./en.js) : « Tri : … » et « … en attente … » existent déjà avec l'ancien mot.

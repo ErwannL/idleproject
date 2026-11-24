@@ -12,7 +12,7 @@ const MOVE_TOLERANCE = 6; // px
 // Seulement les actions qu'on veut répéter (achats, améliorations, invocations, réclamations, zoom…) :
 // jamais une confirmation (Renaissance, recyclage groupé, réinitialisation…).
 // v9.1.3 (doc3 lot 2) : « fuse » retiré (une tentative de fusion ne se répète jamais au maintien).
-export const REPEATABLE = new Set(['buy', 'upgrade-item', 'sharpen', 'reforge', 'craft', 'learn-skill', 'upgrade-companion',
+export const REPEATABLE = new Set(['buy', 'upgrade-item', 'reforge', 'craft', 'learn-skill', 'upgrade-companion',
   'summon', 'cheat', 'buy-talent', 'buy-perk', 'upgrade-rush', 'reroll', 'claim-contract', 'claim-mission', 'claim-event',
   'buy-merchant', 'map-zoom', 'tree-zoom', 'claim-collection']);
 // v9.1.3 : au doigt, liste courte (jamais summon ni buy-merchant : un maintien ne doit pas dépenser des gemmes en rafale).

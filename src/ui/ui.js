@@ -116,7 +116,7 @@ import daybook from './panels/daybook.js'; // v9.8 (H1)
 import { WHEEL_SLICES, wheelReady } from '../core/wheel.js'; // v9.8 (H4)
 import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
-import { betterItems, isUpgrade, teamUpgradeFor } from '../core/inventory.js';
+import { betterForSlot, betterItems, isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
 import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
 import { teamChips } from './team-chips.js'; // v9.9 (K16)
@@ -990,6 +990,7 @@ export class UI {
       case 'inv-tab': if (value === 'stash') markInvUsed(this.state, 'stash'); local(() => { v.invTab = value; }); break;
       case 'craft-tier': local(() => { v.craftTier = value; }); break;
       case 'select-item': local(() => { v.selectedItemId = id; v.sheetOpen = 'item'; v.eqSlot = null; v.eqChange = false; v.eqQuick = null; v.itemTab = null; v.itemMore = null; v.itemPop = el.closest('.eq-bag-grid') ? id : null; }); break; // v10.3 (8) ; v10.6 (4) : fenêtre de l'objet à côté de lui
+      case 'find-better': this.findBetter(value); break; // v10.13 (§ 2) : « Trouver mieux » d'un objet dépassé
       case 'open-better': this.openBetterItem(); break; // v10.9 (7 ter)
       case 'item-pop-close': local(() => { v.itemPop = null; }); break;
       case 'auto-recycle-yes': this.closeModal(); a.setRecycleRule('mode', 'pickup'); break; // v9.3.4 : proposé au 1er sac plein
@@ -1032,7 +1033,6 @@ export class UI {
         if (el.dataset.value === 'museum') this.openTab('encyclopedia', { encSec: 'museum' }); else this.openTab(el.dataset.value);
         break;
       case 'lock': a.toggleLock(id); break;
-      case 'sharpen': a.sharpen(id); break;
       case 'upgrade-item': a.upgradeItem(id); break;
       case 'fuse': { // v9.1.3 (doc3 lot 2) : mise choisie (data-stake), 5 par défaut ; l'inclusion retombe après
         const [slot, rarity] = value.split('|');
@@ -2783,6 +2783,27 @@ export class UI {
     const v = this.view ?? {};
     Object.assign(v, { eqTab: 'gear', selectedItemId: best.item.id, sheetOpen: 'item', eqSlot: null, eqChange: false, eqQuick: null, itemPop: best.item.id });
     this.invalidate?.();
+  }
+
+  // v10.13 (§ 2) : « Trouver mieux » sur la fiche d'un objet dépassé. Le sac s'ouvre filtré sur la place, trié par gain ;
+  // s'il n'y a rien de mieux pour cette place, la Forge s'ouvre sur Fabriquer, cette place choisie.
+  findBetter(slot) {
+    const st = this.state;
+    if (!st || !slot) return;
+    const v = this.view;
+    this.closeModal?.();
+    if (betterForSlot(st, slot)) {
+      st.ui.slotFilter = slot;
+      st.ui.sortBy = 'gain';
+      this.openTab('inventory');
+      Object.assign(v, { eqTab: 'gear', invTab: 'bag', selectedItemId: null, sheetOpen: null, eqSlot: null, eqChange: false, eqQuick: null, itemPop: null, itemMore: null });
+    } else {
+      this.openTab('forge', { forgeSeg: 'craft', craftSlot: slot });
+      v.sheetOpen = null;
+    }
+    this.invalidate?.();
+    // Téléphone : le sac est sous les places, on y amène l'écran.
+    if (typeof document.querySelector === 'function') setTimeout(() => document.querySelector('#app.m-phone .em-bag')?.scrollIntoView({ block: 'start' }), 60);
   }
 
   // Récapitulatif du Retour de session.

@@ -12,7 +12,7 @@ export const CURRENCIES = {
     use: 'Talents, bonus éternels.',
     gain: 'Renaissance, donjons, Tour, défi, expéditions.' },
   shards: { name: 'Éclats', icon: 'icon_shard', tab: 'inventory', view: { invView: 'forge' },
-    use: 'Forge (renforcer, réaffûter, relancer les effets, fabriquer).',
+    use: 'Forge (renforcer, relancer les effets, fabriquer).',
     gain: 'Recyclage, boss, donjons, expéditions, collections.' },
   // v9.1.3 (lot F) : plus d'essences, fondues dans les éclats (1 essence = 10 éclats).
   keys: { name: 'Clés de donjon', icon: 'icon_key', tab: 'dungeons',

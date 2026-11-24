@@ -1,5 +1,5 @@
 // Forge : fabrication ciblée (choix de l'emplacement), relance des effets spéciaux,
-// réaffûtage d'un objet au niveau de l'étape maximale, amélioration et fusion.
+// amélioration et fusion.
 import { BALANCE } from '../data/balance.js';
 import { ACCESSORY_SLOTS, AFFIXES, ITEM_BASES, RARITIES, heroSlot } from '../data/items.js';
 import { levelForStage, referenceKillGold } from './combat.js'; // v9.2.0 (monde marin) : niveau des étapes
@@ -93,19 +93,13 @@ export function targetReroll(state, id, type, rng, balance = BALANCE) {
   return true;
 }
 
-export function sharpenCost(state, item, balance = BALANCE) {
-  if (!item || item.level >= levelForStage(state.maxStage)) return 0; // v9.2.0 (monde marin) : niveau de l'étape max
-  return balance.forge.sharpenShardsPerLevel * (levelForStage(state.maxStage) - item.level) * (balance.forge.sharpenRarityFactor[item.rarity] ?? 1); // v9.1.3 (doc3 lot 2) : table dans BALANCE
-}
-
-export function sharpenItem(state, id, balance = BALANCE) {
-  const item = findItem(state, id);
-  const cost = sharpenCost(state, item, balance);
-  if (!cost || state.materials.shards < cost) return false;
-  state.materials.shards -= cost;
-  item.level = levelForStage(state.maxStage); // v9.2.0 (monde marin)
-  refreshItemStats(item, balance);
-  return true;
+// v10.13 (§ 2) : un objet de niveau inférieur à ton étape est « dépassé » :
+// l'écran le dit (étiquette) et propose « Trouver mieux » (sac filtré sur la place, sinon Forge › Fabriquer).
+export const outdatedLevel = (state, item) => (item && item.level < levelForStage(state.maxStage) ? levelForStage(state.maxStage) : 0);
+// L'étiquette d'un renfort « presque sans effet » (sous WEAK_GAIN_PCT) : le niveau d'objet en retard, sinon la phrase générale.
+export function weakLabel(state, item) {
+  const lvl = outdatedLevel(state, item);
+  return lvl ? `⚠ Objet dépassé · Niv. ${item.level}, ton étape : ${lvl}` : '⚠ Presque sans effet sur ta puissance';
 }
 
 // --- Amélioration : chaque niveau augmente une statistique de l'objet (+12 %), la moins renforcée d'abord. ---
@@ -216,17 +210,13 @@ export const weakUpgrade = (preview) => { const g = upgradeGainPct(preview); ret
 
 // v10.4 (partie 2) : ce que l'atelier 2 propose. Jamais un renfort à +0 % :
 // 1. le renfort payable au meilleur gain réel (≥ 0,5 % de Puissance) ;
-// 2. sinon, « Remettre au niveau de ton étape » l'objet porté le plus en retard (c'est son niveau qui bride le renfort) ;
-// 3. sinon, un renfort payable qui nomme une statistique hors Puissance (Coup critique… : règle de la v10.3.1) ;
-// 4. sinon rien (le bouton mène à Fabriquer ou Fusionner).
-// → { kind: 'upgrade' | 'sharpen' | 'stat' | 'none', row?, item?, slot?, cost?, canPay?, ranking }
+// 2. sinon, un renfort payable qui nomme une statistique hors Puissance (Coup critique… : règle de la v10.3.1) ;
+// 3. sinon rien (le bouton mène à Fabriquer ou Fusionner).
+// → { kind: 'upgrade' | 'stat' | 'none', row?, item?, slot?, cost?, canPay?, ranking }
 export function upgradeAdvice(state, balance = BALANCE) {
   const ranking = upgradeRanking(state, balance);
   const real = ranking.find((r) => r.preview.canPay && !r.preview.atMax && r.gainPct >= WEAK_GAIN_PCT);
   if (real) return { kind: 'upgrade', row: real, ranking };
-  const lag = Object.entries(state.equipment ?? {}).filter(([, i]) => i && sharpenCost(state, i, balance) > 0)
-    .map(([slot, item]) => ({ slot, item, cost: sharpenCost(state, item, balance) })).sort((a, b) => a.item.level - b.item.level)[0];
-  if (lag) return { kind: 'sharpen', ...lag, canPay: state.materials.shards >= lag.cost, ranking };
   const stat = ranking.find((r) => r.preview.canPay && !r.preview.atMax && !gainsPower(r));
   if (stat) return { kind: 'stat', row: stat, ranking };
   return { kind: 'none', ranking };

@@ -573,7 +573,6 @@ export const EXACT_971 = {
   "recharge": "재사용",
   "butin": "전리품",
   "Renforcer": "강화",
-  "Remettre au niveau": "레벨 맞추기",
   "Changer l'effet": "효과 변경",
   "Nouveaux effets spéciaux au hasard": "무작위 새 특수 효과",
   "Aucun effet spécial": "특수 효과 없음",

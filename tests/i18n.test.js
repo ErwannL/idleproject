@@ -64,7 +64,6 @@ test('t() traduit les chaînes clés en anglais', () => {
     '+10 % PV max · +5,5 % or': '+10% max HP · +5.5% gold',
     '+12 % dégâts contre les boss': '+12% damage vs bosses',
     'Améliorer +3': 'Upgrade +3',
-    'Réaffûter niv. 140': 'Resharpen lv. 140',
     '1 victoire': '1 victory',
     '3 victoires': '3 victories',
     '+25 gemmes · +1 clé(s)': '+25 gems · +1 key',
