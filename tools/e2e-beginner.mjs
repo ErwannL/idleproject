@@ -91,7 +91,7 @@ async function journey(label, viewport, phone) {
         seal: seal ? { id: seal.dataset.kind, screen: g.adviceScreen(na), text: document.getElementById('next-action-text')?.textContent ?? '' } : null };
       // le joueur : le doigt d'abord, sinon le Sceau, puis les boutons « Équiper » / « OK » que ces conseils ouvrent.
       const modal = document.querySelector('#modal:not(.hidden)');
-      const eq = [...document.querySelectorAll('[data-action="equip"]:not([disabled])')].find((b) => b.offsetParent);
+      const eq = [...document.querySelectorAll('[data-action="equip"]:not([disabled]), [data-action="gear-equip"]:not([disabled])')].find((b) => b.offsetParent);
       if (modal) (modal.querySelector('[data-action="offline-claim"], .btn-gold, .btn-primary, [data-action="close-modal"]'))?.click();
       else if (f && target) target.click();
       else if (eq && (seal?.dataset.kind === 'equip' || seal?.dataset.kind === 'quest')) eq.click(); // la fiche ouverte par le Sceau : « Équiper »

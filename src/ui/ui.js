@@ -55,7 +55,7 @@ const TYPE_COLOR = { hit: '#ff9a4a', aoe: '#c86bff', buff: '#ffc23a', holy: '#ff
 const skillColor = (sk) => CLASS_COLOR[sk.id.split('_')[0]] ?? TYPE_COLOR[sk.type] ?? '#9fc3ff';
 // v10.0 (2) : actions sans doigt, et écran ouvert par chaque action du Sceau (un écran jamais ouvert = guidage).
 // v10.13 (9) : cette action conseillée ouvre-t-elle un autre écran que celui où le joueur se trouve ? (acheter, répartir, placer… se font sur place)
-const leavesScreen = (n, tab) => { const s = adviceScreen(n); return Boolean(s) && s !== tab && (!n.action || n.action === 'equip-best'); };
+const leavesScreen = (n, tab) => { const s = adviceScreen(n); return Boolean(s) && s !== tab && (!n.action || n.action === 'equip-best' || n.action === 'equip-unit'); };
 const NO_FINGER = new Set(['claim', 'lootbag', 'level', 'mentor', 'retry', 'goal', 'advance']);
 const SEAL_TAB = { upgrade: 'upgrades', skills: 'skills', equip: 'inventory', place: 'companions', team: 'companions', rebirth: 'tree', forge: 'forge' };
 // v10.1 : bouton à entourer quand le Sceau ouvre un écran : [sélecteur, consigne d'une ligne].
@@ -2733,6 +2733,10 @@ export class UI {
     if (!n) return;
     this.sealClicked = true; // v9.10 (3)
     if (this.state?.ui) delete this.state.ui.sealMiniUntil;
+    if (n.action === 'equip-unit') { // v10.13 (9) : Équipement, ce compagnon choisi, la fiche de l'objet ouverte (bouton Équiper du compagnon)
+      this.userAt = performance.now(); this.openGearFor(n.value);
+      Object.assign(this.view ?? {}, { selectedItemId: n.itemId, sheetOpen: 'item', itemPop: null, itemTab: 'equip' }); this.invalidate?.(); return;
+    }
     if (n.action === 'equip-best') { this.userAt = performance.now(); this.openBetterItem(); return; } // v10.9 (7 ter) : ouvre la fenêtre de l'objet, le joueur équipe
     if (n.id === 'quest' && n.action === 'cast-first') { this.userAt = performance.now(); (document.querySelector('#skill-bar .skill-btn:not(.cooling)') ?? document.querySelector('#skill-bar .skill-btn'))?.click(); return; } // v10.1
     if (n.id === 'quest') { if (n.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } return; } // v9.9 (K2) : ouvre le bon écran
