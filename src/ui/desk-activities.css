@@ -1,0 +1,560 @@
+/* v10.13 (lot « activités ») : Missions, Carnet, Carte, Donjons, Défis, Arène, Événement, Expéditions sur PC.
+   Ces écrans emploient le même HTML kit que le téléphone (cadre, cartouche, modes, cartes) ; ici, les mêmes gabarits aux tailles PC
+   (texte >= 13 px). TOUT est sous #app:not(.m-phone) : le téléphone n'est jamais touché. */
+/* ---- miroir PC de mobile-combat.css ---- */
+
+/* ---------- Carte ---------- */
+#app:not(.m-phone) .cb-frame .cb-head { height: 92px; box-sizing: border-box; margin: 0 0 8px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+#app:not(.m-phone) .cb-frame .cb-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+#app:not(.m-phone) .cb-frame .cb-zone { font-size: 18px; font-weight: 900; line-height: 1.15; color: var(--m-text); min-width: 0; }
+#app:not(.m-phone) .cb-frame .cb-sub { font-size: 13px; line-height: 1.25; color: var(--m-soft); font-weight: 700; display: block; max-height: 34px; overflow: hidden; }
+#app:not(.m-phone) .cb-frame .forecast { margin: 0 0 8px; font-size: 13px; }
+#app:not(.m-phone) .cb-frame .cb-mapbox { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 0 8px; border: 2px solid var(--m-gold); border-radius: 12px; }
+#app:not(.m-phone) .cb-frame .cb-mapbox::-webkit-scrollbar { display: none; }
+#app:not(.m-phone) .cb-frame .mini-map { width: 440px; max-width: none; margin: 0; border: 0; border-radius: 0; }
+#app:not(.m-phone) .cb-frame .map-dot { min-width: 44px; min-height: 44px; width: 44px; height: 44px; }
+#app:not(.m-phone) .cb-frame .cb-picker { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: center; margin: 0 0 8px; }
+#app:not(.m-phone) .cb-frame .cb-picker .world-name { text-align: center; font-size: 16px; font-weight: 900; color: var(--m-text); }
+#app:not(.m-phone) .cb-frame .cb-stars { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin: 0 0 8px; font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .cb-frame .cb-stars .star.on { color: var(--m-gold-hi); }
+#app:not(.m-phone) .cb-frame .cb-stages { padding: 8px 6px; margin: 0 0 8px; }
+#app:not(.m-phone) .cb-frame .stage-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 0; }
+#app:not(.m-phone) .cb-frame .stage-grid .btn { min-height: 44px; font-size: 14px; border-radius: 10px; }
+#app:not(.m-phone) .cb-frame .cb-mini { height: 64px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin: 0 0 8px; padding: 0 12px; text-align: left; color: var(--m-text); font: inherit; }
+#app:not(.m-phone) .cb-frame button.cb-mini { cursor: pointer; }
+#app:not(.m-phone) .cb-frame .cb-mini-t { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 15px; font-weight: 900; }
+#app:not(.m-phone) .cb-frame .cb-mini-s, #app:not(.m-phone) .cb-frame .cb-mini-r { font-size: 13px; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .cb-frame .cb-mini-r { font-size: 14px; }
+#app:not(.m-phone) .cb-frame .cb-arena { border-color: var(--m-gold); }
+#app:not(.m-phone) .cb-frame .rv-dots { display: inline-flex; gap: 3px; flex-wrap: nowrap; }
+#app:not(.m-phone) .cb-frame .rv-dot { width: 10px; height: 10px; border-radius: 50%; background: #0b1124; border: 1px solid var(--m-btn-line); display: inline-block; }
+#app:not(.m-phone) .cb-frame .rv-dot.on { background: var(--m-gold-hi); border-color: var(--m-gold); }
+
+/* ---------- Style commun du lot (cartes et boutons anciens rendus à l'intérieur du cadre : même look que le kit) ---------- */
+#app:not(.m-phone) .cb-frame .card, #app:not(.m-phone) .cb-frame .state-empty { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; color: var(--m-text); box-shadow: none; }
+#app:not(.m-phone) .cb-frame .muted, #app:not(.m-phone) .cb-frame small { color: var(--m-soft); }
+#app:not(.m-phone) .cb-frame .btn:not(.m-btn):not(.m-btn-gold) { min-height: 44px; border-radius: 10px; border: 1.5px solid var(--m-btn-line); background: linear-gradient(180deg, #1e2a4d, #121a33); color: var(--m-text); font-weight: 800; }
+#app:not(.m-phone) .cb-frame .btn.btn-gold:not(.m-btn-gold) { color: #2a1a05; border-color: #fff0b8; background: linear-gradient(180deg, #ffe08a, #f0b93f); }
+#app:not(.m-phone) .cb-frame .cb-sub { display: block; font-size: 13px; color: var(--m-soft); font-weight: 700; margin: 0 0 6px; }
+#app:not(.m-phone) .cb-frame .cb-help { font-size: 13px; font-weight: 600; }
+#app:not(.m-phone) .cb-frame .cb-warn { margin: 0 0 8px; font-size: 13px; color: var(--m-ko); font-weight: 700; }
+#app:not(.m-phone) .cb-frame .m-btn, #app:not(.m-phone) .cb-frame .m-btn-gold { width: 100%; margin: 0 0 8px; }
+#app:not(.m-phone) .cb-frame .cb-mini .m-btn, #app:not(.m-phone) .cb-frame .m-card .m-btn, #app:not(.m-phone) .cb-frame .cb-picker .m-btn, #app:not(.m-phone) .cb-frame .dgm-head .m-btn { width: auto; margin: 0; }
+#app:not(.m-phone) .cb-frame .m-btn.cb-danger { border-color: var(--m-ko); color: var(--m-ko); }
+#app:not(.m-phone) .cb-frame .m-modes { margin-bottom: 8px; }
+
+/* ---------- Donjons ---------- */
+#app:not(.m-phone) .cb-frame .dgm-head { height: 92px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#app:not(.m-phone) .cb-frame .dgm-head .m-costs { margin: 0; justify-content: flex-start; }
+#app:not(.m-phone) .cb-frame .dgm {
+  position: relative; height: 120px; display: grid; grid-template-columns: minmax(0, 1fr) 108px; gap: 8px; padding: 8px 8px 8px 12px; overflow: hidden; border-color: var(--m-gold);
+  background: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), var(--dgm-bg) center / cover no-repeat; background-color: var(--m-card);
+}
+#app:not(.m-phone) .cb-frame .dgm.locked { filter: grayscale(.7) brightness(.8); }
+#app:not(.m-phone) .cb-frame .dgm-info { display: flex; flex-direction: column; justify-content: space-between; gap: 2px; min-width: 0; }
+#app:not(.m-phone) .cb-frame .dgm-name { font-size: 17px; font-weight: 900; line-height: 1.1; text-shadow: 0 2px 0 #000; }
+#app:not(.m-phone) .cb-frame .dgm-sub { font-size: 13px; line-height: 1.2; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .cb-frame .dgm-row { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 800; }
+#app:not(.m-phone) .cb-frame .dgm-row .dg-stars { display: inline-flex; gap: 1px; }
+#app:not(.m-phone) .cb-frame .dgm-row .dg-star { width: 14px; height: 14px; }
+#app:not(.m-phone) .cb-frame .dgm-gain { display: inline-flex; align-items: center; gap: 4px; min-width: 0; white-space: nowrap; }
+#app:not(.m-phone) .cb-frame .dgm-gain img { width: 18px; height: 18px; flex: none; }
+#app:not(.m-phone) .cb-frame .dgm-info .m-chip { align-self: flex-start; }
+#app:not(.m-phone) .cb-frame .dgm-side { display: flex; flex-direction: column; justify-content: space-between; align-items: center; min-width: 0; }
+#app:not(.m-phone) .cb-frame .dgm-boss { width: auto; height: 52px; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .dgm-side .m-btn { width: 100%; height: 44px; margin: 0; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; color: #2a1a05; }
+#app:not(.m-phone) .cb-frame .dgm-lock { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; font-weight: 800; color: var(--m-soft); text-align: center; }
+#app:not(.m-phone) .cb-frame .dgm-lock img { width: 16px; height: 16px; }
+
+/* ---------- Défis (Tour, Défi de la semaine) ---------- */
+#app:not(.m-phone) .cb-frame .cb-tower { display: flex; align-items: center; gap: 12px; height: 124px; }
+#app:not(.m-phone) .cb-frame .cb-floor { position: relative; flex: none; width: 96px; height: 96px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; border: 2px solid var(--m-gold); border-radius: 12px; background: linear-gradient(160deg, #2a3558, #0b1124); overflow: hidden; }
+#app:not(.m-phone) .cb-frame .cb-floor canvas { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); }
+#app:not(.m-phone) .cb-frame .cb-floor-n { position: relative; z-index: 1; width: 100%; text-align: center; font-size: 28px; line-height: 1.1; font-weight: 900; color: var(--m-gold-hi); text-shadow: 0 2px 0 #000; background: linear-gradient(180deg, transparent, rgba(11, 17, 36, .85) 40%); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .cb-frame .cb-floor small { position: relative; z-index: 1; font-size: 13px; color: var(--m-soft); margin: 0 0 4px; }
+#app:not(.m-phone) .cb-frame .cb-tower-in { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+#app:not(.m-phone) .cb-frame .cb-tower-k { font-size: 13px; font-weight: 800; color: var(--m-soft); }
+#app:not(.m-phone) .cb-frame .cb-tower-name { font-size: 17px; font-weight: 900; line-height: 1.15; }
+#app:not(.m-phone) .cb-frame .cb-tower-lv { font-size: 13px; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .cb-frame .cb-rules { display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+#app:not(.m-phone) .cb-frame .cb-rule { width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; border: 1.5px solid var(--m-gold); background: linear-gradient(180deg, #243158, #121a33); cursor: pointer; }
+#app:not(.m-phone) .cb-frame .cb-rule img { width: 28px; height: 28px; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .cb-more { font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .cb-frame .cb-run { display: flex; flex-direction: column; gap: 8px; }
+#app:not(.m-phone) .cb-frame .cb-run .m-btn { width: 100%; }
+#app:not(.m-phone) .m-sheet .cb-rule-row { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.3; }
+#app:not(.m-phone) .m-sheet .cb-rule-row + .cb-rule-row { margin-top: 8px; }
+#app:not(.m-phone) .m-sheet .cb-rule-row img { width: 28px; height: 28px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .m-sheet .tower-floor { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 2px 8px; padding: 8px 4px; border-bottom: 1px solid var(--m-card-line); font-size: 13px; background: none; color: var(--m-text); }
+#app:not(.m-phone) .m-sheet .tower-floor .tf-reward { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .m-sheet .tower-floor .tf-num { font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .m-sheet .tower-floor.current { background: rgba(201, 161, 74, .15); }
+
+/* ---------- Événement ---------- */
+#app:not(.m-phone) .cb-frame .ev-poster { position: relative; height: 160px; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 12px; overflow: hidden; border-color: var(--m-gold); background-color: #0b1124; background-size: cover; background-position: center; }
+#app:not(.m-phone) .cb-frame .ev-poster.ev-small { flex-direction: row; justify-content: space-between; align-items: stretch; gap: 8px; }
+#app:not(.m-phone) .cb-frame .ev-poster-l { display: flex; flex-direction: column; justify-content: center; gap: 8px; min-width: 0; flex: 1; }
+#app:not(.m-phone) .cb-frame .ev-poster-r { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; width: 40%; max-width: 150px; min-width: 0; }
+#app:not(.m-phone) .cb-frame .ev-poster-r img { width: auto; max-width: 100%; height: 110px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .ev-poster-r small { font-size: 13px; color: var(--m-gold-hi); font-weight: 800; text-align: center; line-height: 1.15; text-shadow: 0 1px 0 #000; }
+#app:not(.m-phone) .cb-frame .ev-t { font-size: 20px; line-height: 1.1; font-weight: 900; text-shadow: 0 2px 0 #000; color: var(--m-text); }
+#app:not(.m-phone) .cb-frame .ev-sub { font-size: 13px; font-weight: 700; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
+#app:not(.m-phone) .cb-frame .ev-wallet { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 900; color: var(--m-text); }
+#app:not(.m-phone) .cb-frame .ev-wallet img { width: 24px; height: 24px; }
+#app:not(.m-phone) .cb-frame .ev-h { display: flex; align-items: center; gap: 6px; margin: 4px 2px 8px; font-size: 15px; font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .cb-frame .ev-h img { width: 22px; height: 22px; }
+#app:not(.m-phone) .cb-frame .ev-fight { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+#app:not(.m-phone) .cb-frame .ev-fight-t { display: flex; flex-direction: column; gap: 2px; font-size: 16px; }
+#app:not(.m-phone) .cb-frame .ev-mapcard { padding: 8px; }
+#app:not(.m-phone) .cb-frame .ev-lanterns.lt-map { height: 200px; margin: 0 0 8px; border: 1.5px solid var(--m-gold); border-radius: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; background: #1b1020; isolation: auto; }
+#app:not(.m-phone) .cb-frame .ev-lanterns.lt-map::before { display: none; }
+#app:not(.m-phone) .cb-frame .ev-lanterns::-webkit-scrollbar { display: none; }
+#app:not(.m-phone) .cb-frame .ev-lanes { position: relative; width: 700px; height: 100%; background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .ev-lanes .lt-road { position: absolute; inset: 0; width: 100%; height: 100%; }
+#app:not(.m-phone) .cb-frame .lt-node { min-width: 56px; min-height: 48px; justify-content: center; }
+#app:not(.m-phone) .cb-frame .lt-node small, #app:not(.m-phone) .cb-frame .lt-node .lt-give { font-size: 13px; }
+#app:not(.m-phone) .cb-frame .lt-node .lt-lantern { width: 40px; height: 40px; }
+#app:not(.m-phone) .cb-frame .ev-shop-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .cb-frame .ev-item { display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 6px; margin: 0; text-align: center; color: var(--m-text); font: inherit; }
+#app:not(.m-phone) .cb-frame button.ev-item { cursor: pointer; }
+#app:not(.m-phone) .cb-frame .ev-item img { width: 48px; height: 48px; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .ev-item b { font-size: 13px; line-height: 1.2; }
+#app:not(.m-phone) .cb-frame .ev-item .lt-price { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; }
+#app:not(.m-phone) .cb-frame .ev-item .lt-price img { width: 18px; height: 18px; }
+#app:not(.m-phone) .cb-frame .ev-item .m-btn { width: 100%; }
+#app:not(.m-phone) .cb-frame .ev-give { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+#app:not(.m-phone) .cb-frame .ev-mission { display: flex; align-items: center; gap: 10px; min-height: 64px; }
+#app:not(.m-phone) .cb-frame .ev-mission.lit { opacity: .7; }
+#app:not(.m-phone) .cb-frame .ev-mission .lt-tile-art { width: 48px; height: 48px; flex: none; image-rendering: pixelated; }
+#app:not(.m-phone) .cb-frame .ev-mission-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+#app:not(.m-phone) .cb-frame .ev-mission .lt-give { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .cb-frame .ev-mission .lt-give img { width: 16px; height: 16px; }
+#app:not(.m-phone) .cb-frame .lt-stamp { font-size: 13px; font-weight: 800; color: var(--m-ok); }
+#app:not(.m-phone) .cb-frame .ev-boss .m-stat { margin-bottom: 4px; }
+#app:not(.m-phone) .cb-frame .live-news { margin: 0 0 8px; padding: 10px; }
+
+/* ---------- Arène (reste dans la scène : panneau mi-hauteur, même cadre) ---------- */
+#app:not(.m-phone) #panel-body:has(> .ar-frame) { display: flex; flex-direction: column; }
+#app:not(.m-phone) .ar-frame { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+#app:not(.m-phone) .ar-frame .ar-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#app:not(.m-phone) .ar-frame .ct-go { flex: none; display: flex; flex-direction: column; gap: 6px; padding: 8px 0 2px; }
+#app:not(.m-phone) .ar-frame .ct-go .btn { width: 100%; min-height: 56px; font-size: 16px; font-weight: 900; }
+#app:not(.m-phone) .ar-frame .ct-go .btn:not(.btn-gold) { min-height: 44px; }
+#app:not(.m-phone) .ar-frame .primary-action { width: 100%; min-height: 56px; font-weight: 900; font-size: 16px; }
+#app:not(.m-phone) .cb-frame .dgm-keys { flex: 1; font-size: 16px; font-weight: 900; }
+/* Arène : le cartouche du cadre remplace la ligne de titre du panneau et la bannière (plus de place pour le jeu). */
+#app:not(.m-phone) #panel-body:has(> .ar-frame) > .art-banner-wrap, #app:not(.m-phone) #panel-body:has(> .ar-frame) > .tab-lead { display: none; }
+#app:not(.m-phone) .ar-frame { margin-top: 4px; }
+#app:not(.m-phone) .ar-frame { padding: 4px 8px 6px; }
+#app:not(.m-phone) .ar-frame .m-title { height: 40px; margin: 0 0 4px; }
+#app:not(.m-phone) .ar-frame .m-title .m-title-in { height: 36px; }
+#app:not(.m-phone) .ar-frame .m-title .m-help, #app:not(.m-phone) .ar-frame .m-title .m-close { width: 44px; height: 44px; }
+#app:not(.m-phone) .ar-frame .m-modes { margin-bottom: 4px; padding: 0 2px; }
+#app:not(.m-phone) .ar-frame .m-modes .m-mode { height: 44px; gap: 1px; padding: 2px 2px 1px; }
+#app:not(.m-phone) .ar-frame .m-modes .m-mode img { width: 18px; height: 18px; }
+#app:not(.m-phone) .ar-frame .ct-floor { min-height: 44px; }
+#app:not(.m-phone) .ar-frame .ct-tip { padding: 4px 8px; font-size: 13px; line-height: 1.2; margin-bottom: 4px; }
+#app:not(.m-phone) .cb-frame .ev-poster.ev-small::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11, 17, 36, .88), rgba(11, 17, 36, .1) 65%); pointer-events: none; }
+#app:not(.m-phone) .cb-frame .ev-poster > * { position: relative; }
+
+
+/* ---- miroir PC de mobile-profile.css ---- */
+/* ---------- Habillage : l'écran = un cadre ; plus de bannière illustrée ni de phrase d'accroche au-dessus ---------- */
+#app:not(.m-phone) #panel-body:has(.mp-frame) > .art-banner-wrap, #app:not(.m-phone) #panel-body:has(.mp-frame) > .tab-lead,
+#app:not(.m-phone) #panel-body:has(.mp-frame) > .intro-card { display: none; }
+#app:not(.m-phone) #panel:has(.mp-frame) #panel-extra { display: none; }
+#app:not(.m-phone) .mp-frame { overflow: hidden; }
+#app:not(.m-phone) .mp-frame .m-title b { font-size: 21px; }
+
+/* ---------- Lignes 64 px : icône · nom + barre · bouton ---------- */
+#app:not(.m-phone) .mp-row { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 10px; }
+#app:not(.m-phone) .mp-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border-radius: 10px; background: var(--m-bg2); border: 1px solid var(--m-card-line); }
+#app:not(.m-phone) .mp-ico img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-ico.big { width: 56px; height: 56px; border: 2px solid var(--m-gold); }
+#app:not(.m-phone) .mp-ico.big img { width: 40px; height: 40px; }
+#app:not(.m-phone) .mp-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#app:not(.m-phone) .mp-name { display: block; font-size: 14px; font-weight: 800; line-height: 1.2; color: var(--m-text); overflow-wrap: normal; word-break: normal; hyphens: none; }
+#app:not(.m-phone) .mp-main small { font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-barline { display: flex; align-items: center; gap: 8px; }
+#app:not(.m-phone) .mp-barline .m-bar { flex: 1 1 auto; }
+#app:not(.m-phone) .mp-n { flex: none; font-size: 13px; font-weight: 800; color: var(--m-soft); font-variant-numeric: tabular-nums; }
+#app:not(.m-phone) .mp-row > .m-btn, #app:not(.m-phone) .mp-row > .m-btn-gold, #app:not(.m-phone) .mp-head > .m-btn, #app:not(.m-phone) .mp-head > .m-btn-gold { flex: none; }
+#app:not(.m-phone) .mp-row button.m-btn.auto, #app:not(.m-phone) .mp-head button.m-btn.auto, #app:not(.m-phone) .mp-claimbar button.m-btn.auto { width: auto; min-width: 84px; padding: 0 12px; }
+#app:not(.m-phone) .mp-row .m-btn-gold.auto, #app:not(.m-phone) .mp-head .m-btn-gold.auto { width: auto; min-width: 96px; padding: 0 14px; }
+#app:not(.m-phone) .mp-row.done { opacity: .72; border-color: var(--m-ok); }
+#app:not(.m-phone) .mp-row.dormant { opacity: .6; }
+#app:not(.m-phone) .mp-row.ready { border-color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app:not(.m-phone) .mp-ok { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; font-size: 22px; font-weight: 900; color: var(--m-ok); }
+#app:not(.m-phone) .mp-list { display: flex; flex-direction: column; }
+#app:not(.m-phone) button.m-btn.ready { border-color: var(--m-gold-hi); color: var(--m-gold-hi); box-shadow: 0 0 0 1px var(--m-gold) inset; }
+#app:not(.m-phone) .mp-main .rw-icons, #app:not(.m-phone) .mp-main .rw { font-size: 13px; }
+#app:not(.m-phone) .mp-main .rw-icons { display: inline; }
+#app:not(.m-phone) .mp-main .rw img { width: 14px; height: 14px; }
+
+/* ---------- En-tête à hauteur fixe (Carnet, Boss, Encyclopédie, Apparences…) ---------- */
+#app:not(.m-phone) .mp-head { display: flex; align-items: center; gap: 10px; height: 88px; padding: 8px 10px; box-sizing: border-box; overflow: hidden; }
+#app:not(.m-phone) .mp-head-line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#app:not(.m-phone) .mp-head-line b { font-size: 20px; font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-head-line small { font-size: 13px; color: var(--m-soft); text-align: right; }
+#app:not(.m-phone) .mp-head-rw { min-height: 16px; }
+#app:not(.m-phone) .mp-head-rw .rw-icons, #app:not(.m-phone) .mp-head-rw .rw { font-size: 13px; }
+#app:not(.m-phone) .mp-head-rw .rw img { width: 14px; height: 14px; }
+
+/* ---------- Carnet de l'Apprenti, « Ça dort », Bastion ---------- */
+#app:not(.m-phone) .mp-fw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+#app:not(.m-phone) .mp-fw-head b { font-size: 15px; font-weight: 900; }
+#app:not(.m-phone) .mp-fw-head small { font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .mp-fw .fw-steps { list-style: none; margin: 6px 0; padding: 0; font-size: 13px; color: var(--m-text); }
+#app:not(.m-phone) .mp-fw .fw-steps li { padding: 3px 0; overflow-wrap: normal; }
+#app:not(.m-phone) .mp-fw .fw-steps li.fw-done { color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-fw-claim { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; }
+#app:not(.m-phone) .mp-fw .fw-prize { display: flex; gap: 6px; margin: 6px 0; }
+#app:not(.m-phone) .mp-fw .fw-prize-c { flex: 1 1 0; min-width: 0; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 4px; border-radius: 10px; background: var(--m-bg2); border: 1px solid var(--m-card-line); color: var(--m-text); }
+#app:not(.m-phone) .mp-fw .fw-prize-c small { font-size: 13px; }
+#app:not(.m-phone) .mp-fw .m-chips { padding: 8px 2px; }
+#app:not(.m-phone) .mp-sleep { margin: 0 0 4px; }
+#app:not(.m-phone) .mp-sleep > small { display: block; padding: 0 4px; font-size: 13px; font-weight: 800; color: var(--m-soft); }
+#app:not(.m-phone) .mp-sleep .m-chips { margin-bottom: 4px; }
+#app:not(.m-phone) .mp-bastion .mp-ico img { width: 40px; height: 40px; }
+#app:not(.m-phone) .mp-frame .m-chips .m-chip { flex: none; }
+
+/* ---------- Missions ---------- */
+#app:not(.m-phone) .mp-claimbar { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-claimbar .m-btn-gold { flex: 1 1 auto; width: auto; }
+#app:not(.m-phone) .mp-claimbar button.m-btn { flex: none; width: auto; min-width: 104px; }
+#app:not(.m-phone) .mp-claimbar button.m-btn:only-child { flex: 1 1 auto; }
+#app:not(.m-phone) .mp-reset { margin: 2px 4px 8px; font-size: 13px; font-weight: 700; color: var(--m-soft); }
+#app:not(.m-phone) .mp-sub { margin: 10px 4px 6px; font-size: 14px; font-weight: 900; color: var(--m-gold-hi); display: flex; align-items: center; gap: 6px; }
+#app:not(.m-phone) .mp-pill { display: inline-block; min-width: 18px; padding: 1px 5px; border-radius: 9px; background: #ff3b4e; color: #fff; font: 900 13px/16px system-ui, sans-serif; text-align: center; font-style: normal; }
+#app:not(.m-phone) .mp-rw { display: block; font-size: 13px; line-height: 1.5; color: var(--m-soft); }
+#app:not(.m-phone) .mp-list > button.m-btn { margin: 0 0 8px; }
+#app:not(.m-phone) .mp-list .contract-title { display: block; font-size: 13px; color: var(--m-soft); font-weight: 700; }
+#app:not(.m-phone) .mp-list .contract-title.rare { color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-claimbar .m-btn-gold { font-size: 16px; white-space: nowrap; padding: 0 10px; }
+#app:not(.m-phone) .mp-claimbar button.m-btn { min-width: 84px; }
+
+/* ---------- Modes qui défilent : chaque mode prend la largeur de son nom ---------- */
+#app:not(.m-phone) .mp-frame .m-modes .m-mode { flex: 1 0 auto; min-width: 76px; padding: 4px 8px 3px; }
+#app:not(.m-phone) .mp-gap { height: 8px; }
+
+/* ---------- Grille de cartes (Encyclopédie, Boss…) : 3 colonnes, nom sur 2 lignes sans coupure de mot ---------- */
+#app:not(.m-phone) .mp-cells { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .mp-cell {
+  --m-rc: var(--m-card-line); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; width: 100%; min-width: 0; height: 112px; margin: 0; padding: 8px 4px 6px;
+  font: inherit; color: var(--m-text); cursor: pointer; border: 1.5px solid var(--m-rc); overflow: hidden; -webkit-tap-highlight-color: transparent;
+}
+#app:not(.m-phone) .mp-cell.r-common { --m-rc: var(--m-r-common); } #app:not(.m-phone) .mp-cell.r-rare { --m-rc: var(--m-r-rare); } #app:not(.m-phone) .mp-cell.r-epic { --m-rc: var(--m-r-epic); }
+#app:not(.m-phone) .mp-cell.r-legendary { --m-rc: var(--m-r-legendary); } #app:not(.m-phone) .mp-cell.r-mythic { --m-rc: var(--m-r-mythic); } #app:not(.m-phone) .mp-cell.r-astral { --m-rc: var(--m-r-astral); } #app:not(.m-phone) .mp-cell.r-ascendant { --m-rc: var(--m-r-ascendant); }
+#app:not(.m-phone) .mp-cell.unknown { --m-rc: var(--m-card-line); }
+#app:not(.m-phone) .mp-cell-pic { flex: none; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 60px; }
+#app:not(.m-phone) .mp-cell-pic img { max-width: 56px; max-height: 52px; width: auto; height: auto; object-fit: contain; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots { display: flex; gap: 2px; margin-top: 2px; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots i { width: 6px; height: 6px; border-radius: 50%; background: #2c3a66; }
+#app:not(.m-phone) .mp-cell-pic .enc-dots i.on { background: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-cell-name {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; width: 100%; max-height: 2.5em; font-size: 13px; font-weight: 800; line-height: 1.25; text-align: center;
+  hyphens: none; overflow-wrap: normal; word-break: normal; color: var(--m-text);
+}
+#app:not(.m-phone) .mp-cell.unknown .mp-cell-name { color: var(--m-soft); }
+#app:not(.m-phone) .mp-art { display: block; width: 56px; height: 52px; background: center / contain no-repeat; image-rendering: pixelated; }
+#app:not(.m-phone) .mp-art.silhouette { background: #2c3a66; clip-path: polygon(50% 0, 90% 30%, 80% 100%, 20% 100%, 10% 30%); opacity: .6; }
+#app:not(.m-phone) .mp-art.big { margin: 0 auto 8px; }
+
+/* ---------- Barre de paliers unique (repères par palier) ---------- */
+#app:not(.m-phone) .mp-track { position: relative; height: 10px; border-radius: 5px; background: var(--m-bg2); border: 1px solid #000; margin: 3px 0; box-sizing: content-box; }
+#app:not(.m-phone) .mp-track > i { display: block; height: 100%; width: var(--pct, 0%); border-radius: 5px; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); }
+#app:not(.m-phone) .mp-track > span { position: absolute; top: -3px; width: 3px; height: 16px; margin-left: -1px; border-radius: 1px; background: #4a5a90; }
+#app:not(.m-phone) .mp-track > span.got { background: var(--m-ok); } #app:not(.m-phone) .mp-track > span.ready { background: #fff; box-shadow: 0 0 6px var(--m-gold-hi); }
+
+/* ---------- Fiche (contenu hérité : sombre, lisible) ---------- */
+#app:not(.m-phone) .mp-detail { display: block; }
+#app:not(.m-phone) .mp-detail > .enc-card, #app:not(.m-phone) .mp-detail .enc-card { background: transparent; border: 0; padding: 0; box-shadow: none; color: var(--m-text); }
+#app:not(.m-phone) .mp-detail p { margin: 6px 0; font-size: 13px; line-height: 1.4; color: var(--m-text); }
+#app:not(.m-phone) .mp-detail .muted { color: var(--m-soft); }
+#app:not(.m-phone) .mp-detail .enc-title { font-size: 18px; font-weight: 900; margin: 6px 0; }
+#app:not(.m-phone) .mp-detail .enc-portrait { display: flex; justify-content: center; align-items: center; min-height: 80px; }
+#app:not(.m-phone) .mp-detail .enc-stat { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 14px; }
+#app:not(.m-phone) .mp-detail .section-title { margin: 10px 0 4px; font-size: 14px; font-weight: 900; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mp-detail .enc-item { min-width: 44px; min-height: 44px; }
+#app:not(.m-phone) .m-sheet .btn { min-height: 44px; }
+#app:not(.m-phone) .m-sheet .m-btn, #app:not(.m-phone) .m-sheet .m-btn-gold { margin-bottom: 8px; }
+
+
+/* ---- miroir PC de mobile-team.css ---- */
+/* ---------- Commun ---------- */
+#app:not(.m-phone) .mt-frame { margin: 2px 0 14px; } /* #panel-body donne déjà 8 px de chaque côté (le cadre y est à 100 % de largeur) */
+#app:not(.m-phone) .mt-frame .mt-lab, #app:not(.m-phone) .mt-sub { display: block; font-size: 13px; line-height: 1.2; font-weight: 800; color: var(--m-soft); text-transform: none; }
+#app:not(.m-phone) .mt-sub { margin: 0 0 6px; font-size: 13px; }
+#app:not(.m-phone) .mt-center { justify-content: center; }
+#app:not(.m-phone) .mt-pair { display: flex; gap: 8px; margin: 8px 0; }
+#app:not(.m-phone) .mt-pair > .m-btn { flex: 1 1 0; min-width: 0; font-size: 13px; padding: 0 8px; }
+#app:not(.m-phone) .mt-pair > .m-btn:only-child { flex-basis: 100%; }
+#app:not(.m-phone) .m-btn-gold + .m-btn-gold { margin-top: 8px; }
+#app:not(.m-phone) .mt-comp > .m-btn-gold { margin: 0 0 8px; }
+/* HTML réutilisé du PC, rangé dans les cartes du kit */
+#app:not(.m-phone) .m-frame .card, #app:not(.m-phone) .m-sheet .card { background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; padding: 10px; margin: 0 0 8px; box-shadow: none; }
+#app:not(.m-phone) .m-frame .muted, #app:not(.m-phone) .m-sheet .muted { color: var(--m-soft); }
+#app:not(.m-phone) .m-sheet .btn, #app:not(.m-phone) .m-frame .fold-head { min-height: 44px; box-sizing: border-box; }
+#app:not(.m-phone) .m-sheet .btn.btn-gold, #app:not(.m-phone) .m-sheet .btn.btn-primary { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f 60%, #c8892a); border: 2px solid #fff0b8; font-weight: 900; border-radius: 12px; }
+#app:not(.m-phone) .m-sheet .btn.tiny, #app:not(.m-phone) .m-sheet .btn.small { min-height: 44px; padding: 0 10px; font-size: 13px; }
+#app:not(.m-phone) .m-sheet .m-chips .m-chip { flex: none; }
+#app:not(.m-phone) .m-sheet .m-chips { flex-wrap: wrap; }
+
+
+/* ---- miroir PC de mobile-team.css ---- */
+/* ---------- Expéditions ---------- */
+#app:not(.m-phone) .mt-exp-head { position: relative; margin: 0 0 8px; height: 132px; border-radius: 12px; overflow: hidden; border: 1px solid var(--m-card-line); }
+#app:not(.m-phone) .mt-exp-head .exp-map { height: 100%; min-height: 0; margin: 0; border-radius: 0; border: 0; background-size: cover; background-position: center; }
+#app:not(.m-phone) .mt-exp-head .exp-map-empty { font-size: 13px; }
+#app:not(.m-phone) .mt-exp-list { display: grid; gap: 8px; margin: 0 0 8px; }
+#app:not(.m-phone) .mt-slot { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px; min-height: 76px; }
+#app:not(.m-phone) .mt-slot-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 0; margin: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+#app:not(.m-phone) .mt-slot-main.static { cursor: default; }
+#app:not(.m-phone) .mt-slot-pic { flex: none; display: block; width: 56px; }
+#app:not(.m-phone) .mt-slot-pic .m-tile { width: 56px; }
+#app:not(.m-phone) .mt-slot-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 auto; }
+#app:not(.m-phone) .mt-slot-txt > b { font: 900 14px/1.15 system-ui, sans-serif; overflow-wrap: normal; hyphens: none; }
+#app:not(.m-phone) .mt-slot-txt > small { font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .mt-st { font-style: normal; font-weight: 800; font-size: 13px; color: var(--m-gold-hi); }
+#app:not(.m-phone) .mt-gain { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 13px; font-weight: 800; }
+#app:not(.m-phone) .mt-gain .rw-icons { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; background: transparent; border: 0; padding: 0; }
+#app:not(.m-phone) .mt-gain .rw { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; font-weight: 800; }
+#app:not(.m-phone) .mt-gain .rw img { width: 16px; height: 16px; }
+#app:not(.m-phone) .mt-gain .rw-name { font-size: 13px; color: var(--m-soft); }
+#app:not(.m-phone) .mt-gain.big { display: block; margin-top: 8px; }
+#app:not(.m-phone) .mt-gain.big small { display: block; margin-bottom: 4px; color: var(--m-soft); font-size: 13px; }
+#app:not(.m-phone) .mt-slot .m-btn.auto { flex: none; width: auto; min-width: 84px; }
+#app:not(.m-phone) .mt-slot.done { border-color: var(--m-ok); }
+#app:not(.m-phone) .mt-slot .m-bar { width: 100%; box-sizing: border-box; }
+#app:not(.m-phone) .mt-slot.free .mt-slot-main:active { background: rgba(255, 255, 255, .05); }
+#app:not(.m-phone) .mt-exp .m-chips { margin-bottom: 8px; }
+
+
+/* =====================================================================================================================
+   Réglages propres au PC (par-dessus le miroir ci-dessus)
+   ===================================================================================================================== */
+
+/* ---------- En-tête du panneau latéral : le cartouche du cadre remplace titre, « ? » et résumé ; la bannière et la phrase d'accroche s'effacent ---------- */
+#app:not(.m-phone) #panel:has(#panel-body > :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame)) :is(#panel-icon, #panel-title, #panel-crest, #panel-help, #panel-extra) { display: none; }
+#app:not(.m-phone) #panel-body:has(> :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame)) > :is(.art-banner-wrap, .tab-lead, .intro-card) { display: none; }
+#app:not(.m-phone) .cb-frame, #app:not(.m-phone) .mp-frame { overflow: visible; }
+#app:not(.m-phone) .cb-frame .m-title b, #app:not(.m-phone) .mp-frame .m-title b { font-size: 25px; }
+
+/* ---------- Cartes de lignes : plus hautes, texte plus grand ---------- */
+#app:not(.m-phone) .mp-row { min-height: 80px; padding: 10px 14px; gap: 14px; }
+#app:not(.m-phone) .mp-ico { width: 56px; height: 56px; border-radius: 12px; }
+#app:not(.m-phone) .mp-ico img { width: 42px; height: 42px; }
+#app:not(.m-phone) .mp-ico.big { width: 68px; height: 68px; }
+#app:not(.m-phone) .mp-ico.big img { width: 50px; height: 50px; }
+#app:not(.m-phone) .mp-name { font-size: 17px; }
+#app:not(.m-phone) .mp-main small, #app:not(.m-phone) .mp-n { font-size: 14px; }
+#app:not(.m-phone) .mp-main .rw-icons, #app:not(.m-phone) .mp-main .rw { font-size: 14px; }
+#app:not(.m-phone) .mp-main .rw img { width: 18px; height: 18px; }
+#app:not(.m-phone) .mp-head { height: 108px; padding: 10px 16px; gap: 14px; }
+#app:not(.m-phone) .mp-head-line b { font-size: 26px; }
+#app:not(.m-phone) .mp-head-line small { font-size: 15px; }
+#app:not(.m-phone) .mp-head-rw .rw-icons, #app:not(.m-phone) .mp-head-rw .rw { font-size: 14px; }
+#app:not(.m-phone) .mp-head-rw .rw img { width: 18px; height: 18px; }
+#app:not(.m-phone) .mp-row button.m-btn.auto, #app:not(.m-phone) .mp-head button.m-btn.auto, #app:not(.m-phone) .mp-claimbar button.m-btn.auto { min-width: 120px; padding: 0 18px; }
+#app:not(.m-phone) .mp-row .m-btn-gold.auto, #app:not(.m-phone) .mp-head .m-btn-gold.auto { min-width: 140px; padding: 0 20px; height: 56px; min-height: 56px; font-size: 20px; }
+#app:not(.m-phone) .mp-list { gap: 0; }
+#app:not(.m-phone) .mp-sub { font-size: 18px; margin: 14px 4px 8px; }
+#app:not(.m-phone) .mp-reset { font-size: 14px; }
+#app:not(.m-phone) .mp-claimbar { gap: 12px; }
+#app:not(.m-phone) .mp-claimbar .m-btn-gold { font-size: 22px; padding: 0 16px; }
+#app:not(.m-phone) .mp-claimbar button.m-btn { min-width: 120px; }
+#app:not(.m-phone) .mp-pill { min-width: 22px; font: 900 13px/20px system-ui, sans-serif; border-radius: 11px; }
+#app:not(.m-phone) .mp-fw-head b { font-size: 19px; }
+#app:not(.m-phone) .mp-fw-head small { font-size: 14px; }
+#app:not(.m-phone) .mp-fw .fw-steps { font-size: 15px; }
+#app:not(.m-phone) .mp-fw .fw-steps li { padding: 5px 0; }
+#app:not(.m-phone) .mp-fw .fw-prize-c { min-height: 84px; }
+#app:not(.m-phone) .mp-fw .fw-prize-c small { font-size: 13px; }
+#app:not(.m-phone) .mp-sleep > small { font-size: 14px; }
+#app:not(.m-phone) .mp-bastion .mp-ico img { width: 48px; height: 48px; }
+#app:not(.m-phone) .mp-frame .m-modes .m-mode { flex: 1 1 0; min-width: 0; }
+#app:not(.m-phone) .mp-frame .m-chips .m-chip { font-size: 15px; height: 40px; }
+
+/* ---------- Carte ---------- */
+#app:not(.m-phone) .cb-frame .cb-head { height: auto; min-height: 104px; gap: 8px; padding: 14px 18px; }
+#app:not(.m-phone) .cb-frame .cb-zone { font-size: 24px; }
+#app:not(.m-phone) .cb-frame .cb-sub { font-size: 15px; max-height: none; }
+#app:not(.m-phone) .cb-frame .forecast { font-size: 14px; padding: 8px 12px; }
+#app:not(.m-phone) .cb-frame .cb-mapbox { overflow: hidden; max-width: 760px; margin: 0 auto 12px; }
+#app:not(.m-phone) .cb-frame .mini-map { width: 100%; }
+#app:not(.m-phone) .cb-frame .map-dot { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 14px; }
+#app:not(.m-phone) .cb-frame .cb-picker { grid-template-columns: 64px minmax(0, 1fr) 64px; max-width: 760px; margin: 0 auto 12px; }
+#app:not(.m-phone) .cb-frame .cb-picker .world-name { font-size: 22px; }
+#app:not(.m-phone) .cb-frame .cb-stars { font-size: 14px; gap: 6px 16px; }
+#app:not(.m-phone) .cb-frame .m-chips { justify-content: center; }
+#app:not(.m-phone) .cb-frame .cb-stages { padding: 12px 10px; }
+#app:not(.m-phone) .cb-frame .stage-grid { gap: 8px; }
+#app:not(.m-phone) .cb-frame .stage-grid .btn { min-height: 48px; font-size: 16px; }
+#app:not(.m-phone) .cb-frame .cb-mini { height: 80px; padding: 0 18px; }
+#app:not(.m-phone) .cb-frame .cb-mini-t { font-size: 19px; }
+#app:not(.m-phone) .cb-frame .cb-mini-s, #app:not(.m-phone) .cb-frame .cb-mini-r { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .rv-dot { width: 12px; height: 12px; }
+#app:not(.m-phone) .cb-frame .m-btn, #app:not(.m-phone) .cb-frame .m-btn-gold { margin: 0 0 12px; }
+
+/* ---------- Donjons : bannière illustrée, boss en grand ---------- */
+#app:not(.m-phone) .cb-frame .dgm-head { height: auto; min-height: 112px; padding: 14px 18px; gap: 16px; }
+#app:not(.m-phone) .cb-frame .dgm-keys { font-size: 22px; }
+#app:not(.m-phone) .cb-frame .dgm { height: 168px; grid-template-columns: minmax(0, 1fr) 170px; gap: 12px; padding: 12px 14px 12px 18px; }
+#app:not(.m-phone) .cb-frame .dgm[data-d="crypt"] { --dgm-img: url(../../assets/ui/art101/dungeon_crypt.png); }
+#app:not(.m-phone) .cb-frame .dgm[data-d="sanctuary"] { --dgm-img: url(../../assets/ui/art101/dungeon_sanctuary.png); }
+#app:not(.m-phone) .cb-frame .dgm[data-d="furnace"] { --dgm-img: url(../../assets/ui/art101/dungeon_furnace.png); }
+#app:not(.m-phone) .cb-frame .dgm[data-d="glacier"] { --dgm-img: url(../../assets/ui/art101/dungeon_glacier.png); }
+#app:not(.m-phone) .cb-frame .dgm[data-d="citadel"] { --dgm-img: url(../../assets/ui/art101/dungeon_citadel.png); }
+#app:not(.m-phone) .cb-frame .dgm {
+  background: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .7) 55%, rgba(11, 17, 36, .25)), var(--dgm-img, none) center / cover no-repeat;
+  background-color: var(--m-card);
+}
+#app:not(.m-phone) .cb-frame .dgm-name { font-size: 24px; }
+#app:not(.m-phone) .cb-frame .dgm-sub { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .dgm-row { font-size: 15px; gap: 12px; }
+#app:not(.m-phone) .cb-frame .dgm-row .dg-star { width: 20px; height: 20px; }
+#app:not(.m-phone) .cb-frame .dgm-gain img { width: 24px; height: 24px; }
+#app:not(.m-phone) .cb-frame .dgm-boss { height: 96px; }
+#app:not(.m-phone) .cb-frame .dgm-side .m-btn { height: 52px; font-size: 18px; }
+#app:not(.m-phone) .cb-frame .dgm-lock { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .dg-elem { font-size: 13px; }
+
+/* ---------- Défis ---------- */
+#app:not(.m-phone) .cb-frame .cb-tower { height: auto; min-height: 150px; gap: 18px; padding: 16px 18px; }
+#app:not(.m-phone) .cb-frame .cb-floor { width: 120px; height: 120px; }
+#app:not(.m-phone) .cb-frame .cb-floor-n { font-size: 36px; }
+#app:not(.m-phone) .cb-frame .cb-tower-k { font-size: 14px; }
+#app:not(.m-phone) .cb-frame .cb-tower-name { font-size: 24px; }
+#app:not(.m-phone) .cb-frame .cb-tower-lv, #app:not(.m-phone) .cb-frame .cb-more { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .cb-rule { width: 52px; height: 52px; }
+#app:not(.m-phone) .cb-frame .cb-rule img { width: 34px; height: 34px; }
+
+/* ---------- Événement ---------- */
+#app:not(.m-phone) .cb-frame .ev-poster { height: 210px; padding: 18px 22px; }
+#app:not(.m-phone) .cb-frame .ev-t { font-size: 30px; }
+#app:not(.m-phone) .cb-frame .ev-sub { font-size: 16px; }
+#app:not(.m-phone) .cb-frame .ev-wallet { font-size: 20px; }
+#app:not(.m-phone) .cb-frame .ev-poster-r { max-width: 190px; }
+#app:not(.m-phone) .cb-frame .ev-poster-r img { height: 150px; }
+#app:not(.m-phone) .cb-frame .ev-poster-r small { font-size: 14px; }
+#app:not(.m-phone) .cb-frame .ev-h { font-size: 19px; }
+#app:not(.m-phone) .cb-frame .ev-h img { width: 26px; height: 26px; }
+#app:not(.m-phone) .cb-frame .ev-lanterns.lt-map { height: 260px; }
+#app:not(.m-phone) .cb-frame .ev-mission { min-height: 80px; gap: 14px; }
+#app:not(.m-phone) .cb-frame .ev-mission .lt-tile-art { width: 56px; height: 56px; }
+#app:not(.m-phone) .cb-frame .ev-mission-body { font-size: 17px; }
+#app:not(.m-phone) .cb-frame .ev-mission .lt-give { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .lt-stamp { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .ev-shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+#app:not(.m-phone) .cb-frame .ev-item img { width: 64px; height: 64px; }
+#app:not(.m-phone) .cb-frame .ev-item b { font-size: 15px; }
+#app:not(.m-phone) .cb-frame .ev-item .lt-price { font-size: 16px; }
+#app:not(.m-phone) .cb-frame .lt-node small, #app:not(.m-phone) .cb-frame .lt-node .lt-give { font-size: 13px; }
+
+/* ---------- Arène : plus de défilement interne (le corps du panneau défile, le bouton « Combattre » clôt la page) ---------- */
+#app:not(.m-phone) #panel-body:has(> .ar-frame) { display: block; }
+#app:not(.m-phone) .ar-frame { display: block; overflow: visible; margin-top: 0; padding: 22px; }
+#app:not(.m-phone) .ar-frame .ar-scroll { overflow: visible; }
+#app:not(.m-phone) .ar-frame .m-title { height: 58px; margin: 0; }
+#app:not(.m-phone) .ar-frame .m-title .m-title-in { height: 58px; }
+#app:not(.m-phone) .ar-frame .m-title .m-help, #app:not(.m-phone) .ar-frame .m-title .m-close { width: 44px; height: 44px; }
+#app:not(.m-phone) .ar-frame .m-modes { margin-bottom: 14px; padding: 2px; }
+#app:not(.m-phone) .ar-frame .m-modes .m-mode { height: 64px; gap: 6px; padding: 6px 4px; }
+#app:not(.m-phone) .ar-frame .m-modes .m-mode img { width: 28px; height: 28px; }
+#app:not(.m-phone) .ar-frame .ct-go { padding: 12px 0 0; }
+#app:not(.m-phone) .ar-frame .ct-go .btn { min-height: 62px; font-size: 22px; }
+#app:not(.m-phone) .ar-frame .ct-go .btn:not(.btn-gold) { min-height: 46px; font-size: 16px; }
+#app:not(.m-phone) .ar-frame .primary-action { min-height: 62px; font-size: 22px; }
+#app:not(.m-phone) .ar-frame .ct-tip { font-size: 14px; padding: 8px 12px; }
+#app:not(.m-phone) .ar-frame .ct-floor { min-height: 48px; }
+#app:not(.m-phone) .ar-frame .ct-go { position: static; background: none; box-shadow: none; }
+#app:not(.m-phone) .cb-frame .ev-lanterns.lt-map { overflow: hidden; }
+#app:not(.m-phone) .cb-frame .ev-lanes { width: calc(100% - 96px); margin: 0 48px; }
+#app:not(.m-phone) .ar-frame .m-title .m-close { display: none; }
+
+/* ---------- Panneau étroit (1116 px de large : ≈ 440 px de cadre) : tuiles de mode et cartes qui se serrent ---------- */
+@container mframe (max-width: 600px) {
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .ar-frame) .m-modes { gap: 6px; }
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .ar-frame) .m-modes .m-mode { font-size: 13px; padding: 4px 2px; gap: 4px; }
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .ar-frame) .m-modes .m-mode span { white-space: normal; line-height: 1.05; }
+  #app:not(.m-phone) .mp-frame .m-modes .m-mode img { width: 32px; height: 32px; }
+  #app:not(.m-phone) .mp-claimbar .m-btn-gold { font-size: 18px; min-width: 0; }
+  #app:not(.m-phone) .mp-claimbar button.m-btn { min-width: 76px; padding: 0 10px; }
+  #app:not(.m-phone) .cb-frame .dgm { height: 150px; grid-template-columns: minmax(0, 1fr) 124px; padding: 10px 10px 10px 14px; }
+  #app:not(.m-phone) .cb-frame .dgm-name { font-size: 20px; }
+  #app:not(.m-phone) .cb-frame .dgm-boss { height: 70px; }
+  #app:not(.m-phone) .cb-frame .dgm-side .m-btn { height: 46px; font-size: 16px; }
+  #app:not(.m-phone) .cb-frame .dgm-row { gap: 6px; }
+  #app:not(.m-phone) .cb-frame .cb-floor { width: 96px; height: 96px; }
+  #app:not(.m-phone) .cb-frame .cb-tower-name { font-size: 20px; }
+  #app:not(.m-phone) .cb-frame .ev-poster { height: 190px; }
+  #app:not(.m-phone) .cb-frame .ev-t { font-size: 25px; }
+  #app:not(.m-phone) .cb-frame .ev-shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #app:not(.m-phone) .mp-row { padding: 8px 10px; gap: 10px; }
+  #app:not(.m-phone) .mp-head { height: auto; min-height: 96px; }
+}
+
+/* ---------- Arène : cartes et textes lisibles (≥ 12 px) ---------- */
+#app:not(.m-phone) .ar-frame .pcard.small { --w: 124px; }
+#app:not(.m-phone) .ar-frame .cf-slot { width: 124px; }
+#app:not(.m-phone) .ar-frame .pcard.small .pc-top b, #app:not(.m-phone) .ar-frame .pcard.small.foe .pc-top b { font-size: 12px; line-height: 1.1; }
+#app:not(.m-phone) .ar-frame .pc-role, #app:not(.m-phone) .ar-frame .pc-stats { font-size: 12px; }
+#app:not(.m-phone) .ar-frame .pc-el { font-size: 13px; }
+#app:not(.m-phone) .ar-frame .cf-row, #app:not(.m-phone) .ar-frame .ct-foes { gap: 10px; }
+#app:not(.m-phone) .ar-frame .cf-rows small { font-size: 14px; }
+#app:not(.m-phone) .ar-frame .btn.small { font-size: 14px; min-height: 40px; }
+#app:not(.m-phone) .ar-frame .elem-badge, #app:not(.m-phone) .ar-frame .elem-badge.elem-icon { font-size: 13px; line-height: 18px; }
+#app:not(.m-phone) .ar-frame small, #app:not(.m-phone) .ar-frame .muted.small, #app:not(.m-phone) .ar-frame .dg-stars, #app:not(.m-phone) .ar-frame .dg-stars i { font-size: 13px; }
+#app:not(.m-phone) .ar-frame .ct-floor { font-size: 13px; min-width: 60px; min-height: 52px; }
+#app:not(.m-phone) .ar-frame .ct-head { font-size: 15px; }
+#app:not(.m-phone) .ar-frame .card { font-size: 15px; }
+@container mframe (max-width: 600px) {
+  #app:not(.m-phone) .ar-frame .pcard.small { --w: 110px; }
+  #app:not(.m-phone) .ar-frame .cf-slot { width: 110px; }
+  #app:not(.m-phone) .ar-frame .cf-row, #app:not(.m-phone) .ar-frame .ct-foes { gap: 6px; }
+  #app:not(.m-phone) .cb-frame .lt-node { min-width: 24px; min-height: 24px; }
+  #app:not(.m-phone) .cb-frame .lt-node .lt-lantern { width: 24px; height: 24px; }
+  #app:not(.m-phone) .cb-frame .ev-lanterns.lt-map { height: 380px; }
+  #app:not(.m-phone) .cb-frame .lt-node.prize { transform: translate(-28%, -50%); }
+  #app:not(.m-phone) .cb-frame .lt-node small { display: none; } /* le nom du palier reste dans l'info-bulle (title) ; l'icône de gain suffit */
+  #app:not(.m-phone) .cb-frame .ev-lanes { width: calc(100% - 64px); margin: 0 32px; }
+}
+#app:not(.m-phone) .ar-frame .m-title, #app:not(.m-phone) .ar-frame .m-title:has(.m-help + .m-close) { padding: 0 64px; }
+
+/* ---------- Expéditions : carte plus haute, places côte à côte, boutons du bas centrés ---------- */
+#app:not(.m-phone) .mt-exp-head { height: 230px; margin-bottom: 14px; }
+#app:not(.m-phone) .mt-exp-head .exp-map-empty { font-size: 16px; font-weight: 800; text-shadow: 0 2px 3px #000, 0 0 6px #000; }
+#app:not(.m-phone) .mt-exp-list { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; margin-bottom: 14px; }
+#app:not(.m-phone) .mt-slot { min-height: 96px; padding: 12px 14px; gap: 14px; }
+#app:not(.m-phone) .mt-slot-pic, #app:not(.m-phone) .mt-slot-pic .m-tile { width: 72px; }
+#app:not(.m-phone) .mt-slot-txt > b { font: 900 18px/1.15 system-ui, sans-serif; }
+#app:not(.m-phone) .mt-slot-txt > small, #app:not(.m-phone) .mt-st { font-size: 15px; }
+#app:not(.m-phone) .mt-gain, #app:not(.m-phone) .mt-gain .rw { font-size: 15px; }
+#app:not(.m-phone) .mt-gain .rw img { width: 20px; height: 20px; }
+#app:not(.m-phone) .mt-slot .m-btn.auto { min-width: 120px; padding: 0 18px; }
+#app:not(.m-phone) .mt-pair { max-width: 760px; margin: 0 auto 14px; gap: 12px; }
+#app:not(.m-phone) .mt-pair > .m-btn { font-size: 16px; }
+#app:not(.m-phone) .mt-exp > .m-btn-gold { max-width: 760px; margin: 0 auto; display: flex; }
+#app:not(.m-phone) .mt-exp .m-chips { justify-content: center; }
+#app:not(.m-phone) .mt-sub { font-size: 14px; }
+
+/* ---------- Cartouche étroit : le nom doit tenir (panneau latéral à 1116 px) ---------- */
+@container mframe (max-width: 600px) {
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-title, #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-title:has(.m-help + .m-close) { padding: 0 58px; }
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-title .m-title-in { min-width: 0; padding: 0 34px; gap: 10px; }
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-title b { font-size: 22px; }
+  #app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) .m-title img { width: 30px; height: 30px; }
+  #app:not(.m-phone) .mt-exp-list { grid-template-columns: minmax(0, 1fr); }
+  #app:not(.m-phone) .mt-exp-head { height: 170px; }
+  #app:not(.m-phone) .mt-slot { padding: 10px; gap: 10px; }
+  #app:not(.m-phone) .mt-slot .m-btn.auto { min-width: 96px; padding: 0 12px; }
+}
+#app:not(.m-phone) .ar-frame .rw { display: inline-flex; flex-direction: row; align-items: center; gap: 4px; vertical-align: middle; }
+#app:not(.m-phone) .ar-frame .rw img { width: 20px; height: 20px; }
+
+/* ---------- Défis : tuile illustrée vers l'Arène ---------- */
+#app:not(.m-phone) .cb-frame .arena-tile { max-width: none; width: 100%; aspect-ratio: auto; height: 120px; margin: 0 0 12px; padding: 12px 18px; border: 2px solid var(--m-btn-line); border-radius: 14px; box-sizing: border-box; background-size: cover; background-position: center; cursor: pointer; }
+#app:not(.m-phone) .cb-frame .arena-tile:hover { border-color: var(--m-gold); }
+#app:not(.m-phone) .cb-frame .arena-tile b { font-size: 24px; text-shadow: 0 2px 0 #000, 0 0 8px #000; color: var(--m-text); }
+#app:not(.m-phone) .cb-frame .arena-tile span { font-size: 15px; font-weight: 800; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
+#app:not(.m-phone) :is(.cb-frame, .mp-frame, .mt-exp, .ar-frame) { opacity: 1 !important; animation: none !important; transition: none !important; } /* le cadre ne s'estompe pas à l'ouverture (le cartouche doit toujours être visible) */

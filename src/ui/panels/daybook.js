@@ -9,7 +9,8 @@ import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
 import { bastionDaybookLine } from '../../core/bastion.js'; // v10.3 (10.6)
 import { mBar, mBtn, mBtnGold, mChip } from '../mobile-kit.js'; // v10.12
-import { esc, isMPhone, mpFrame, mpRow } from './profile-m.js';
+import { esc, mpFrame, mpRow } from './profile-m.js';
+const isMPhone = () => true; // v10.13 : le PC emploie le même kit que le téléphone (desk-activities.css)
 
 // v9.8 (H5) : carnet des 7 premiers jours, en tête du Carnet du jour ; le gros lot (Épique au choix) visible dès le jour 1.
 function firstWeekHtml(ui, state) {

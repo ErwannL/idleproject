@@ -149,7 +149,7 @@ export default {
       return `<span class="exp-walker${p >= 1 ? ' back' : ''}" style="left:${8 + p * 78}%;top:${28 + (i % 3) * 22}%">${companionStill(c)}</span>`;
     }).join('');
     const map = `<div class="exp-map" style="background-image:url(assets/ui/art98/expedition_map.png)">${walkers || '<span class="exp-map-empty">Aucun compagnon en route : envoie-en un !</span>'}</div>`;
-    if (isPhoneUi(ui) && !opts.embed) return renderPhone(ui, state, now, ready, again, dur, map);
+    if (!opts.embed) return renderPhone(ui, state, now, ready, again, dur, map);
     return `<div class="card">${map}${actions}${durRow}${prefer}<div class="exp-list">${slots}</div></div>`;
   },
 };

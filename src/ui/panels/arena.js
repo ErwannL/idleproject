@@ -11,7 +11,7 @@ import { companionStill } from './expeditions.js';
 import { cardTowerHtml } from './arena-cards-view.js';
 import { cardArena } from '../../core/arena-cards.js';
 import { mModes, mTitle } from '../mobile-kit.js'; // v10.12
-import { isPhoneUi } from './combat-phone.js';
+const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 const MODE_LABEL = { cards: 'Tour à cartes', survival: 'Épreuve : Survie', global: 'Épreuve : Boss commun' }; // v10.1 (P4)
 const SKILL_TXT = { hit: 'frappe', burst: 'zone', heal: 'soin', shield: 'bouclier', rally: 'cri', gold: 'fortune' };

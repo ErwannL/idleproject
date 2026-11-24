@@ -21,7 +21,7 @@ import { pageActive } from '../page.js'; // v10.4 : page plein écran
 import { TRAITS, bossTrait } from '../../core/boss-traits.js';
 import { ROLES } from '../../data/synergies.js';
 import { mBtn, mChip, mCost, mTitle } from '../mobile-kit.js'; // v10.12
-import { isPhoneUi } from './combat-phone.js';
+const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 import { DOORS, DUNGEON_GAIN, bestSweepTarget, dungeonSet, dungeonStars, mainGain, nightmareBest, nightmareOpen, nightmareMult, roman } from '../../core/dungeon-plus.js'; // v10.1 (P3)
 
 
@@ -196,7 +196,7 @@ function phoneBanner(state, d) {
   const nm = nightmareBest(state, d.id);
   const act = locked ? `<span class="dgm-lock">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>` : mBtn('Entrer', { action: 'dungeon-sel', value: d.id, cls: 'dgm-enter' });
   const sweep = !locked && stars && n > 0 ? mChip(`Balayer ×${n}`, { action: 'sweep-n', value: `${d.id}|${diff}|${n}` }) : '';
-  return `<div class="m-card dgm${locked ? ' locked' : ''}" style="--dgm-bg:url(assets/ui/art101/dungeon_${d.id}.png)">
+  return `<div class="m-card dgm${locked ? ' locked' : ''}" data-d="${d.id}" style="--dgm-bg:url(assets/ui/art101/dungeon_${d.id}.png)">
     <div class="dgm-info"><b class="dgm-name">${escapeHtml(d.name)}</b><span class="dgm-sub">${escapeHtml(BOSSES[d.boss].name)} ${elemTag(zoneElement(d.zone))}</span>
       <span class="dgm-row"><span class="dg-stars" role="img" aria-label="${stars} étoiles sur 3">${stars3(stars)}</span>${nm ? `<small>Cauchemar ${roman(nm)}</small>` : ''}${g ? `<span class="dgm-gain" title="${escapeHtml(g.label)}">${img(GAIN_ICON[g.key])}<span>${escapeHtml(g.label)}</span></span>` : ''}</span>${sweep}</div>
     <div class="dgm-side"><img class="px dgm-boss" src="assets/ui/art102/${BOSS_ART[d.id]}.png" alt="">${act}</div></div>`;
