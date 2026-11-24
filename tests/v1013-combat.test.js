@@ -37,8 +37,8 @@ test('10.13 (8.1) : événements — cadre 76 px (PC) / 56 px (téléphone), ima
 test('10.13 (8.2) : carte de zone — trois lignes (titre, piste, compteurs en 3 cases égales), hauteur fixe : rien ne se chevauche', () => {
   const d = css('src/ui/desk-hud.css');
   assert.match(d, /#goals-pill \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(d, /#zone-card \{[^}]*width: 360px[^}]*height: var\(--zone-h\)/);
-  assert.match(d, /--zone-h: 120px/);
+  assert.match(d, /#zone-card \{[^}]*width: 360px[^}]*height: 82px/);
+  assert.match(d, /--zone-h: 128px/);
   const ui = src('src/ui/ui.js');
   assert.match(ui, /zn-skull/);
   assert.match(ui, /class="zn-x"/);
