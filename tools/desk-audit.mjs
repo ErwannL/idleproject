@@ -12,6 +12,7 @@
 //   7 aucun bouton « Équiper toute l'équipe » dans Compagnons
 //   8 aucun <select> visible
 //   9 aucun texte sous 12 px
+//  10 aucun texte tronqué (ellipsis ou débordement masqué)
 // Il est NORMAL qu'il trouve des défauts tant que les écrans n'ont pas été refaits : il rapporte le nombre par contrôle et par onglet.
 // Code de sortie 1 au moindre défaut. Captures JPEG : <taille>-<partie>-<vue>.jpg (partie neuve : « neuve »), dans le dossier --out.
 import { mkdir } from 'node:fs/promises';
@@ -21,7 +22,7 @@ import { ALL_TABS, PC_SIZES, makeOpt, parseSizes, parseList, startApp, openGame,
 
 export const CHECKS = {
   1: 'défilement horizontal / contenu décentré', 2: 'chevauchement', 3: 'image d\'événement hors de son cadre', 4: 'cartouche / bouton doré',
-  5: 'image manquante', 6: '« Remettre au niveau » / sharpen', 7: '« Équiper toute l\'équipe » dans Compagnons', 8: '<select> visible', 9: 'texte sous 12 px',
+  5: 'image manquante', 6: '« Remettre au niveau » / sharpen', 7: '« Équiper toute l\'équipe » dans Compagnons', 8: '<select> visible', 9: 'texte sous 12 px', 10: 'texte tronqué (ellipsis / débordement)',
 };
 
 // --- Contrôles exécutés dans la page ------------------------------------------------------------------------------------
@@ -144,6 +145,16 @@ export function inPage(kind) {
     if (['SCRIPT', 'STYLE', 'OPTION'].includes(el.tagName) || !shown(el)) continue;
     const fs = parseFloat(getComputedStyle(el).fontSize);
     if (fs < 11.95) { const m = `${name(el)} : ${fs} px`; if (!dup.has(m)) { dup.add(m); add(9, m); } }
+  }
+  // 10. texte tronqué : un élément à texte dont le contenu dépasse sa boîte (ellipsis, overflow masqué)
+  const cut = new Set();
+  for (const el of (kind === 'tab' ? [panel, modal].filter(Boolean) : []).flatMap((r) => [...r.querySelectorAll('*')])) {
+    if ([...el.childNodes].every((n) => n.nodeType !== 3 || !n.textContent.trim())) continue;
+    if (['SCRIPT', 'STYLE', 'OPTION', 'SELECT'].includes(el.tagName) || !shown(el)) continue;
+    const cs = getComputedStyle(el);
+    if (cs.overflowX === 'visible' && cs.textOverflow !== 'ellipsis') continue;
+    if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') continue;
+    if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) { const m = `${name(el)} : ${el.scrollWidth} > ${el.clientWidth}`; if (!cut.has(m)) { cut.add(m); add(10, m); } }
   }
   return issues;
 }

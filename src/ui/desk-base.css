@@ -314,3 +314,23 @@ html.reduce-motion #app:not(.m-phone) .d-bs .d-bs-res .m-chip.warn { animation: 
   #app#app:not(.m-phone) .d-upg .upg-group-head { height: 44px; margin-bottom: 6px; }
   #app#app:not(.m-phone) .d-upg .upg-group-head span { font-size: 17px; }
 }
+
+/* étiquettes sur la carte : jamais coupées (noms courts, raison du verrou sur une 2e ligne courte) */
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag { max-width: none; overflow: visible; text-overflow: clip; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag.stack { flex-direction: column; gap: 1px; padding: 2px 8px; border-radius: 10px; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag.lock.stack { align-items: center; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag .bs-nm { display: inline-flex; align-items: center; gap: 4px; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag .bs-why2 { font-size: 12px; font-weight: 600; opacity: .9; }
+#app#app:not(.m-phone) .d-bs .bs-plot .bs-tag.lock img { width: 12px; height: 12px; }
+/* fiche : noms d'ouvriers entiers */
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-wgrid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-wcard .bs-wname { font-size: 12px; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; text-align: center; max-width: none; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-wcard .bs-wbonus { font-size: 12px; }
+/* bannière « Nouvel âge » : centrée sur la carte, brève ; bulle d'aide : sous le nom, jamais dessus */
+#app#app:not(.m-phone) .d-bs .d-bs-left { position: relative; }
+#app#app:not(.m-phone) .d-bs .bs-age-new { position: absolute; top: 58%; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero { height: 200px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-tip { top: 6px; left: 8px; right: 8px; padding: 6px 8px; font-size: 14px; line-height: 1.25; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-tip .btn { min-height: 36px; padding: 0 10px; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-hero-b { width: 150px; height: 150px; bottom: 0; }
+#app#app:not(.m-phone) .d-bs .d-bs-side .bs-hero .bs-shead { bottom: 8px; left: 12px; background: rgba(8, 12, 24, .7); padding: 2px 8px; border-radius: 8px; }
