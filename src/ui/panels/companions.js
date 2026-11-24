@@ -16,6 +16,8 @@ import { costButton, effectText, escapeHtml, fold, hdArt, formatDecimal, formatN
 import { animCanvas } from '../animator.js';
 import { showcaseSlot } from '../showcase.js'; // v9.2.7 : vitrine animée
 import { DUNGEONS } from '../../data/dungeons.js';
+import { ZONES } from '../../data/zones.js'; // v10.13.1 : décor du bandeau « Ton équipe » (téléphone)
+import { BG } from '../../render/bg.js';
 import { SKILL_RULES, skillTextAt } from '../../data/companion-skills.js';
 import { computeHeroStats } from '../../core/stats.js';
 import { expeditionDone, expeditionType, isAway } from '../../core/expeditions.js';
@@ -148,6 +150,29 @@ function dungeonFor(c, state) {
 const portrait = companionPortrait;
 
 
+// v10.13.1 (téléphone) : bandeau « Ton équipe » illustré : le monde actuel en fond, le héros, les compagnons et le familier en grand
+// (toucher = leur fiche), leur rang dessous, la puissance d'équipe en haut à droite.
+function phoneBanner(ui, state) {
+  let zone = ZONES[0];
+  try { zone = ZONES[currentEncounter(state).zoneIndex] ?? ZONES[0]; } catch { /* repli : premier monde */ }
+  const bg = BG[zone.id] ?? BG.cursed;
+  const layers = (bg.layers ?? []).filter((l) => !l.front && l.factor >= 0.05 && !/clouds|sun|moon|ceiling/.test(l.file)).slice(0, 3);
+  const urls = layers.map((l) => `url(assets/bg/${l.file})`).reverse();
+  const style = `background-image:${[...urls, `linear-gradient(180deg, ${(bg.sky ?? ['#2a3a78', '#16214a']).join(', ')})`].join(', ')};background-size:${[...urls.map(() => 'auto 62%'), '100% 100%'].join(', ')};background-position:${[...urls.map(() => 'left bottom'), '0 0'].join(', ')};background-repeat:${[...urls.map(() => 'repeat-x'), 'no-repeat'].join(', ')}`;
+  const front = frontCompanion(state);
+  const unit = (c, rank) => `<div class="mt-bu"><button type="button" class="mt-bu-btn r-${c.rarity}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">${companionStill(c)}${gearWaiting(state, c.id) ? '<i class="mt-bang" aria-label="Un meilleur objet attend">!</i>' : ''}</button><label class="mt-rank${rank === 'Avant' ? ' front' : ''}">${rank}</label></div>`;
+  const empty = (label) => `<div class="mt-bu empty"><span class="mt-bu-btn" aria-hidden="true">+</span><label class="mt-rank">${label}</label></div>`;
+  const allies = equippedOfKind(state, 'ally');
+  const ordered = [...allies.filter((c) => c.id === front), ...allies.filter((c) => c.id !== front)];
+  const pets = equippedOfKind(state, 'pet');
+  const power = computeHeroStats(state).combatPower ?? 0;
+  const units = [`<div class="mt-bu hero"><span class="mt-bu-btn" title="Le héros (toujours présent)">${animCanvas('hero', 64, 58, 2)}</span><label class="mt-rank">Héros</label></div>`,
+    ...ordered.map((c) => unit(c, c.id === front ? 'Avant' : 'Arrière')),
+    ...Array.from({ length: Math.max(0, teamSlotsOf(state).ally - ordered.length) }, () => empty('Libre')),
+    ...Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => (pets[i] ? unit(pets[i], 'Familier') : empty('Familier')))];
+  return `<section class="mt-team" style="${style}" aria-label="Ton équipe"><span class="mt-team-lbl">Ton équipe</span><span class="mt-team-pw" title="Puissance de combat du héros et de son équipe">⚔ <b>${escapeHtml(formatNumber(power))}</b></span><div class="mt-units">${units.join('')}</div></section>`;
+}
+
 // v10.12 : boutons de la fiche du compagnon sur téléphone (mêmes actions que `actions` du PC). Un seul bouton doré : Améliorer.
 function companionSheet(ui, state, sel, owned, equipped, upgradeLine) {
   let actions = '';
@@ -158,19 +183,23 @@ function companionSheet(ui, state, sel, owned, equipped, upgradeLine) {
     const kind = teamKind(sel);
     const full = !equipped && kind === 'ally' && equippedOfKind(state, 'ally').length >= teamSlotsOf(state).ally;
     const away = isAway(state, sel.id);
+    const placeGold = !equipped && !away; // l'or va à « Mettre dans l'équipe » tant que le compagnon n'est pas dans l'équipe
     const run = away ? state.expeditions.slots.find((x) => x?.companionId === sel.id) : null;
     const front = kind === 'ally' && equipped && frontCompanion(state) !== sel.id ? mBtn('Mettre au rang avant', { action: 'set-front', value: sel.id }) : '';
+    // v10.13.1 : un seul bouton doré. « Mettre dans l'équipe » quand le compagnon n'y est pas ; sinon « Améliorer ».
     const place = away ? mBtn(`En expédition : ${expeditionType(run.type).label}${expeditionDone(run) ? ' (terminée)' : ''}`, { action: 'open-tab', value: 'expeditions' })
-      : full ? mBtn("Mettre dans l'équipe", { action: 'ask-replace', value: sel.id })
-        : mBtn(equipped ? 'Retirer' : "Mettre dans l'équipe", { action: 'toggle-companion', value: sel.id }); // v10.13 : « Équiper » prêtait à confusion (les objets se mettent dans Équipement)
+      : full ? (placeGold ? mBtnGold : mBtn)("Mettre dans l'équipe", { action: 'ask-replace', value: sel.id })
+        : equipped ? mBtn("Retirer de l'équipe", { action: 'toggle-companion', value: sel.id }) : mBtnGold("Mettre dans l'équipe", { action: 'toggle-companion', value: sel.id });
+    const gearBtn = equipped && kind === 'ally' ? mBtn('Objets portés ›', { action: 'gear-for', value: sel.id }) : '';
     const replace = full && ui.view.replaceFor === sel.id
       ? `<div class="m-card mt-replace"><b>Qui remplacer ?</b>${mGrid(equippedOfKind(state, 'ally').map((c) => mTile({ name: c.name, rarity: c.rarity }, { size: 56, action: 'replace-companion', value: `${sel.id}|${c.id}`, src: icon(c.sprite, 1), pips: false, label: c.name })), 4)}${mBtn('Annuler', { action: 'ask-replace', value: '' })}</div>` : '';
     const cost = companionUpgradeCost(state, sel.id);
-    const up = maxed ? mBtnGold('Niveau max · Compétences', { action: 'skill-pop', value: 'active' })
-      : `<div class="mt-up">${mCost('coin', state.gold, cost, { fmt: formatNumber })}${mBtnGold('Améliorer', { action: 'upgrade-companion', value: sel.id, icon: 'icon_upgrade', disabled: state.gold < cost, attrs: `data-cost="${cost}" data-currency="gold"` })}</div>`;
-    actions = `${upgradeLine ? `<div class="mt-upline">${upgradeLine}</div>` : ''}${up}<div class="mt-pair">${place}${front}</div>${replace}`;
+    const upBtn = placeGold ? mBtn : mBtnGold;
+    const up = maxed ? '<div class="mt-max">Niveau max</div>'
+      : `<div class="mt-up">${mCost('coin', state.gold, cost, { fmt: formatNumber })}${upBtn('Améliorer', { action: 'upgrade-companion', value: sel.id, icon: 'icon_upgrade', disabled: state.gold < cost, attrs: `data-cost="${cost}" data-currency="gold"` })}</div>`;
+    actions = `${upgradeLine ? `<div class="mt-upline">${upgradeLine}</div>` : ''}${placeGold ? `${place}${up}` : `${up}${place}`}<div class="mt-pair">${gearBtn}${front}</div>${replace}`;
   }
-  return unitSheetPhone(ui, state, sel, { actions, gear: () => (owned ? gearBlock(ui, state, sel, true) : ''), close: 'close-sheet' });
+  return unitSheetPhone(ui, state, sel, { actions, gear: () => '', noGear: true, close: 'close-sheet' });
 }
 
 export default {
@@ -254,43 +283,34 @@ export default {
 
     if (phone) {
       // ---- v10.12 : téléphone (kit mobile). Mêmes actions que le PC : companion-sel, comp-tab, upgrade-team, set-front…
-      const heroTile = `<span class="m-tile s64 r-epic mt-hero" title="Le héros (toujours présent)">${animCanvas('hero', 64, 58, 1)}</span>`;
-      const fTile = (c) => mTile({ name: c.name, rarity: c.rarity }, { size: 64, action: 'companion-sel', value: c.id, src: icon(c.sprite, c.kind === 'ally' ? 1 : 3), pips: false, bang: gearWaiting(state, c.id) });
-      const allyIds = equippedOfKind(state, 'ally');
-      const front = frontCompanion(state);
-      const frontC = allyIds.find((c) => c.id === front) ?? null;
-      const rear = allyIds.filter((c) => c !== frontC);
-      const nAlly = teamSlotsOf(state).ally;
-      const empty = () => mTile(null, { size: 64 });
-      const frontCell = frontC ? fTile(frontC) : empty();
-      const rearCells = Array.from({ length: Math.max(0, nAlly - 1) }, (_, i) => (rear[i] ? fTile(rear[i]) : empty()));
-      const petCells = Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => { const c = equippedOfKind(state, 'pet')[i]; return c ? fTile(c) : empty(); });
-      const lab = (t) => `<label class="mt-lab">${t}</label>`;
-      const formation = `<div class="m-card mt-formation"><div class="mt-form-row">
-          <div class="mt-fcol">${lab('Héros')}${heroTile}</div>
-          <div class="mt-fcol">${lab('Avant')}${frontCell}</div>
-          <div class="mt-fcol grow">${lab('Arrière')}<div class="mt-frow">${rearCells.join('')}</div></div>
-          <div class="mt-fcol">${lab('Familier')}${petCells.join('')}</div></div>
-        ${(state.loadouts ?? []).length ? `<div class="m-chips"><label class="mt-lab">Équipes</label>${(state.loadouts ?? []).slice(0, 3).map((l, i) => (l.team ? mChip(l.name, { action: 'apply-build', value: i }) : mChip('+ Enregistrer', { action: 'save-loadout', value: i }))).join('')}</div>` : ''}</div>`;
+      const banner = phoneBanner(ui, state);
       const card = (c) => {
         const ow = state.companions.owned[c.id];
         const copies = Math.min(COMPANION_RULES.maxCopies, ow?.stars ?? 0);
         const role = COMPANION_ROLES[c.id];
         const todo = ow && unitTodo(state, c) ? '<span class="mt-bang">!</span>' : '';
-        const stars = ow ? `<span class="mt-stars" aria-label="${copies - 1} étoile${copies - 1 > 1 ? 's' : ''} sur ${dupMax}">${'★'.repeat(copies - 1)}<i>${'★'.repeat(dupMax - (copies - 1))}</i></span>` : `<span class="mt-stars none">0/1</span>`;
-        const st = [state.companions.equipped.includes(c.id) ? '<i class="mt-eq" title="Dans l\'équipe">✓</i>' : '', isAway(state, c.id) ? '<i class="mt-away" title="En expédition">⚑</i>' : ''].join('');
-        return `<button type="button" class="mt-ucard r-${c.rarity}${ow ? '' : ' unowned'}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">
+        const stars = ow ? `<span class="mt-stars" aria-label="${copies - 1} étoile${copies - 1 > 1 ? 's' : ''} sur ${dupMax}">${'★'.repeat(copies - 1)}<i>${'★'.repeat(dupMax - (copies - 1))}</i></span>` : `<span class="mt-stars none">À obtenir</span>`;
+        const inTeam = state.companions.equipped.includes(c.id);
+        const st = [inTeam ? '<span class="mt-in">Équipe</span>' : '', isAway(state, c.id) ? '<span class="mt-in away" title="En expédition">En route</span>' : ''].join('');
+        return `<button type="button" class="mt-ucard r-${c.rarity}${ow ? '' : ' unowned'}${inTeam ? ' in' : ''}" data-action="companion-sel" data-value="${c.id}" aria-label="${escapeHtml(c.name)}">
           ${ow ? `<span class="mt-lvl">Niv. ${unitLevel(state, c.id)}</span>` : ''}${todo}${st}
           <span class="mt-art">${ow ? companionStill(c) : `<img class="px" src="${icon(c.sprite, c.kind === 'ally' ? 1 : 3, { tint: { color: '#3a4a66', alpha: 1 } })}" alt=""><b class="uc-q">?</b>`}</span>
-          <span class="mt-name">${escapeHtml(c.name)}</span>${stars}
-          <span class="mt-meta"><span class="rar-pill r-${c.rarity}">${rarityLabel(c.rarity)}</span>${elementBadge(unitElement(c.id), false, true)}${role ? `<span class="role-dot" style="background:${ROLES[role].color}" title="${ROLES[role].label}"></span>` : ''}</span></button>`;
+          <span class="mt-name">${escapeHtml(c.name)}</span><span class="mt-line">${stars}${ow ? elementBadge(unitElement(c.id), false, true) : ''}</span></button>`;
       };
-      const modes = mModes([{ id: 'ally', label: 'Compagnons', icon: 'icon_paw', action: 'comp-tab', value: 'ally' }, { id: 'pet', label: 'Familiers', icon: 'icon_heart', action: 'comp-tab', value: 'pet' }], tab);
+      const nOwn = (arr) => arr.filter((c) => state.companions.owned[c.id]).length;
       const canUp = state.companions.equipped.some((id) => companionUpgradeCost(state, id) <= state.gold);
-      const gold = mBtnGold("Améliorer l'équipe", { action: 'upgrade-team', icon: 'icon_upgrade', disabled: !canUp });
-      const frame = `<div class="m-frame mt-frame mt-comp">${mTitle('icon_paw', 'Compagnons', true)}${formation}${gold}${modes}
-        ${fold(ui, 'team-tips', 'Conseils', tips, { extra: tipsExtra })}
-        <div class="mt-grid3">${list.map(card).join('')}</div></div>`;
+      const best = adv && !adv.same && adv.gain >= 0.03;
+      const presetsOpen = ui.view.mPresets === '1';
+      const ls = (state.loadouts ?? []).slice(0, 3);
+      // Un seul bouton doré : « Meilleure équipe (+N %) » quand le conseil existe ; sinon « Améliorer l'équipe » s'il y a de quoi payer.
+      const bestBtn = best ? mBtnGold(`Meilleure équipe (+${Math.round(adv.gain * 100)} %)`, { action: 'apply-team', icon: 'icon_upgrade' }) : '';
+      const upBtn = state.companions.equipped.length ? (best || !canUp ? mBtn("Améliorer l'équipe", { action: 'upgrade-team', icon: 'icon_upgrade', disabled: !canUp }) : mBtnGold("Améliorer l'équipe", { action: 'upgrade-team', icon: 'icon_upgrade' })) : '';
+      const filters = `<div class="mt-filters">${mModes([{ id: 'ally', label: `Compagnons ${nOwn(allies)}`, action: 'comp-tab', value: 'ally' }, { id: 'pet', label: `Familiers ${nOwn(pets)}`, action: 'comp-tab', value: 'pet' }], tab)}
+        ${mBtn(`Préréglages ${presetsOpen ? '▴' : '▾'}`, { action: 'm-set', value: presetsOpen ? '' : '1', cls: `mt-filter${presetsOpen ? ' on' : ''}`, attrs: `data-key="mPresets" aria-expanded="${presetsOpen}"` })}</div>`;
+      const presets = presetsOpen ? `<div class="m-card mt-presets"><b class="mt-sub">Équipes enregistrées</b><div class="mt-pre-row">${ls.length ? ls.map((l, i) => (l.team ? mBtn(l.name, { action: 'apply-build', value: i }) : mBtn('+ Enregistrer', { action: 'save-loadout', value: i }))).join('') : '<span class="muted">Aucune place d\'équipe enregistrée.</span>'}</div></div>` : '';
+      const frame = `<div class="m-frame mt-frame mt-comp">${mTitle('icon_paw', 'Compagnons', true)}${banner}${bestBtn || upBtn ? `<div class="mt-actions">${best ? bestBtn : upBtn}${best ? upBtn : ''}</div>` : ''}${filters}${presets}
+        <div class="mt-grid3">${list.map(card).join('')}</div><p class="mt-hint">Touche un portrait : fiche plein écran.</p>
+        ${fold(ui, 'team-tips', 'Conseils : synergies et liens', tips, { extra: tipsExtra })}</div>`;
       return `${frame}${ui.view.sheetOpen === 'companion' ? companionSheet(ui, state, sel, owned, equipped, upgradeLine) : ''}`;
     }
     // v10.13 (lot 6) : PC « vrai jeu » (maquette m06) : bandeau, préréglages, grille 7 colonnes, fiche toujours visible (companions-desk.js).
