@@ -294,3 +294,8 @@
 #app#app.hud-narrow #stage-area #quest-banner { top: calc(var(--ph-top) + var(--pzone-h) + 8px) !important; left: 6px !important; right: auto !important; width: min(270px, calc(100% - 138px)); max-width: none; box-sizing: border-box; }
 #app#app.hud-narrow #stage-area #rift-chip { top: calc(var(--ph-top) + 116px) !important; right: 6px !important; z-index: 5; }
 /* <<< hud-narrow */
+
+/* v10.13 (passe finale) : plus aucun texte sous 12 px sur l'écran de combat PC */
+#app:not(.m-phone) .boss-warning .bw-sub { font-size: 12px; }
+#app:not(.m-phone) .bc-txt small { font-size: 12px; }
+#app:not(.m-phone) .best-card .btn.small { font-size: 12px; }
