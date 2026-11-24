@@ -834,6 +834,12 @@ export class UI {
   }
 
   // `view` (v9.1.0) : vue à montrer (segment, objet choisi…) — un conseil arrive ainsi au bon endroit.
+  // v10.13 (lot 6) : Équipement ne se fait que dans Héros › Équipement ; ouvre l'onglet avec ce personnage choisi dans la rangée « qui »
+  // (mêmes champs que l'action gear-who).
+  openGearFor(id) {
+    this.openTab('inventory', { gearWho: id, sheetOpen: null, selectedItemId: null, eqSlot: null, eqChange: false, eqQuick: null, eqTab: 'gear' });
+  }
+
   openTab(tab, view = null) {
     if (tab !== 'dungeons') { if (this.view) this.view.dungeonSheet = false; this.dgSheet?.(''); } // v10.1
     this.layerHost?.('unit-host', '');
@@ -1066,6 +1072,8 @@ export class UI {
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
       // v9.3.4 : popup de détail d'un compagnon.
       case 'comp-tab': local(() => { v.compTab = value; }); break;
+      case 'comp-filter': local(() => { const [k, x] = String(value).split('|'); if (k === 'rar') v.compRar = x === 'all' ? null : x; else if (k === 'el') v.compEl = x === 'all' ? null : x; }); break; // v10.13 (lot 6) : filtres Rareté / Élément en puces
+      case 'gear-for': this.openGearFor(value); break; // v10.13 (lot 6) : « Objets portés › » (fiche d'un compagnon) → Héros › Équipement, ce compagnon choisi
       case 'skill-pop': local(() => { v.skillPop = value || null; }); break;
       case 'unit-tab': local(() => { v.unitTab = value; v.skillPop = null; }); break;
       case 'unit-show': local(() => { v.unitShow = value; }); break;

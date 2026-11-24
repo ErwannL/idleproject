@@ -100,21 +100,24 @@ test('builds en cartes : résumé et Équiper sur la carte', () => {
   assert.ok(html.includes('1/7 objets') && html.includes('1 pouvoir'));
 });
 
-test('v9.3.4 : popup du compagnon — 3 compétences en icônes, bulle au toucher, Copies, onglets, 2 boutons ; grille en onglets', () => {
+test('v10.13 (lot 6) : Compagnons PC — fiche toujours visible (pas de fenêtre), 3 compétences illustrées, Mettre dans l\'équipe, Objets portés ; grille de cartes portrait', () => {
   const s = createNewState(NOW);
   const c = COMPANIONS.find((x) => COMPANION_ROLES[x.id] && x.skill);
   s.companions.owned[c.id] = { level: 3, stars: 2 };
-  const html = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion' }), s);
-  assert.ok(html.includes('class="unit-pop') && html.includes('data-action="skill-pop"'));
-  assert.equal((html.match(/class="up-skill /g) ?? []).length, 3, 'Passif, Actif, Ultime');
-  assert.ok(html.includes('Copies') && !html.includes('Doublons'), 'Copies, plus de Doublons');
-  assert.ok(html.includes('data-value="skills"') && html.includes('data-value="gear"') && html.includes('data-value="story"'));
-  const bubble = companions.render(uiWith({ companionSel: c.id, sheetOpen: 'companion', skillPop: 'active' }), s);
+  const html = companions.render(uiWith({ companionSel: c.id }), s);
+  assert.ok(html.includes('class="dc-sheet') && !html.includes('unit-pop'), 'fiche dans la page, pas de fenêtre');
+  assert.equal((html.match(/class="dc-skill /g) ?? []).length, 3, 'Passif, Actif, Ultime');
+  assert.ok(html.includes('data-action="skill-pop"'));
+  assert.ok(/Mettre dans l(&#39;|')équipe/.test(html) && !html.includes('Équiper…'), 'plus de « Équiper… »');
+  assert.ok(html.includes('data-action="gear-for"') && html.includes('Objets portés'), 'Objets portés › ouvre Équipement');
+  assert.ok(html.includes('data-action="unit-tab" data-value="story"') && html.includes('Histoire'));
+  assert.ok(!html.includes('<select') && !html.includes('gear-team'), 'pas de liste déroulante, pas de « Équiper toute l\'équipe »');
+  const bubble = companions.render(uiWith({ companionSel: c.id, skillPop: 'active' }), s);
   assert.ok(bubble.includes('class="up-bubble"') && bubble.includes('data-action="skill-up"'));
-  const grid = companions.render(uiWith({}), s);
-  assert.ok(!grid.includes('class="unit-pop'), 'pas de fiche sans toucher');
-  assert.ok(grid.includes('data-action="comp-tab"') && grid.includes('class="unit-card'));
-  assert.ok(!/niv\. \d+ · \d★/.test(grid), 'plus de « niv. 10 · 2★ » sur les cartes');
+  assert.ok(!/btn btn-gold/.test(bubble), 'le bouton de la bulle n\'est pas doré');
+  assert.ok(html.includes('data-action="comp-tab"') && html.includes('class="dc-card') && html.includes('class="dc-team"'));
+  assert.ok(!/niv\. \d+ · \d★/.test(html), 'plus de « niv. 10 · 2★ » sur les cartes');
+  assert.ok((html.match(/class="m-btn-gold/g) ?? []).length <= 1, 'un seul bouton doré');
 });
 
 test('boss : fiche en feuille du bas, histoire, récompenses et familles repliées', () => {

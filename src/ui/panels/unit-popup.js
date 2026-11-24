@@ -95,7 +95,7 @@ export function skillBubble(ui, state, c, own, mine) {
       ${locks.map((l) => `<p class="up-lock">🔒 ${l}</p>`).join('')}${btn}</div>`;
 }
 
-function historyTab(state, c) {
+export function historyTab(state, c) { // v10.13 : aussi dans la fiche PC (companions-desk.js)
   const role = COMPANION_ROLES[c.id];
   const el = ELEMENTS[unitElement(c.id)];
   const syn = role ? SYNERGIES.filter((s) => s.roles.includes(role)) : [];
@@ -192,4 +192,21 @@ export function unitSheetPhone(ui, state, c, { actions, gear, close = 'close-she
     <div class="m-stats2">${mStat(main[0], main[1], main[2])}${mStat('icon_heart', 'Vie (Arène)', formatNumber(p?.maxHp ?? 0))}${mStat('icon_bolt', 'Vitesse', `${T(1 / (p?.interval ?? 1))}/s`)}${mStat('icon_star', 'Copies', `${copies}/${COMPANION_RULES.maxCopies}`)}</div>
     ${mModes(modes, tab, { size: 64 })}<div class="m-card mt-unit-body">${body}</div><div class="mt-unit-actions">${actions}</div>`;
   return mSheet(c.name, html, { id: 'comp-sheet', icon: 'icon_paw', back: close, close });
+}
+
+// v10.13 : chiffres de la fiche PC (Compagnons) : statistique principale (dégâts / soin / protection), vie en Arène, vitesse, copies.
+// Même calcul que unitPopup / unitSheetPhone ci-dessus. Renvoie { main: [icône, libellé, valeur], life, speed, copies }.
+export function unitFacts(state, c) {
+  const owned = state.companions.owned[c.id];
+  const own = owned ?? { stars: 1, level: 1 };
+  const p = profile(state, c);
+  const hero = computeHeroStats(state);
+  const sub = { ...state, companions: { ...state.companions, owned: { ...state.companions.owned, [c.id]: own } } };
+  const skills = companionSkills(sub, c.id);
+  const mult = (sk) => companionSkillMultiplier(state, c, sk.type, false, undefined, own);
+  const dps = skills.filter((sk) => sk.type === 'hit' || sk.type === 'burst').reduce((t, sk) => t + (hero.damage * sk.value * mult(sk)) / sk.every, 0);
+  const heal = skills.filter((sk) => sk.type === 'heal').reduce((t, sk) => t + (hero.maxHp * sk.value * mult(sk)) / 100 / sk.every, 0);
+  const guard = Math.round(Math.max(0, ...skills.filter((sk) => sk.type === 'shield').map((sk) => sk.value)));
+  const main = dps > 0 || (!heal && !guard) ? ['icon_damage', 'Dégâts/s', formatNumber(dps)] : !heal ? ['icon_shield', 'Dégâts reçus', `−${guard} %`] : ['icon_heart', 'Soin/s', formatNumber(heal)];
+  return { main, life: formatNumber(p?.maxHp ?? 0), speed: `${T(1 / (p?.interval ?? 1))}/s`, copies: Math.min(COMPANION_RULES.maxCopies, own.stars ?? 1) };
 }

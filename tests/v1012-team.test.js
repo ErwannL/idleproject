@@ -32,7 +32,11 @@ test('10.12 (équipe) : les trois panneaux rendent un cadre + cartouche du kit s
   assert.match(comp, /m-frame mt-frame mt-comp/);
   assert.match(comp, /mTitle\('icon_paw', 'Compagnons', true\)/);
   assert.match(comp, /mModes\(/);
-  for (const a of ['gear-team', 'upgrade-team', 'companion-sel', 'comp-tab', 'toggle-companion', 'set-front']) assert.ok(comp.includes(a), a);
+  for (const a of ['upgrade-team', 'companion-sel', 'comp-tab', 'toggle-companion', 'set-front']) assert.ok(comp.includes(a), a);
+  // 10.13 : « Équiper toute l'équipe » n'est plus dans Compagnons (PC et téléphone) : l'action gear-team vit dans Héros › Équipement.
+  assert.ok(!comp.includes('gear-team') && !/Équiper toute l/.test(comp), 'plus de gear-team dans Compagnons');
+  assert.ok(!src('src/ui/panels/companions-desk.js').includes('gear-team'), 'plus de gear-team dans la vue PC');
+  assert.ok(src('src/ui/ui.js').includes("case 'gear-team'"), "l'action gear-team existe toujours (Équipement)");
   const camp = src('src/ui/panels/camp.js');
   assert.match(camp, /m-frame mt-frame mt-bastion/);
   assert.match(camp, /mTitle\('tab_expeditions', 'Bastion', true\)/);
