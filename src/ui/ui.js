@@ -405,6 +405,7 @@ export class UI {
     });
     new ResizeObserver(() => this.updateLayout()).observe(root);
     this.updateLayout();
+    this.watchSheets(); // v10.12
     setMenuCount(MENUS.length);
     setCustomKeys(pref('keys'));
     this.restoreNav();
@@ -486,6 +487,7 @@ export class UI {
     const root = document.documentElement;
     this.compact = pref('compact') === true;
     this.phone = isPhone();
+    this.syncMPhone();
     this.root.classList.toggle('compact', this.compact);
     this.root.classList.toggle('color-aid', pref('colorAid') === true);
     root.classList.toggle('contrast-high', pref('contrast') === true);
@@ -634,7 +636,41 @@ export class UI {
   }
 
   // --- Disposition selon la taille de la fenêtre ---
+  // v10.12 : classe `m-phone` sur #app (kit mobile, src/ui/mobile-kit.css) : fenêtre de 600 px ou moins, ou téléphone tactile.
+  // Pose aussi les bornes verticales des fiches plein écran (sous la bande de scène, au-dessus de la barre du bas).
+  syncMPhone() {
+    const on = (this.root.clientWidth || window.innerWidth) <= 600 || isPhone();
+    if (on !== this.root.classList.contains('m-phone')) this.root.classList.toggle('m-phone', on);
+    if (!on) return;
+    const panel = this.$('panel');
+    const top = panel && !panel.classList.contains('hidden') ? parseFloat(getComputedStyle(panel).top) || 0 : 0; // `top` calculé : insensible à l'animation d'ouverture
+    const tabs = this.$('tabs')?.getBoundingClientRect();
+    if (top > 0) this.root.style.setProperty('--m-sheet-top', `${Math.round(top)}px`);
+    if (tabs?.height) this.root.style.setProperty('--m-sheet-bottom', `${Math.round(window.innerHeight - tabs.top)}px`);
+  }
+
+  // v10.12 : #panel-body est un conteneur (container-type) : un `position: fixed` y resterait prisonnier et défilerait avec lui.
+  // Les fiches `.m-sheet` rendues dans le corps sont donc déplacées dans #panel, après chaque rendu du corps ; si le rendu n'en
+  // contient plus, la fiche déplacée disparaît. Une fiche doit donc faire partie du HTML rendu (état de vue), jamais être ajoutée à la main.
+  watchSheets() {
+    const body = this.$('panel-body');
+    const panel = this.$('panel');
+    if (!body || !panel || typeof MutationObserver === 'undefined') return;
+    const obs = new MutationObserver(() => {
+      const fresh = [...body.querySelectorAll('.m-sheet')];
+      const old = [...panel.querySelectorAll(':scope > .m-sheet')];
+      if (!fresh.length && !old.length) return;
+      obs.disconnect();
+      const scroll = new Map(old.map((x) => [x.id || 'm', x.scrollTop]));
+      old.forEach((x) => x.remove());
+      fresh.forEach((x) => { panel.appendChild(x); const t = scroll.get(x.id || 'm'); if (t) x.scrollTop = t; });
+      obs.observe(body, { childList: true, subtree: true });
+    });
+    obs.observe(body, { childList: true, subtree: true });
+  }
+
   updateLayout() {
+    this.syncMPhone();
     const w = this.root.clientWidth;
     const h = this.root.clientHeight;
     // Jeu en bandeau en haut, onglets dessous, interface en dessous ; panneau superposé si la fenêtre est basse.
@@ -749,6 +785,9 @@ export class UI {
     }).join('') + locked.map((t) => `<button class="subtab locked" data-action="locked-tab" data-value="${t}" title="${escapeHtml(this.lockReason(t))}">
       <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span class="sub-long">🔒 ${SUB_LABELS[t]}</span><span class="sub-short">🔒 ${SUB_SHORT[t] ?? SUB_LABELS[t]}</span></button>`).join('') + next;
     uiFx.syncIcons(this.root); // v9.2.6
+    // v10.12 : sur téléphone la rangée défile : l'onglet choisi reste visible.
+    const act = el.querySelector('.subtab.active');
+    if (act && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, act.offsetLeft - (el.clientWidth - act.offsetWidth) / 2);
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -815,6 +854,7 @@ export class UI {
     this.newTabs.delete(tab);
     this.$('panel').classList.remove('hidden');
     this.root.classList.add('panel-open');
+    this.syncMPhone();
     this.$('panel-title').textContent = SUB_LABELS[tab] ?? PANELS[tab].title;
     this.$('panel-icon').src = icon(PANELS[tab].icon);
     const menu = menuOf(tab);
@@ -1388,6 +1428,8 @@ export class UI {
       case 'import-open': local(() => { v.importOpen = !v.importOpen; }); break;
       case 'import-save': this.importFromPanel(); break;
       case 'close-modal': this.closeModal(); break;
+      case 'm-help': this.$('panel-help').click(); break; // v10.12 : « ? » du cartouche du kit mobile = l'aide du panneau
+      case 'm-sheet-close': el.closest('.m-sheet')?.remove(); break; // v10.12 : ferme une fiche du kit (un panneau qui garde l'état passe sa propre action dans mSheet)
       case 'rebirth-talent': this.closeModal(); this.openTab('tree'); break; // v9.3.5
       case 'open-claims': this.openClaims(); break;
       case 'show-boost': this.showBoost(this.state); break;

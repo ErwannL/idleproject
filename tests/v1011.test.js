@@ -68,3 +68,11 @@ test('10.11 (8) : le contrôle du cadrage voit les groupes vides, les images sur
   for (const k of ['groupe-vide', 'image-sur-bloc', 'combat-décentré', 'grand-vide', 'premier-bouton-hors-écran', 'page-décentrée', '2548x1390', '1920x1080', '--gold']) assert.ok(a.includes(k), k);
   assert.match(src('src/render/scene.js'), /this\.heroScreenX = /);
 });
+
+// v10.12 : contrôle mobile complet (lent) : MOBILE_AUDIT=1 node --test tests/v1011.test.js
+test('10.12 (§ 8) : tools/mobile-audit.mjs (seulement avec MOBILE_AUDIT=1)', async (t) => {
+  if (process.env.MOBILE_AUDIT !== '1') { t.skip('MOBILE_AUDIT=1 pour lancer le contrôle mobile'); return; }
+  const { spawnSync } = await import('node:child_process');
+  const r = spawnSync('node', ['tools/mobile-audit.mjs', '--out', 'docs/screenshots/v10.12'], { encoding: 'utf8', timeout: 900000 });
+  assert.equal(r.status, 0, r.stdout.slice(-3000));
+});

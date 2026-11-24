@@ -1,0 +1,208 @@
+// v10.12 (§ 8) : contrôle automatique « vrai jeu mobile » : ouvre chaque onglet en téléphone et vérifie 7 choses.
+//   node tools/mobile-audit.mjs [--sizes 390x844,412x915] [--tabs inventory,shop] [--out docs/screenshots/v10.12] [--games endgame,fresh]
+// Contrôles : 1 pas de défilement horizontal · 2 pas de boutons qui se chevauchent · 3 boutons d'au moins 44 px de haut ·
+// 4 un .m-title et au plus un .m-btn-gold visible · 5 aucun <select> visible · 6 stabilité (fiche ouverte/fermée : même scrollTop ;
+// changer de mode : même haut de cadre) · 7 aucun mot coupé au milieu. Code de sortie 1 au moindre défaut.
+// Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
+import { createRequire } from 'node:module';
+import { mkdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { startServer } from './serve.mjs';
+const { chromium } = createRequire(import.meta.url)('playwright');
+
+const ALL_TABS = ['inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats'];
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé' };
+
+const argv = process.argv.slice(2);
+const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
+const sizes = opt('sizes', '390x844,412x915').split(',').map((s) => s.trim().split('x').map(Number));
+const tabs = opt('tabs', ALL_TABS.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
+const out = opt('out', 'docs/screenshots/v10.12');
+const games = opt('games', 'endgame,fresh').split(',').map((s) => s.trim());
+
+// --- Contrôles exécutés dans la page (1 à 5 et 7) -----------------------------------------------------------------------
+function inPage() {
+  const issues = [];
+  const add = (check, msg) => issues.push({ check, msg });
+  const vw = window.innerWidth;
+  const panel = document.querySelector('#panel');
+  const tabsBar = document.querySelector('#tabs');
+  const areaTop = panel && !panel.classList.contains('hidden') ? panel.getBoundingClientRect().top : 0;
+  const areaBottom = tabsBar ? tabsBar.getBoundingClientRect().top : window.innerHeight;
+  const name = (el) => `${el.tagName.toLowerCase()}${el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/).slice(0, 2).join('.')}` : ''} « ${(el.textContent || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 24)} »`;
+  // Visible = taille non nulle, pas masqué, et réellement au-dessus des autres au centre (pas caché derrière une fiche).
+  const visible = (el) => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return false;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0) return false;
+    const cx = Math.min(Math.max(r.left + r.width / 2, 0), vw - 1), cy = Math.min(Math.max(r.top + r.height / 2, areaTop), areaBottom - 1);
+    if (r.bottom <= areaTop || r.top >= areaBottom || r.right <= 0 || r.left >= vw) return false;
+    const top = document.elementFromPoint(cx, cy);
+    return !!top && (el === top || el.contains(top) || top.contains(el));
+  };
+  const body = document.querySelector('#panel-body');
+  // 1. défilement horizontal
+  if (body && body.scrollWidth > body.clientWidth + 1) add(1, `#panel-body scrollWidth ${body.scrollWidth} > clientWidth ${body.clientWidth}`);
+  if (document.documentElement.scrollWidth > vw + 1) add(1, `la page déborde : ${document.documentElement.scrollWidth} > ${vw}`);
+  // boutons visibles les plus extérieurs (un bouton dans un bouton compte une fois)
+  const sel = 'button, [role="button"], [data-action], a.btn, .btn';
+  const root = document.querySelector('#modal:not(.hidden)') ?? panel;
+  const all = [...(root ? root.querySelectorAll(sel) : [])].filter((el) => !el.disabled || true);
+  const buttons = [];
+  for (const el of all) {
+    if (el.parentElement?.closest(sel) && root.contains(el.parentElement.closest(sel))) continue;
+    if (el.closest('#panel-subtabs, header') && !el.classList.contains('subtab')) continue; // « ? » et ✕ du panneau : traités par le panneau
+    if (!visible(el)) continue;
+    buttons.push(el);
+  }
+  // les fiches plein écran sont dans #panel : on les prend aussi (déjà couvertes par root = #panel)
+  // 2. chevauchements
+  for (let i = 0; i < buttons.length; i++) {
+    const a = buttons[i].getBoundingClientRect();
+    for (let j = i + 1; j < buttons.length; j++) {
+      const b = buttons[j].getBoundingClientRect();
+      const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+      const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (ox > 2 && oy > 2) add(2, `${name(buttons[i])} et ${name(buttons[j])} (${Math.round(ox)}×${Math.round(oy)} px)`);
+    }
+  }
+  // 3. hauteur minimale (les .m-chip ont une zone tactile de 44 px par ::after ; les cases .m-tile font 44 px au moins)
+  for (const el of buttons) {
+    if (el.classList.contains('m-chip') || el.tagName === 'INPUT') continue;
+    const h = el.getBoundingClientRect().height;
+    if (h < 43.5) add(3, `${name(el)} : ${Math.round(h)} px`);
+  }
+  // 4. cartouche + un seul bouton doré
+  const titles = [...document.querySelectorAll('#panel .m-title, #modal:not(.hidden) .m-title')].filter(visible);
+  if (!titles.length && !document.querySelector('#modal:not(.hidden)')) add(4, 'aucun .m-title visible');
+  const golds = [...document.querySelectorAll('#panel .m-btn-gold, #modal .m-btn-gold')].filter(visible);
+  if (golds.length > 1) add(4, `${golds.length} .m-btn-gold visibles : ${golds.map(name).join(' | ')}`);
+  // 5. <select>
+  for (const el of document.querySelectorAll('#panel select, #modal select')) if (visible(el)) add(5, `${name(el)} visible`);
+  // 7. mots coupés : un libellé court d'un seul mot qui passe sur 2 lignes, ou qui déborde de sa boîte
+  const leaves = [...(root ?? document).querySelectorAll('b, span, small, label, h1, h2, h3, h4, strong, p, div, button')].filter((el) => {
+    if (el.children.length && [...el.children].some((c) => c.textContent.trim())) return false;
+    const t = el.textContent.trim();
+    return t.length >= 3 && t.length <= 28 && visible(el);
+  });
+  for (const el of leaves) {
+    const t = el.textContent.trim();
+    const cs = getComputedStyle(el);
+    if (cs.display === 'inline' && !el.closest('button')) continue;
+    if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== 'visible' && cs.textOverflow === 'clip') add(7, `${name(el)} coupé (${el.scrollWidth} > ${el.clientWidth})`);
+    if (!/\s/.test(t)) {
+      const range = document.createRange(); range.selectNodeContents(el);
+      const tops = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top / 4)));
+      if (tops.size > 1) add(7, `mot coupé : « ${t} »`);
+    }
+  }
+  return issues;
+}
+
+// --- Contrôle 6 : stabilité (modes, fiche) ------------------------------------------------------------------------------
+async function stability(page) {
+  const issues = [];
+  const frameTop = () => page.evaluate(() => { const f = document.querySelector('#panel .m-frame, #panel-body > *'); return f ? Math.round(f.getBoundingClientRect().top) : null; });
+  // modes : on touche chaque bouton de mode, le haut du cadre ne doit pas bouger
+  const nModes = await page.evaluate(() => document.querySelectorAll('#panel-body .m-modes .m-mode[data-action]').length);
+  if (nModes > 1) {
+    const base = await frameTop();
+    for (let i = 0; i < nModes; i++) {
+      await page.evaluate((k) => document.querySelectorAll('#panel-body .m-modes .m-mode[data-action]')[k]?.click(), i);
+      await page.waitForTimeout(350);
+      const top = await frameTop();
+      if (base !== null && top !== null && Math.abs(top - base) > 1) issues.push({ check: 6, msg: `mode ${i + 1}/${nModes} : le haut du cadre passe de ${base} à ${top} px` });
+    }
+  }
+  // fiche : ouvrir une case puis fermer ne doit pas changer le défilement du corps
+  const tile = await page.evaluate(() => { const t = document.querySelector('#panel-body .m-tile[data-action]'); return !!t; });
+  if (tile) {
+    await page.evaluate(() => { const b = document.querySelector('#panel-body'); b.scrollTop = Math.min(120, b.scrollHeight); });
+    const before = await page.evaluate(() => document.querySelector('#panel-body').scrollTop);
+    await page.evaluate(() => document.querySelector('#panel-body .m-tile[data-action]')?.click());
+    await page.waitForTimeout(400);
+    const opened = await page.evaluate(() => !!document.querySelector('#panel .m-sheet'));
+    if (opened) {
+      await page.evaluate(() => document.querySelector('#panel .m-sheet .m-close, #panel .m-sheet .m-back')?.click());
+      await page.waitForTimeout(400);
+      const after = await page.evaluate(() => document.querySelector('#panel-body').scrollTop);
+      if (Math.abs(after - before) > 1) issues.push({ check: 6, msg: `fermer la fiche change le défilement : ${before} → ${after}` });
+    }
+  }
+  return issues;
+}
+
+const server = await startServer(0);
+const url = `http://localhost:${server.address().port}/`;
+const browser = await chromium.launch();
+const fixture = JSON.parse(await readFile('tests/fixtures/endgame.json', 'utf8'));
+await mkdir(out, { recursive: true });
+
+const report = []; // { game, size, tab, issues[], skipped }
+for (const game of games) {
+  for (const [width, height] of sizes) {
+    const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    const page = await ctx.newPage();
+    const jsErrors = [];
+    page.on('pageerror', (e) => jsErrors.push(e.message));
+    if (game === 'endgame') {
+      await page.addInitScript((save) => { if (!sessionStorage.getItem('audit')) { localStorage.setItem('idle-rpg.save', save); sessionStorage.setItem('audit', '1'); } }, JSON.stringify(fixture));
+    } else {
+      await page.addInitScript(() => { if (!sessionStorage.getItem('audit')) { localStorage.removeItem('idle-rpg.save'); sessionStorage.setItem('audit', '1'); } });
+    }
+    await page.goto(url);
+    await page.waitForFunction(() => window.__idle?.ui, null, { timeout: 30000 });
+    await page.waitForTimeout(game === 'endgame' ? 6000 : 3000);
+    const closeAll = () => page.evaluate(() => {
+      document.querySelectorAll('#modal:not(.hidden) [data-action="close-modal"], #modal:not(.hidden) [data-action="offline-claim"]').forEach((b) => b.click());
+      try { __idle.ui.closeModal(); } catch { /* rien */ }
+      document.querySelectorAll('.tour button, .howto-card button, .learn-card button').forEach((b) => b.click()); // bulles du tutoriel (partie neuve)
+      document.querySelectorAll('.prologue2, #boot, .tour').forEach((e) => e.remove());
+    });
+    await page.addStyleTag({ content: '[class*="tuto"], .tour { display: none !important; }' }); // bulles du tutoriel de la partie neuve : hors sujet ici
+    await closeAll();
+    for (const tab of tabs) {
+      const rec = { game, size: `${width}x${height}`, tab, issues: [], skipped: null };
+      await page.evaluate((t) => { try { __idle.ui.openTab(t); } catch (e) { /* onglet inconnu */ } }, tab);
+      await page.waitForTimeout(1500);
+      await closeAll();
+      const opened = await page.evaluate((t) => __idle.ui.tab === t && !document.querySelector('#panel')?.classList.contains('hidden'), tab);
+      if (!opened) rec.skipped = 'onglet fermé (pas encore débloqué ?)';
+      else {
+        rec.issues.push(...await page.evaluate(inPage));
+        rec.issues.push(...await stability(page));
+      }
+      const file = join(out, `${width}x${height}-${game === 'fresh' ? 'neuve-' : ''}${tab}.jpg`);
+      await page.screenshot({ path: file, type: 'jpeg', quality: 75 });
+      report.push(rec);
+      // on referme la fiche éventuellement laissée ouverte avant l'onglet suivant
+      await page.evaluate(() => document.querySelectorAll('#panel .m-sheet .m-close').forEach((b) => b.click()));
+    }
+    if (jsErrors.length) report.push({ game, size: `${width}x${height}`, tab: '(page)', issues: jsErrors.map((m) => ({ check: 0, msg: `erreur JS : ${m}` })) });
+    await ctx.close();
+  }
+}
+await browser.close();
+server.close();
+
+// --- Résumé ---------------------------------------------------------------------------------------------------------
+const perCheck = Object.fromEntries(Object.keys(CHECKS).map((k) => [k, 0]));
+let defects = 0, skipped = 0;
+for (const r of report) {
+  if (r.skipped) { skipped++; console.log(`  ${r.game} ${r.size} ${r.tab} : ignoré (${r.skipped})`); continue; }
+  if (!r.issues.length) continue;
+  console.log(`✘ ${r.game} ${r.size} ${r.tab} : ${r.issues.length} défaut(s)`);
+  const seen = new Set();
+  for (const i of r.issues) {
+    perCheck[i.check] = (perCheck[i.check] ?? 0) + 1; defects++;
+    const line = `    [${i.check}] ${i.msg}`;
+    if (!seen.has(line) && seen.size < 6) { seen.add(line); console.log(line); }
+  }
+}
+console.log('\n=== Résumé du contrôle mobile ===');
+console.log(`${report.length - skipped} écrans contrôlés, ${skipped} ignorés, ${defects} défaut(s)`);
+for (const [k, label] of Object.entries(CHECKS)) console.log(`  contrôle ${k} (${label}) : ${perCheck[k] ?? 0}`);
+if (perCheck[0]) console.log(`  erreurs JS : ${perCheck[0]}`);
+console.log(`Captures : ${out}`);
+process.exit(defects ? 1 : 0);

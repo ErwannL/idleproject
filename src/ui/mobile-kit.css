@@ -1,0 +1,248 @@
+/* v10.12 : KIT MOBILE (téléphone seulement). Voir docs/prompt-v10.12/PROMPT.md § 1 et src/ui/mobile-kit.js (helpers HTML).
+   RÈGLE ABSOLUE : toute règle ci-dessous commence par `#app.m-phone` (classe posée par ui.js quand la fenêtre fait
+   600 px ou moins, ou sur téléphone tactile) : le PC n'est jamais touché. Pas de `!important` sauf pour battre les règles
+   héritées du panneau (sous-onglets, en-tête).
+   Composants : .m-frame .m-title .m-tabs/.m-tab .m-modes/.m-mode .m-card .m-grid .m-tile(+.r-<rareté>, .m-pips, .m-plus,
+   .m-bang, .m-up, .m-gain) .m-stat(.big) .m-btn-gold .m-btn .m-cost(.ok/.ko) .m-bar .m-sheet .m-chip .m-empty. */
+
+#app.m-phone {
+  --m-bg1: #121a33; --m-bg2: #0b1124; --m-card: #18223f; --m-card-line: #2c3a66;
+  --m-gold: #c9a14a; --m-gold-hi: #f3d27a; --m-text: #eef2ff; --m-soft: #9fb0d8;
+  --m-ok: #5be37d; --m-ko: #ff6b6b; --m-btn-line: #3a4a80;
+  /* Raretés : les mêmes que style.css et rarity108.css (--common … --ascendant). */
+  --m-r-common: var(--common, #b9c0cc); --m-r-rare: var(--rare, #4fa3ff); --m-r-epic: var(--epic, #b46bff);
+  --m-r-legendary: var(--legendary, #ffa630); --m-r-mythic: var(--mythic, #ff4d4d); --m-r-astral: var(--astral, #4de3ff);
+  --m-r-ascendant: #c8a6ff;
+}
+
+/* ---------- Cadre d'un écran ---------- */
+#app.m-phone .m-frame {
+  position: relative; box-sizing: border-box; margin: 4px 8px 8px; padding: 12px 8px 10px; color: var(--m-text);
+  border: 2px solid var(--m-gold); border-radius: 18px;
+  background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2));
+  box-shadow: inset 0 0 26px rgba(0, 0, 0, .6), 0 0 0 1px #000, 0 2px 10px rgba(0, 0, 0, .5);
+}
+#app.m-phone .m-frame::after { /* filet fin intérieur */
+  content: ''; position: absolute; inset: 3px; border: 1px solid rgba(201, 161, 74, .32); border-radius: 14px; pointer-events: none;
+}
+/* Coins ornés : 4 petits losanges (deux triangles chacun, en dégradés coniques). */
+#app.m-phone .m-frame::before, #app.m-phone #modal #modal-card::before {
+  content: ''; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; z-index: 1; background-repeat: no-repeat; background-size: 14px 7px;
+  background-image:
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0),
+    conic-gradient(from 135deg at 50% 0, var(--m-gold-hi) 90deg, transparent 0), conic-gradient(from -45deg at 50% 100%, var(--m-gold) 90deg, transparent 0);
+  background-position:
+    left 4px top 4px, left 4px top 11px,
+    right 4px top 4px, right 4px top 11px,
+    left 4px bottom 11px, left 4px bottom 4px,
+    right 4px bottom 11px, right 4px bottom 4px;
+}
+
+/* ---------- Cartouche de titre (bouts biseautés) ---------- */
+#app.m-phone .m-title {
+  position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 52px; margin: 0 0 8px; padding: 0 50px; font-weight: 900; color: var(--m-text);
+}
+#app.m-phone .m-title .m-title-in {
+  position: relative; isolation: isolate; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 150px; max-width: 100%; height: 44px; box-sizing: border-box; padding: 0 22px;
+  color: var(--m-text); clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+}
+#app.m-phone .m-title .m-title-in::before { /* bord doré : la forme entière, derrière */
+  content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold));
+}
+#app.m-phone .m-title .m-title-in::after { /* le remplissage sombre, rentré de 2 px */
+  content: ''; position: absolute; inset: 2px; z-index: -1; background: linear-gradient(180deg, #243158, #121a33);
+  clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 13px 100%, 0 50%);
+}
+#app.m-phone .m-title img { width: 28px; height: 28px; image-rendering: pixelated; flex: none; }
+#app.m-phone .m-title b { flex: 0 1 auto; min-width: 0; font-size: 22px; font-weight: 900; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 #000; }
+#app.m-phone .m-title .m-help, #app.m-phone .m-title .m-back, #app.m-phone .m-title .m-close {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; padding: 0; border-radius: 12px; margin: 0;
+  display: inline-flex; align-items: center; justify-content: center; font: 900 20px/1 system-ui, sans-serif; color: var(--m-gold-hi);
+  background: linear-gradient(180deg, #243158, #121a33); border: 1.5px solid var(--m-gold); cursor: pointer; z-index: 2;
+}
+#app.m-phone .m-title .m-help, #app.m-phone .m-title .m-close { right: 0; } #app.m-phone .m-title .m-back { left: 0; }
+#app.m-phone .m-title .m-help + .m-close { right: 50px; }
+#app.m-phone .m-title:has(.m-help + .m-close) { padding-right: 100px; }
+#app.m-phone .m-sheet > .m-title b { font-size: 20px; }
+
+/* ---------- Onglets d'un menu (icône + nom, 64 px) et modes d'un écran (72 px) ---------- */
+#app.m-phone .m-tabs, #app.m-phone .m-modes { display: flex; flex-wrap: nowrap; gap: 6px; align-items: stretch; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; margin: 0 0 8px; padding: 2px; scroll-snap-type: x proximity; }
+#app.m-phone .m-tabs::-webkit-scrollbar, #app.m-phone .m-modes::-webkit-scrollbar { display: none; }
+#app.m-phone .m-tab, #app.m-phone .m-mode {
+  position: relative; flex: 1 0 76px; min-width: 76px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  height: 64px; padding: 4px 4px 3px; margin: 0; border: 1.5px solid var(--m-btn-line); border-radius: 12px; scroll-snap-align: center;
+  background: linear-gradient(180deg, #1e2a4d, #121a33); color: var(--m-soft); font: 800 12px/1.1 system-ui, sans-serif; text-align: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#app.m-phone .m-mode { height: 72px; flex-basis: 0; min-width: 72px; }
+#app.m-phone .m-modes.s64 .m-mode { height: 64px; }
+#app.m-phone .m-tab img, #app.m-phone .m-mode img { width: 28px; height: 28px; image-rendering: pixelated; flex: none; }
+#app.m-phone .m-mode img { width: 30px; height: 30px; }
+#app.m-phone .m-tab span, #app.m-phone .m-mode span { display: block; max-width: 100%; font-size: 12px; white-space: nowrap; overflow: visible; hyphens: none; overflow-wrap: normal; }
+#app.m-phone .m-tab[aria-selected="true"], #app.m-phone .m-mode[aria-selected="true"], #app.m-phone .m-tab.active {
+  color: var(--m-text); border-color: var(--m-gold-hi); background: linear-gradient(180deg, #34456f, #1a2547);
+  box-shadow: 0 0 0 1px var(--m-gold), 0 0 12px rgba(243, 210, 122, .55), inset 0 0 10px rgba(243, 210, 122, .18);
+}
+#app.m-phone .m-tab .m-dot, #app.m-phone .m-mode .m-dot { position: absolute; top: 3px; right: 4px; min-width: 10px; height: 10px; border-radius: 50%; background: #ff3b4e; box-shadow: 0 0 0 2px #0b1124; }
+#app.m-phone .m-modes.arrow { padding-bottom: 12px; margin-bottom: 0; }
+#app.m-phone .m-modes.arrow .m-mode[aria-selected="true"]::after { /* petite flèche vers le panneau dessous */
+  content: ''; position: absolute; left: 50%; bottom: -10px; width: 12px; height: 8px; transform: translateX(-50%); background: var(--m-gold-hi); clip-path: polygon(50% 0, 0 100%, 100% 100%);
+}
+
+/* ---------- Bloc intérieur, grille ---------- */
+#app.m-phone .m-card { box-sizing: border-box; padding: 10px; margin: 0 0 8px; background: var(--m-card); border: 1px solid var(--m-card-line); border-radius: 12px; color: var(--m-text); }
+#app.m-phone .m-grid { display: grid; grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr)); gap: 8px; justify-items: center; }
+#app.m-phone .m-tilewrap { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; width: 100%; }
+#app.m-phone .m-tilewrap > small { max-width: 100%; font-size: 11px; line-height: 1.15; color: var(--m-soft); text-align: center; overflow-wrap: normal; hyphens: none; }
+
+/* ---------- Case d'objet / de récompense ---------- */
+#app.m-phone .m-tile {
+  --m-rc: var(--m-r-common); --m-s: 64px;
+  position: relative; box-sizing: border-box; display: block; width: 100%; max-width: var(--m-s); min-width: 44px; aspect-ratio: 1; margin: 0; padding: 0; overflow: visible;
+  border: 2px solid var(--m-rc); border-radius: 10px; color: var(--m-text); cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(160deg, #2a3558, #0b1124);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--m-rc) 48%, #0b1124), color-mix(in srgb, var(--m-rc) 10%, #0b1124));
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, .55), 0 0 6px -2px var(--m-rc);
+}
+#app.m-phone .m-tile.s80 { --m-s: 80px; } #app.m-phone .m-tile.s96 { --m-s: 96px; } #app.m-phone .m-tile.s56 { --m-s: 56px; } #app.m-phone .m-tile.s48 { --m-s: 48px; }
+#app.m-phone .m-tile.r-common { --m-rc: var(--m-r-common); } #app.m-phone .m-tile.r-rare { --m-rc: var(--m-r-rare); } #app.m-phone .m-tile.r-epic { --m-rc: var(--m-r-epic); }
+#app.m-phone .m-tile.r-legendary { --m-rc: var(--m-r-legendary); } #app.m-phone .m-tile.r-mythic { --m-rc: var(--m-r-mythic); } #app.m-phone .m-tile.r-astral { --m-rc: var(--m-r-astral); }
+#app.m-phone .m-tile.r-ascendant { --m-rc: var(--m-r-ascendant); border-color: #fff4c2; box-shadow: inset 0 0 8px rgba(0, 0, 0, .5), 0 0 7px 0 #ff6b6b, 0 0 9px -1px #6bd5ff; }
+#app.m-phone .m-tile.selected { outline: 2px solid var(--m-gold-hi); outline-offset: 2px; }
+#app.m-phone .m-tile > img.m-tile-img { position: absolute; left: 6%; top: 6%; width: 88%; height: 78%; object-fit: contain; image-rendering: pixelated; pointer-events: none; }
+#app.m-phone .m-tile.empty { border-style: dashed; background: rgba(11, 17, 36, .7); box-shadow: inset 0 0 8px rgba(0, 0, 0, .6); }
+#app.m-phone .m-tile.empty > img.m-tile-img { opacity: .35; filter: grayscale(1); }
+#app.m-phone .m-tile .m-add { position: absolute; right: 4px; bottom: 1px; font: 900 18px/1 system-ui, sans-serif; color: var(--m-gold-hi); text-shadow: 0 1px 0 #000; }
+#app.m-phone .m-tile .m-plus { position: absolute; right: 3px; bottom: 11px; font: 900 12px/1 system-ui, sans-serif; color: #fff; text-shadow: 0 1px 0 #000, 0 0 3px #000, 1px 0 0 #000, -1px 0 0 #000; font-variant-numeric: tabular-nums; }
+#app.m-phone .m-tile .m-bang { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; border-radius: 9px; background: #ff3b4e; color: #fff; font: 900 12px/18px system-ui, sans-serif; text-align: center; box-shadow: 0 0 0 2px #0b1124; font-style: normal; z-index: 2; }
+#app.m-phone .m-tile .m-up { position: absolute; top: 1px; left: 3px; font: 900 13px/1 system-ui, sans-serif; color: var(--m-ok); text-shadow: 0 1px 0 #000, 0 0 3px #000; font-style: normal; }
+#app.m-phone .m-tile .m-gain { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); max-width: 100%; padding: 1px 5px; border-radius: 8px; background: #1f6b34; color: #d8ffe0; border: 1px solid var(--m-ok); font: 900 11px/14px system-ui, sans-serif; white-space: nowrap; z-index: 2; font-variant-numeric: tabular-nums; }
+#app.m-phone .m-tile .m-gain.neg { background: #6b1f25; color: #ffd8d8; border-color: var(--m-ko); }
+#app.m-phone .m-tile .m-lock { position: absolute; left: 2px; bottom: 9px; width: 14px; height: 14px; image-rendering: pixelated; }
+/* Pastilles de rareté : 1 (Commun) à 7 (Ascendant). */
+#app.m-phone .m-pips { position: absolute; left: 0; right: 0; bottom: 3px; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
+#app.m-phone .m-pips i { width: 6px; height: 6px; border-radius: 50%; background: var(--m-rc, var(--m-r-common)); box-shadow: 0 0 0 1px rgba(0, 0, 0, .85); }
+#app.m-phone .m-pips.p-ascendant i:nth-child(1) { background: #ff6b6b; } #app.m-phone .m-pips.p-ascendant i:nth-child(2) { background: #ffd36b; } #app.m-phone .m-pips.p-ascendant i:nth-child(3) { background: #6bff9e; }
+#app.m-phone .m-pips.p-ascendant i:nth-child(4) { background: #6bd5ff; } #app.m-phone .m-pips.p-ascendant i:nth-child(5) { background: #c86bff; } #app.m-phone .m-pips.p-ascendant i:nth-child(6) { background: #ffffff; } #app.m-phone .m-pips.p-ascendant i:nth-child(7) { background: #fff4c2; }
+#app.m-phone .m-pips.r-common { --m-rc: var(--m-r-common); } #app.m-phone .m-pips.r-rare { --m-rc: var(--m-r-rare); } #app.m-phone .m-pips.r-epic { --m-rc: var(--m-r-epic); }
+#app.m-phone .m-pips.r-legendary { --m-rc: var(--m-r-legendary); } #app.m-phone .m-pips.r-mythic { --m-rc: var(--m-r-mythic); } #app.m-phone .m-pips.r-astral { --m-rc: var(--m-r-astral); }
+#app.m-phone .m-pips.r-ascendant { --m-rc: var(--m-r-ascendant); }
+#app.m-phone .m-tile.s80 .m-pips i, #app.m-phone .m-tile.s96 .m-pips i { width: 8px; height: 8px; }
+#app.m-phone .m-tile.s80 .m-plus, #app.m-phone .m-tile.s96 .m-plus { bottom: 14px; font-size: 13px; }
+
+/* ---------- Statistique ---------- */
+#app.m-phone .m-stat { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 4px 6px; box-sizing: border-box; color: var(--m-text); font-size: 14px; border-radius: 8px; }
+#app.m-phone .m-stat img { width: 20px; height: 20px; flex: none; image-rendering: pixelated; }
+#app.m-phone .m-stat .m-k { flex: 1 1 auto; min-width: 0; color: var(--m-soft); font-weight: 700; overflow-wrap: normal; hyphens: none; }
+#app.m-phone .m-stat .m-v { flex: none; margin-left: auto; font-weight: 900; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+#app.m-phone .m-stat.big { min-height: 44px; font-size: 18px; background: rgba(255, 255, 255, .06); border: 1px solid var(--m-card-line); }
+#app.m-phone .m-stat.big .m-k { color: var(--m-text); font-weight: 900; }
+#app.m-phone .m-stat.big img { width: 24px; height: 24px; }
+#app.m-phone .m-stat .m-v.up { color: var(--m-ok); } #app.m-phone .m-stat .m-v.down { color: var(--m-ko); }
+#app.m-phone .m-stats2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 0 0 8px; }
+#app.m-phone .m-stats2 .m-stat { background: var(--m-card); border: 1px solid var(--m-card-line); }
+#app.m-phone .m-power { display: flex; align-items: center; gap: 8px; font-weight: 900; color: var(--m-gold-hi); font-size: 26px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 #000; }
+
+/* ---------- Boutons ---------- */
+#app.m-phone .m-btn-gold, #app.m-phone button.m-btn, #app.m-phone a.m-btn {
+  position: relative; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin: 0; padding: 0 14px;
+  border-radius: 12px; font-family: system-ui, sans-serif; text-align: center; cursor: pointer; text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+#app.m-phone .m-btn-gold {
+  height: 56px; min-height: 56px; font-size: 18px; font-weight: 900; color: #2a1a05; border: 2px solid #fff0b8;
+  background: linear-gradient(180deg, #ffe08a 0%, #f0b93f 55%, #c8892a 100%);
+  box-shadow: 0 3px 0 #7a5214, 0 0 12px rgba(243, 210, 122, .45), inset 0 1px 0 rgba(255, 255, 255, .6);
+  animation: m-glow 2.4s ease-in-out infinite;
+}
+#app.m-phone .m-btn-gold img { width: 24px; height: 24px; image-rendering: pixelated; }
+#app.m-phone .m-btn-gold:active { transform: translateY(2px); box-shadow: 0 1px 0 #7a5214, 0 0 8px rgba(243, 210, 122, .4); }
+#app.m-phone .m-btn-gold:disabled, #app.m-phone .m-btn-gold.disabled { filter: grayscale(.85) brightness(.7); animation: none; box-shadow: none; cursor: default; }
+#app.m-phone button.m-btn, #app.m-phone a.m-btn { min-height: 44px; height: 44px; font-size: 14px; font-weight: 800; color: var(--m-text); background: #141c38; border: 1.5px solid var(--m-btn-line); }
+#app.m-phone button.m-btn img { width: 20px; height: 20px; image-rendering: pixelated; }
+#app.m-phone button.m-btn:active { background: #1d2850; }
+#app.m-phone button.m-btn:disabled, #app.m-phone button.m-btn.disabled { opacity: .5; cursor: default; }
+#app.m-phone button.m-btn.auto, #app.m-phone .m-btn-gold.auto { width: auto; }
+@keyframes m-glow { 0%, 100% { box-shadow: 0 3px 0 #7a5214, 0 0 8px rgba(243, 210, 122, .3), inset 0 1px 0 rgba(255, 255, 255, .6); } 50% { box-shadow: 0 3px 0 #7a5214, 0 0 16px rgba(243, 210, 122, .65), inset 0 1px 0 rgba(255, 255, 255, .6); } }
+
+/* ---------- Coût : case 56 px + « ce que tu as / ce qu'il faut » ---------- */
+#app.m-phone .m-cost { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; min-width: 56px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--m-text); }
+#app.m-phone .m-cost > .m-cost-ico { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; box-sizing: border-box; border-radius: 10px; background: var(--m-bg2); border: 2px solid var(--m-btn-line); }
+#app.m-phone .m-cost > .m-cost-ico img { width: 36px; height: 36px; image-rendering: pixelated; }
+#app.m-phone .m-cost.ok { color: var(--m-ok); } #app.m-phone .m-cost.ok > .m-cost-ico { border-color: var(--m-ok); }
+#app.m-phone .m-cost.ko { color: var(--m-ko); } #app.m-phone .m-cost.ko > .m-cost-ico { border-color: var(--m-ko); }
+#app.m-phone .m-cost .m-cost-n { white-space: nowrap; }
+#app.m-phone .m-costs { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-around; margin: 0 0 8px; }
+
+/* ---------- Barre de progression ---------- */
+#app.m-phone .m-bar { position: relative; height: 8px; border-radius: 4px; background: var(--m-bg2); border: 1px solid #000; overflow: hidden; box-sizing: content-box; }
+#app.m-phone .m-bar > i { display: block; height: 100%; width: var(--pct, 0%); background: linear-gradient(180deg, var(--m-gold-hi), var(--m-gold)); border-radius: 4px; }
+#app.m-phone .m-bar.hp > i { background: linear-gradient(180deg, #8bf5a2, #2fa84f); }
+
+/* ---------- Fiche plein écran : sous la bande de scène, au-dessus de la barre du bas ---------- */
+#app.m-phone .m-sheet {
+  position: fixed; left: 0; right: 0; top: var(--m-sheet-top, 120px); bottom: var(--m-sheet-bottom, 58px); z-index: 30; box-sizing: border-box;
+  display: flex; flex-direction: column; padding: 8px 8px 10px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2)); color: var(--m-text);
+  border-top: 2px solid var(--m-gold); box-shadow: 0 -6px 18px rgba(0, 0, 0, .55); animation: m-sheet-in .18s ease-out;
+}
+#app.m-phone .m-sheet > .m-title { flex: none; }
+#app.m-phone .m-sheet > .m-sheet-body { flex: 1 1 auto; min-height: 0; }
+@keyframes m-sheet-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- Puce (filtre, état court) ---------- */
+#app.m-phone .m-chip {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 32px; min-width: 44px; padding: 0 12px; box-sizing: border-box; margin: 0;
+  border-radius: 16px; border: 1.5px solid var(--m-btn-line); background: #141c38; color: var(--m-soft); font: 800 13px/1 system-ui, sans-serif; white-space: nowrap; cursor: pointer;
+}
+#app.m-phone .m-chip img { width: 18px; height: 18px; image-rendering: pixelated; }
+#app.m-phone .m-chip[aria-pressed="true"], #app.m-phone .m-chip.on { color: #2a1a05; background: linear-gradient(180deg, #ffe08a, #f0b93f); border-color: #fff0b8; }
+#app.m-phone .m-chip::after { content: ''; position: absolute; inset: -6px 0; } /* zone tactile de 44 px sans grossir le dessin */
+#app.m-phone .m-chips { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 0 8px; padding: 6px 2px; }
+#app.m-phone .m-chips::-webkit-scrollbar { display: none; }
+
+/* ---------- État vide ---------- */
+#app.m-phone .m-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 16px; text-align: center; color: var(--m-soft); }
+#app.m-phone .m-empty img { width: 96px; height: 96px; image-rendering: pixelated; opacity: .9; }
+#app.m-phone .m-empty p { margin: 0; font-size: 14px; line-height: 1.35; color: var(--m-soft); }
+#app.m-phone .m-empty .m-btn-gold, #app.m-phone .m-empty button.m-btn { max-width: 280px; }
+
+/* ---------- Menus : sous-onglets du panneau en .m-tabs (icône + nom, 64 px) ---------- */
+#app.m-phone #panel { grid-template-columns: minmax(0, 1fr) auto; }
+#app.m-phone #panel #panel-subtabs { min-width: 0; }
+#app.m-phone #panel > header { height: 72px !important; min-height: 72px !important; align-items: center; }
+#app.m-phone #panel #panel-subtabs {
+  height: 72px; box-sizing: border-box; flex-wrap: nowrap; gap: 6px; padding: 4px 6px; align-items: stretch; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+  background: linear-gradient(180deg, #121a33, #0b1124); border-bottom: 2px solid var(--m-gold); scroll-snap-type: x proximity;
+}
+#app.m-phone #panel #panel-subtabs::-webkit-scrollbar { display: none; }
+#app.m-phone #panel #panel-subtabs .subtab {
+  flex: 1 0 84px; min-width: 84px; height: 64px !important; min-height: 64px !important; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 4px 4px 3px !important;
+  border: 1.5px solid var(--m-btn-line); border-radius: 12px; background: linear-gradient(180deg, #1e2a4d, #121a33); color: var(--m-soft); font-weight: 800; scroll-snap-align: center; white-space: nowrap;
+}
+#app.m-phone #panel #panel-subtabs .subtab img { width: 28px !important; height: 28px !important; flex: none; }
+#app.m-phone #panel #panel-subtabs .subtab span { display: block !important; font-size: 12px; line-height: 1.1; white-space: nowrap; overflow: visible; max-width: 100%; hyphens: none; overflow-wrap: normal; }
+#app.m-phone #panel #panel-subtabs .subtab .sub-short { display: none !important; }
+#app.m-phone #panel #panel-subtabs .subtab.active, #app.m-phone #panel #panel-subtabs .subtab[aria-selected="true"] {
+  color: var(--m-text); border-color: var(--m-gold-hi); background: linear-gradient(180deg, #34456f, #1a2547);
+  box-shadow: 0 0 0 1px var(--m-gold), 0 0 12px rgba(243, 210, 122, .55), inset 0 0 10px rgba(243, 210, 122, .18);
+}
+#app.m-phone #panel #panel-subtabs .subtab.active::after { display: none; }
+#app.m-phone #panel #panel-subtabs .subtab.locked { opacity: .55; }
+#app.m-phone #panel #panel-subtabs .subtab .badge { top: 3px; right: 5px; }
+
+/* ---------- Fenêtres (#modal) : même cadre que les écrans ---------- */
+#app.m-phone #modal #modal-card {
+  position: relative; box-sizing: border-box; color: var(--m-text); border: 2px solid var(--m-gold); border-radius: 18px;
+  background: linear-gradient(180deg, var(--m-bg1), var(--m-bg2)); box-shadow: inset 0 0 26px rgba(0, 0, 0, .6), 0 0 0 1px #000, 0 8px 30px rgba(0, 0, 0, .7);
+}
+#app.m-phone #modal #modal-card::after { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(201, 161, 74, .32); border-radius: 14px; pointer-events: none; }
+#app.m-phone #modal #modal-card h2, #app.m-phone #modal #modal-card h3:first-child { font-weight: 900; }
+
+/* ---------- Mouvement réduit : pas de lueur animée, pas d'entrée animée ---------- */
+@media (prefers-reduced-motion: reduce) {
+  #app.m-phone .m-btn-gold { animation: none; }
+  #app.m-phone .m-sheet { animation: none; }
+}
