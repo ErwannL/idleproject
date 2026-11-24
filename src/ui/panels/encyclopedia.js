@@ -528,7 +528,7 @@ function mEncSheet(ui, state, key) {
   if (!html) return '';
   return mSheet(mEncTitle(state, key), html, mShut);
 }
-function encPhone(ui, state) {
+function encPhone(ui, state, phone = true) {
   const v = ui.view;
   const progress = encyclopediaProgress(state);
   const sec = v.encSec === 'museum' || v.encSec === 'pantheon' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';
@@ -570,7 +570,8 @@ export default {
   icon: 'icon_book',
   extra: (ui, state) => `${pct(encyclopediaProgress(state).pct)}`,
   render(ui, state) {
-    if (isMPhone(ui)) return encPhone(ui, state);
+    // v10.13 : le PC aussi en kit (cadre, cartouche, puces, fiche latérale) ; isMPhone ne sert plus qu'à la mise en page.
+    return encPhone(ui, state, isMPhone(ui));
     const v = ui.view;
     const progress = encyclopediaProgress(state);
     const sec = v.encSec === 'museum' || v.encSec === 'pantheon' || ENCYCLOPEDIA_SECTIONS.some((s) => s.id === v.encSec) ? v.encSec : 'monsters';

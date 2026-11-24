@@ -86,7 +86,7 @@ function mFriends(f) {
     ${f.message ? `<div class="${f.error ? 'bad' : 'good'} mp-reset">${escapeHtml(f.message)}</div>` : ''}${incoming}${outgoing}${list}`;
 }
 
-function rankingPhone(ui) {
+function rankingPhone(ui, phone = true) {
   const r = ui.ranking ?? {};
   const sort = r.sort ?? 'stage';
   const scope = r.scope ?? 'all';
@@ -95,7 +95,10 @@ function rankingPhone(ui) {
   const modes = mModes([{ id: 'all', label: 'Tout le monde', icon: 'icon_crown', action: 'ranking-scope', value: 'all' },
     { id: 'friends', label: 'Mes amis', icon: 'icon_heart', action: 'ranking-scope', value: 'friends', attrs: member ? '' : 'disabled' }], scope);
   const world = r.world ?? 2;
-  const chips = `<div class="m-chips mp-rank-chips">${mChip(`${RANKING_SORTS[sort].label} ▾`, { action: 'mp-open', value: 'rank', on: true })}${RANKING_SORTS[sort].time && sort !== 'reach' ? '<small class="mp-n">Le plus court gagne</small>' : ''}</div>`;
+  const hint = RANKING_SORTS[sort].time && sort !== 'reach' ? '<small class="mp-n">Le plus court gagne</small>' : '';
+  // PC : tous les critères en puces, d'un seul regard (action ranking-sort, celle de l'ancien rendu) ; téléphone : une puce qui ouvre la fiche des critères.
+  const chips = phone ? `<div class="m-chips mp-rank-chips">${mChip(`${RANKING_SORTS[sort].label} ▾`, { action: 'mp-open', value: 'rank', on: true })}${hint}</div>`
+    : `<div class="m-chips mp-rank-chips mp-sorts" role="group" aria-label="Critère">${Object.entries(RANKING_SORTS).map(([k, x]) => mChip(x.label, { action: 'ranking-sort', value: k, on: sort === k })).join('')}</div>${hint}`;
   const worldPick = sort === 'reach' ? `<div class="mp-sub">Monde à atteindre</div>${mpChips('ranking-world', ZONES.slice(1).map((z, i) => [i + 2, `${i + 2}. ${z.name}`]), world)}` : '';
   const invite = member ? '' : mEmpty(c.loggedIn ? `Tu joues en invité (${c.pseudo}). Crée ton compte pour apparaître au classement.` : 'Tu n\'es pas connecté. Crée ton compte pour apparaître au classement, voir ton rang et ajouter des amis.',
     { icon: 'icon_trophy', button: mBtnGold('Créer mon compte', { action: 'open-account' }) });
@@ -107,7 +110,7 @@ function rankingPhone(ui) {
     const mine = r.me ? `<div class="mp-rk-gap">…</div>${mRankRow(sort, { ...r.me, me: true })}` : '';
     body = `<div class="m-card mp-rklist"><div class="mp-rk head"><span class="mp-rk-rank">#</span><span class="mp-rk-name">Joueur</span><b class="mp-rk-val">${RANKING_SORTS[sort].head}</b></div>${r.players.map((p) => mRankRow(sort, p)).join('')}${mine}</div>`;
   }
-  const sheetOpen = ui.view.mSheet === 'rank';
+  const sheetOpen = phone && ui.view.mSheet === 'rank';
   const sheet = sheetOpen ? mSheet('Critère', `<div class="mp-crit">${Object.entries(RANKING_SORTS).map(([k, s]) => mBtn(s.label, { action: 'mp-rank', value: k, cls: sort === k ? 'ready' : '' })).join('')}</div>`, { close: 'mp-shut', back: 'mp-shut', id: 'rank-sheet' }) : '';
   return `${mpFrame('icon_trophy', 'Classement', `${modes}${chips}${worldPick}${invite}${body}${member && scope === 'friends' ? mFriends(ui.friends) : ''}`, true, sheetOpen)}${sheet}`;
 }
@@ -118,7 +121,8 @@ export default {
   icon: 'icon_trophy',
   extra: (ui) => (ui.friends?.incoming?.length ? `${ui.friends.incoming.length} demande${ui.friends.incoming.length > 1 ? 's' : ''}` : ''),
   render(ui) {
-    if (isMPhone(ui)) return rankingPhone(ui);
+    // v10.13 : le PC aussi en kit (cadre, cartouche, puces, fiche latérale) ; isMPhone ne sert plus qu'à la mise en page.
+    return rankingPhone(ui, isMPhone(ui));
     const r = ui.ranking ?? {};
     const sort = r.sort ?? 'stage';
     const scope = r.scope ?? 'all';

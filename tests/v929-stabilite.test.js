@@ -46,7 +46,7 @@ test('Coréen : coûts et manques au singulier traduits (« 1 fragment »)', () 
 test('Statistiques : nom complet du monde en bulle quand la barre le coupe', () => {
   const s = createNewState(Date.now());
   const html = stats.render(uiWith(), s);
-  const spans = [...html.matchAll(/<span class="tb-label"([^>]*)>/g)];
+  const spans = [...html.matchAll(/<span class="(?:mp-)?tb-label"([^>]*)>/g)];
   assert.ok(spans.length > 0, 'barres présentes');
   for (const m of spans) assert.match(m[1], /title="/);
 });

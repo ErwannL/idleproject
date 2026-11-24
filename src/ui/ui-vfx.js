@@ -331,8 +331,9 @@ export function panelCloseFx(panel) {
 // Apparition en cascade des cartes et lignes d'un panneau (après un changement d'onglet seulement).
 export function cascadeFx(body) {
   if (calm() || !body) return;
+  const isDeskFrame = Boolean(body.closest('#app:not(.m-phone)'));
   const items = [...body.querySelectorAll(':scope > *, :scope > .card > .row, .list > *, .stage-grid > *, .grid > *')]
-    .filter((n) => n.offsetParent !== null).slice(0, 18);
+    .filter((n) => n.offsetParent !== null && !(isDeskFrame && n.classList.contains('m-frame'))).slice(0, 18); // v10.13 : sur PC le cadre du kit apparaît d'un bloc (son cartouche ne clignote pas)
   items.forEach((n, i) => {
     n.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }],
       { duration: 220, delay: Math.min(i * 18, 180), easing: 'ease-out', fill: 'backwards' });

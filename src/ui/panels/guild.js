@@ -103,7 +103,7 @@ function mNoGuild(ui, g) {
       <label class="mp-check"><input type="checkbox" data-guild="open" checked> Accès libre (sinon : sur demande)</label>${mBtnGold('Fonder', { action: 'guild-create' })}</div>`;
 }
 
-function guildPhone(ui) {
+function guildPhone(ui, phone = true) {
   const g = ui.guild ?? {};
   const empty = (txt) => mEmpty(txt, { icon: 'icon_crown', button: `${perks()}${mBtnGold('Créer mon compte', { action: 'open-account' })}` });
   let body;
@@ -121,7 +121,8 @@ export default {
   title: 'Guilde',
   icon: 'icon_crown',
   render(ui) {
-    if (isMPhone(ui)) return guildPhone(ui);
+    // v10.13 : le PC aussi en kit (cadre, cartouche, puces, fiche latérale) ; isMPhone ne sert plus qu'à la mise en page.
+    return guildPhone(ui, isMPhone(ui));
     const g = ui.guild ?? {};
     // v9.8 (I9) : illustration et bouton direct vers la création de compte.
     if (g.needAccount) return `${guildPreview()}<div class="card guild-invite">
