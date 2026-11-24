@@ -47,13 +47,22 @@ function copyFrame() {
   if (!mini?.isConnected || !document.getElementById('app')?.classList.contains('page-ui')) return;
   const src = document.getElementById('scene');
   if (src?.width && src.height && mini.offsetParent !== null) {
+    // v10.11 (6.1) : la bande du téléphone (pleine largeur, 120 px) a sa propre forme : le canvas suit sa boîte.
+    const bw = Math.round(mini.clientWidth), bh = Math.round(mini.clientHeight);
+    if (bw > 10 && bh > 10 && (mini.width !== bw || mini.height !== bh)) { mini.width = bw; mini.height = bh; ctx2d = mini.getContext('2d', { alpha: false }); ctx2d.imageSmoothingEnabled = false; }
     const w = mini.width, h = mini.height;
     // Gros plan sur le bas de la scène (le sol, le héros et les monstres), un peu à gauche du centre.
     const W = src.width, H = src.height;
-    const sh = Math.min(H, H * 0.62), sw = Math.min(W, sh * (w / h));
+    const band = w / h > 2.4; // bande du téléphone : assez de hauteur pour l'équipe entière
+    const sh = Math.min(H, band ? H * 0.3 : H * 0.62), sw = Math.min(W, sh * (w / h));
     const sx = Math.max(0, Math.min(W - sw, W * 0.4 - sw / 2));
-    const sy = Math.max(0, Math.min(H - sh, H * 0.96 - sh));
-    ctx2d.drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
+    // Le sol (pieds de l'équipe) vers le bas de la vignette : on suit la ligne du sol de la scène.
+    const r = document.getElementById('app')?.__ui?.renderer;
+    const gf = r?.height ? Math.min(0.97, (r.groundY + 6) / r.height) : 0.96;
+    const sy = Math.max(0, Math.min(H - sh, H * gf - sh * 0.92));
+    const dw = Math.min(w, sw * (h / sh)), dx = Math.round((w - dw) / 2);
+    if (dx > 0) { ctx2d.fillStyle = '#05070e'; ctx2d.fillRect(0, 0, w, h); }
+    ctx2d.drawImage(src, sx, sy, sw, sh, dx, 0, dw, h);
     frames += 1;
     mini.dataset.frames = String(frames);
   }

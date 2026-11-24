@@ -294,6 +294,7 @@ const actions = {
       case 'worker': {
         if (!y) return done(removeWorker(state, x, now), 'Ouvrier retiré : le bâtiment est à l\'arrêt', '#ffb36b');
         const why = assignWorker(state, x, y, now);
+        if (!why) sound.play('claim', { volume: 0.5 }); // v10.11 (3.5) : un petit son quand l'ouvrier prend son poste
         return why ? refuse(why) : done(true, `${companionById(y)?.name ?? 'Ouvrier'} au travail : ${buildingDef(x)?.name ?? ''}`, '#7fe0a0');
       }
       case 'build': { const c = canBuild(state, x); return c.ok ? done(startBuild(state, x, now), `Chantier lancé : ${buildingDef(x).name}`, '#ffd24a') : refuse(c.reason); }

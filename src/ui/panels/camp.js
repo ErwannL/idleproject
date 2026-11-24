@@ -668,8 +668,30 @@ function bindZoom(body) {
   v.addEventListener('touchend', () => { pinch = null; });
 }
 
+// v10.11 (3.7) : première visite — une main montre un bâtiment sans ouvrier, puis un portrait, avec la bulle
+// « Pose un compagnon : sans ouvrier, rien n'avance. » (une seule fois, après le bandeau d'âge et le bandeau de travail).
+function workerHand(body) {
+  const st = body.closest('#app')?.__ui?.state;
+  if (!st?.ui || (st.ui.hints ?? []).includes('bastion-hand')) return;
+  if (body.querySelector('.bs-kick, .bs-age-new') || document.querySelector('.bs-hand')) return;
+  const target = body.querySelector('.bs-wcard:not(.here):not(.busy)') && body.querySelector('.bs-idle-box') ? body.querySelector('.bs-wcard:not(.here):not(.busy)') : body.querySelector('.bs-plot .bs-need');
+  if (!target) return;
+  const r = target.getBoundingClientRect();
+  if (!r.width) return;
+  const hand = document.createElement('div');
+  hand.className = 'bs-hand';
+  hand.innerHTML = '<span class="bs-hand-finger" aria-hidden="true">👆</span><span class="bs-hand-bubble">Pose un compagnon : sans ouvrier, rien n\'avance.</span>';
+  hand.style.left = `${Math.round(r.left + r.width / 2)}px`; hand.style.top = `${Math.round(r.bottom)}px`;
+  document.body.appendChild(hand);
+  const done = () => { hand.remove(); if (!(st.ui.hints ?? []).includes('bastion-hand') && target.matches('.bs-wcard')) (st.ui.hints ??= []).push('bastion-hand'); };
+  hand.addEventListener('click', () => { hand.remove(); (st.ui.hints ??= []).push('bastion-hand'); });
+  target.addEventListener('click', done, { once: true });
+  setTimeout(() => hand.remove(), 9000);
+}
+
 function fitMap(body) {
   bindZoom(body);
+  setTimeout(() => workerHand(body), 400);
   const main = body.querySelector('.bs-pg .bs-main');
   const world = main?.querySelector('.bs-world');
   if (!world) return;

@@ -290,3 +290,16 @@ html.reduce-motion #app .bs-plot .bs-need { animation: none; }
 #app .cinematic { align-items: flex-start; padding-top: max(90px, 14%); }
 #app .cinematic .cine-text { background: rgba(8, 10, 22, .55); border-radius: 14px; padding: 10px 20px; }
 #app #play.phone-band .cinematic, #app .layout-tall .cinematic { padding-top: 150px; }
+
+/* v10.11 (6.1) : téléphone — la scène reste visible en bande de 120 px en haut (copie vivante), la page dessous ;
+   toucher la bande revient au combat. */
+#app#app.page-ui.page-narrow #page-mini { display: block; position: fixed; left: 0; right: 0; top: 0; width: 100%; height: 120px; z-index: 51;
+  padding: 0; margin: 0; border: 0; border-bottom: 2px solid #c9963f; border-radius: 0; overflow: hidden; background: #05070e; cursor: pointer; }
+#app#app.page-ui.page-narrow #page-mini canvas { width: 100%; height: 100%; object-fit: cover; }
+#app#app.page-ui.page-narrow #panel#panel#panel { top: 120px !important; }
+/* v10.11 (3.7) : main de la première visite du Bastion. */
+.bs-hand { position: fixed; z-index: 9500; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: auto; cursor: pointer; }
+.bs-hand-finger { font-size: 30px; filter: drop-shadow(0 2px 3px #000); animation: bs-hand-tap 1s ease-in-out infinite; }
+.bs-hand-bubble { max-width: 220px; padding: 8px 12px; border-radius: 10px; background: #fff3d8; color: #3a2410; font: 800 13px/1.3 system-ui, sans-serif; box-shadow: 0 4px 12px #000a; text-align: center; }
+@keyframes bs-hand-tap { 50% { transform: translateY(-6px); } }
+html.reduce-motion .bs-hand-finger { animation: none; }
