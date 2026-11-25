@@ -1,9 +1,9 @@
 name: Windows exe
 
 # Release d'Ascendrya : construit l'installateur Windows (testé : lancement réel, sauvegarde, mise à jour d'une
-# installation précédente) et l'APK Android, puis publie la release de la version de package.json (ex. v9.5.2).
+# installation précédente), l'APK Android et l'AppImage Linux (plus de build Mac : runner macOS = 10× le coût de Linux), puis publie la release de la version de package.json (ex. v9.5.2).
 # Déclenchée seulement à la demande (onglet Actions, « Run workflow ») ou par un tag v* : plus à chaque push
-# (les tests de chaque push sont dans ci.yml). Aucun artefact Actions (quota de stockage) : chaque job envoie son
+# (les tests de chaque push sont dans ci.yml ; ils ne sont pas relancés ici). Aucun artefact Actions (quota de stockage) : chaque job envoie son
 # fichier directement dans la release (brouillon créé au début, publié à la fin). Une release déjà publiée n'est
 # jamais supprimée : ses fichiers sont remplacés.
 on:
@@ -48,9 +48,6 @@ jobs:
 
       - name: Installer les dépendances
         run: npm ci
-
-      - name: Tests unitaires
-        run: npm test
 
       - name: Intégrer le jeton de mise à jour (secret UPDATE_TOKEN, jamais dans le dépôt)
         shell: bash
@@ -129,9 +126,6 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
-      - name: Tests unitaires
-        run: npm test
-
       - name: Préparer le jeu pour Android
         run: |
           npm run build:web
@@ -200,7 +194,7 @@ jobs:
           VERSION="$(node -p "require('./package.json').version")"
           gh release upload "v$VERSION" "dist/IdleRPG-${VERSION}.apk" "dist/IdleRPG-${VERSION}.aab" --clobber
 
-  # AppImage Linux x64 + script d'installation ascendrya.sh (Linux et macOS).
+  # AppImage Linux x64 + script d'installation ascendrya.sh (Linux).
   linux:
     needs: prepare
     runs-on: ubuntu-latest
@@ -239,55 +233,19 @@ jobs:
           test -f "dist/IdleRPG-${VERSION}.AppImage"
           gh release upload "v$VERSION" "dist/IdleRPG-${VERSION}.AppImage" dist/ascendrya.sh --clobber
 
-  # Mac universel (Intel + Apple Silicon), non signé et non notarisé.
-  mac:
-    needs: prepare
-    runs-on: macos-latest
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Installer les dépendances
-        run: npm ci
-
-      - name: Intégrer le jeton de mise à jour (secret UPDATE_TOKEN, jamais dans le dépôt)
-        env:
-          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
-        run: |
-          if [[ "$UPDATE_TOKEN" =~ ^[A-Za-z0-9_]{20,255}$ ]]; then
-            printf "export const BUILT_IN_TOKEN = '%s';\n" "$UPDATE_TOKEN" > src/core/update-token.js
-          fi
-
-      - name: Construire le zip Mac (non signé)
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npm run dist:mac
-
-      - name: Envoyer le zip dans la release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION="$(node -p "require('./package.json').version")"
-          test -f "dist/IdleRPG-${VERSION}-mac.zip"
-          gh release upload "v$VERSION" "dist/IdleRPG-${VERSION}-mac.zip" --clobber
-
   publish:
-    needs: [build, android, linux, mac]
+    needs: [build, android, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Publier la release (exe, APK, AAB, AppImage, zip Mac et script présents)
+      - name: Publier la release (exe, APK, AAB, AppImage et script présents)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION_N="$(node -p "require('./package.json').version")"
           ASSETS="$(gh release view "v$VERSION_N" --json assets --jq '.assets[].name')"
           for f in "IdleRPG-${VERSION_N}-setup.exe" "IdleRPG-${VERSION_N}.apk" "IdleRPG-${VERSION_N}.aab" \
-                   "IdleRPG-${VERSION_N}.AppImage" "IdleRPG-${VERSION_N}-mac.zip" "ascendrya.sh"; do
+                   "IdleRPG-${VERSION_N}.AppImage" "ascendrya.sh"; do
             echo "$ASSETS" | grep -qxF "$f" || { echo "::error::Fichier manquant dans la release : $f"; exit 1; }
           done
           VERSION="v$(node -p "require('./package.json').version")"

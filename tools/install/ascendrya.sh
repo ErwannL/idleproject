@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installe et lance Ascendrya (Linux : AppImage ; macOS : .app dans ~/Applications) depuis la dernière release GitHub.
+# Installe et lance Ascendrya (Linux : AppImage ; macOS : plus de version publiée) depuis la dernière release GitHub.
 # Usage : curl -fsSL https://github.com/ErwannL/idleproject/releases/latest/download/ascendrya.sh | bash
 set -eu
 
@@ -56,21 +56,7 @@ EOF
     fi
     ;;
   Darwin)
-    # Zip universel (Intel + Apple Silicon) : le même fichier pour toutes les architectures.
-    FILE="IdleRPG-${VERSION}-mac.zip"
-    APPDIR="$HOME/Applications"
-    TMP="$(mktemp -d)"
-    trap 'rm -rf "$TMP"' EXIT
-    say "Téléchargement d'Ascendrya ${VERSION}..."
-    fetch "$BASE/$FILE" "$TMP/$FILE"
-    mkdir -p "$APPDIR"
-    rm -rf "$APPDIR/Ascendrya.app"
-    ditto -x -k "$TMP/$FILE" "$APPDIR"
-    # L'application n'est pas signée par Apple : on retire la quarantaine pour qu'elle s'ouvre.
-    xattr -dr com.apple.quarantine "$APPDIR/Ascendrya.app" 2>/dev/null || true
-    say "Installé : $APPDIR/Ascendrya.app"
-    say "Lancement..."
-    open "$APPDIR/Ascendrya.app"
-    ;;
+    # Plus de version Mac publiée (build macOS trop coûteux en minutes GitHub Actions).
+    die "pas de version macOS : utilise l'installateur Windows (IdleRPG-${VERSION}-setup.exe) avec un outil de compatibilité." ;;
   *) die "système non pris en charge : $OS (Linux ou macOS)." ;;
 esac
