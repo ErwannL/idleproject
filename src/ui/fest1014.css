@@ -110,6 +110,8 @@
 #app .fest-hub .fh-boss-art.big { width: min(100%, 320px); filter: drop-shadow(0 6px 18px rgba(0,0,0,.7)); }
 #app .fest-hub .fh-boss-art.mini { width: 56px; animation: none; }
 @keyframes fh-idle { to { background-position: 100% 0; } }
+/* v10.15 : planche de N images exactement (nouveaux géants) : on va jusqu'à la dernière image. */
+@keyframes fh-idle-n { to { background-position: calc(100% * var(--fh-n) / (var(--fh-n) - 1)) 0; } }
 #app .fest-hub .fh-boss-info { display: flex; flex-direction: column; gap: 8px; }
 #app .fest-hub .fh-boss-info > small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
 #app .fest-hub .fh-boss-name { font-size: 26px; line-height: 1.1; text-shadow: 0 3px 0 #000; }

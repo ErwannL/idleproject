@@ -4,9 +4,12 @@
 //     le World Boss du thème, les jalons d'invocation, des missions du jour et de la fête, une boutique de fête ;
 //   - la PETITE FÊTE (du 17 à l'avant-dernier jour − 2) : plus légère, un héros ET un familier gratuits à farmer sur
 //     un sentier (monnaie gagnée en jouant), des missions et une boutique.
-// Fichier sans import : il est lu par le jeu (core/fest.js), par le serveur (server/live.mjs : calendrier programmé
+// Seule dépendance : data/grand-bosses.js (données pures, sans import) pour les géants v10.15.
+// Fichier lu par le jeu (core/fest.js), par le serveur (server/live.mjs : calendrier programmé
 // d'un coup) et par les tests. Les 6 premiers mois sont écrits à la main (FEST_MONTHS) ; au-delà, la rotation
 // automatique (festMonth) prend le relais à partir des listes FEST_POOLS.
+
+import { GIANTS, GIANT_ORDER, READY_GIANTS } from './grand-bosses.js'; // v10.15 : géants dans les rotations
 
 const DAY = 86400000;
 
@@ -214,13 +217,27 @@ function monthAt(index) {
 const localMs = (y, m, d) => new Date(y, m - 1, d).getTime(); // minuit, heure locale (comme EVENTS.anchor)
 const pick = (list, i) => list[((i % list.length) + list.length) % list.length];
 
+// v10.15 : boss de la grande fête du mois n. Les 6 mois écrits à la main gardent leur Titan. Ensuite, un mois sur deux
+// accueille un GÉANT (data/grand-bosses.js, GIANTS) dans l'ordre de GIANT_ORDER ; tant que ses planches ne sont pas
+// prêtes (`ready: false`), ce mois garde le boss de la rotation d'avant (rien ne bouge pour les joueurs).
+export function festBoss(index, ready = READY_GIANTS) {
+  const k = index - FEST_MONTHS.length;
+  if (k >= 0 && k % 2 === 0 && GIANT_ORDER.length) {
+    const g = GIANT_ORDER[(k / 2) % GIANT_ORDER.length];
+    if (ready.includes(g)) return g;
+  }
+  return pick(FEST_POOLS.boss, index);
+}
+const GIANT_BY_ID = Object.fromEntries(GIANTS.map((g) => [g.id, g]));
+
 // Mois n (0 = premier mois des Fêtes) : ses deux fêtes, dates comprises.
 export function festMonth(index) {
   const { y, m, key } = monthAt(index);
   const hand = FEST_MONTHS.find((x) => x.month === key);
   const days = new Date(y, m, 0).getDate();
   const P = FEST_RULES.pauseDays;
-  const boss = pick(FEST_POOLS.boss, index);
+  const boss = festBoss(index);
+  const giant = GIANT_BY_ID[boss];
   const featured = pick(FEST_POOLS.featured, index);
   const hero = pick(FEST_POOLS.freeHero, index);
   const pet = pick(FEST_POOLS.freePet, index);
@@ -231,12 +248,12 @@ export function festMonth(index) {
   const next = localMs(y, m + 1, 1);
   const auto = { grand: { title: `Fête du héros : ${FEST_NAMES[featured] ?? featured}`, tagline: 'Le héros du mois t\'attend.', currency: 'Insignes', regions: ['Avant-poste', 'Terres du héros', 'Sanctuaire'] },
     light: { title: `Foire : ${FEST_NAMES[hero] ?? hero}`, tagline: 'Un héros et un familier gratuits à gagner.', currency: 'Jetons' } };
-  const accent = BOSS_ACCENT[boss] ?? '#c9a14a';
+  const accent = BOSS_ACCENT[boss] ?? giant?.accent ?? '#c9a14a';
   const g = { accent, ...auto.grand, ...(hand?.grand ?? {}) };
   const l = { accent, ...auto.light, ...(hand?.light ?? {}) };
   return {
     index, month: key, handWritten: Boolean(hand),
-    grand: { id: `fest-${key}-g`, sheet: `${key}-g`, kind: 'grand', index, ...g, featured, boss, zone: pick(FEST_POOLS.zone, index), start: gStart, playEnd: gPlay, end: lStart },
+    grand: { id: `fest-${key}-g`, sheet: `${key}-g`, kind: 'grand', index, ...g, featured, boss, zone: giant?.mapZone ?? pick(FEST_POOLS.zone, index), start: gStart, playEnd: gPlay, end: lStart },
     light: { id: `fest-${key}-l`, sheet: `${key}-l`, kind: 'light', index, ...l, hero, pet, start: lStart, playEnd: lPlay, end: next },
   };
 }

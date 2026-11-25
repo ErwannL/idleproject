@@ -2,8 +2,9 @@
 // Le serveur (server/live.mjs) n'accepte dans sa configuration que des éléments de ce catalogue, et seulement avec une
 // « version minimale du client » au moins égale à la version qui les a livrés (`since`). Le jeu (core/live.js)
 // n'affiche un élément que si la config live l'active ET si sa propre version est au moins la version minimale.
-// Fichier lu tel quel par le serveur et par le jeu (sa seule dépendance, data/fest.js, n'importe rien).
+// Fichier lu tel quel par le serveur et par le jeu (dépendances : data/fest.js et data/grand-bosses.js, données pures).
 import { FEST_SHEET_IDS, festSheet } from './fest.js';
+import { GRAND_BOSSES, GRAND_BOSS_IDS } from './grand-bosses.js'; // v10.15 : Titans du jour et géants prêts programmables
 // Ajouter un événement : 1) coder son contenu et ses assets, 2) l'ajouter ici avec `since` = version qui le livre,
 // 3) publier la mise à jour, 4) le programmer puis l'activer depuis l'admin (docs/live-ops.md).
 
@@ -18,7 +19,7 @@ export const LIVE_EVENT_TYPES = {
     params: {
       coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Multiplicateur des écus' },
       worldBoss: { type: 'bool', def: true, label: 'World Boss ouvert' },
-      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'World Boss choisi' }, // v9.7.1 : fiches data/grand-bosses.js
+      boss: { type: 'enum', values: GRAND_BOSS_IDS, def: 'colossus', label: 'World Boss choisi' }, // v9.7.1 : fiches data/grand-bosses.js
       bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV du World Boss (×)' },
       attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives du World Boss par jour' },
       shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique d\'événement (×)' },
@@ -41,7 +42,7 @@ export const LIVE_EVENT_TYPES = {
       theme: { type: 'enum', values: ['ruins', 'ocean', 'volcano', 'sky'], def: 'ruins', label: 'Thème' },
       coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Multiplicateur des écus' },
       worldBoss: { type: 'bool', def: true, label: 'Grand boss ouvert' },
-      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'Grand boss' },
+      boss: { type: 'enum', values: GRAND_BOSS_IDS, def: 'colossus', label: 'Grand boss' },
       bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV du grand boss (×)' },
       attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives par jour' },
       shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique (×)' },
@@ -51,7 +52,7 @@ export const LIVE_EVENT_TYPES = {
     since: '9.7.1', kind: 'grand', days: 14, label: 'Grand boss commun',
     detail: 'Tous les joueurs frappent le même grand boss (fiche data/grand-bosses.js), classement de guilde.',
     params: {
-      boss: { type: 'enum', values: ['colossus', 'shade'], def: 'colossus', label: 'Grand boss' },
+      boss: { type: 'enum', values: GRAND_BOSS_IDS, def: 'colossus', label: 'Grand boss' },
       worldBoss: { type: 'bool', def: true, label: 'Ouvert' },
       bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV (×)' },
       attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives par jour' },
@@ -93,7 +94,7 @@ export const LIVE_EVENT_TYPES = {
 };
 
 // Noms des World Boss connus du code (paramètre `boss`). v9.7.1 : fiches des grands boss.
-export const LIVE_BOSSES = { colossus: 'Colosse des Anciens', shade: 'Ombre du Colosse' };
+export const LIVE_BOSSES = Object.fromEntries(GRAND_BOSS_IDS.map((id) => [id, GRAND_BOSSES[id].name])); // v10.15 : toutes les fiches jouables
 
 // Vedettes possibles de la bannière limitée : SSR (héros alliés légendaires) présents dans le code.
 // Vérifié contre data/companions.js par tests/v930-live.test.js.

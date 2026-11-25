@@ -31,6 +31,31 @@ export function animFrameAt(a, t) {
   return -1;
 }
 export const animLength = (a) => (a.durs ? a.durs.reduce((x, y) => x + y, 0) : a.n / a.fps);
+
+// v10.15 : un grand boss d'une autre forme (Léviathan, Hydre…) n'a pas forcément toutes les planches du Colosse.
+// Une animation absente prend la suivante de cette chaîne (ex. `beam3` → `beam` → `attack`) ; `idle` et `attack`
+// suffisent pour qu'un boss joue tout le combat.
+export const ANIM_FALLBACK = {
+  idle3: 'idle', attack3: 'attack', hurt3: 'hurt', hurt: 'idle',
+  throw3: 'throw', throw: 'attack', beam3: 'beam', beam: 'attack',
+  quake: 'attack', embers: 'attack', fury: 'idle3', transform: 'hurt', death: 'hurt', rise: 'idle',
+};
+export function resolveAnim(art, name) {
+  let n = name;
+  for (let i = 0; i < 8 && n && !art.anims[n]; i++) n = ANIM_FALLBACK[n];
+  return n && art.anims[n] ? n : 'idle';
+}
+// v10.15 : repères d'une planche (pixels de l'image source). Par défaut ceux du Colosse (images de 128 px).
+export function artLook(art) {
+  const s = art.frame / 128;
+  return {
+    box: art.box ?? [8 * s, 6 * s, 112 * s, 116 * s], // silhouette visible : x, y, largeur, hauteur
+    shadow: art.shadow ?? 44 * s, // demi-largeur de l'ombre au sol
+    debris: art.debris === undefined ? '#6e665a' : art.debris, // cailloux qui tombent au repos (null : aucun)
+    debrisAt: art.debrisAt ?? [[30 * s, 40 * s], [92 * s, 40 * s]],
+    projectile: { vfx: 'wb_boulder', tint: null, tint3: '#ff6a2a', size: 2.6, spin: 9, dust: ['#7d7466', '#4e5a4c'], ...art.projectile },
+  };
+}
 const IMAGES = {};
 function sheet(art, name) {
   if (typeof Image === 'undefined') return null;
@@ -63,6 +88,7 @@ export class WorldBossScene {
     this.hurtAt = -9;
     this.appear = 0;
     this.art = grandBoss(fight.bossId).art; // v9.7.1 (lot 7) : fiche du grand boss
+    this.look = artLook(this.art); // v10.15 : repères propres à la planche (silhouette, ombre, projectile)
     preloadColossus(this.art);
     // Le boss du moteur n'est pas dessiné par le renderer : le Colosse prend sa place dans le même calque.
     const draw = this.r.drawEnemies.bind(this.r);
@@ -85,7 +111,7 @@ export class WorldBossScene {
   play(name, then = null) {
     if (this.r.focus) return; // « Réduire les animations » : poses fixes
     this.interrupt();
-    this.anim = { name, t: 0, then };
+    this.anim = { name: resolveAnim(this.art, name), t: 0, then }; // v10.15 : planche absente → la plus proche
   }
 
   // v9.3.0 : une attaque propre coupée avant son coup (chute du Colosse…) frappe quand même : dégâts affichés.
@@ -101,7 +127,7 @@ export class WorldBossScene {
     const r = this.r;
     this.appear = Math.min(1, this.appear + dt * 1.5);
     const phase3 = this.fight.phase >= 3;
-    let name = phase3 ? 'idle3' : 'idle';
+    let name = resolveAnim(this.art, phase3 ? 'idle3' : 'idle');
     let i = 0;
     if (this.anim) {
       const a = this.art.anims[this.anim.name];
@@ -110,11 +136,11 @@ export class WorldBossScene {
       if (k < 0) {
         const then = this.anim.then;
         this.interrupt();
-        this.anim = then ? { name: then, t: 0, then: null } : null;
+        this.anim = then ? { name: resolveAnim(this.art, then), t: 0, then: null } : null;
       } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
     }
     let breathe = 0;
-    if (!this.anim || name === 'idle' || name === 'idle3') {
+    if (!this.anim || name === 'idle' || name === 'idle3') { // repos
       const a = this.art.anims[name];
       // v9.11 (2) : repos à 11 images/s au moins, avec une respiration (le corps monte et descend doucement).
       i = r.focus ? 0 : Math.floor(r.time * Math.max(11, a.fps)) % a.n;
@@ -132,7 +158,7 @@ export class WorldBossScene {
     ctx.globalAlpha = 0.35 * this.appear;
     ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.ellipse(cx, r.groundY + 1, 44 * k, 6 * k, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx, r.groundY + 1, this.look.shadow * k, 6 * k, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = this.appear;
     if (this.art.filter) ctx.filter = this.art.filter; // teinte d'une fiche (boss d'essai)
@@ -143,7 +169,7 @@ export class WorldBossScene {
     this.drawn = { name, i, x, y, k };
     // v9.11 (2) : au repos, les yeux luisent et des cailloux tombent des épaules.
     if (!r.focus && (name === 'idle' || name === 'idle3')) {
-      const eye = this.art.eyes.beam?.[0];
+      const eye = this.art.eyes?.beam?.[0];
       if (eye) {
         const glow = 0.35 + 0.25 * Math.sin(r.time * 3.1);
         const col = this.art.beamColors.beam[0];
@@ -157,16 +183,17 @@ export class WorldBossScene {
         ctx.restore();
       }
       this.pebbleAt -= dt;
-      if (this.pebbleAt <= 0) {
+      if (this.pebbleAt <= 0 && this.look.debris) { // v10.15 : couleur et points de chute propres au boss
         this.pebbleAt = 0.7 + Math.random() * 0.9;
-        const side = Math.random() < 0.5 ? 30 : 92;
-        r.effects.push({ kind: 'particle', x: x + side * k, y: y + 40 * k, vx: (Math.random() - 0.5) * 8, vy: 4, life: 0.9, max: 0.9, color: '#6e665a', size: 2, gravity: 160 });
+        const [sx, sy] = this.look.debrisAt[Math.floor(Math.random() * this.look.debrisAt.length)];
+        r.effects.push({ kind: 'particle', x: x + sx * k, y: y + sy * k, vx: (Math.random() - 0.5) * 8, vy: 4, life: 0.9, max: 0.9, color: this.look.debris, size: 2, gravity: 160 });
       }
     }
     if (this.anim?.ev && this.anim.name === name) this.attackStep(name, i);
     // Repères pour les effets du renderer (coups, projectiles, chiffres) : la silhouette visible du Colosse.
     const fx = r.enemyFxFor(boss.id);
-    Object.assign(fx, { sx: x + 8 * k, sy: y + 6 * k, sw: 112 * k, sh: 116 * k, seen: r.time, edge: x + 18 * k, landed: true, appear: 1, hit: 0 });
+    const [bx, by, bw, bh] = this.look.box;
+    Object.assign(fx, { sx: x + bx * k, sy: y + by * k, sw: bw * k, sh: bh * k, seen: r.time, edge: x + (bx + 10) * k, landed: true, appear: 1, hit: 0 });
   }
 
   // v9.3.0 : pixel (px, py) de l'image source du Colosse → écran (d'après la dernière image dessinée).
@@ -178,7 +205,7 @@ export class WorldBossScene {
   // Yeux sur l'image dessinée (animations du rayon seulement).
   eyes() {
     const d = this.drawn;
-    const e = d && this.art.eyes[d.name]?.[d.i];
+    const e = d && this.art.eyes?.[d.name]?.[d.i];
     return e ? [this.at(e[0] + 0.5, e[1] + 0.5), this.at(e[2] + 0.5, e[3] + 0.5)] : null;
   }
 
@@ -203,7 +230,7 @@ export class WorldBossScene {
     const an = this.anim;
     if (a.release !== undefined && i >= a.release && !an.fired) {
       an.fired = true;
-      const [hx, hy] = this.at(...this.art.hands[name]);
+      const [hx, hy] = this.at(...(this.art.hands?.[name] ?? this.art.hands?.throw ?? [16, 34]));
       const tx = this.heroX() - 14;
       this.r.teamBrace = this.r.time + 0.9; // v9.11 (2) : l'équipe se protège du rocher
       this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: name === 'throw3' });
@@ -230,8 +257,9 @@ export class WorldBossScene {
       ctx.globalCompositeOperation = 'lighter';
       for (const [ex, ey] of e) {
         const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 6 + p * 8);
-        g.addColorStop(0, this.art.beamColors[d.name][2]);
-        g.addColorStop(0.4, this.art.beamColors[d.name][0]);
+        const bc = this.art.beamColors[d.name] ?? this.art.beamColors.beam;
+        g.addColorStop(0, bc[2]);
+        g.addColorStop(0.4, bc[0]);
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.globalAlpha = 0.5 + 0.4 * p;
@@ -260,8 +288,9 @@ export class WorldBossScene {
     ctx.ellipse(at.x1, r.groundY + 1, 6 + 12 * u, 2 + 2 * u, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
-    drawVfxFrame(ctx, 'wb_boulder', Math.floor(at.t * 16) % 6, x, y, { size: 2.6, tint: at.fire ? '#ff6a2a' : null, rot: at.t * -9 });
-    if (at.fire && Math.random() < 0.6) r.burst(x, y, '#ff8a3d', 1, 12);
+    const pj = this.look.projectile; // v10.15 : projectile propre au boss (rocher, bulle d'acide, glaçon…)
+    drawVfxFrame(ctx, pj.vfx, Math.floor(at.t * 16) % 6, x, y, { size: pj.size, tint: at.fire ? pj.tint3 : pj.tint, rot: at.t * -pj.spin });
+    if (at.fire && Math.random() < 0.6) r.burst(x, y, pj.tint3 ?? '#ff8a3d', 1, 12);
     if (u >= 1 && !at.landed) {
       at.landed = true;
       at.dur = at.t; // le rocher disparaît : il s'est brisé
@@ -271,8 +300,8 @@ export class WorldBossScene {
       vfx(r, 'mut_stomp', at.x1, G, { size: 1.5 });
       vfx(r, 'dust_land', at.x1 - 30, G, { size: 1.4, delay: 0.1 });
       vfx(r, 'dust_land', at.x1 + 30, G, { size: 1.4, delay: 0.1, flip: true });
-      r.burst(at.x1, G - 8, '#7d7466', 22, 90);
-      r.burst(at.x1, G - 8, '#4e5a4c', 14, 70);
+      r.burst(at.x1, G - 8, pj.dust[0], 22, 90);
+      r.burst(at.x1, G - 8, pj.dust[1], 14, 70);
       if (at.fire) r.burst(at.x1, G - 10, '#ff7a2a', 16, 80);
       r.effects.push({ kind: 'flash', life: 0.12, max: 0.12, color: '#ffffff' });
       r.hitstop = Math.max(r.hitstop ?? 0, 0.06);
@@ -293,7 +322,7 @@ export class WorldBossScene {
     const to = heroX - 70;
     const tx = from + (to - from) * u;
     const ty = r.groundY - 2;
-    const [c0, c1, c2] = this.art.beamColors[at.name];
+    const [c0, c1, c2] = this.art.beamColors[at.name] ?? this.art.beamColors.beam;
     const fade = Math.min(1, at.t * 10, (at.dur - at.t) * 8);
     const wob = 1 + 0.25 * Math.sin(r.time * 60);
     const mx = (e[0][0] + e[1][0]) / 2, my = (e[0][1] + e[1][1]) / 2;
@@ -419,7 +448,7 @@ export class WorldBossScene {
       const p3 = this.fight.phase >= 3;
       this.play(ev.id === 'boulder' ? (p3 ? 'throw3' : 'throw') : (p3 ? 'beam3' : 'beam'));
       this.anim.ev = ev;
-      if (ev.id === 'eyebeam') vfx(r, 'boss_rage', box.x, box.foot, { size: 1.6, tint: p3 ? '#ff7a2a' : '#5ff6ff', alpha: 0.6 });
+      if (ev.id === 'eyebeam') vfx(r, 'boss_rage', box.x, box.foot, { size: 1.6, tint: p3 ? '#ff7a2a' : (this.art.beamColors?.beam?.[0] ?? '#5ff6ff'), alpha: 0.6 });
       return;
     }
     if (ev.type === 'awaken') {

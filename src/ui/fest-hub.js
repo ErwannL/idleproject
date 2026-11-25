@@ -49,7 +49,10 @@ function bossArt(id, cls = '') {
   const gb = grandBoss(id);
   const a = gb.art ?? {};
   const url = `${a.dir}/${a.prefix ?? 'colossus_'}idle.png`;
-  return `<span class="fh-boss-art ${cls}" style="background-image:url(${url});${a.filter && !a.dir.includes(id) ? `filter:${a.filter};` : ''}" role="img" aria-label="${escapeHtml(gb.name)}"></span>`;
+  // v10.15 : planche d'un nouveau géant (autant d'images que `anims.idle.n`, sans image de réserve) : cadence à part.
+  const n = a.exactSheets ? a.anims?.idle?.n : 0;
+  const run = n > 1 ? `--fh-n:${n};background-size:${n * 100}% 100%;animation-name:fh-idle-n;animation-timing-function:steps(${n});` : '';
+  return `<span class="fh-boss-art ${cls}" style="background-image:url(${url});${run}${a.filter && !a.dir.includes(id) ? `filter:${a.filter};` : ''}" role="img" aria-label="${escapeHtml(gb.name)}"></span>`;
 }
 const bossZone = (id) => grandBoss(id).zone ?? 'volcano';
 
