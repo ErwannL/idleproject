@@ -1,7 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
-import { closeFestHub, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
+import { closeFestHub, festHubHelp, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
 import { foldMissions, riftEnd, riftQuitAsk } from './fest-tabs.js'; // v10.14.1 : Brèche, Missions
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
@@ -1207,8 +1207,9 @@ export class UI {
       case 'lights-all': { const r = a.lightsAll(); if (r?.length) this.chestReveal(Object.assign({}, ...r.map((x) => x.given)), 'Lanternes'); break; }
       case 'lights-buy': { const g = a.lightsBuy(value); if (g) this.chestReveal(g, 'Échoppe des Lueurs'); break; }
       // v10.14 : Fêtes du mois (ui/panels/event.js, core/fest.js) ; écran à part (ui/fest-hub.js) et Brèche.
-      case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); openFestHub(this, value || null); break;
+      case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); if (el.closest('#panel') && this.root?.classList?.contains('m-phone')) this.closePanel(); /* v10.14.1 : sur téléphone le panneau flotte au-dessus de l'écran de la fête */ openFestHub(this, value || null); break;
       case 'fest-hub-tab': festHubTab(this, value); break;
+      case 'fest-hub-help': festHubHelp(this); break;
       case 'fest-hub-close': closeFestHub(this); this.invalidate(); break;
       case 'rift-start': if (el.closest('#modal')) this.closeModal(); a.riftStart(); break;
       case 'rift-fight': { // v10.14.1 : fin de course → fenêtre « Brèche terminée » (palier, record, « Encore une fois »)
@@ -1222,10 +1223,11 @@ export class UI {
       case 'rift-quit': { if (el.closest('#modal')) this.closeModal(); const r = a.riftQuit(); if (r) riftEnd(this, r); break; }
       case 'fest-go': closeFestHub(this); if (el.closest('#modal')) this.closeModal(); this.openTab(value); break; // « Y aller » ferme l'écran de la fête
       case 'fest-fold': foldMissions(value); renderFestHub(this); break;
-      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); this.invalidate(); break; }
-      case 'fest-chain': a.festChain(Number(value)); this.invalidate(); break;
+      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); if (r?.won === false && this.festHub) this.festHub.lost = { n: Number(value), at: Date.now() }; this.invalidate(); break; }
+      case 'fest-chain': { const r = a.festChain(Number(value)); if (r && this.festHub) this.festHub.lost = { n: Number(value) + (r.won ?? 0), at: Date.now() }; this.invalidate(); break; } // la chaîne s'arrête sur le gardien trop solide
+      case 'fest-hub-go': closeFestHub(this); this.openTab(value); break; // v10.14.1 : ferme l'écran de la fête puis ouvre l'onglet (Forge, Invocation, Compagnons)
       case 'fest-boss':
-        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => a.festBossFinish(setup, r), left: () => a.festBossLeft(), closed: () => this.invalidate() });
+        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => { const res = a.festBossFinish(setup, r); if (res && this.festHub) this.festHub.bossReport = res; return res; }, left: () => a.festBossLeft(), closed: () => this.invalidate() });
         break;
       case 'fest-mission': a.festMission(value); break;
       case 'fest-missions-all': a.festMissionsAll(); break;

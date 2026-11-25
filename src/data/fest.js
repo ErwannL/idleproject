@@ -166,6 +166,19 @@ export const FEST_MONTHS = [
   },
 ];
 
+// v10.14.1 : une couleur d'accent par fête (bordure de l'onglet actif, étape suivante, liseré de l'en-tête, halo du grand
+// prix). L'or du kit reste réservé aux boutons dorés. Mois de la rotation automatique : couleur de l'élément du boss.
+const FEST_ACCENTS = {
+  '2027-02': { grand: '#ff5a4a', light: '#ff7ab8' },
+  '2027-03': { grand: '#63d98a', light: '#9be36d' },
+  '2027-04': { grand: '#ffd23f', light: '#fff1a0' },
+  '2027-05': { grand: '#b04dff', light: '#6a8cff' },
+  '2027-06': { grand: '#7fd4ff', light: '#ffb04a' },
+  '2027-07': { grand: '#ff8a3d', light: '#f3d27a' },
+};
+for (const m of FEST_MONTHS) { m.grand.accent = FEST_ACCENTS[m.month].grand; m.light.accent = FEST_ACCENTS[m.month].light; }
+const BOSS_ACCENT = { titan_ember: '#ff5a4a', titan_thorn: '#63d98a', titan_sun: '#ffd23f', titan_void: '#b04dff', titan_tide: '#7fd4ff', colossus: '#ff8a3d', titan_storm: '#8fb4ff', titan_moon: '#c9d4ff' };
+
 // Bénédictions de la Brèche (3 proposées après chaque palier gagné, gardées jusqu'à la fin de la course).
 export const RIFT_BLESSINGS = {
   force: { name: 'Lame bénie', text: '+20 % de dégâts', icon: 'icon_damage', dmg: 0.2 },
@@ -218,8 +231,9 @@ export function festMonth(index) {
   const next = localMs(y, m + 1, 1);
   const auto = { grand: { title: `Fête du héros : ${FEST_NAMES[featured] ?? featured}`, tagline: 'Le héros du mois t\'attend.', currency: 'Insignes', regions: ['Avant-poste', 'Terres du héros', 'Sanctuaire'] },
     light: { title: `Foire : ${FEST_NAMES[hero] ?? hero}`, tagline: 'Un héros et un familier gratuits à gagner.', currency: 'Jetons' } };
-  const g = { ...auto.grand, ...(hand?.grand ?? {}) };
-  const l = { ...auto.light, ...(hand?.light ?? {}) };
+  const accent = BOSS_ACCENT[boss] ?? '#c9a14a';
+  const g = { accent, ...auto.grand, ...(hand?.grand ?? {}) };
+  const l = { accent, ...auto.light, ...(hand?.light ?? {}) };
   return {
     index, month: key, handWritten: Boolean(hand),
     grand: { id: `fest-${key}-g`, sheet: `${key}-g`, kind: 'grand', index, ...g, featured, boss, zone: pick(FEST_POOLS.zone, index), start: gStart, playEnd: gPlay, end: lStart },

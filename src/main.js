@@ -1126,6 +1126,14 @@ const actions = {
   festBossFinish(setup, result) {
     const r = finishFestBoss(state, setup, result);
     done(Boolean(r), r ? `World Boss : ${formatNumber(r.damage)} dégâts · +${r.coins}${r.record ? ' · record !' : ''}` : null, '#f2d083');
+    // v10.14.1 : score envoyé comme eventBossFinish (mode « event », identifiant de la fête) pour le classement PAR TRANCHES
+    // (10 %, 30 %, 60 %) remis à zéro à chaque fête ; le serveur ne renvoie que la tranche du joueur. Hors ligne : ignoré.
+    if (r && cloud.isLoggedIn?.()) {
+      const power = Math.max(1, Math.round(computeHeroStats(state).combatPower ?? 1));
+      cloud.wbReport({ mode: 'event', event: String(setup.event ?? 'event'), damage: r.damage, tiers: r.tiers, power })
+        .then((res) => { if (res?.bracket) { ui.festBracket = { event: setup.event, ...res.bracket }; ui.toast(`Classement de la fête : ${res.bracket.label}`, '#f2d083'); ui.invalidate(); } })
+        .catch(() => {});
+    }
     return r;
   },
   festBossLeft() { return festBossStatus(state)?.left ?? 0; },

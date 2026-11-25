@@ -101,6 +101,18 @@ export function checkReport(r) {
   return { mode, damage: Math.floor(damage), points: tiers * 25, period };
 }
 
+// v10.14.1 : classement PAR TRANCHES du World Boss de fête. Pas de classement absolu : le joueur ne voit que sa
+// tranche (les 10 % meilleurs, 30 %, 60 %), calculée sur les scores de la fête (période = identifiant de la fête,
+// donc remis à zéro à chaque fête). Les périodes de fête commencent par « fest- ».
+export const FEST_BRACKETS = [{ id: 'top10', label: 'Top 10 %', max: 0.1 }, { id: 'top30', label: 'Top 30 %', max: 0.3 }, { id: 'top60', label: 'Top 60 %', max: 0.6 }];
+export const isFestPeriod = (period) => /^fest-/.test(String(period ?? ''));
+export function bracketOf(ahead, total) {
+  if (!(total > 0)) return null;
+  const share = ahead / total; // part des joueurs strictement devant
+  const b = FEST_BRACKETS.find((x) => share < x.max);
+  return b ? { id: b.id, label: b.label } : { id: 'part', label: 'Participant' };
+}
+
 export function createGuilds({ db, now = () => Date.now() }) {
   db.exec(GUILD_SCHEMA_SQL);
   if (!db.prepare('SELECT id FROM wb_global WHERE id = 1').get()) db.prepare('INSERT INTO wb_global (id, cycle, damage, updated_at) VALUES (1, 1, 0, ?)').run(now());
@@ -162,7 +174,18 @@ export function createGuilds({ db, now = () => Date.now() }) {
         global = { cycle, hp: GUILD_RULES.global.hp, left: GUILD_RULES.global.hp - dmg, defeated: cycle > g.cycle };
       }
       if (gid && m) log(gid, `${me.pseudo} : ${r.mode === 'global' ? 'World Boss mondial' : 'World Boss d\'événement'}, ${r.damage.toLocaleString('fr-FR')} dégâts`);
-      return { counted: Boolean(gid), lockedUntil: m && !gid ? (db.prepare('SELECT at FROM guild_switches WHERE account_id = ?').get(me.id).at + GUILD_RULES.switchLockMs) : null, global };
+      const bracket = r.mode === 'event' && isFestPeriod(period) ? this.eventBracket(me, period).bracket : undefined;
+      return { counted: Boolean(gid), bracket, lockedUntil: m && !gid ? (db.prepare('SELECT at FROM guild_switches WHERE account_id = ?').get(me.id).at + GUILD_RULES.switchLockMs) : null, global };
+    },
+    // Tranche du joueur pour une fête (score = dégâts cumulés des meilleurs essais du jour + paliers) ; jamais de rang.
+    eventBracket(me, period) {
+      const p = String(period ?? '');
+      if (!isFestPeriod(p) || !/^[\w.-]{1,40}$/.test(p)) throw bad('Fête invalide');
+      const rows = db.prepare(`SELECT account_id, SUM(damage) + SUM(points) * 1e6 AS score FROM wb_scores WHERE mode = 'event' AND period = ? GROUP BY account_id`).all(p);
+      const mine = rows.find((r) => r.account_id === me.id);
+      if (!mine) return { period: p, players: rows.length, bracket: null };
+      const ahead = rows.filter((r) => r.score > mine.score).length;
+      return { period: p, players: rows.length, bracket: bracketOf(ahead, rows.length) };
     },
     globalBoss() {
       const g = db.prepare('SELECT cycle, damage FROM wb_global WHERE id = 1').get();
@@ -171,6 +194,8 @@ export function createGuilds({ db, now = () => Date.now() }) {
     // ---- Classements ----
     ranking(mode, period0, me) {
       const period = mode === 'global' ? (period0 || weekKey(now())) : String(period0 ?? '');
+      // v10.14.1 : World Boss de fête = tranches seulement (voir eventBracket), pas de liste de joueurs ni de guildes.
+      if (mode === 'event' && isFestPeriod(period)) return { mode, period, rule: 'tranches (10 %, 30 %, 60 %), remises à zéro à chaque fête', players: [], guilds: [], bracket: me ? this.eventBracket(me, period).bracket : null, me: me ? memberOf(me.id)?.name ?? null : null };
       const players = db.prepare(`SELECT a.pseudo, SUM(w.damage) AS damage, SUM(w.points) AS points FROM wb_scores w JOIN accounts a ON a.id = w.account_id
         WHERE w.mode = ? AND w.period = ? GROUP BY w.account_id ORDER BY (SUM(w.damage) + SUM(w.points) * 1e6) DESC LIMIT 50`).all(mode, period);
       const guilds = db.prepare('SELECT id, name, emblem FROM guilds').all()
