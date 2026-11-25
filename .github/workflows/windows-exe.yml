@@ -45,7 +45,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Installer les dépendances
         run: npm ci
@@ -115,7 +114,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+
+      # Lecture seule du cache npm de main (aucun cache créé pour le tag).
+      - uses: actions/cache/restore@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - uses: actions/setup-java@v5
         with:
@@ -207,7 +211,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Installer les dépendances
         run: npm ci
@@ -247,7 +250,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Installer les dépendances
         run: npm ci
