@@ -1,0 +1,257 @@
+/* v10.14 : Fêtes du mois (ui/panels/event.js festPage). Reprend le kit (m-card, ev-poster, ev-mission, ev-shop-grid) ;
+   seuls les éléments propres aux fêtes sont ici : héros/familier à gagner sur l'affiche, bandeau d'échange, jalons. */
+#app .cb-frame.fest-page .fest-poster { height: auto; min-height: 160px; background-size: cover; background-position: center; }
+#app .cb-frame.fest-page .fest-poster .ev-wallet { white-space: nowrap; }
+.fest-page .fest-kicker { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--m-gold, #f2c060); }
+.fest-page .fest-timer { font-weight: 700; }
+.fest-page .fest-prize { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 4px; text-align: center; }
+.fest-page .fest-prize small { flex-basis: 100%; font-size: 11px; color: #fff3c8; text-shadow: 0 1px 2px #000; }
+.fest-page .fest-unit-art { max-height: 110px; max-width: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+.fest-page .fest-prize.two .fest-unit-art { max-height: 92px; max-width: 48%; }
+.fest-page .fest-unit-art.pet { max-height: 64px; }
+.fest-page .fest-unit-art.mini { max-height: 32px; max-width: 40px; }
+.fest-page .fest-pause { border-color: #7fd4ff; display: flex; flex-direction: column; gap: 4px; }
+.fest-page .fest-steps { display: flex; gap: 6px; overflow-x: auto; padding: 8px; scroll-snap-type: x proximity; }
+.fest-page .fest-step { position: relative; flex: 0 0 auto; min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px;
+  border-radius: 10px; border: 2px solid rgba(255,255,255,.12); background: rgba(0,0,0,.25); color: inherit; scroll-snap-align: center; }
+.fest-page .fest-step.ready { border-color: var(--m-gold, #f2c060); box-shadow: 0 0 10px rgba(242,192,96,.55); cursor: pointer; }
+.fest-page .fest-step.claimed { opacity: .55; }
+.fest-page .fest-step-gift { display: flex; align-items: center; gap: 2px; min-height: 34px; }
+.fest-page .fest-ok { position: absolute; top: 2px; right: 4px; color: #7fe0a0; font-style: normal; font-weight: 700; }
+.fest-page .fest-item b { font-size: 12px; }
+
+/* Onglet Événement : porte d'entrée (tuiles illustrées vers l'écran de la fête). */
+.fest-page .fest-doors { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; margin-top: 8px; }
+.fest-page .fest-door { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; color: inherit; cursor: pointer; text-align: center; }
+.fest-page .fest-door img { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; }
+.fest-page .fest-door b { font-size: 14px; }
+.fest-page .fest-door small { font-size: 12px; color: #9fb0d8; }
+
+/* ÉCRAN DE LA FÊTE (ui/fest-hub.js) : plein cadre dans #app, sous les fenêtres (#modal, z 10). */
+#app .fest-hub { position: absolute; inset: 0; z-index: 9; display: flex; flex-direction: column; color: #eef2ff; background: #0b1124; overflow: hidden; }
+#app .fest-hub .fh-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .55; filter: saturate(1.1); }
+#app .fest-hub .fh-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,17,36,.55), rgba(11,17,36,.88) 45%, #0b1124); }
+#app .fest-hub > * { position: relative; }
+#app .fest-hub .fh-top { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 2px solid #c9a14a; background: linear-gradient(180deg, rgba(18,26,51,.95), rgba(11,17,36,.85)); }
+#app .fest-hub .fh-head { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+#app .fest-hub .fh-head small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-head b { font-size: 20px; line-height: 1.15; text-shadow: 0 2px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#app .fest-hub .fh-timer { padding: 4px 10px; border: 1.5px solid #c9a14a; border-radius: 999px; background: rgba(0,0,0,.35); font-weight: 700; white-space: nowrap; }
+#app .fest-hub .fh-wallet { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.45); white-space: nowrap; }
+#app .fest-hub .fh-wallet b { font-size: 16px; }
+#app .fest-hub .fh-wallet small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .lt-cur { width: 22px; height: 22px; image-rendering: pixelated; }
+#app .fest-hub .fh-close { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid #c9a14a; background: #18223f; color: #fff; font-size: 18px; cursor: pointer; flex: 0 0 auto; }
+#app .fest-hub .fh-pause { margin: 8px 14px 0; padding: 8px 12px; border: 1.5px solid #7fd4ff; border-radius: 10px; background: rgba(10,30,50,.8); font-size: 13px; }
+#app .fest-hub .fh-main { flex: 1; overflow-y: auto; padding: 12px 14px 16px; overscroll-behavior: contain; }
+#app .fest-hub .fh-nav { display: flex; gap: 6px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); border-top: 2px solid #c9a14a; background: linear-gradient(0deg, #0b1124, rgba(18,26,51,.95)); }
+#app .fest-hub .fh-tab { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; min-height: 76px; border-radius: 12px;
+  border: 1.5px solid #2c3a66; background: #18223f; color: #9fb0d8; cursor: pointer; }
+#app .fest-hub .fh-tab.on { border-color: #f3d27a; color: #fff; background: linear-gradient(180deg, #2a2f52, #18223f); box-shadow: 0 0 12px rgba(243,210,122,.35); }
+#app .fest-hub .fh-tab b { font-size: 13px; }
+#app .fest-hub .fh-tab-art { width: 48px; height: 48px; display: grid; place-items: center; }
+#app .fest-hub .fh-tab-art img { max-width: 48px; max-height: 48px; image-rendering: pixelated; }
+#app .fest-hub .fh-badge { position: absolute; top: 4px; right: 8px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #e2453c; color: #fff; font-size: 12px; font-style: normal; font-weight: 700; display: grid; place-items: center; }
+#app .fest-hub .fh-h { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 16px; color: #f3d27a; }
+#app .fest-hub .fh-h img { width: 22px; height: 22px; }
+#app .fest-hub .fh-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 8px 0; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.92); }
+#app .fest-hub .fh-card > span:first-child { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 2px; }
+#app .fest-hub .fh-card small, #app .fest-hub .fh-help { color: #9fb0d8; font-size: 12px; }
+#app .fest-hub .fh-help { display: block; margin-top: 6px; }
+#app .fest-hub .fh-lock { justify-content: center; color: #9fb0d8; }
+#app .fest-hub .fh-wide { width: 100%; margin-top: 8px; }
+#app .fest-hub .m-btn, #app .fest-hub .m-btn-gold { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+#app .fest-hub .m-btn img, #app .fest-hub .m-btn-gold img { width: 22px; height: 22px; }
+#app .fest-hub .fh-sprite { width: 40px; height: 40px; image-rendering: pixelated; }
+#app .fest-hub .fest-unit-art { max-height: 120px; max-width: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+#app .fest-hub .fest-unit-art.big { max-height: 180px; }
+#app .fest-hub .fest-unit-art.mini { max-height: 30px; max-width: 36px; }
+#app .fest-hub .fest-unit-art.pet.big { max-height: 120px; }
+#app .fest-hub .shop-give img, #app .fest-hub .wallet-ico { width: 20px; height: 20px; }
+
+/* Aventure */
+#app .fest-hub .fh-adv { display: grid; grid-template-columns: minmax(220px, 32%) 1fr; gap: 14px; align-items: start; }
+#app .fest-hub .fh-herocol { display: flex; flex-direction: column; gap: 6px; }
+#app .fest-hub .fh-hero-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 2px solid #c9a14a; border-radius: 14px;
+  background: radial-gradient(circle at 50% 35%, rgba(243,210,122,.28), rgba(24,34,63,.95) 65%); text-align: center; }
+#app .fest-hub .fh-hero-card small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-hero-card > b { font-size: 18px; }
+#app .fest-hub .fh-bonus { font-size: 12px; color: #9fb0d8; }
+#app .fest-hub .fh-bonus.on { color: #5be37d; font-weight: 700; }
+#app .fest-hub .fest-steps { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.9); }
+#app .fest-hub .fest-step { position: relative; flex: 1 0 52px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 10px;
+  border: 2px solid rgba(255,255,255,.12); background: rgba(0,0,0,.25); color: inherit; }
+#app .fest-hub .fest-step.ready { border-color: #f3d27a; box-shadow: 0 0 10px rgba(242,192,96,.55); cursor: pointer; }
+#app .fest-hub .fest-step.claimed { opacity: .55; }
+#app .fest-hub .fest-step-gift { display: flex; align-items: center; gap: 2px; min-height: 30px; flex-wrap: wrap; justify-content: center; }
+#app .fest-hub .fest-ok { position: absolute; top: 2px; right: 4px; color: #5be37d; font-style: normal; font-weight: 700; }
+#app .fest-hub .fh-map { display: flex; flex-direction: column; gap: 8px; }
+#app .fest-hub .fh-region { position: relative; height: 150px; border: 2px solid #c9a14a; border-radius: 14px; overflow: hidden; background-size: cover; background-position: center; image-rendering: pixelated; }
+#app .fest-hub .fh-region.cleared { border-color: #5be37d; }
+#app .fest-hub .fh-region-name { position: absolute; left: 10px; top: 8px; z-index: 2; padding: 2px 10px; border-radius: 999px; background: rgba(11,17,36,.8); font-weight: 700; font-size: 13px; }
+#app .fest-hub .fh-region-done { position: absolute; right: 10px; top: 8px; z-index: 2; padding: 2px 10px; border-radius: 999px; background: rgba(20,60,30,.85); color: #5be37d; font-size: 12px; font-weight: 700; }
+#app .fest-hub .fh-road { position: absolute; inset: 0; width: 100%; height: 100%; }
+#app .fest-hub .fh-road path { fill: none; stroke: #f3d27a; stroke-width: 1.4; stroke-dasharray: 2.5 2; vector-effect: non-scaling-stroke; stroke-width: 4px; opacity: .85; }
+#app .fest-hub .fh-node { position: absolute; z-index: 1; transform: translate(-50%, -50%); width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  border: 2px solid #2c3a66; background: #18223f; font-size: 13px; }
+#app .fest-hub .fh-node img { width: 22px; height: 22px; }
+#app .fest-hub .fh-node.done { border-color: #5be37d; background: #1d3a2a; }
+#app .fest-hub .fh-node.next { border-color: #f3d27a; background: #3a2f12; box-shadow: 0 0 0 4px rgba(243,210,122,.25), 0 0 14px rgba(243,210,122,.7); }
+#app .fest-hub .fh-node.off { opacity: .8; }
+#app .fest-hub .fh-hero { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); animation: fh-bob 1.2s ease-in-out infinite; }
+@keyframes fh-bob { 50% { transform: translate(-50%, -4px); } }
+#app .fest-hub .fh-fight { flex-wrap: wrap; }
+
+/* World Boss */
+#app .fest-hub .fh-boss { display: grid; grid-template-columns: minmax(220px, 45%) 1fr; gap: 12px; align-items: center; min-height: 100%; padding: 12px; border: 2px solid #c9a14a; border-radius: 16px;
+  background-size: cover; background-position: center bottom; image-rendering: pixelated; }
+#app .fest-hub .fh-boss-stage { display: grid; place-items: end center; min-height: 260px; }
+#app .fest-hub .fh-boss-art { display: block; aspect-ratio: 1; background-repeat: no-repeat; background-size: 900% 100%; image-rendering: pixelated; animation: fh-idle 1.15s steps(8) infinite; }
+#app .fest-hub .fh-boss-art.big { width: min(100%, 320px); filter: drop-shadow(0 6px 18px rgba(0,0,0,.7)); }
+#app .fest-hub .fh-boss-art.mini { width: 56px; animation: none; }
+@keyframes fh-idle { to { background-position: 100% 0; } }
+#app .fest-hub .fh-boss-info { display: flex; flex-direction: column; gap: 8px; }
+#app .fest-hub .fh-boss-info > small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-boss-name { font-size: 26px; line-height: 1.1; text-shadow: 0 3px 0 #000; }
+#app .fest-hub .fh-phases { display: flex; flex-wrap: wrap; gap: 6px; }
+#app .fest-hub .fh-phase { padding: 3px 8px; border-radius: 8px; background: rgba(120,20,20,.6); font-size: 12px; }
+#app .fest-hub .fh-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#app .fest-hub .fh-stats span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; background: rgba(11,17,36,.8); border: 1.5px solid #2c3a66; }
+#app .fest-hub .fh-stats img { width: 24px; height: 24px; }
+#app .fest-hub .fh-stats small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .fh-stats b { font-size: 16px; }
+#app .fest-hub .fh-tiers { display: flex; gap: 6px; }
+#app .fest-hub .fh-tier { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; border: 1.5px solid #2c3a66; background: rgba(11,17,36,.8); }
+#app .fest-hub .fh-tier.on { border-color: #f3d27a; background: rgba(80,60,10,.8); }
+#app .fest-hub .fh-tier small { color: #f3d27a; font-size: 11px; }
+#app .fest-hub .fh-attack { width: 100%; min-height: 54px; font-size: 18px; }
+
+/* Brèche */
+#app .fest-hub .fh-rift-head { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 2px solid #b48cff; border-radius: 14px; background: linear-gradient(90deg, rgba(60,30,110,.85), rgba(24,34,63,.92)); }
+#app .fest-hub .fh-rift-art { width: 72px; height: 72px; image-rendering: pixelated; }
+#app .fest-hub .fh-rift-head > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+#app .fest-hub .fh-rift-head small { color: #cdbfff; font-size: 12px; }
+#app .fest-hub .fh-stock { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+#app .fest-hub .fh-pips { display: flex; gap: 4px; }
+#app .fest-hub .fh-pip { width: 12px; height: 18px; border-radius: 4px; border: 1.5px solid #b48cff; background: rgba(0,0,0,.4); }
+#app .fest-hub .fh-pip.on { background: linear-gradient(180deg, #e0c8ff, #9b62ff); box-shadow: 0 0 6px #b48cff; }
+#app .fest-hub .fh-floors { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 10px 0; }
+#app .fest-hub .fh-floor { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 8px; border: 1.5px solid #2c3a66; background: rgba(11,17,36,.85); }
+#app .fest-hub .fh-floor.done, #app .fest-hub .fh-floor.best { border-color: #5be37d; }
+#app .fest-hub .fh-floor.next { border-color: #b48cff; box-shadow: 0 0 10px rgba(180,140,255,.7); }
+#app .fest-hub .fh-first { display: flex; transform: scale(.85); }
+#app .fest-hub .fh-first.got { opacity: .45; }
+#app .fest-hub .fh-hearts { color: #ff6b8a; font-size: 20px; letter-spacing: 2px; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-bless-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0; }
+#app .fest-hub .fh-bless { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; border-radius: 14px; border: 2px solid #b48cff; color: #fff; cursor: pointer;
+  background: radial-gradient(circle at 50% 30%, rgba(180,140,255,.35), rgba(24,34,63,.95) 70%); text-align: center; }
+#app .fest-hub .fh-bless:hover { box-shadow: 0 0 16px rgba(180,140,255,.8); transform: translateY(-2px); }
+#app .fest-hub .fh-bless .fh-bless-ico { width: 56px; height: 56px; }
+#app .fest-hub .fh-bless b { font-size: 16px; }
+#app .fest-hub .fh-bless small { font-size: 13px; color: #e0d8ff; }
+#app .fest-hub .fh-bless-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
+#app .fest-hub .fh-bless-mini { display: grid; grid-template-columns: 28px 1fr; grid-template-rows: auto auto; column-gap: 6px; align-items: center; padding: 6px 8px; border-radius: 10px; background: rgba(24,34,63,.85); border: 1.5px solid #2c3a66; }
+#app .fest-hub .fh-bless-mini img { grid-row: 1 / 3; width: 28px; height: 28px; }
+#app .fest-hub .fh-bless-mini small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .fh-owned { display: flex; flex-wrap: wrap; gap: 6px; }
+#app .fest-hub .fh-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: rgba(60,30,110,.8); font-size: 12px; }
+#app .fest-hub .fh-chip img { width: 18px; height: 18px; }
+#app .fest-hub .fh-rift-fight { flex-wrap: wrap; }
+
+/* Missions, Boutique, Sentier */
+#app .fest-hub .fh-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#app .fest-hub .ev-h { display: block; margin: 6px 0; color: #f3d27a; font-size: 16px; }
+#app .fest-hub .ev-mission { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.92); }
+#app .fest-hub .ev-mission-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+#app .fest-hub .ev-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+#app .fest-hub .ev-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.92); text-align: center; }
+#app .fest-hub .fh-gifts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+#app .fest-hub .fh-gift { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 2px solid #c9a14a; border-radius: 14px; background: radial-gradient(circle at 50% 35%, rgba(243,210,122,.25), rgba(24,34,63,.95) 65%); text-align: center; }
+#app .fest-hub .fh-gift small { color: #9fb0d8; font-size: 12px; }
+#app .fest-hub .fh-path { position: relative; height: 230px; border: 2px solid #c9a14a; border-radius: 14px; background-size: cover; background-position: center; overflow: hidden; }
+#app .fest-hub .fh-pnode { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: none; color: #fff; }
+#app .fest-hub .fh-pnode > img { width: 40px; height: 40px; image-rendering: pixelated; }
+#app .fest-hub .fh-pnode.ready > img { filter: drop-shadow(0 0 8px #f3d27a); }
+#app .fest-hub .fh-pnode.ready { cursor: pointer; }
+#app .fest-hub .fh-pnode.claimed { opacity: .55; }
+#app .fest-hub .fh-pnode.prize > img { width: 48px; height: 48px; }
+#app .fest-hub .fh-pgift { display: flex; gap: 2px; align-items: center; }
+#app .fest-hub .fh-pnode small { font-size: 11px; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-pnode .fh-hero { bottom: 46px; }
+
+/* Téléphone et fenêtres étroites : une colonne. */
+@media (max-width: 720px) {
+  #app .fest-hub .fh-top { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+  #app .fest-hub .fh-head { flex-basis: calc(100% - 50px); }
+  #app .fest-hub .fh-head b { font-size: 17px; }
+  #app .fest-hub .fh-adv, #app .fest-hub .fh-boss, #app .fest-hub .fh-cols, #app .fest-hub .fh-gifts { grid-template-columns: 1fr; }
+  #app .fest-hub .fh-boss-stage { min-height: 200px; }
+  #app .fest-hub .fh-boss-art.big { width: min(100%, 240px); }
+  #app .fest-hub .fh-hero-card { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  #app .fest-hub .fest-unit-art.big { max-height: 120px; }
+  #app .fest-hub .fh-region { height: 130px; }
+  #app .fest-hub .fh-node { width: 28px; height: 28px; font-size: 11px; }
+  #app .fest-hub .fh-tab { min-height: 64px; }
+  #app .fest-hub .fh-tab-art, #app .fest-hub .fh-tab-art img { width: 36px; height: 36px; max-width: 36px; max-height: 36px; }
+  #app .fest-hub .fh-tab b { font-size: 11px; }
+  #app .fest-hub .fh-bless-row { grid-template-columns: 1fr; }
+  #app .fest-hub .fh-bless { flex-direction: row; text-align: left; padding: 10px; }
+  #app .fest-hub .fh-floors { grid-template-columns: repeat(5, 1fr); }
+  #app .fest-hub .fh-rift-head { flex-wrap: wrap; }
+  #app .fest-hub .fh-path { height: 200px; }
+}
+
+/* Téléphone (#app.m-phone : l'interface est mise à l'échelle, la largeur de la fenêtre ne suffit pas). */
+#app.m-phone .fest-hub .fh-top { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+#app.m-phone .fest-hub .fh-head { flex-basis: calc(100% - 50px); }
+#app.m-phone .fest-hub .fh-head b { font-size: 17px; }
+#app.m-phone .fest-hub .fh-adv, #app.m-phone .fest-hub .fh-boss, #app.m-phone .fest-hub .fh-cols, #app.m-phone .fest-hub .fh-gifts { grid-template-columns: 1fr; }
+#app.m-phone .fest-hub .fh-boss-stage { min-height: 200px; }
+#app.m-phone .fest-hub .fh-boss-art.big { width: min(100%, 240px); }
+#app.m-phone .fest-hub .fh-hero-card { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+#app.m-phone .fest-hub .fest-unit-art.big { max-height: 120px; }
+#app.m-phone .fest-hub .fh-region { height: 130px; }
+#app.m-phone .fest-hub .fh-node { width: 28px; height: 28px; font-size: 11px; }
+#app.m-phone .fest-hub .fh-tab { min-height: 64px; }
+#app.m-phone .fest-hub .fh-tab-art, #app.m-phone .fest-hub .fh-tab-art img { width: 36px; height: 36px; max-width: 36px; max-height: 36px; }
+#app.m-phone .fest-hub .fh-tab b { font-size: 11px; }
+#app.m-phone .fest-hub .fh-bless-row { grid-template-columns: 1fr; }
+#app.m-phone .fest-hub .fh-bless { flex-direction: row; text-align: left; padding: 10px; }
+#app.m-phone .fest-hub .fh-floors { grid-template-columns: repeat(5, 1fr); }
+#app.m-phone .fest-hub .fh-rift-head { flex-wrap: wrap; }
+#app.m-phone .fest-hub .fh-path { height: 200px; }
+
+/* Boutons dans une carte : taille du contenu. */
+#app#app .fest-hub .fh-card .m-btn, #app#app .fest-hub .fh-card .m-btn-gold { width: auto; flex: 0 0 auto; padding: 0 18px; }
+/* Boutique illustrée. */
+#app .fest-hub .fh-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+#app .fest-hub .fh-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border: 1.5px solid #2c3a66; border-radius: 14px;
+  background: radial-gradient(circle at 50% 30%, rgba(243,210,122,.18), rgba(24,34,63,.95) 70%); text-align: center; }
+#app .fest-hub .fh-item.sold { opacity: .5; }
+#app .fest-hub .fh-item-art { height: 72px; display: grid; place-items: center; }
+#app .fest-hub .fh-item-art img { max-width: 72px; max-height: 72px; width: auto; height: 64px; object-fit: contain; image-rendering: pixelated; }
+#app .fest-hub .fh-item-art .fest-unit-art.shop { height: 72px; max-height: 72px; }
+#app .fest-hub .fh-item b { font-size: 13px; }
+#app .fest-hub .fh-qty { font-size: 16px; font-weight: 800; color: #f3d27a; }
+#app .fest-hub .fh-item small { color: #9fb0d8; font-size: 12px; }
+#app .fest-hub .fh-item .m-btn { width: 100%; }
+@media (max-width: 720px) { #app .fest-hub .fh-shop { grid-template-columns: repeat(2, 1fr); } }
+#app.m-phone .fest-hub .fh-shop { grid-template-columns: repeat(2, 1fr); }
+
+/* Missions illustrées. */
+#app .fest-hub .fh-mission { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 8px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.92); }
+#app .fest-hub .fh-mission.ready { border-color: #f3d27a; box-shadow: 0 0 10px rgba(243,210,122,.3); }
+#app .fest-hub .fh-mission.done { opacity: .6; }
+#app .fest-hub .fh-mission-art { flex: 0 0 52px; height: 52px; display: grid; place-items: center; }
+#app .fest-hub .fh-mission-art img { max-width: 52px; max-height: 52px; image-rendering: pixelated; }
+#app .fest-hub .fh-mission-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+#app .fest-hub .fh-mission-body > b { font-size: 14px; }
+#app .fest-hub .fh-bar { position: relative; display: block; height: 16px; border-radius: 8px; background: #0b1124; border: 1px solid #2c3a66; overflow: hidden; }
+#app .fest-hub .fh-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #c9a14a, #f3d27a); }
+#app .fest-hub .fh-bar small { position: relative; display: block; text-align: center; font-size: 11px; line-height: 14px; color: #fff; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-mission-gift { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+#app#app .fest-hub .fh-mission .m-btn, #app#app .fest-hub .fh-mission .m-btn-gold { width: auto; flex: 0 0 auto; padding: 0 14px; height: 44px; min-height: 44px; font-size: 15px; }
+#app .fest-hub .fh-stamp { flex: 0 0 auto; padding: 4px 8px; border: 2px solid #5be37d; border-radius: 8px; color: #5be37d; font-weight: 800; font-size: 12px; transform: rotate(-6deg); }
+/* Téléphone : la Carte d'abord, le héros et les jalons dessous. */
+#app.m-phone .fest-hub .fh-mapcol { order: -1; }
+@media (max-width: 720px) { #app .fest-hub .fh-mapcol { order: -1; } }

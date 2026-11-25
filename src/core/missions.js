@@ -5,6 +5,7 @@ import { LOGIN_CALENDAR, MISSION_PERIODS, MISSION_TRACK } from '../data/missions
 import { grantReward } from './rewards.js';
 import { incomeBoss, incomeDungeon, incomeLogin, incomeMissions, incomeTrack } from './income.js'; // v9.2.8
 import { trackEventGoal } from './ancients.js'; // v9.2.8 : objectifs du petit événement
+import { festTrack } from './fest.js'; // v10.14 : Fêtes du mois
 import { tickSubscriptions } from './store.js'; // v9.2.8 : part du jour d'un abonnement (achat réel seulement)
 import { RESOURCE_SOURCES } from '../data/progression.js'; // v9.3.3
 import { daybookTrack } from './daybook.js';
@@ -91,6 +92,7 @@ export function trackMissions(state, type, amount = 1) {
   if (type === 'bosses') incomeBoss(state);
   if (type === 'dungeons') { incomeDungeon(state); daybookTrack(state, 'dungeons', amount); } // v9.8 : Carnet du jour
   trackEventGoal(state, type, amount);
+  festTrack(state, type, amount); // v10.14
   heraldTrack(state, type, amount); // v9.11 (7) : Tâches du Héraut
   for (const p of MISSION_PERIODS) {
     const run = state.missions[p.id];

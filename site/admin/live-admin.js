@@ -147,6 +147,14 @@
   $('lv-next').addEventListener('click', () => move(1));
   $('lv-view').addEventListener('change', renderCalendar);
   $('lv-new').addEventListener('click', () => openEditor(null, { kind: 'event' }));
+  // v10.14 : calendrier des Fêtes du mois (data/fest.js) programmé d'un coup ; les chevauchements sont sautés.
+  $('lv-fest')?.addEventListener('click', async () => {
+    try {
+      const r = await api('/api/admin/live/fest-import', { method: 'POST', body: { months: 6 } });
+      toast(`Fêtes : ${r.added} élément(s) programmé(s)${r.skipped ? `, ${r.skipped} déjà occupé(s)` : ''}.`);
+      await refreshAll();
+    } catch (err) { toast(err.message || 'Échec'); }
+  });
 
   // ---- Éditeur ---------------------------------------------------------------------------------------------------
   const toLocal = (ms) => {

@@ -1,6 +1,19 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.13.1 — Le téléphone illustré comme la Forge
+## Ascendrya v10.14.0 — Les Fêtes du mois
+
+Le vrai système d'événements arrive. Chaque mois, à partir de février 2027 :
+
+- **Un écran à part pour la fête**, plein cadre et illustré : Aventure (la Carte sur les décors du monde, le héros du mois en grand), World Boss (le Titan animé), Brèche, Missions, Boutique.
+- **La Brèche**, mode de la grande fête : 10 paliers, une bénédiction à choisir parmi 3 après chaque victoire, 3 cœurs, 2 entrées par jour.
+- **Grande fête (du 1er au 14)** : le **héros du mois** à invoquer en vedette, sa **Carte** de 30 étapes (+25 % de monnaie quand il est dans ton équipe), le **World Boss** du thème (3 tentatives par jour), des **jalons d'invocation** (gemmes, tickets, fragments Légendaires), des missions du jour et de la fête, et une **boutique de fête**.
+- **Petite fête (du 17 à la fin du mois)** : plus légère, avec **un héros et un familier gratuits à farmer** sur un sentier de 12 étapes, et leurs copies en boutique.
+- **2 jours d'échange** après chaque fête : les combats s'arrêtent, la boutique reste ouverte. La monnaie qui reste est convertie en éclats, jamais perdue.
+- **6 mois prêts** (février → juillet 2027) : Fête des Cœurs ardents, Éveil du Printemps, Aube dorée, Nuit des Éclipses, Solstice de Givre, Festival des Titans. Au-delà, la rotation continue toute seule.
+- **Admin** : un bouton « Programmer les Fêtes (6 mois) » remplit le calendrier live sans toucher à ce qui est déjà programmé.
+- **Correction** : la progression du Marché des Lueurs (étapes récupérées, achats) et le détail du World Boss du jour sont maintenant gardés quand on relance le jeu.
+
+<details><summary>Ascendrya v10.13.1 — Le téléphone illustré comme la Forge</summary>
 
 Sur téléphone, les écrans prennent le même style que la Forge. **Le PC ne change pas.**
 
@@ -14,6 +27,8 @@ Sur téléphone, les écrans prennent le même style que la Forge. **Le PC ne ch
 - **Un seul bouton doré par écran** partout (Améliorations, Donjons…), plus aucun texte coupé ni trop petit.
 - **Android** : l'application s'appelle maintenant com.ascendrya.app (Google Play).
 - **Nouveau** : versions Linux (AppImage) et Mac, et un script `ascendrya.sh` qui installe et lance le jeu sur Linux et Mac.
+
+</details>
 
 <details><summary>Ascendrya v10.13.0 — Le PC passe au style « vrai jeu »</summary>
 

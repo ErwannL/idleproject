@@ -1,6 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
+import { closeFestHub, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
 import { buildCombatConsole, placeBoostGroup } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
@@ -1204,6 +1205,24 @@ export class UI {
       case 'lights-step': { const r = a.lightsStep(value); if (r) this.chestReveal(r.given, r.label, r.companion ? 'Fée des lueurs' : null); break; }
       case 'lights-all': { const r = a.lightsAll(); if (r?.length) this.chestReveal(Object.assign({}, ...r.map((x) => x.given)), 'Lanternes'); break; }
       case 'lights-buy': { const g = a.lightsBuy(value); if (g) this.chestReveal(g, 'Échoppe des Lueurs'); break; }
+      // v10.14 : Fêtes du mois (ui/panels/event.js, core/fest.js) ; écran à part (ui/fest-hub.js) et Brèche.
+      case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); openFestHub(this, value || null); break;
+      case 'fest-hub-tab': festHubTab(this, value); break;
+      case 'fest-hub-close': closeFestHub(this); this.invalidate(); break;
+      case 'rift-start': a.riftStart(); break;
+      case 'rift-fight': { const r = a.riftFight(); if (r?.given && Object.keys(r.given).length) this.chestReveal(r.given, `Brèche · palier ${r.floor} pour la première fois`); else if (r?.end) this.chestReveal({}, `Brèche terminée : ${r.end.cleared} palier${r.end.cleared > 1 ? 's' : ''}`, `+${r.end.coins} gagnés pendant la course`); break; }
+      case 'rift-pick': a.riftPick(value); break;
+      case 'rift-quit': a.riftQuit(); break;
+      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); this.invalidate(); break; }
+      case 'fest-chain': a.festChain(Number(value)); this.invalidate(); break;
+      case 'fest-boss':
+        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => a.festBossFinish(setup, r), left: () => a.festBossLeft(), closed: () => this.invalidate() });
+        break;
+      case 'fest-mission': a.festMission(value); break;
+      case 'fest-missions-all': a.festMissionsAll(); break;
+      case 'fest-step': { const r = a.festStep(value); if (r) this.chestReveal(r.given, 'Récompense de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
+      case 'fest-steps-all': { const r = a.festStepsAll(); if (r) this.chestReveal(r.given, 'Récompenses de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
+      case 'fest-buy': { const r = a.festBuy(value); if (r) this.chestReveal(r.given, 'Boutique de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
       case 'bounty-claim': { const g = a.bountyClaim(); if (g) this.chestReveal(g, 'Prime du Héraut'); break; }
       case 'bounty-refuse': a.bountyRefuse(); this.hudQuests?.update(this.state, true); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin
@@ -1987,6 +2006,12 @@ export class UI {
     // Liste ouverte (au plus 60 s, au cas où sa fermeture n'aurait pas été vue).
     const selectOpen = this.selectOpenAt > 0 && now0 - this.selectOpenAt < 60000;
     const busy = pointer || selectOpen;
+    // v10.14 : écran de la fête ouvert → redessiné quand l'interface change (au plus toutes les 150 ms), ou chaque seconde (minuteurs).
+    if (this.festHub && !pointer && ((this.dirty && now0 - (this.festHubAt ?? 0) >= 150) || now0 - (this.festHubAt ?? 0) >= 1000)) {
+      this.festHubAt = now0;
+      renderFestHub(this);
+      if (!this.tab) this.dirty = false;
+    }
     if (this.dirty && this.tab && !pointer && !selectOpen && (holding || userRecent || now0 - this.lastRender >= RENDER_THROTTLE_MS)) {
       this.renderPanel(state);
       this.dirty = false;

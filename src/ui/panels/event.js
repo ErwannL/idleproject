@@ -6,12 +6,18 @@ import { currentEvent, eventGoals, eventRecord, eventShop, eventStageLevel, tota
 import { liveAnnouncements, liveNextEvent, liveNow } from '../../core/live.js'; // v9.3.0 : live-ops
 import { LIVE_EVENT_TYPES } from '../../data/live-catalog.js';
 import { WORLD_BOSS } from '../../core/world-boss.js'; // v9.2.9
-import { escapeHtml, formatNumber, img, rewardIcons } from '../common.js';
+import { escapeHtml, formatNumber, hdArt, img, rewardIcons } from '../common.js';
 import { LIGHTS_EVENT, lightsMissions, lightsPath, lightsPosition, lightsShop, lightsWallet } from '../../core/lights.js'; // v10.6
 const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
 import { mBar, mBtn, mBtnGold, mEmpty, mStat, mTitle } from '../mobile-kit.js'; // v10.12
+import { currentFest, festMissions, festRecord, festShop, festTotalStages } from '../../core/fest.js'; // v10.14
+import { FEST_RULES } from '../../data/fest.js';
+import { WALLET } from '../../data/economy.js';
+import { COMPANIONS } from '../../data/companions.js';
+import { ZONES } from '../../data/zones.js';
+import { grandBoss } from '../../data/grand-bosses.js';
 const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
@@ -134,10 +140,12 @@ export default {
   title: 'Événement',
   icon: 'icon_map',
   // v10.6 (partie 3) : le Marché des Lueurs a sa propre affiche ; pas de seconde bannière au-dessus.
-  banner() { return currentEvent()?.kind === 'small' ? '' : null; },
+  banner() { return currentFest() || currentEvent()?.kind === 'small' ? '' : null; },
   render(ui, state) {
-    const ev = currentEvent();
     const news = announcements();
+    const fest = currentFest(); // v10.14 : Fêtes du mois
+    if (fest) return festPage(ui, state, fest, news);
+    const ev = currentEvent();
     const phone = isPhoneUi(ui);
     if (phone && !ev) {
       const nx = liveNextEvent();
@@ -234,4 +242,89 @@ function phoneSmall(state, ev) {
 
 function phoneEvent(ui, state, ev, news) {
   return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${ev.kind === 'grand' ? phoneGrand(ui, state, ev) : phoneSmall(state, ev)}</div>`;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// v10.14 : FÊTES DU MOIS (core/fest.js, data/fest.js). Une page par fête, même kit que le reste (PC et téléphone) :
+// affiche (titre, minuteur, monnaie, héros / familier à gagner), puis selon la fête :
+//   grande : Carte du héros (30 étapes), World Boss du thème, jalons d'invocation ;
+//   petite : sentier de 12 étapes (héros et familier gratuits) ;
+// et pour les deux : missions du jour, missions de la fête, boutique. Pendant l'échange : bandeau, combats fermés.
+const FEST_ART = { grandNode: 'assets/ui/art106/event_lights_node.png', node: 'assets/ui/art106/event_lights_node.png', nodeDone: 'assets/ui/art106/event_lights_node_done.png',
+  lightKey: 'assets/ui/art106/event_lights_key.png', path: 'assets/ui/art106/event_lights_path.png', coin: 'assets/ui/art106/event_lights_currency.png' };
+// Récompense en icônes : monnaies du portefeuille (tickets, fragments) avec leur icône de boutique, le reste comme partout.
+export const festGive = (g = {}) => Object.entries(g).map(([k, v]) => (WALLET[k] ? `<span class="shop-give">${walletIcon(k)}<b class="num">${v}</b></span>` : rewardIcons({ [k]: v }))).join('');
+export const festCoin = (f) => `<img class="px lt-cur" src="${f.art?.currency ?? FEST_ART.coin}" alt="" title="${escapeHtml(f.currency)}">`;
+export const unitArt = (id, cls = '') => { const c = COMPANIONS.find((x) => x.id === id); return c ? (hdArt(c, `fest-unit-art ${cls}`) || img(c.sprite, `fest-unit-art ${cls}`)) : ''; };
+export const unitName = (id) => COMPANIONS.find((x) => x.id === id)?.name ?? id;
+export const festLeft = (ms) => { const d = Math.floor(ms / 86400000); const h = Math.floor((ms % 86400000) / 3600000); return d >= 1 ? `${d} j ${h} h` : `${Math.max(1, h)} h`; };
+
+export function festPoster(state, f) {
+  const now = liveNow();
+  const rec = festRecord(state);
+  const zone = ZONES[f.zone ?? 0];
+  const bg = f.kind === 'grand'
+    ? `background-image:linear-gradient(90deg,rgba(11,17,36,.94),rgba(11,17,36,.35)),url(${f.art?.key ?? `assets/bg/${zone?.id ?? 'plains'}_far.png`})`
+    : `background-image:linear-gradient(90deg,rgba(11,17,36,.9),rgba(11,17,36,.2)),url(${f.art?.key ?? FEST_ART.lightKey})`;
+  const timer = f.phase === 'play' ? `⏳ encore ${festLeft(f.playEnd - now)}` : `🔁 Échange : ${festLeft(f.end - now)}`;
+  const prize = f.kind === 'grand'
+    ? `<span class="fest-prize">${unitArt(f.featured)}<small>Héros du mois · ${escapeHtml(unitName(f.featured))}</small></span>`
+    : `<span class="fest-prize two">${unitArt(f.hero)}${unitArt(f.pet, 'pet')}<small>Gratuits · ${escapeHtml(unitName(f.hero))} et ${escapeHtml(unitName(f.pet))}</small></span>`;
+  return `<div class="m-card ev-poster ev-small fest-poster fest-${f.kind}" style="${bg}">
+    <span class="ev-poster-l"><small class="fest-kicker">${f.kind === 'grand' ? 'Grande fête' : 'Petite fête'} · jour ${Math.min(f.day, f.days)}/${f.days}</small>
+      <b class="ev-t">${escapeHtml(f.title)}</b><span class="ev-sub">${escapeHtml(f.tagline ?? '')}</span>
+      <span class="ev-sub fest-timer">${timer}</span>
+      <span class="ev-wallet">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b> ${escapeHtml(f.currency)}</span></span>
+    <span class="ev-poster-r">${prize}</span></div>
+    ${f.phase === 'pause' ? `<div class="m-card fest-pause"><b>Échange de fin de fête</b><span class="cb-sub">Combats, boss et missions sont fermés. Dépense ta monnaie : ce qui reste à la fin sera converti en éclats (${FEST_RULES.leftoverShards} par pièce).</span></div>` : ''}`;
+}
+
+export function festSteps(f, list, key, label, unitLabel) {
+  if (!list.length) return '';
+  const ready = list.filter((s) => s.reached && !s.claimed).length;
+  const items = list.map((s) => {
+    const cls = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
+    const gift = [s.give ? festGive(s.give) : '', s.hero ? unitArt(f.hero, 'mini') : '', s.pet ? unitArt(f.pet, 'mini pet') : ''].join('');
+    return `<button type="button" class="fest-step ${cls}" ${s.reached && !s.claimed ? `data-action="fest-step" data-value="${key}${s.index}"` : 'disabled'} title="${s.at} ${escapeHtml(unitLabel)}">
+      <span class="fest-step-gift">${gift}</span><small class="num">${s.at}</small>${s.claimed ? '<i class="fest-ok">✓</i>' : ''}</button>`;
+  }).join('');
+  return `<b class="ev-h">${label}</b><div class="m-card fest-steps">${items}</div>${ready > 1 ? mBtnGold(`Tout récupérer (${ready})`, { action: 'fest-steps-all' }) : ''}`;
+}
+
+export function festMissionTiles(f, list, title) {
+  const tiles = list.map((m) => {
+    const btn = m.done ? '<span class="lt-stamp">Faite</span>' : m.ready ? mBtn('Récupérer', { action: 'fest-mission', value: m.id }) : m.tab && f.phase === 'play' ? mBtn('Y aller', { action: 'open-tab', value: m.tab }) : '';
+    return `<div class="m-card ev-mission${m.done ? ' lit' : ''}"><div class="ev-mission-body"><b>${escapeHtml(m.label)}</b>${mBar(m.p / m.n)}
+      <span class="lt-give">${festCoin(f)}<b class="num">+${m.coins}</b>${m.give ? festGive(m.give) : ''}<span class="cb-sub num">${formatNumber(m.p)}/${formatNumber(m.n)}</span></span></div>${btn}</div>`;
+  }).join('');
+  return `<b class="ev-h">${title}</b>${tiles}`;
+}
+
+export function festShopHtml(state, f) {
+  const items = festShop(state).map((i) => {
+    const what = i.unit ? `${unitArt(i.unit, 'mini')}<b>${escapeHtml(unitName(i.unit))}</b>` : `<span class="ev-give">${festGive(i.give)}</span>`;
+    return `<div class="m-card ev-item fest-item">${what}<span class="cb-sub num">${i.bought}/${i.stock}</span>
+      <button type="button" class="m-btn" data-action="fest-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'}>${festCoin(f)}<span>${i.price}</span></button></div>`;
+  }).join('');
+  return `<b class="ev-h">${festCoin(f)} Boutique · ${escapeHtml(f.currency)}</b><div class="ev-shop-grid">${items}</div>`;
+}
+
+// v10.14 : l'onglet Événement est la porte d'entrée de l'écran de la fête (ui/fest-hub.js) : affiche, gros bouton
+// « Entrer dans la fête » et une tuile illustrée par partie (chacune ouvre l'écran sur sa partie).
+function festPage(ui, state, f, news) {
+  const m0 = festMissions(state);
+  const ready = [...m0.daily, ...m0.event].filter((x) => x.ready).length;
+  const tiles = (f.kind === 'grand'
+    ? [['adventure', 'Aventure', `<img class="px" src="assets/ui/art98/expedition_map.png" alt="">`, `${festRecord(state).cleared}/${festTotalStages()} étapes`],
+      ['boss', 'World Boss', `<img class="px" src="assets/ui/art106/hud_event_rift.png" alt="" style="filter:hue-rotate(140deg)">`, escapeHtml(grandBoss(f.boss).name)],
+      ['rift', 'Brèche', `<img class="px" src="assets/ui/art106/hud_event_rift.png" alt="">`, 'Mode de la fête'],
+      ['missions', 'Missions', `<img class="px" src="assets/ui/art106/event_lights_mission_monsters.png" alt="">`, ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
+      ['shop', 'Boutique', `<img class="px" src="assets/ui/art106/event_lights_shop_chest.png" alt="">`, escapeHtml(f.currency)]]
+    : [['path', 'Sentier', `<img class="px" src="assets/ui/art106/event_lights_node_done.png" alt="">`, 'Héros et familier gratuits'],
+      ['missions', 'Missions', `<img class="px" src="assets/ui/art106/event_lights_mission_monsters.png" alt="">`, ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
+      ['shop', 'Boutique', `<img class="px" src="assets/ui/art106/event_lights_shop_chest.png" alt="">`, escapeHtml(f.currency)]])
+    .map(([id, label, art, sub]) => `<button type="button" class="m-card fest-door" data-action="fest-hub-open" data-value="${id}">${art}<b>${label}</b><small>${sub}</small></button>`).join('');
+  return `<div class="m-frame cb-frame fest-page">${mTitle('icon_map', 'Événement', true)}${news}${festPoster(state, f)}
+    ${mBtnGold('Entrer dans la fête', { action: 'fest-hub-open', value: '', icon: 'icon_map' })}
+    <div class="fest-doors">${tiles}</div></div>`;
 }

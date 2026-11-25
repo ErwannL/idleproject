@@ -16,6 +16,7 @@ import { daybookComplete, daybookOf, daybookTasks } from '../core/daybook.js';
 import { daybookOpen } from './panels/daybook.js';
 import { lightsEvent, lightsReady, LIGHTS_EVENT } from '../core/lights.js';
 import { currentEvent } from '../core/ancients.js';
+import { currentFest, festReady } from '../core/fest.js'; // v10.14 : Fêtes du mois
 import { wheelReady } from '../core/wheel.js';
 import { titanTriesLeft, titanToday } from '../core/titan.js';
 import { arenaUnlocked } from '../core/arena.js';
@@ -73,7 +74,12 @@ export function eventColumn(ui, state, now = Date.now()) {
   const vis = (tab) => ui.tabVisible?.[tab] !== false;
   const out = [];
   const t = liveNow(now);
-  const ev = currentEvent(t);
+  const fest = currentFest(t);
+  const ev = fest ? null : currentEvent(t);
+  if (fest && vis('event')) {
+    const end = fest.phase === 'play' ? fest.playEnd : fest.end;
+    out.push({ id: 'market', art: fest.kind === 'light' ? LIGHTS_EVENT.art.hud : `${ART}hud_event_pass.png`, name: fest.title, short: 'Fête', timer: fest.phase === 'play' ? shortTime(end - t) : 'échange', badge: festReady(state, t), action: 'fest-hub-open', value: '', soon: end - t < 3600000 });
+  }
   if (ev && vis('event')) {
     const small = Boolean(lightsEvent(t));
     const ready = small ? lightsReady(state, t) : 0;
@@ -132,7 +138,7 @@ function carnetHtml(c, phone, mphone) {
 // v10.7 (partie 2) : une rangée accrochée sous la bande du haut. max : nombre d'icônes qui tiennent dans la largeur
 // libre (entre la carte de zone et les boosts) ; le reste passe dans « + », qui déplie une seconde rangée.
 const SHORT = { market: 'Marché', rift: 'Faille', wheel: 'Roue', arena: 'Arène', bastion: 'Bastion', chest: 'Coffre', bounty: 'Prime' };
-export const shortName = (x) => SHORT[x.id] ?? x.name;
+export const shortName = (x) => x.short ?? SHORT[x.id] ?? x.name; // v10.14 : « Fête » pendant les Fêtes du mois
 function columnHtml(items, max, expanded) {
   const cut = items.length > max ? Math.max(1, max - 1) : items.length;
   const shown = expanded ? items : items.slice(0, cut);

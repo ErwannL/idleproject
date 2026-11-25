@@ -18,6 +18,8 @@ import { addCopy, emptyPity, rollOne, ssrDistribution, wishlistShares } from './
 import { addWallet, ensureEconomy, walletAmount } from './wallet.js';
 import { grantReward } from './rewards.js';
 import { liveFeatured, liveFlag, liveKnown, liveNow } from './live.js'; // v9.3.0 : live-ops
+import { festAt, festMonth } from '../data/fest.js'; // v10.14 : héros du mois
+import { festSummons } from './fest.js';
 
 export const FEATURED_SHARE = BANNERS.limited.fiftyFifty;
 export const SUMMON_POOLS = ['limited', 'permanent', 'pet'];
@@ -48,6 +50,8 @@ export function featuredUnit(pool = 'limited', now = liveNow()) {
   }
   const b = BANNER_RULES.enabled ? currentBanner(now) : null;
   if (b) return asUnit(b.unit);
+  const fm = festCalendarFeatured(now); // v10.14 : héros du mois (calendrier des Fêtes, serveur jamais joint)
+  if (fm) return asUnit(COMPANIONS.find((c) => c.id === fm.unit));
   const list = permanentSsr();
   const start = new Date(`${EVENTS.anchor}T00:00:00`).getTime();
   const k = Math.floor((now - start) / (BANNERS.limited.rotationDays * DAY));
@@ -59,9 +63,19 @@ export function featuredEnds(now = liveNow()) {
   if (liveKnown()) return liveFeatured(now)?.end ?? 0; // v9.3.0
   const b = BANNER_RULES.enabled ? currentBanner(now) : null;
   if (b) return b.end;
+  const fm = festCalendarFeatured(now);
+  if (fm) return fm.end;
   const start = new Date(`${EVENTS.anchor}T00:00:00`).getTime();
   const period = BANNERS.limited.rotationDays * DAY;
   return start + (Math.floor((now - start) / period) + 1) * period;
+}
+
+// v10.14 : héros du mois du calendrier des Fêtes (1er au dernier jour du mois) : { unit, end } ou null.
+function festCalendarFeatured(now) {
+  const f = festAt(now);
+  if (!f) return null;
+  const mo = festMonth(f.index);
+  return { unit: mo.grand.featured, end: mo.light.end };
 }
 
 // Unités d'un bassin, rangées par rareté du document (R, SR, SSR) : { featured, R, SR, SSR, wishlist }.
@@ -151,6 +165,7 @@ export function summon(state, rng, count = 1, currency = 'gems', balance = BALAN
   if (currency === 'gems') state.gems -= cost;
   else addWallet(state, currency, -cost);
   trackMissions(state, 'summons', count);
+  festSummons(state, p, count); // v10.14 : jalons d'invocation de la grande fête
   state.summon.pity ??= emptyPity();
   const pity = state.summon.pity[banner.pity];
   const results = [];

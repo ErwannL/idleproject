@@ -100,6 +100,8 @@ import { buyLights, claimLightsAll, claimLightsStep } from './core/lights.js'; /
 import { claimBounty106, foldBounty, refuseBounty } from './core/herald-bounty.js'; // v10.6 (partie 2)
 import { BLACK_MARKET_SHARDS, ascendItems, buyBlackMarket, canAscend, canEngrave, engraveItem } from './core/bastion-ages.js'; // v10.8
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
+import { riftFight, riftPick, riftQuit, startRift } from './core/fest.js'; // v10.14 : la Brèche (mode de la grande fête)
+import { buyFest, claimFestAll, claimFestMission, claimFestStep, claimFestSteps, festBossStatus, festFight, finishFestBoss, settleFests, startFestBoss } from './core/fest.js'; // v10.14 : Fêtes du mois
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
 import { bossesForStage, enemyStats, isBossStage, stageInZone } from './core/combat.js';
 import { BUILT_IN_TOKEN } from './core/update-token.js';
@@ -644,6 +646,7 @@ const actions = {
         case 'collection': add(claimSection(state, c.id)); break;
         case 'mastery': add(claimMastery(state, c.bossId)); break;
         case 'eventGoal': add(claimEventGoal(state, c.id)); break; // v9.8
+        case 'festMission': { const r = claimFestMission(state, c.id); if (r) add(r.given); break; } // v10.14
         case 'bounty': { const r = claimBounty(state, rng); if (r) { add({ gems: r.gems }); items += 1; } break; }
         default: break;
       }
@@ -1098,6 +1101,50 @@ const actions = {
   lightsStep(i) { const r = claimLightsStep(state, Number(i)); done(Boolean(r), r ? `${r.label} récupéré` : null); return r; },
   lightsAll() { const r = claimLightsAll(state); done(r.length > 0, null); return r; },
   lightsBuy(id) { const r = buyLights(state, id); done(Boolean(r), 'Échange effectué'); return r; },
+  // v10.14 : Fêtes du mois (core/fest.js) — Carte du héros, World Boss du thème, missions, jalons, sentier, boutique.
+  festFight(n) {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const r = festFight(state, n, { dps: computeHeroStats(state).dps, hpOf });
+    if (r.error) return r;
+    done(true, r.won ? `Étape ${n} réussie : +${r.reward.coins}` : `Étape ${n} : gardien trop solide`, r.won ? '#7fe0a0' : '#ff8a6a');
+    return r;
+  },
+  festChain(from) {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const dps = computeHeroStats(state).dps;
+    let n = from, won = 0, coins = 0, last = null;
+    for (let i = 0; i < 30; i++) {
+      last = festFight(state, n, { dps, hpOf });
+      if (last.error || !last.won) break;
+      won += 1; coins += last.reward?.coins ?? 0; n += 1;
+    }
+    done(won > 0, won ? `${won} étape${won > 1 ? 's' : ''} gagnée${won > 1 ? 's' : ''} : +${formatNumber(coins)}` : 'Gardien trop solide : renforce le héros', won ? '#7fe0a0' : '#ff8a6a');
+    if (!won) { ui.toast('Gardien trop solide : renforce le héros', '#ff8a6a'); }
+    return { won, coins };
+  },
+  festBossStart() { return startFestBoss(state, () => bossHpForDay(state)); },
+  festBossFinish(setup, result) {
+    const r = finishFestBoss(state, setup, result);
+    done(Boolean(r), r ? `World Boss : ${formatNumber(r.damage)} dégâts · +${r.coins}${r.record ? ' · record !' : ''}` : null, '#f2d083');
+    return r;
+  },
+  festBossLeft() { return festBossStatus(state)?.left ?? 0; },
+  festMission(id) { const r = claimFestMission(state, id); done(Boolean(r), r ? `Mission réussie : +${r.coins}` : null); return r; },
+  festMissionsAll() { const r = claimFestAll(state); done(Boolean(r), r ? `Missions : +${r.coins}` : null); return r; },
+  festStep(key) { const r = claimFestStep(state, key); done(Boolean(r), null); return r; },
+  festStepsAll() { const r = claimFestSteps(state); done(Boolean(r), null); return r; },
+  riftStart() { const r = startRift(state); done(Boolean(r), r ? 'Brèche ouverte : palier 1' : null, '#c9a8ff'); return r; },
+  riftFight() {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const r = riftFight(state, { dps: computeHeroStats(state).dps, hpOf });
+    if (r.error) return r;
+    const msg = r.won ? `Palier ${r.floor} franchi : +${r.coins}` : r.end ? `Brèche refermée au palier ${r.floor}` : `Palier ${r.floor} : gardien trop solide (${r.hearts} cœur${r.hearts > 1 ? 's' : ''})`;
+    done(true, msg, r.won ? '#7fe0a0' : '#ff8a6a');
+    return r;
+  },
+  riftPick(id) { const r = riftPick(state, id); done(Boolean(r), null); return r; },
+  riftQuit() { const r = riftQuit(state); done(Boolean(r), r ? `Brèche quittée : ${r.cleared} palier${r.cleared > 1 ? 's' : ''}, +${r.coins}` : null); return r; },
+  festBuy(id) { const r = buyFest(state, id); done(Boolean(r), r ? 'Échange effectué' : null); return r; },
   bountyClaim() { const r = claimBounty106(state); done(Boolean(r), null); return r; },
   bountyRefuse() { refuseBounty(state); done(true, null); },
   bountyFold() { foldBounty(state); },
@@ -1495,6 +1542,10 @@ const cloudView = { busy: false, message: '', error: false, enabled: BUILD.cloud
 // Jamais contre le vrai serveur pendant les tests automatisés (seulement en local, même origine que /play/).
 // Tests automatisés seulement : ?livepoll=N (secondes) raccourcit l'intervalle pour la démo de bout en bout.
 const livePoll = navigator.webdriver ? Number(new URLSearchParams(location.search).get('livepoll')) * 1000 : 0;
+// v10.14 : fin de l'échange d'une Fête → monnaie restante convertie en éclats (une fois par fête).
+const settleFestsNow = () => { const s = settleFests(state); if (s > 0) done(true, `Fin de la fête : monnaie restante convertie en ${formatNumber(s)} éclats`, '#7fd4ff'); };
+setInterval(settleFestsNow, 60000);
+setTimeout(settleFestsNow, 3000);
 startLive({ base: CLOUD_BASE, storage: store, enabled: BUILD.cloud && (!navigator.webdriver || CLOUD_BASE === ''), onChange: () => ui.invalidate(), ...(livePoll >= 1000 ? { every: livePoll } : {}) });
 ui.cloud = cloudView;
 // v9.1.3 (doc4 lot 7) : score en ligne d'un perso (lu par ui/score-board.js) ; jamais en version dev (cloud coupé).

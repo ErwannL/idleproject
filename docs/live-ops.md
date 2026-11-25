@@ -23,6 +23,7 @@ Le jeu est connecté. On ne publie plus de mise à jour pour dire « l'événeme
 | Type | Référence (catalogue) | Données |
 | --- | --- | --- |
 | Événement | `ancients` (Expédition des Anciens), `lights` (Marché des lueurs) | multiplicateur des écus, World Boss ouvert / choisi / PV (×) / tentatives par jour, stocks de la boutique d'événement (×) ; objectifs (×) pour `lights` |
+| Fête du mois (v10.14) | `fest` (feuille `AAAA-MM-g` ou `AAAA-MM-l`, `data/fest.js`) | feuille, monnaie (×), World Boss ouvert / PV (×) / tentatives, stocks (×) ; voir `docs/evenements-v1014.md` |
 | Vedette | un SSR allié (`archangel`, `demon_queen`, …) | — (dates) |
 | Offre | `offer_launch`, `offer_half_anniversary`, `offer_anniversary` (`data/economy.js` `LIVE_OFFERS`) | — (dates) |
 | Annonce | — | titre, texte (500 caractères), affichés en tête de l'onglet Événement |
