@@ -121,7 +121,7 @@ export class WorldBossScene {
     this.attacks = this.attacks.filter((x) => x.kind !== 'beam');
   }
 
-  get scale() { return 1.15 + 0.06 * this.fight.phase; }
+  get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scaleMul ?? 1); } // v10.15 : scaleMul = grandes planches (192 px) réduites pour tenir dans le cadre en phase 3
 
   drawColossus(ctx, boss, dt) {
     const r = this.r;
@@ -382,7 +382,9 @@ export class WorldBossScene {
     this.clock += dt;
     // Le boss géant déborde vers la gauche de son point d'appui : à l'écran il se tient un peu plus loin (le moteur,
     // lui, garde sa vraie position ; les événements qui le visent sont décalés d'autant).
-    const off = boss ? BOSS_OFFSET : 0;
+    // v10.15 : un géant très large (planches de 192 px) se tient plus à gauche : art.dx (PC) / art.dxPhone (portrait), en px de l'écran.
+    const shift = this.art.dx === undefined ? 0 : (r.width < 340 ? (this.art.dxPhone ?? this.art.dx) : this.art.dx) / WORLD_SCALE;
+    const off = boss ? BOSS_OFFSET - shift : 0;
     if (boss) { boss.x += off; boss.prevX = (boss.prevX ?? boss.x) + off; }
     for (const e of world.events) {
       if (off && e.enemyId === boss.id && e.x !== undefined) e.x += off;
