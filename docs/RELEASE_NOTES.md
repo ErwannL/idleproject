@@ -1,6 +1,20 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.14.0 — Les Fêtes du mois
+## Ascendrya v10.14.1 — Les Fêtes, belles et faciles à jouer
+
+- **Chaque fête a son monde** : affiche, 3 décors de région, arène du World Boss, monnaie et couleur à elle (dessinés avec PixelLab). Plus de goutte rose partout.
+- **Aventure** : la carte en grand, le héros du mois au-dessus de l'étape suivante, les étapes 10, 20 et 30 illustrées, « Combattre » et « Enchaîner » sur une ligne. En cas de défaite, « Améliorer › » ouvre la Forge. Les jalons d'invocation sur une barre « 35 / 50 ».
+- **World Boss** : le Titan en grand dans son arène, une barre de PV avec ses phases, 3 épées pour les tentatives, un bilan après chaque essai et ton classement de la fête par tranches (Top 10 %, 30 %, 60 %).
+- **Brèche** : une colonne de pierres flottantes, des cartes de bénédiction qui se retournent, les cœurs en icônes ; Quitter demande confirmation, et une fenêtre de fin propose « Encore une fois ».
+- **Missions, Boutique, Sentier** : les missions faites se replient, « Y aller » ferme l'écran de la fête ; le grand article est en vedette, il manque N en rouge, tampon « Épuisé » ; un sentier lisible avec la récompense sous chaque étape.
+- **En-tête** : un « ? » qui explique la fête, « puis 2 jours d'échange » sous le minuteur, la monnaie qui rebondit quand tu gagnes.
+- **Notifications** : début de fête, entrées de Brèche pleines, dernier jour, échange (2 par jour au plus, jamais la nuit).
+- **Invocation** : « Jalons : 35 / 50 › » sous la vedette pendant la grande fête.
+- **Langues** : toute la fête en anglais et en coréen.
+
+Les dates, les rotations et les chiffres de la fête ne changent pas.
+
+<details><summary>Ascendrya v10.14.0 — Les Fêtes du mois</summary>
 
 Le vrai système d'événements arrive. Chaque mois, à partir de février 2027 :
 
@@ -12,6 +26,8 @@ Le vrai système d'événements arrive. Chaque mois, à partir de février 2027 
 - **6 mois prêts** (février → juillet 2027) : Fête des Cœurs ardents, Éveil du Printemps, Aube dorée, Nuit des Éclipses, Solstice de Givre, Festival des Titans. Au-delà, la rotation continue toute seule.
 - **Admin** : un bouton « Programmer les Fêtes (6 mois) » remplit le calendrier live sans toucher à ce qui est déjà programmé.
 - **Correction** : la progression du Marché des Lueurs (étapes récupérées, achats) et le détail du World Boss du jour sont maintenant gardés quand on relance le jeu.
+
+</details>
 
 <details><summary>Ascendrya v10.13.1 — Le téléphone illustré comme la Forge</summary>
 
