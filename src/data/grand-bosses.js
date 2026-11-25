@@ -174,10 +174,22 @@ export const GIANTS = [
     lore: 'Coupe une tête, deux repoussent. Le marais tout entier respire avec elle.',
     beam: ['#7be36a', '#d8ff9a'], projectile: { vfx: 'wb_boulder', tint: '#7be36a', tint3: '#d8ff4a', size: 2, spin: 3, dust: ['#3a5a2a', '#a8e05a'] }, debris: '#4a6a3a',
     phases: ['Morsures', 'Pluie d\'acide', 'Cinq têtes'], abilities: ['Crachat d\'acide', 'Souffle putride'] }),
-  giant({ id: 'sand_wyrm', name: 'Ver des Sables colossal', title: 'Le dévoreur des dunes', element: 'red', zone: 'desert', mapZone: 3, accent: '#e0b15a',
+  (() => { const g = giant({ id: 'sand_wyrm', name: 'Ver des Sables colossal', title: 'Le dévoreur des dunes', element: 'red', zone: 'desert', mapZone: 3, accent: '#e0b15a',
     lore: 'Il nage sous les dunes. Une caravane entière a disparu dans sa gueule.',
     beam: ['#e0b15a', '#fff0b8'], projectile: { vfx: 'wb_boulder', tint: '#d8a85a', tint3: '#ff8a3d', size: 2.6, spin: 8, dust: ['#a07a3a', '#f0d08a'] }, debris: '#c8a060',
-    phases: ['Dunes mouvantes', 'Tempête de sable', 'Gueule béante'], abilities: ['Rocher des dunes', 'Souffle de sable'] }),
+    phases: ['Dunes mouvantes', 'Tempête de sable', 'Gueule béante'], abilities: ['Rocher des dunes', 'Souffle de sable'], ready: true });
+    // Planches PixelLab posées (assets/world-boss/sand_wyrm/) : throw3 et beam3 en plus, repères mesurés sur les images
+    // (gueule : deux fois le même point), entrée en Fête à partir d'avril 2028 (5e géant : août 2027 + 8 mois).
+    g.extra = ['throw3', 'beam3'];
+    g.from = '2028-04';
+    g.art.anims.throw3 = { ...g.art.anims.throw };
+    g.art.anims.beam3 = { ...g.art.anims.beam };
+    g.art.eyes.beam = [[43, 41, 43, 41], [40, 37, 40, 37], [37, 28, 37, 28], [34, 27, 34, 27], [29, 28, 29, 28], [25, 29, 25, 29], [22, 32, 22, 32], [19, 34, 19, 34], [21, 35, 21, 35], [23, 34, 23, 34], [29, 38, 29, 38], [37, 41, 37, 41], [43, 41, 43, 41]];
+    g.art.eyes.beam3 = [[36, 66, 36, 66], [35, 52, 35, 52], [27, 46, 27, 46], [33, 46, 33, 46], [29, 49, 29, 49], [21, 48, 21, 48], [19, 51, 19, 51], [25, 54, 25, 54], [22, 61, 22, 61], [17, 59, 17, 59], [19, 62, 19, 62], [32, 62, 32, 62], [36, 66, 36, 66]];
+    g.art.hands = { throw: [23, 48], throw3: [20, 62] };
+    g.art.box = [6, 12, 144, 141];
+    g.art.shadow = 66;
+    return g; })(),
   giant({ id: 'frost_giant', name: 'Jarl du Givre', title: 'Roi des géants des glaces', element: 'blue', zone: 'mountains', mapZone: 4, accent: '#8fe4ff', frame: 160,
     lore: 'Il dort sous le glacier depuis mille hivers. Son réveil gèle les rivières.',
     beam: ['#8fe4ff', '#ffffff'], projectile: { vfx: 'wb_boulder', tint: '#bfefff', tint3: '#ffffff', size: 2.6, spin: 7, dust: ['#6a8aa0', '#e8f8ff'] }, debris: '#d8f0ff',
