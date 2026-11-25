@@ -128,6 +128,8 @@ const GIANT_ANIMS = (frame) => ({
   death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
   throw: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
   beam: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
+  throw3: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
+  beam3: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
   _frame: frame,
 });
 // Les animations que les planches doivent fournir (les autres sont facultatives).
@@ -179,6 +181,10 @@ const leviathan = (g) => {
   g.from = '2027-08'; // 1er géant : août 2027 (festBoss)
   return g;
 };
+
+// Arbre-Monde : points de départ du rayon (yeux gauche et droit) sur chaque image de `beam` et `beam3`, mesurés sur les planches.
+const EYES_TREANT = [[83, 86, 93, 86], [85, 80, 96, 80], [88, 74, 98, 74], [86, 71, 99, 71], [86, 71, 99, 71], [86, 72, 99, 72], [86, 73, 99, 73], [86, 74, 99, 74], [86, 75, 99, 75], [88, 76, 98, 76], [86, 80, 96, 80], [84, 84, 94, 84], [83, 86, 93, 86]];
+const EYES_TREANT3 = [[77, 93, 87, 93], [76, 92, 87, 92], [72, 86, 85, 86], [75, 87, 87, 87], [74, 88, 86, 88], [74, 88, 86, 88], [70, 90, 80, 90], [74, 88, 86, 88], [67, 91, 79, 91], [68, 93, 80, 93], [66, 94, 79, 94], [66, 96, 76, 96], [77, 93, 87, 93]];
 
 export const GIANTS = [
   leviathan(giant({ id: 'leviathan', name: 'Léviathan des Abysses', title: 'Le Titan des Abysses', element: 'blue', zone: 'abyss', mapZone: 11, accent: '#2fb8ff', ready: true,
@@ -247,7 +253,11 @@ export const GIANTS = [
   giant({ id: 'elder_treant', name: 'Arbre-Monde', title: 'Le plus vieux des sylvains', element: 'green', zone: 'forest', mapZone: 1, accent: '#63d98a', frame: 192,
     lore: 'Une forêt entière sur ses épaules. Il ne se lève que si les bois sont menacés.',
     beam: ['#b8ff6a', '#f0ffc8'], projectile: { vfx: 'wb_boulder', tint: '#8a6a3a', tint3: '#b8ff6a', size: 2.6, spin: 5, dust: ['#5a4a2a', '#7bc85a'] }, debris: '#5aa04a',
-    phases: ['Racines', 'Pluie de feuilles', 'Colère de la forêt'], abilities: ['Souche lancée', 'Rayon de sève'] }),
+    phases: ['Racines', 'Pluie de feuilles', 'Colère de la forêt'], abilities: ['Souche lancée', 'Rayon de sève'],
+    // planches PixelLab posées (assets/world-boss/elder_treant, 192 px), repères mesurés ; 7e géant : Fête d'août 2028 (festBoss)
+    ready: true, from: '2028-08', extra: ['idle3', 'attack3', 'throw3', 'beam3', 'quake', 'embers', 'transform'],
+    hands: { throw: [12, 106], throw3: [18, 118] }, eyes: { beam: EYES_TREANT, beam3: EYES_TREANT3 }, box: [10, 8, 172, 178], shadow: 62, dx: 34,
+    marks: { scale: 0.8, beamColors: { beam: ['#b8ff6a', '#f0ffc8', '#ffffff'], beam3: ['#ff8a2a', '#ffd23f', '#fff3c8'] } } }),
   (() => { const g = giant({ id: 'void_maw', name: 'Dévoreur du Néant', title: 'La gueule entre les étoiles', element: 'dark', zone: 'void', mapZone: 9, accent: '#b04dff',
     lore: 'Une bouche sans fond, des yeux par centaines. Il a déjà mangé un monde.',
     beam: ['#b04dff', '#e0a8ff'], projectile: { vfx: 'wb_boulder', tint: '#8a3dff', tint3: '#ff4ad8', size: 2.2, spin: 10, dust: ['#3a1a5a', '#c08aff'] }, debris: '#6a3aa0',
