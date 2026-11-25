@@ -471,3 +471,7 @@ PATTERNS.unshift(...patterns108(lookup));
 import { EXACT_1014, patterns1014 } from './ko-1014.js';
 for (const [k, v] of Object.entries(EXACT_1014)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1014(lookup));
+// v10.14.2 : nouveaux textes téléphone (./ko-1014-2.js).
+import { EXACT_1014_2, patterns1014_2 } from './ko-1014-2.js';
+for (const [k, v] of Object.entries(EXACT_1014_2)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1014_2());

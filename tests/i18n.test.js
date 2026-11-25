@@ -213,3 +213,17 @@ test('anglais : Fêtes du mois — titres, monnaies, régions, écran, messages 
   };
   for (const [fr, en] of Object.entries(cases)) assert.equal(translate(fr), en, fr);
 });
+
+// v10.14.2 : nouveaux textes téléphone en anglais (./src/i18n/en-1014-2.js).
+test('anglais : Carnet, Recycler, Marchands, Guilde, Invocation (10.14.2)', () => {
+  const cases = {
+    'Carnet 3/8': 'Log 3/8', 'Carnet 8/8 ✓': 'Log 8/8 ✓', 'Carnet 8/8 · ouvre le coffre du jour ›': 'Log 8/8 · open the daily chest ›',
+    'Carnet 8/8 · coffre du jour ouvert ✓': 'Log 8/8 · daily chest opened ✓', 'Coffre à ouvrir': 'Chest to open',
+    'Rien à recycler : tes objets sont protégés ou utiles.': 'Nothing to recycle: your items are protected or useful.',
+    'Épique 4': 'Epic 4', 'Tout 12': 'All 12', 'Recycler (12)': 'Recycle (12)', '+5 autres': '+5 more',
+    'Le chariot dort au loin': 'The cart sleeps far away', 'Taux': 'Rates', 'Ça dort': 'Sleeping',
+    'Légendaire garanti dans 12 tirages': 'Legendary guaranteed in 12 pulls', 'Légendaire garanti dans 1 tirage': 'Legendary guaranteed in 1 pull',
+    'Un boss, toute la guilde': 'One boss, the whole guild', 'Outils et réinitialisation': 'Tools and reset',
+  };
+  for (const [fr, en] of Object.entries(cases)) { assert.equal(translate(fr), en, fr); assert.ok(!FRENCH.test(translate(fr)), fr); }
+});

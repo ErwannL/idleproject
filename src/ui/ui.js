@@ -814,10 +814,15 @@ export class UI {
     if (this.root.classList.contains('m-phone')) {
       const all = [...el.querySelectorAll('.subtab')];
       el.classList.toggle('m-many', all.length > 5);
-      for (const b of all) {
-        const long = b.querySelector('.sub-long');
-        if (long && b.clientWidth > 0 && long.scrollWidth > b.clientWidth - 4) b.classList.add('use-short');
-      }
+      for (const b of el.querySelectorAll('.subtab.locked span')) b.textContent = b.textContent.replace(/^🔒\s*/, ''); // le cadenas passe en pastille (CSS) : il ne mange plus la largeur du nom
+      const fit = () => {
+        for (const b of all) {
+          const long = b.querySelector('.sub-long');
+          if (long && b.clientWidth > 0 && long.scrollWidth > b.clientWidth - 4) b.classList.add('use-short');
+        }
+      };
+      fit();
+      requestAnimationFrame(fit); setTimeout(fit, 350); // le panneau peut encore s'ouvrir (largeur nulle) au premier passage
     }
     // v10.12 : sur téléphone la rangée défile : l'onglet choisi reste visible.
     const act = el.querySelector('.subtab.active');
@@ -3802,6 +3807,10 @@ export class UI {
     card.innerHTML = html;
     const title = card.querySelector('h2');
     if (title && !title.id) title.id = 'modal-title';
+    // v10.14.2 (B10) : téléphone — une fenêtre qu'on peut fermer a son ✕ à droite, sur la même ligne que le titre centré (le Menu a déjà le sien).
+    if (this.root.classList.contains('m-phone') && title?.parentElement === card && card.querySelector('[data-action="close-modal"]') && !card.querySelector('.drawer-close')) {
+      title.insertAdjacentHTML('beforebegin', '<button type="button" class="btn small m-modal-x" data-action="close-modal" aria-label="Fermer">✕</button>');
+    }
     modal.classList.remove('hidden');
     setTimeout(() => {
       if (modal.classList.contains('hidden') || card.contains(document.activeElement)) return;

@@ -5,7 +5,9 @@
 // changer de mode : même haut de cadre) · 7 aucun mot coupé au milieu · 8 image d'événement entièrement dans son cadre ·
 // 9 une image chargée pour chaque objet, compétence, branche de talent, compagnon et recherche affichés (et aucune <img> cassée) ·
 // 10 aucun texte sous 11 px · 11 aucun texte tronqué (scrollWidth > clientWidth avec ellipsis / overflow caché) ·
-// 12 un seul bouton VISUELLEMENT doré (fond or, pas seulement .m-btn-gold). Code de sortie 1 au moindre défaut.
+// 12 un seul bouton VISUELLEMENT doré (fond or, pas seulement .m-btn-gold) · 13 aucun élément du HUD de combat (#hud106, #zone-card,
+// #combat-console) visible par-dessus un panneau qui n'est pas une page (Arène) · 14 #panel-subtabs sans .m-many : aucun onglet dont le texte
+// dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -14,7 +16,7 @@ import { startServer } from './serve.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -169,6 +171,50 @@ function inPage(isCombat) {
   const goldish = (cs) => [...(cs.backgroundImage + ' ' + cs.backgroundColor).matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].some((x) => +x[1] > 200 && +x[2] > 140 && +x[3] < 130);
   const vGold = [...document.querySelectorAll('#panel button, #panel [data-action], #modal:not(.hidden) button')].filter((b) => !b.disabled && !b.classList.contains('disabled') && !b.matches('.m-chip, .m-mode, .map-dot, .m-tile, .m-node, .m-tnode, .subtab') && !b.closest('#panel-subtabs') && visible(b) && goldish(getComputedStyle(b)));
   if (vGold.length > 1) add(12, `${vGold.length} boutons dorés : ${vGold.map(name).join(' | ')}`);
+  // 13. HUD de combat : quand un panneau est ouvert sans être une page (téléphone), le HUD ne doit pas se montrer par-dessus la scène
+  const appEl = document.querySelector('#app');
+  if (!isCombat && appEl?.classList.contains('m-phone') && !appEl.classList.contains('page-ui') && panel && !panel.classList.contains('hidden')) {
+    for (const el of document.querySelectorAll('#hud106, #zone-card, #combat-console')) {
+      const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      if (r.width > 1 && r.height > 1 && cs.display !== 'none' && cs.visibility !== 'hidden' && Number(cs.opacity) > 0) add(13, `${name(el)} visible par-dessus le panneau (${Math.round(r.width)}×${Math.round(r.height)})`);
+    }
+  }
+  // 14. sous-onglets (sans .m-many) : le texte visible tient dans le bouton
+  const subs = document.querySelector('#panel-subtabs');
+  if (subs && !subs.classList.contains('m-many')) {
+    for (const b of subs.querySelectorAll('.subtab')) {
+      const br = b.getBoundingClientRect();
+      if (br.width < 1) continue;
+      const range = document.createRange(); range.selectNodeContents(b);
+      const tr = range.getBoundingClientRect();
+      if (b.scrollWidth > b.clientWidth + 1 || tr.right > br.right + 0.5 || tr.left < br.left - 0.5) add(14, `${name(b)} : texte ${Math.round(tr.left)}..${Math.round(tr.right)} hors du bouton ${Math.round(br.left)}..${Math.round(br.right)}`);
+    }
+  }
+  // 15. zone vide : dans chaque .m-frame / .m-card visible (ni fond illustré, ni cadre qui défile), plus grand intervalle vertical sans contenu
+  for (const box of document.querySelectorAll('#panel .m-frame, #panel .m-card, #modal:not(.hidden) .m-card')) {
+    if (!visible(box)) continue;
+    const bcs = getComputedStyle(box);
+    if (/url\(/.test(bcs.backgroundImage) || box.matches('.m-empty, .m-sheet') || box.closest('.m-empty')) continue;
+    const br = box.getBoundingClientRect();
+    const lo = Math.max(br.top, areaTop), hi = Math.min(br.bottom, areaBottom);
+    if (hi - lo < 130) continue;
+    const spans = [];
+    for (const el of box.querySelectorAll('*')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) || el.matches('img, canvas, svg, button, input, progress, video') || /url\(/.test(cs.backgroundImage) || (cs.borderTopWidth !== '0px' && cs.borderTopStyle !== 'none') || el.matches('.m-bar, .m-bar *');
+      if (!own) continue;
+      if (r.bottom <= lo || r.top >= hi) continue;
+      spans.push([Math.max(r.top, lo), Math.min(r.bottom, hi)]);
+    }
+    spans.sort((a, b) => a[0] - b[0]);
+    let cur = lo, best = 0, at = lo;
+    for (const [a, b] of spans) { if (a - cur > best) { best = a - cur; at = cur; } cur = Math.max(cur, b); }
+    if (hi - cur > best) { best = hi - cur; at = cur; }
+    if (best > 120) add(15, `${name(box)} : zone vide de ${Math.round(best)} px (à ${Math.round(at)} px du haut de l'écran)`);
+  }
   return issues;
 }
 
