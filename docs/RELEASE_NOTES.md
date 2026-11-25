@@ -1,6 +1,10 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.15.1 — Les Géants
+## Ascendrya v10.15.2 — Google Play
+
+- **Android** : l'application cible maintenant Android 16 (API 36), comme l'exige Google Play. Rien ne change en jeu.
+
+<details><summary>Ascendrya v10.15.1 — Les Géants</summary>
 
 8 vrais géants rejoignent le World Boss, chacun avec sa propre silhouette, ses animations et son décor. À partir d'août 2027, un géant vient un mois sur deux dans la grande fête.
 
@@ -16,6 +20,8 @@
 - **Téléphone** : le Colosse, les Titans et les géants ne sont plus coupés à droite. Ils tiennent entiers à l'écran, en phase 1 comme en phase 3. Le PC ne change pas.
 - **Panthéon et admin** : les 8 géants ont leur carte au Panthéon et se programment depuis l'admin (World Boss, Grand boss commun).
 - **Langues** : les noms, titres, histoires, phases et attaques des géants sont en anglais et en coréen.
+
+</details>
 
 <details><summary>Ascendrya v10.15.0 — Préparer les Géants</summary>
 
