@@ -248,10 +248,187 @@
 #app .fest-hub .fh-mission-body > b { font-size: 14px; }
 #app .fest-hub .fh-bar { position: relative; display: block; height: 16px; border-radius: 8px; background: #0b1124; border: 1px solid #2c3a66; overflow: hidden; }
 #app .fest-hub .fh-bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #c9a14a, #f3d27a); }
-#app .fest-hub .fh-bar small { position: relative; display: block; text-align: center; font-size: 11px; line-height: 14px; color: #fff; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-bar small { position: relative; display: block; text-align: center; font-size: 12px; line-height: 14px; color: #fff; text-shadow: 0 1px 0 #000; }
 #app .fest-hub .fh-mission-gift { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 #app#app .fest-hub .fh-mission .m-btn, #app#app .fest-hub .fh-mission .m-btn-gold { width: auto; flex: 0 0 auto; padding: 0 14px; height: 44px; min-height: 44px; font-size: 15px; }
 #app .fest-hub .fh-stamp { flex: 0 0 auto; padding: 4px 8px; border: 2px solid #5be37d; border-radius: 8px; color: #5be37d; font-weight: 800; font-size: 12px; transform: rotate(-6deg); }
 /* Téléphone : la Carte d'abord, le héros et les jalons dessous. */
 #app.m-phone .fest-hub .fh-mapcol { order: -1; }
 @media (max-width: 720px) { #app .fest-hub .fh-mapcol { order: -1; } }
+
+/* =====================================================================================================================
+   v10.14.1 · Brèche, Missions, Boutique, Sentier, onglet Événement (ui/fest-tabs.js, panels/event.js festPage)
+   Couleur d'accent de la fête : var(--fh-accent) (repli : or clair). L'or du kit reste aux boutons dorés.
+   ===================================================================================================================== */
+/* ---- Brèche ---- */
+#app .fest-hub .fh-rift { align-content: start; position: relative; display: grid; grid-template-columns: 230px 1fr; gap: 14px; min-height: 100%; padding: 12px; border: 2px solid #b48cff; border-radius: 16px;
+  background: radial-gradient(circle at 30% 10%, #3a2275, #140e2a 70%) center / cover; image-rendering: pixelated; overflow: hidden; }
+#app .fest-hub .fh-rift::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,17,36,.25), rgba(11,17,36,.7)); pointer-events: none; }
+#app .fest-hub .fh-rift > * { position: relative; }
+#app .fest-hub .fh-rcol { display: flex; flex-direction: column; gap: 10px; }
+#app .fest-hub .fh-stones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column-reverse; gap: 10px; }
+#app .fest-hub .fh-stone { display: flex; align-items: center; gap: 8px; min-height: 44px; animation: fh-float 3.6s ease-in-out infinite; }
+#app .fest-hub .fh-stone:nth-child(odd) { margin-left: 18px; }
+@keyframes fh-float { 50% { transform: translateY(-4px); } }
+#app .fest-hub .fh-stone-rock { flex: 0 0 auto; width: 56px; height: 42px; display: grid; place-items: center; border-radius: 46% 54% 50% 50% / 62% 56% 44% 40%; border: 2px solid #5a4a96;
+  background: linear-gradient(180deg, #6d5fa8, #3a3166); box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+#app .fest-hub .fh-stone-rock b { font-size: 16px; color: #eef2ff; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-stone.off { opacity: .75; }
+#app .fest-hub .fh-stone.done .fh-stone-rock, #app .fest-hub .fh-stone.best .fh-stone-rock { border-color: #5be37d; background: linear-gradient(180deg, #4d8a6b, #28514a); }
+#app .fest-hub .fh-stone.next .fh-stone-rock { border-color: var(--fh-accent, #f3d27a); background: linear-gradient(180deg, #8a6fe0, #4b3a9a); box-shadow: 0 0 0 4px rgba(180,140,255,.3), 0 0 18px var(--fh-accent, #f3d27a); }
+#app .fest-hub .fh-stone-first { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 2px; border-radius: 999px; background: rgba(11,17,36,.8); border: 1.5px solid #b48cff; font-size: 12px; }
+#app .fest-hub .fh-stone-first.got { opacity: .55; }
+#app .fest-hub .fh-stone-first i { color: #5be37d; font-style: normal; font-weight: 700; }
+#app .fest-hub .fh-stone-chest { width: 28px; height: 28px; }
+#app .fest-hub .fh-stone-gift { display: inline-flex; align-items: center; gap: 2px; }
+#app .fest-hub .fh-rmain { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#app .fest-hub .fh-rift-head { flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; padding: 10px 12px; border: 2px solid #b48cff; border-radius: 14px; background: rgba(40,22,80,.85); }
+#app .fest-hub .fh-rift-head > .fh-h { margin: 0; flex: 1 1 auto; }
+#app .fest-hub .fh-rift-head > small { flex-basis: 100%; order: 3; }
+#app .fest-hub .fh-stock { flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
+#app .fest-hub .fh-crystals { display: inline-flex; gap: 4px; filter: drop-shadow(0 0 4px rgba(180,140,255,.8)); }
+#app .fest-hub .fh-crystal { width: 18px; height: 28px; clip-path: polygon(50% 0, 100% 30%, 80% 100%, 20% 100%, 0 30%); background: #2a2350; }
+#app .fest-hub .fh-crystal.on { background: linear-gradient(135deg, #f1e4ff, #9b62ff 60%, #6a3bd0); }
+#app .fest-hub .fh-rift-start { flex-wrap: wrap; border-color: #b48cff; }
+#app .fest-hub .fh-rift-door { width: 56px; height: 56px; }
+#app .fest-hub .fh-rift-start > span:nth-child(2) { display: flex; flex-direction: column; flex: 1 1 180px; min-width: 0; gap: 4px; }
+#app .fest-hub .fh-hearts { display: inline-flex; gap: 3px; align-items: center; letter-spacing: 0; }
+#app .fest-hub .fh-heart { width: 24px; height: 24px; image-rendering: pixelated; }
+#app .fest-hub .fh-heart.off { filter: grayscale(1) brightness(.6); opacity: .6; }
+#app .fest-hub .fh-offer-h { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; }
+#app .fest-hub .fh-offer-h .fh-h { margin: 0; }
+#app .fest-hub .fh-bless-row { gap: 12px; margin: 0; }
+#app .fest-hub .fh-bless { padding: 16px 10px; backface-visibility: hidden; }
+#app .fest-hub .fh-bless > span { display: flex; flex-direction: column; gap: 4px; }
+#app .fest-hub .fh-bless .fh-bless-ico { width: 96px; height: 96px; image-rendering: pixelated; filter: drop-shadow(0 4px 10px rgba(0,0,0,.6)); }
+#app .fest-hub .fh-flip { animation: fh-flip .22s ease-out both; }
+@keyframes fh-flip { from { transform: perspective(600px) rotateY(90deg) scale(.9); opacity: 0; } to { transform: perspective(600px) rotateY(0) scale(1); opacity: 1; } }
+#app .fest-hub .fh-bless-list { gap: 8px; }
+#app .fest-hub .fh-bless-mini { grid-template-columns: 32px 1fr; background: rgba(24,34,63,.9); }
+#app .fest-hub .fh-bless-mini img { width: 32px; height: 32px; }
+#app .fest-hub .fh-bless-mini small { font-size: 12px; }
+#app .fest-hub .fh-rift-fight { flex-wrap: wrap; border-color: #b48cff; }
+#app .fest-hub .fh-rf-info { gap: 6px; }
+#app .fest-hub .fh-rf-info > small:last-child { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
+#app .fest-hub .fh-bigchips { display: flex; flex-wrap: wrap; gap: 8px; }
+#app .fest-hub .fh-bigchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid #b48cff; background: rgba(60,30,110,.85); }
+#app .fest-hub .fh-bigchip b { font-size: 17px; }
+#app .fest-hub .fh-bigchip img { width: 24px; height: 24px; }
+#app .fest-hub .fh-owned { flex-direction: column; align-items: flex-start; }
+#app .fest-hub .fh-chip { min-height: 28px; }
+#app .fest-hub .fh-chip img { width: 22px; height: 22px; }
+.fh-ask p, .fh-end small { color: #9fb0d8; }
+.fh-end-floor { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 8px 0; }
+.fh-end-floor > b { font-size: 32px; color: #f3d27a; }
+.fh-end-coins { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 6px 0; }
+.fh-end-coins .lt-cur { width: 28px; height: 28px; }
+.fh-end-coins b { font-size: 22px; }
+/* ---- Missions ---- */
+#app .fest-hub .fh-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; margin-bottom: 10px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.92); font-size: 13px; }
+#app .fest-hub .fh-banner > span { flex: 1 1 200px; min-width: 0; }
+#app .fest-hub .fh-banner > img { width: 22px; height: 22px; }
+#app .fest-hub .fh-banner.last { border-color: var(--fh-accent, #f3d27a); }
+#app#app .fest-hub .fh-banner .m-btn-gold { width: auto; flex: 0 0 auto; padding: 0 18px; }
+#app#app .fest-hub .fh-mission .fh-claim { border-color: var(--fh-accent, #f3d27a); }
+#app .fest-hub .fh-mission.ready { border-color: var(--fh-accent, #f3d27a); box-shadow: 0 0 10px rgba(255,255,255,.12); }
+#app .fest-hub .fh-fold { display: block; width: 100%; min-height: 44px; margin: 2px 0 8px; border: 1.5px dashed #2c3a66; border-radius: 10px; background: rgba(11,17,36,.6); color: #9fb0d8; font-size: 14px; cursor: pointer; }
+/* ---- Boutique ---- */
+#app .fest-hub .fh-feat { display: grid; gap: 10px; margin-bottom: 12px; grid-template-columns: 1fr; }
+#app .fest-hub .fh-feat.n2 { grid-template-columns: 1fr 1fr; }
+#app .fest-hub .fh-item { position: relative; }
+#app .fest-hub .fh-item.sold { opacity: 1; }
+#app .fest-hub .fh-item.sold > :not(.fh-sold) { opacity: .4; }
+#app .fest-hub .fh-item-txt { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+#app .fest-hub .fh-item.feat { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--fh-accent, #f3d27a);
+  background: radial-gradient(circle at 15% 50%, rgba(255,255,255,.14), rgba(24,34,63,.96) 60%); box-shadow: 0 0 18px rgba(255,255,255,.08); text-align: left; }
+#app .fest-hub .fh-item.feat .fh-item-art { height: 110px; min-width: 96px; }
+#app .fest-hub .fh-item.feat .fh-item-art img { max-width: 110px; max-height: 110px; width: 96px; height: 96px; }
+#app .fest-hub .fh-item.feat .fh-item-art .fest-unit-art { height: 110px; max-height: 110px; }
+#app .fest-hub .fh-item.feat .fh-item-txt { align-items: flex-start; flex: 1 1 150px; min-width: 0; }
+#app .fest-hub .fh-item.feat b { font-size: 18px; }
+#app#app .fest-hub .fh-item.feat .m-btn-gold { width: auto; flex: 0 0 auto; min-width: 150px; padding: 0 20px; }
+#app#app .fest-hub .fh-item.feat .m-btn-gold:disabled { background: #3a3f55; border-color: #ff6b6b; color: #ff8a8a; box-shadow: none; opacity: 1; }
+#app .fest-hub .fh-item .fh-short:disabled { opacity: 1; }
+#app#app .fest-hub .fh-item .fh-short:disabled, #app#app .fest-hub .fh-item .fh-short:disabled .num { color: #ff8a8a; opacity: 1; }
+#app .fest-hub .fh-item .m-btn.fh-short, #app .fest-hub .fh-item .m-btn-gold.fh-short { color: #ff8a8a; border-color: #ff6b6b; }
+#app .fest-hub .fh-item .fh-miss { color: #ff6b6b; font-size: 12px; font-weight: 700; }
+#app .fest-hub .fh-sold { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); padding: 2px 14px; border: 3px solid #ff6b6b; border-radius: 6px; background: rgba(11,17,36,.85); color: #ff6b6b; font-size: 18px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; pointer-events: none; }
+/* ---- Sentier ---- */
+#app .fest-hub .fh-path { height: 300px; }
+#app .fest-hub .fh-pnode { left: var(--x); top: var(--y); }
+#app .fest-hub .fh-road.p { display: none; }
+#app .fest-hub .fh-gifts .fest-unit-art.big { max-height: 150px; }
+#app .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 110px; }
+#app .fest-hub .fh-count { padding: 2px 10px; border-radius: 999px; border: 1.5px solid #2c3a66; background: rgba(0,0,0,.4); font-weight: 700; font-size: 13px; color: #eef2ff; }
+#app .fest-hub .fh-count.full { border-color: #5be37d; color: #5be37d; }
+#app .fest-hub .fh-gift { border-color: var(--fh-accent, #c9a14a); }
+#app .fest-hub .fh-pnode.prize > img { filter: drop-shadow(0 0 10px var(--fh-accent, #f3d27a)) drop-shadow(0 0 4px var(--fh-accent, #f3d27a)); }
+#app .fest-hub .fh-pnode.ready > img { filter: drop-shadow(0 0 8px var(--fh-accent, #f3d27a)); }
+#app .fest-hub .fh-pnode .fest-unit-art.mini { max-height: 40px; max-width: 40px; }
+#app .fest-hub .fh-pnode small { font-size: 12px; }
+/* ---- Onglet Événement : pastille sur les tuiles ---- */
+.fest-page .fest-door { position: relative; }
+.fest-page .fest-pill { position: absolute; top: 6px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #e2453c; color: #fff; font-size: 12px; font-style: normal; font-weight: 700; display: grid; place-items: center; }
+html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .fh-flip { animation: none; }
+.fh-end h2, .fh-ask h2 { text-align: center; }
+
+/* Fenêtres étroites. */
+@media (max-width: 720px) {
+  #app#app .fest-hub .fh-rift { grid-template-columns: 1fr; padding: 10px; }
+  #app#app .fest-hub .fh-stones { flex-direction: row; flex-wrap: wrap; gap: 8px 6px; }
+  #app#app .fest-hub .fh-stone { margin-left: 0 !important; flex: 0 0 calc(20% - 5px); min-width: 0; justify-content: flex-start; gap: 2px; }
+  #app#app .fest-hub .fh-stone-rock { width: 36px; height: 34px; }
+  #app#app .fest-hub .fh-stone-first { padding: 0; border: 0; background: none; }
+  #app#app .fest-hub .fh-stone-gift { display: none; }
+  #app#app .fest-hub .fh-feat.n2 { grid-template-columns: 1fr; }
+  #app#app .fest-hub .fh-item.feat { padding: 12px; }
+  #app#app .fest-hub .fh-item.feat .fh-item-art { height: 84px; min-width: 72px; }
+  #app#app .fest-hub .fh-item.feat .fh-item-art img, #app#app .fest-hub .fh-item.feat .fh-item-art .fest-unit-art { max-height: 84px; max-width: 84px; height: 84px; }
+  #app#app .fest-hub .fh-bless { align-items: center; }
+  #app#app .fest-hub .fh-bless-list { grid-template-columns: 1fr 1fr; }
+  #app#app .fest-hub .fh-banner > span { flex: 1 1 0; }
+  #app#app .fest-hub .fh-banner .m-btn-gold { flex: 1 1 100%; }
+  #app#app .fest-hub .fh-bigchip b { font-size: 16px; }
+  #app#app .fest-hub .fh-rift-start > .m-btn-gold { flex: 1 1 100%; }
+  #app#app .fest-hub .fh-rf-info { flex: 1 1 100%; }
+  #app#app .fest-hub .fh-rift-fight .fh-hearts { flex: 1 1 100%; }
+  #app#app .fest-hub .fh-rift-fight .m-btn { flex: 1 1 35%; }
+  #app#app .fest-hub .fh-rift-fight .m-btn-gold { flex: 2 1 55%; }
+  #app#app .fest-hub .fh-path { height: 340px; }
+  #app#app .fest-hub .fh-pnode { left: var(--px); top: var(--py); }
+  #app#app .fest-hub .fh-road.d { display: none; }
+  #app#app .fest-hub .fh-road.p { display: block; }
+  #app#app .fest-hub .fh-gifts { grid-template-columns: 1fr 1fr; gap: 8px; }
+  #app#app .fest-hub .fh-gift { padding: 8px 4px; }
+  #app#app .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
+  #app#app .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }
+}
+/* Téléphone (#app.m-phone : l'interface est mise à l'échelle). */
+#app#app.m-phone .fest-hub .fh-rift { grid-template-columns: 1fr; padding: 10px; }
+#app#app.m-phone .fest-hub .fh-stones { flex-direction: row; flex-wrap: wrap; gap: 8px 6px; }
+#app#app.m-phone .fest-hub .fh-stone { margin-left: 0 !important; flex: 0 0 calc(20% - 5px); min-width: 0; justify-content: flex-start; gap: 2px; }
+#app#app.m-phone .fest-hub .fh-stone-rock { width: 36px; height: 34px; }
+#app#app.m-phone .fest-hub .fh-stone-first { padding: 0; border: 0; background: none; }
+#app#app.m-phone .fest-hub .fh-stone-gift { display: none; }
+#app#app.m-phone .fest-hub .fh-feat.n2 { grid-template-columns: 1fr; }
+#app#app.m-phone .fest-hub .fh-item.feat { padding: 12px; }
+#app#app.m-phone .fest-hub .fh-item.feat .fh-item-art { height: 84px; min-width: 72px; }
+#app#app.m-phone .fest-hub .fh-item.feat .fh-item-art img, #app#app.m-phone .fest-hub .fh-item.feat .fh-item-art .fest-unit-art { max-height: 84px; max-width: 84px; height: 84px; }
+#app#app.m-phone .fest-hub .fh-bless { align-items: center; }
+#app#app.m-phone .fest-hub .fh-bless-list { grid-template-columns: 1fr 1fr; }
+#app#app.m-phone .fest-hub .fh-banner > span { flex: 1 1 0; }
+#app#app.m-phone .fest-hub .fh-banner .m-btn-gold { flex: 1 1 100%; }
+#app#app.m-phone .fest-hub .fh-bigchip b { font-size: 16px; }
+#app#app.m-phone .fest-hub .fh-rift-start > .m-btn-gold { flex: 1 1 100%; }
+#app#app.m-phone .fest-hub .fh-rf-info { flex: 1 1 100%; }
+#app#app.m-phone .fest-hub .fh-rift-fight .fh-hearts { flex: 1 1 100%; }
+#app#app.m-phone .fest-hub .fh-rift-fight .m-btn { flex: 1 1 35%; }
+#app#app.m-phone .fest-hub .fh-rift-fight .m-btn-gold { flex: 2 1 55%; }
+#app#app.m-phone .fest-hub .fh-path { height: 340px; }
+#app#app.m-phone .fest-hub .fh-pnode { left: var(--px); top: var(--py); }
+#app#app.m-phone .fest-hub .fh-road.d { display: none; }
+#app#app.m-phone .fest-hub .fh-road.p { display: block; }
+#app#app.m-phone .fest-hub .fh-gifts { grid-template-columns: 1fr 1fr; gap: 8px; }
+#app#app.m-phone .fest-hub .fh-gift { padding: 8px 4px; }
+#app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
+#app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }

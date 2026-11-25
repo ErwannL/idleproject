@@ -2,6 +2,7 @@
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
 import { closeFestHub, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
+import { foldMissions, riftEnd, riftQuitAsk } from './fest-tabs.js'; // v10.14.1 : Brèche, Missions
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
 import { buildCombatConsole, placeBoostGroup } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
@@ -1209,10 +1210,18 @@ export class UI {
       case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); openFestHub(this, value || null); break;
       case 'fest-hub-tab': festHubTab(this, value); break;
       case 'fest-hub-close': closeFestHub(this); this.invalidate(); break;
-      case 'rift-start': a.riftStart(); break;
-      case 'rift-fight': { const r = a.riftFight(); if (r?.given && Object.keys(r.given).length) this.chestReveal(r.given, `Brèche · palier ${r.floor} pour la première fois`); else if (r?.end) this.chestReveal({}, `Brèche terminée : ${r.end.cleared} palier${r.end.cleared > 1 ? 's' : ''}`, `+${r.end.coins} gagnés pendant la course`); break; }
+      case 'rift-start': if (el.closest('#modal')) this.closeModal(); a.riftStart(); break;
+      case 'rift-fight': { // v10.14.1 : fin de course → fenêtre « Brèche terminée » (palier, record, « Encore une fois »)
+        const r = a.riftFight();
+        if (r?.end) riftEnd(this, r.end, r.given);
+        else if (r?.given && Object.keys(r.given).length) this.chestReveal(r.given, `Brèche · palier ${r.floor} pour la première fois`);
+        break;
+      }
       case 'rift-pick': a.riftPick(value); break;
-      case 'rift-quit': a.riftQuit(); break;
+      case 'rift-quit-ask': riftQuitAsk(this); break;
+      case 'rift-quit': { if (el.closest('#modal')) this.closeModal(); const r = a.riftQuit(); if (r) riftEnd(this, r); break; }
+      case 'fest-go': closeFestHub(this); if (el.closest('#modal')) this.closeModal(); this.openTab(value); break; // « Y aller » ferme l'écran de la fête
+      case 'fest-fold': foldMissions(value); renderFestHub(this); break;
       case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); this.invalidate(); break; }
       case 'fest-chain': a.festChain(Number(value)); this.invalidate(); break;
       case 'fest-boss':

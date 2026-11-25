@@ -19,7 +19,8 @@ import { stageLabel } from '../core/combat.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
 import { escapeHtml, formatNumber, img } from './common.js';
 import { festCoin, festGive, festLeft, festSteps, unitArt, unitName } from './panels/event.js';
-import { walletIcon } from './panels/shop.js';
+import { missionsTab, pathTab, riftTab, shopTab } from './fest-tabs.js'; // v10.14.1
+import { preloadFestArt } from './fest-art.js';
 
 const A106 = 'assets/ui/art106/';
 const A98 = 'assets/ui/art98/';
@@ -52,6 +53,7 @@ const bossZone = (id) => grandBoss(id).zone ?? 'volcano';
 export function openFestHub(ui, tab = null) {
   const f = currentFest();
   if (!f || typeof document === 'undefined') return false;
+  preloadFestArt(f);
   ui.festHub = { tab: tab && TABS[f.kind].some((t) => t.id === tab) ? tab : TABS[f.kind][0].id, id: f.id };
   renderFestHub(ui);
   return true;
@@ -186,116 +188,6 @@ function bossTab(state, f) {
     </div></div>`;
 }
 
-// ---- Brèche : le mode de la fête ---------------------------------------------------------------------------------
-function riftTab(state, f) {
-  const r = riftStatus(state);
-  if (!r) return '';
-  const run = r.run;
-  const pips = Array.from({ length: r.maxStock }, (_, i) => `<i class="fh-pip${i < r.stock ? ' on' : ''}"></i>`).join('');
-  const floorAt = run ? run.floor : 0;
-  const track = Array.from({ length: r.floors }, (_, i) => {
-    const n = i + 1;
-    const first = FEST_RULES.rift.firstClear[n];
-    const st = run ? (n < floorAt || (n === floorAt && run.offer) ? 'done' : n === floorAt ? 'next' : 'off') : n <= r.best ? 'best' : 'off';
-    return `<span class="fh-floor ${st}"><b class="num">${n}</b>${first ? `<span class="fh-first${r.firsts.includes(n) ? ' got' : ''}">${festGive(first)}</span>` : ''}</span>`;
-  }).join('');
-  const head = `<div class="fh-rift-head"><img class="px fh-rift-art" src="${A106}hud_event_rift.png" alt="">
-    <span><b class="fh-h">Brèche de la fête</b><small>${r.floors} paliers. Après chaque victoire, choisis 1 bénédiction parmi 3. Une défaite coûte un cœur ; la monnaie gagnée est gardée.</small></span>
-    <span class="fh-stock"><small>Entrées</small><span class="fh-pips">${pips}</span><small>${r.perDay} par jour · record ${r.best}/${r.floors}</small></span></div>
-    <div class="fh-floors">${track}</div>`;
-  if (!r.open) return `${head}<div class="fh-card fh-lock">${img('icon_lock')} Fermée pendant l'échange.</div>`;
-  if (!run) {
-    return `${head}<div class="fh-card fh-rift-start"><span><b>Prêt à entrer ?</b><small>Gardien du palier 1 : niv. ${stageLabel(riftFloorLevel(state, 1))} · ${FEST_RULES.rift.hearts} cœurs</small></span>
-      <button type="button" class="m-btn-gold" data-action="rift-start" ${r.stock > 0 ? '' : 'disabled'}>${img('icon_map')}<span>${r.stock > 0 ? 'Entrer (1 entrée)' : 'Plus d\'entrée aujourd\'hui'}</span></button></div>
-      <div class="fh-bless-list">${Object.values(RIFT_BLESSINGS).map((b) => `<span class="fh-bless-mini">${img(b.icon)}<b>${escapeHtml(b.name)}</b><small>${escapeHtml(b.text)}</small></span>`).join('')}</div>`;
-  }
-  const hearts = `<span class="fh-hearts" aria-label="${run.hearts} cœurs">${'♥'.repeat(Math.max(0, run.hearts))}</span>`;
-  const owned = run.blessings.length ? `<div class="fh-owned">${run.blessings.map((id) => `<span class="fh-chip">${img(RIFT_BLESSINGS[id].icon)}${escapeHtml(RIFT_BLESSINGS[id].name)}</span>`).join('')}</div>` : '';
-  if (run.offer) {
-    const cards = run.offer.map((id) => { const b = RIFT_BLESSINGS[id]; return `<button type="button" class="fh-bless" data-action="rift-pick" data-value="${id}">${img(b.icon, 'fh-bless-ico')}<b>${escapeHtml(b.name)}</b><small>${escapeHtml(b.text)}</small></button>`; }).join('');
-    return `${head}<b class="fh-h">Palier ${run.floor} franchi ! Choisis une bénédiction ${hearts}</b><div class="fh-bless-row">${cards}</div>${owned}`;
-  }
-  return `${head}<div class="fh-card fh-rift-fight"><span><b>Palier ${run.floor}/${r.floors}</b><small>Gardien niv. ${stageLabel(riftFloorLevel(state, run.floor))} · ${riftSeconds(run)} s · dégâts ×${riftDamageMult(run).toFixed(2).replace('.', ',')}</small>
-      <small>Victoire : +${riftCoins(f, run, run.floor)} ${escapeHtml(f.currency)} · gagné dans cette course : ${run.coins}</small></span>${hearts}
-    <button type="button" class="m-btn" data-action="rift-quit">Quitter</button>
-    <button type="button" class="m-btn-gold" data-action="rift-fight">${img('icon_damage')}<span>Combattre</span></button></div>${owned}`;
-}
-
-// ---- Missions, Boutique, Sentier ----------------------------------------------------------------------------------
-const MISSION_ART = { kills: 'event_lights_mission_monsters', bosses: 'event_lights_mission_bosses', dungeons: 'event_lights_mission_dungeon', summons: 'event_lights_mission_summons' };
-function missionCard(f, m) {
-  const art = MISSION_ART[m.type] ? `<img class="px" src="${A106}${MISSION_ART[m.type]}.png" alt="">` : img(m.type === 'upgrades' ? 'icon_upgrade' : 'icon_star');
-  const pct = Math.round(Math.min(1, m.p / m.n) * 100);
-  const btn = m.done ? '<span class="fh-stamp">Faite ✓</span>'
-    : m.ready ? `<button type="button" class="m-btn-gold" data-action="fest-mission" data-value="${m.id}">Récupérer</button>`
-      : m.tab && f.phase === 'play' ? `<button type="button" class="m-btn" data-action="open-tab" data-value="${m.tab}">Y aller</button>` : '';
-  return `<div class="fh-mission${m.done ? ' done' : ''}${m.ready ? ' ready' : ''}"><span class="fh-mission-art">${art}</span>
-    <span class="fh-mission-body"><b>${escapeHtml(m.label)}</b><span class="fh-bar"><i style="width:${pct}%"></i><small class="num">${formatNumber(m.p)} / ${formatNumber(m.n)}</small></span>
-      <span class="fh-mission-gift">${festCoin(f)}<b class="num">+${m.coins}</b>${m.give ? festGive(m.give) : ''}</span></span>${btn}</div>`;
-}
-function missionsTab(state, f) {
-  const m = festMissions(state);
-  const ready = [...m.daily, ...m.event].filter((x) => x.ready).length;
-  return `<div class="fh-cols"><section><b class="fh-h">${img('icon_timer')} Missions du jour</b>${m.daily.map((x) => missionCard(f, x)).join('')}</section>
-    <section><b class="fh-h">${img('icon_trophy')} Missions de la fête</b>${m.event.map((x) => missionCard(f, x)).join('')}</section></div>
-    ${ready > 1 ? `<button type="button" class="m-btn-gold fh-wide" data-action="fest-missions-all">Tout récupérer (${ready})</button>` : ''}`;
-}
-// Boutique illustrée : grande image, nom, quantité, stock, prix.
-const SHOP_LOOK = {
-  ticketLimited: { name: 'Ticket de compagnon', art: `${A106}event_lights_shop_tickets.png` },
-  ticketPermanent: { name: 'Ticket permanent', wallet: true },
-  ticketPet: { name: 'Ticket de familier', wallet: true },
-  ssrFragment: { name: 'Fragment Légendaire', icon: 'icon_crown' },
-  grimoire: { name: 'Grimoires', icon: 'icon_grimoire' },
-  ascension: { name: 'Pierres d\'ascension', art: `${A106}event_lights_shop_essence.png` },
-  mastery: { name: 'Essences de maîtrise', icon: 'icon_mastery' },
-  keys: { name: 'Clés', art: `${A106}event_lights_shop_keys.png` },
-  shards: { name: 'Éclats', art: `${A106}event_lights_shop_shards.png` },
-  gems: { name: 'Gemmes', icon: 'icon_gem' },
-};
-function shopCard(f, i) {
-  let art;
-  let name;
-  let qty = '';
-  if (i.unit) { art = unitArt(i.unit, 'shop'); name = `Copie : ${escapeHtml(unitName(i.unit))}`; }
-  else {
-    const [k, v] = Object.entries(i.give)[0];
-    const look = SHOP_LOOK[k] ?? { name: k, icon: 'icon_chest' };
-    art = look.art ? `<img class="px" src="${look.art}" alt="">` : look.wallet ? walletIcon(k, false) : img(look.icon);
-    name = escapeHtml(look.name);
-    qty = `×${formatNumber(v)}`;
-  }
-  return `<div class="fh-item${i.can ? '' : ' off'}${i.left ? '' : ' sold'}"><span class="fh-item-art">${art}</span><b>${name}</b>${qty ? `<span class="fh-qty num">${qty}</span>` : ''}
-    <small class="num">${i.left ? `Reste ${i.left}/${i.stock}` : 'Épuisé'}</small>
-    <button type="button" class="m-btn" data-action="fest-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'}>${festCoin(f)}<span class="num">${i.price}</span></button></div>`;
-}
-function shopTab(state, f) {
-  return `<b class="fh-h">${festCoin(f)} Boutique · ${escapeHtml(f.currency)}</b><div class="fh-shop">${festShop(state).map((i) => shopCard(f, i)).join('')}</div><small class="fh-help">Ce qui reste à la fin de l'échange devient des éclats (${FEST_RULES.leftoverShards} par ${escapeHtml(f.currency)}).</small>`;
-}
-function pathTab(state, f) {
-  const path = festPath(state);
-  const earned = festRecord(state).fest.earned;
-  const N = path.length;
-  const xy = (i) => [4 + (i * 92) / (N - 1), 55 + Math.sin(i * 1.05 + 0.5) * 26];
-  const road = path.slice(0, -1).map((s, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
-  let here = -1;
-  for (const s of path) if (s.reached) here = s.index;
-  const nodes = path.map((s, i) => {
-    const [x, y] = xy(i);
-    const st = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
-    const gift = [s.give ? festGive(s.give) : '', s.hero ? unitArt(f.hero, 'mini') : '', s.pet ? unitArt(f.pet, 'mini pet') : ''].join('');
-    return `<button type="button" class="fh-pnode ${st}${s.hero || s.pet ? ' prize' : ''}" style="left:${x}%;top:${y}%" ${s.reached && !s.claimed ? `data-action="fest-step" data-value="p${i}"` : 'disabled'}>
-      <img class="px" src="${A106}${s.reached ? 'event_lights_node_done' : 'event_lights_node'}.png" alt=""><span class="fh-pgift">${gift}</span><small class="num">${s.at}</small>${i === here ? `<span class="fh-hero">${sprite(f.hero)}</span>` : ''}</button>`;
-  }).join('');
-  const ready = path.filter((s) => s.reached && !s.claimed).length;
-  const hero = LIGHT_PATH.filter((s) => s.hero).length;
-  const pet = LIGHT_PATH.filter((s) => s.pet).length;
-  return `<div class="fh-gifts"><span class="fh-gift">${unitArt(f.hero, 'big')}<b>${escapeHtml(unitName(f.hero))}</b><small>Héros gratuit · ×${hero} sur le sentier</small></span>
-      <span class="fh-gift">${unitArt(f.pet, 'big pet')}<b>${escapeHtml(unitName(f.pet))}</b><small>Familier gratuit · ×${pet} sur le sentier</small></span></div>
-    <b class="fh-h">${img('icon_map')} Sentier · ${formatNumber(earned)} ${escapeHtml(f.currency)} gagnés</b>
-    <div class="fh-path" style="background-image:url(${A106}event_lights_path.png)"><svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div>
-    ${ready > 1 ? `<button type="button" class="m-btn-gold fh-wide" data-action="fest-steps-all">Tout récupérer (${ready})</button>` : ''}
-    <small class="fh-help">La monnaie tombe en jouant (monstres et boss, ${FEST_RULES.trickle.dailyCap} par jour au plus) et avec les missions. Dépenser ne fait pas reculer sur le sentier.</small>`;
-}
+// Brèche, Missions, Boutique et Sentier : ui/fest-tabs.js (v10.14.1).
 
 export { festReady as festHubBadge };
