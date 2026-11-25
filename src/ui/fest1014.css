@@ -365,9 +365,10 @@
 #app .fest-hub .fh-pnode.prize > img { filter: drop-shadow(0 0 10px var(--fh-accent, #f3d27a)) drop-shadow(0 0 4px var(--fh-accent, #f3d27a)); }
 #app .fest-hub .fh-pnode.ready > img { filter: drop-shadow(0 0 8px var(--fh-accent, #f3d27a)); }
 #app .fest-hub .fh-pnode .fest-unit-art.mini { max-height: 40px; max-width: 40px; }
-#app .fest-hub .fh-pnode small { font-size: 12px; }
+#app .fest-hub .fh-pnode small { font-size: 12px; padding: 0 6px; border-radius: 8px; background: rgba(11,17,36,.75); }
 /* ---- Onglet Événement : pastille sur les tuiles ---- */
 .fest-page .fest-door { position: relative; }
+.fest-page .fest-poster .ev-poster-r { background: radial-gradient(ellipse at 50% 55%, rgba(11,17,36,.82), rgba(11,17,36,.45) 60%, transparent 80%); border-radius: 14px; padding: 4px; }
 .fest-page .fest-pill { position: absolute; top: 6px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #e2453c; color: #fff; font-size: 12px; font-style: normal; font-weight: 700; display: grid; place-items: center; }
 html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .fh-flip { animation: none; }
 .fh-end h2, .fh-ask h2 { text-align: center; }

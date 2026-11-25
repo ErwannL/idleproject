@@ -34,7 +34,7 @@ const hearts = (n, max) => {
   return `<span class="fh-hearts" role="img" aria-label="${n} ${n > 1 ? 'cœurs' : 'cœur'}">${out.join('')}</span>`;
 };
 const blessArt = (id, cls = '') => {
-  const p = pickArt(`${A1014}rift_bless_${id}.png`, null);
+  const p = pickArt(`${A1014}rift_bless_${id === 'force' ? 'strength' : id}.png`, null);
   return p ? `<img class="px ${cls}" src="${p}" alt="">` : img(RIFT_BLESSINGS[id].icon, cls);
 };
 const stoneList = (r, run, f) => {
@@ -44,7 +44,7 @@ const stoneList = (r, run, f) => {
     const first = FEST_RULES.rift.firstClear[n];
     const got = r.firsts.includes(n);
     const st = run ? (n < floorAt || (n === floorAt && run.offer) ? 'done' : n === floorAt ? 'next' : 'off') : n <= r.best ? 'best' : n === r.best + 1 ? 'next' : 'off';
-    const chest = first ? `<span class="fh-stone-first${got ? ' got' : ''}" title="Première fois">${img('icon_chest', 'fh-stone-chest')}<span class="fh-stone-gift">${festGive(first)}</span>${got ? '<i>✓</i>' : ''}</span>` : '';
+    const chest = first ? `<span class="fh-stone-first${got ? ' got' : ''}" title="Première fois">${(() => { const c = pickArt(`${A1014}fest_node_chest.png`, null); return c ? `<img class="px fh-stone-chest" src="${c}" alt="">` : img('icon_chest', 'fh-stone-chest'); })()}<span class="fh-stone-gift">${festGive(first)}</span>${got ? '<i>✓</i>' : ''}</span>` : '';
     return `<li class="fh-stone ${st}" style="animation-delay:${phase(n)}"><span class="fh-stone-rock"><b class="num">${n}</b></span>${chest}</li>`;
   }).join('');
 };

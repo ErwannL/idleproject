@@ -136,33 +136,33 @@ export const FEST_POOLS = {
 export const FEST_MONTHS = [
   {
     month: '2027-02',
-    grand: { title: 'Fête des Cœurs ardents', tagline: 'La Reine démone ouvre son bal de braises.', currency: 'Cœurs de braise', regions: ['Jardins rougeoyants', 'Salle du bal', 'Trône des braises'] },
-    light: { title: 'Bal des Lames roses', tagline: 'Danse avec la Lame rose, adopte un Hérisson de cristal.', currency: 'Pétales' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-02-g_key.png', regions: ['assets/ui/art1014/fest_2027-02-g_r1.png', 'assets/ui/art1014/fest_2027-02-g_r2.png', 'assets/ui/art1014/fest_2027-02-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-02-g_arena.png', currency: 'assets/ui/art1014/fest_2027-02-g_coin.png' }, title: 'Fête des Cœurs ardents', tagline: 'La Reine démone ouvre son bal de braises.', currency: 'Cœurs de braise', regions: ['Jardins rougeoyants', 'Salle du bal', 'Trône des braises'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-02-l_key.png', path: 'assets/ui/art1014/fest_2027-02-l_path.png', node: 'assets/ui/art1014/fest_2027-02-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-02-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-02-l_coin.png' }, title: 'Bal des Lames roses', tagline: 'Danse avec la Lame rose, adopte un Hérisson de cristal.', currency: 'Pétales' },
   },
   {
     month: '2027-03',
-    grand: { title: 'Éveil du Printemps', tagline: 'La Gardienne sylvestre réveille la forêt.', currency: 'Bourgeons', regions: ['Clairière', 'Bois ancien', 'Cœur de la forêt'] },
-    light: { title: 'Concours des Archers', tagline: 'L\'Archère elfe et la Fée des bois t\'attendent.', currency: 'Flèches d\'or' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-03-g_key.png', regions: ['assets/ui/art1014/fest_2027-03-g_r1.png', 'assets/ui/art1014/fest_2027-03-g_r2.png', 'assets/ui/art1014/fest_2027-03-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-03-g_arena.png', currency: 'assets/ui/art1014/fest_2027-03-g_coin.png' }, title: 'Éveil du Printemps', tagline: 'La Gardienne sylvestre réveille la forêt.', currency: 'Bourgeons', regions: ['Clairière', 'Bois ancien', 'Cœur de la forêt'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-03-l_key.png', path: 'assets/ui/art1014/fest_2027-03-l_path.png', node: 'assets/ui/art1014/fest_2027-03-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-03-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-03-l_coin.png' }, title: 'Concours des Archers', tagline: 'L\'Archère elfe et la Fée des bois t\'attendent.', currency: 'Flèches d\'or' },
   },
   {
     month: '2027-04',
-    grand: { title: 'Aube dorée', tagline: 'L\'Archange descend des Îles célestes.', currency: 'Plumes d\'aube', regions: ['Escalier des nuages', 'Temple du ciel', 'Porte du soleil'] },
-    light: { title: 'Pèlerinage de Lumière', tagline: 'Le Grand prêtre et le Mini-golem font route avec toi.', currency: 'Cierges' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-04-g_key.png', regions: ['assets/ui/art1014/fest_2027-04-g_r1.png', 'assets/ui/art1014/fest_2027-04-g_r2.png', 'assets/ui/art1014/fest_2027-04-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-04-g_arena.png', currency: 'assets/ui/art1014/fest_2027-04-g_coin.png' }, title: 'Aube dorée', tagline: 'L\'Archange descend des Îles célestes.', currency: 'Plumes d\'aube', regions: ['Escalier des nuages', 'Temple du ciel', 'Porte du soleil'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-04-l_key.png', path: 'assets/ui/art1014/fest_2027-04-l_path.png', node: 'assets/ui/art1014/fest_2027-04-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-04-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-04-l_coin.png' }, title: 'Pèlerinage de Lumière', tagline: 'Le Grand prêtre et le Mini-golem font route avec toi.', currency: 'Cierges' },
   },
   {
     month: '2027-05',
-    grand: { title: 'Nuit des Éclipses', tagline: 'Le Seigneur de l\'ombre déchire le ciel.', currency: 'Éclats d\'éclipse', regions: ['Faille', 'Citadelle d\'ombre', 'Trône du Néant'] },
-    light: { title: 'Nuit des Shinobis', tagline: 'Le Ninja et le Hibou érudit veillent dans l\'ombre.', currency: 'Shuriken' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-05-g_key.png', regions: ['assets/ui/art1014/fest_2027-05-g_r1.png', 'assets/ui/art1014/fest_2027-05-g_r2.png', 'assets/ui/art1014/fest_2027-05-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-05-g_arena.png', currency: 'assets/ui/art1014/fest_2027-05-g_coin.png' }, title: 'Nuit des Éclipses', tagline: 'Le Seigneur de l\'ombre déchire le ciel.', currency: 'Éclats d\'éclipse', regions: ['Faille', 'Citadelle d\'ombre', 'Trône du Néant'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-05-l_key.png', path: 'assets/ui/art1014/fest_2027-05-l_path.png', node: 'assets/ui/art1014/fest_2027-05-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-05-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-05-l_coin.png' }, title: 'Nuit des Shinobis', tagline: 'Le Ninja et le Hibou érudit veillent dans l\'ombre.', currency: 'Shuriken' },
   },
   {
     month: '2027-06',
-    grand: { title: 'Solstice de Givre', tagline: 'L\'Impératrice des glaces fige les marées.', currency: 'Flocons', regions: ['Côte gelée', 'Palais de glace', 'Trône de givre'] },
-    light: { title: 'Sabbat de la Saint-Jean', tagline: 'La Sorcière allume les feux, le Hérisson de cristal revient.', currency: 'Braises de lune' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-06-g_key.png', regions: ['assets/ui/art1014/fest_2027-06-g_r1.png', 'assets/ui/art1014/fest_2027-06-g_r2.png', 'assets/ui/art1014/fest_2027-06-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-06-g_arena.png', currency: 'assets/ui/art1014/fest_2027-06-g_coin.png' }, title: 'Solstice de Givre', tagline: 'L\'Impératrice des glaces fige les marées.', currency: 'Flocons', regions: ['Côte gelée', 'Palais de glace', 'Trône de givre'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-06-l_key.png', path: 'assets/ui/art1014/fest_2027-06-l_path.png', node: 'assets/ui/art1014/fest_2027-06-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-06-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-06-l_coin.png' }, title: 'Sabbat de la Saint-Jean', tagline: 'La Sorcière allume les feux, le Hérisson de cristal revient.', currency: 'Braises de lune' },
   },
   {
     month: '2027-07',
-    grand: { title: 'Festival des Titans', tagline: 'La Reine démone revient affronter le Colosse.', currency: 'Médailles', regions: ['Arène d\'été', 'Volcan', 'Sommet des Titans'] },
-    light: { title: 'Jeux des Champions', tagline: 'Le Barbare et la Fée des bois relèvent le défi.', currency: 'Lauriers' },
+    grand: { art: { key: 'assets/ui/art1014/fest_2027-07-g_key.png', regions: ['assets/ui/art1014/fest_2027-07-g_r1.png', 'assets/ui/art1014/fest_2027-07-g_r2.png', 'assets/ui/art1014/fest_2027-07-g_r3.png'], arena: 'assets/ui/art1014/fest_2027-07-g_arena.png', currency: 'assets/ui/art1014/fest_2027-07-g_coin.png' }, title: 'Festival des Titans', tagline: 'La Reine démone revient affronter le Colosse.', currency: 'Médailles', regions: ['Arène d\'été', 'Volcan', 'Sommet des Titans'] },
+    light: { art: { key: 'assets/ui/art1014/fest_2027-07-l_key.png', path: 'assets/ui/art1014/fest_2027-07-l_path.png', node: 'assets/ui/art1014/fest_2027-07-l_node.png', nodeDone: 'assets/ui/art1014/fest_2027-07-l_node_done.png', currency: 'assets/ui/art1014/fest_2027-07-l_coin.png' }, title: 'Jeux des Champions', tagline: 'Le Barbare et la Fée des bois relèvent le défi.', currency: 'Lauriers' },
   },
 ];
 

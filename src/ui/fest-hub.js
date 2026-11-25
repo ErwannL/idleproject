@@ -24,18 +24,19 @@ import { preloadFestArt } from './fest-art.js';
 
 const A106 = 'assets/ui/art106/';
 const A98 = 'assets/ui/art98/';
+const A1014 = 'assets/ui/art1014/'; // v10.14.1 : décors et icônes des fêtes
 const TABS = {
   grand: [
-    { id: 'adventure', label: 'Aventure', art: `${A98}expedition_map.png` },
+    { id: 'adventure', label: 'Aventure', art: `${A1014}fest_tab_adventure.png` },
     { id: 'boss', label: 'World Boss', art: null },
-    { id: 'rift', label: 'Brèche', art: `${A106}hud_event_rift.png` },
-    { id: 'missions', label: 'Missions', art: `${A106}event_lights_mission_monsters.png` },
-    { id: 'shop', label: 'Boutique', art: `${A106}event_lights_shop_chest.png` },
+    { id: 'rift', label: 'Brèche', art: `${A1014}fest_tab_rift.png` },
+    { id: 'missions', label: 'Missions', art: `${A1014}fest_tab_missions.png` },
+    { id: 'shop', label: 'Boutique', art: `${A1014}fest_tab_shop.png` },
   ],
   light: [
-    { id: 'path', label: 'Sentier', art: `${A106}event_lights_node_done.png` },
-    { id: 'missions', label: 'Missions', art: `${A106}event_lights_mission_monsters.png` },
-    { id: 'shop', label: 'Boutique', art: `${A106}event_lights_shop_chest.png` },
+    { id: 'path', label: 'Sentier', art: `${A1014}fest_tab_path.png` },
+    { id: 'missions', label: 'Missions', art: `${A1014}fest_tab_missions.png` },
+    { id: 'shop', label: 'Boutique', art: `${A1014}fest_tab_shop.png` },
   ],
 };
 const bgOf = (zoneIndex) => `assets/bg/${ZONES[zoneIndex]?.id ?? 'plains'}_far.png`;
@@ -97,7 +98,7 @@ function hubHtml(state, f, tab) {
   const now = liveNow();
   const rec = festRecord(state);
   const timer = f.phase === 'play' ? `⏳ ${festLeft(f.playEnd - now)}` : `🔁 Échange · ${festLeft(f.end - now)}`;
-  const bg = f.art?.key ?? (f.kind === 'grand' ? bgOf(f.zone) : `${A106}event_lights_key.png`);
+  const bg = tab === 'rift' ? `${A1014}fest_rift_bg.png` : f.art?.key ?? (f.kind === 'grand' ? bgOf(f.zone) : `${A106}event_lights_key.png`);
   const m = festMissions(state);
   const missionsReady = [...m.daily, ...m.event].filter((x) => x.ready).length;
   const rift = riftStatus(state);
@@ -132,7 +133,7 @@ function adventure(state, f) {
   const N = per;
   const xy = (i) => [6 + (i * 88) / (N - 1), 52 + Math.sin(i * 0.9 + 0.4) * 24];
   const road = Array.from({ length: N - 1 }, (_, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
-  const tints = ['rgba(255,190,120,.10)', 'rgba(120,80,200,.22)', 'rgba(20,10,40,.45)'];
+  const tints = f.art?.regions ? ['rgba(0,0,0,.06)', 'rgba(0,0,0,.06)', 'rgba(0,0,0,.06)'] : ['rgba(255,190,120,.10)', 'rgba(120,80,200,.22)', 'rgba(20,10,40,.45)'];
   const regions = (f.regions ?? []).slice(0, FEST_RULES.map.regions).map((name, ri) => {
     const doneR = rec.cleared >= (ri + 1) * per;
     const nodes = Array.from({ length: N }, (_, i) => {
@@ -142,7 +143,7 @@ function adventure(state, f) {
       const mark = n === FEST_RULES.map.fragmentStage ? img('icon_crown') : n === FEST_RULES.map.bossUnlockStage ? img('icon_boss') : n % per === 0 ? img('icon_chest') : `<b class="num">${n}</b>`;
       return `<span class="fh-node ${st}" style="left:${x}%;top:${y}%">${mark}${n === next && open ? `<span class="fh-hero">${sprite(f.featured)}</span>` : ''}</span>`;
     }).join('');
-    return `<div class="fh-region${doneR ? ' cleared' : ''}" style="background-image:linear-gradient(${tints[ri]},${tints[ri]}),url(${bgOf(f.zone)})">
+    return `<div class="fh-region${doneR ? ' cleared' : ''}" style="background-image:linear-gradient(${tints[ri]},${tints[ri]}),url(${f.art?.regions?.[ri] ?? bgOf(f.zone)})">
       <span class="fh-region-name">${escapeHtml(name)}</span>${doneR ? '<span class="fh-region-done">✓ Région libérée</span>' : ''}
       <svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div>`;
   }).join('');
@@ -174,7 +175,7 @@ function bossTab(state, f) {
   const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="fh-tier${i < st.tiers ? ' on' : ''}"><b class="num">${Math.round(t * 100)} %</b><small>+${FEST_RULES.boss.coinsPerTier}</small></span>`).join('');
   const phases = (gb.fight?.phases ?? []).map((p) => `<span class="fh-phase"><b class="num">${Math.round(p.at * 100)} %</b> ${escapeHtml(p.name)}</span>`).join('');
   const lock = st.pause ? 'Fermé pendant l\'échange.' : `Libère l'étape ${st.unlockStage} de la Carte pour l'affronter.`;
-  return `<div class="fh-boss" style="background-image:linear-gradient(180deg,rgba(5,7,13,.1),rgba(5,7,13,.85)),url(assets/bg/${bossZone(f.boss)}_far.png)">
+  return `<div class="fh-boss" style="background-image:linear-gradient(180deg,rgba(5,7,13,.1),rgba(5,7,13,.85)),url(${f.art?.arena ?? `assets/bg/${bossZone(f.boss)}_far.png`})">
     <div class="fh-boss-stage">${bossArt(f.boss, 'big')}</div>
     <div class="fh-boss-info"><small>World Boss de la fête</small><b class="fh-boss-name">${escapeHtml(gb.name)}</b>
       ${phases ? `<div class="fh-phases">${phases}</div>` : ''}

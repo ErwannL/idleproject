@@ -28,7 +28,7 @@ export function preloadFestArt(f) {
   const a = f.art ?? {};
   [a.key, ...(a.regions ?? []), a.arena, a.currency, a.path, a.node, a.nodeDone, `${A1014}fest_rift_bg.png`, `${A1014}hud_event_fest.png`,
     ...['adventure', 'boss', 'rift', 'missions', 'shop', 'path'].map((t) => `${A1014}fest_tab_${t}.png`),
-    ...['force', 'fury', 'time', 'loot', 'heart', 'focus'].map((b) => `${A1014}rift_bless_${b}.png`)].forEach((u) => pickArt(u, null));
+    ...['strength', 'fury', 'time', 'loot', 'heart', 'focus'].map((b) => `${A1014}rift_bless_${b}.png`)].forEach((u) => pickArt(u, null));
 }
 
 // Pastilles « il y a quelque chose à faire » par partie de la fête (écran de la fête et onglet Événement).
