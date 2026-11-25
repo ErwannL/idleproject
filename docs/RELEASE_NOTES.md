@@ -1,6 +1,17 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.14.1 — Les Fêtes, belles et faciles à jouer
+## Ascendrya v10.14.2 — Téléphone, dernières finitions
+
+Sur téléphone (le PC ne change pas) :
+
+- **Écran de combat** : le haut de l'écran prend beaucoup moins de place. Les événements tiennent sur une rangée (le reste derrière « + »), le Carnet devient une pastille « Carnet 0/8 » à côté d'« Avance auto », le Chemin du héros tient sur une ligne et « Récupérer » n'apparaît que quand c'est prêt.
+- **Arène** : on voit enfin le combat au-dessus du panneau.
+- **Forge › Recycler** : la grille du sac avec les objets à recycler cochés, des filtres par rareté et le total au-dessus du bouton ; un coffre vide quand il n'y a rien.
+- **Talents › Arbre avancé** : toute la branche, nœuds verrouillés compris avec leur coût, sans défiler pendant des pages.
+- **Améliorations, Marchands, Guilde, Carnet, Invocation, Fiche du héros** : plus de grands vides ; les taux et « Légendaire garanti dans N tirages » sous les tirages ; « Duel » en vrai bouton doré.
+- **Partout** : les noms des sous-onglets ne sont plus coupés, les rangées qui défilent ont un fondu au bord, les fenêtres ont leur ✕ à droite du titre, le menu ☰ est rangé et la flèche dorée ne tombe plus sur le mauvais bouton.
+
+<details><summary>Ascendrya v10.14.1 — Les Fêtes, belles et faciles à jouer</summary>
 
 - **Chaque fête a son monde** : affiche, 3 décors de région, arène du World Boss, monnaie et couleur à elle (dessinés avec PixelLab). Plus de goutte rose partout.
 - **Aventure** : la carte en grand, le héros du mois au-dessus de l'étape suivante, les étapes 10, 20 et 30 illustrées, « Combattre » et « Enchaîner » sur une ligne. En cas de défaite, « Améliorer › » ouvre la Forge. Les jalons d'invocation sur une barre « 35 / 50 ».
@@ -13,6 +24,8 @@
 - **Langues** : toute la fête en anglais et en coréen.
 
 Les dates, les rotations et les chiffres de la fête ne changent pas.
+
+</details>
 
 <details><summary>Ascendrya v10.14.0 — Les Fêtes du mois</summary>
 
