@@ -440,3 +440,4 @@ html.reduce-motion #app .fest-hub * { animation: none !important; transition: no
 #app.m-phone .fest-hub .fh-boss-stage { min-height: 290px; }
 #app.m-phone .fest-hub .fh-boss-fig { width: min(100%, 260px); }
 #app.m-phone .fest-hub .fh-report-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#app .fest-hub .fh-bg::after { background: linear-gradient(270deg, rgba(11,17,36,.88), rgba(11,17,36,.2) 50%), linear-gradient(180deg, rgba(11,17,36,.55), rgba(11,17,36,.88) 45%, #0b1124); } /* affiche : côté droit sombre derrière le héros du mois */
