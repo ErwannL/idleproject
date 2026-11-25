@@ -150,7 +150,7 @@ export class WorldBossScene {
     const im = sheet(this.art, a.src ?? name);
     const k = this.scale;
     const w = this.art.frame * k;
-    const cx = r.wx(boss.x) + 14;
+    const cx = r.wx(boss.x) + 14 - (this.art.dx ?? 0) * k; // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche : il ne dépasse pas du cadre en phase 3
     const x = Math.round(cx - w / 2);
     const y = Math.round(r.groundY + 1 - this.art.foot * k + breathe);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
