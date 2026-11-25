@@ -224,3 +224,56 @@ test('serveur : 6 mois programmés au premier démarrage, une fois ; import sans
   const { events } = festLiveItems(t0, 1);
   assert.equal(events[0].sheet, '2027-02-g');
 });
+
+test('Brèche : 2 entrées par jour (6 en réserve), bénédictions, cœurs, premières fois, sauvegarde', async () => {
+  const { riftStatus, startRift, riftFight, riftPick, riftQuit, riftOffer } = await import('../src/core/fest.js');
+  const { RIFT_BLESSINGS } = await import('../src/data/fest.js');
+  const s = fresh();
+  const t = at(2027, 2, 2);
+  assert.equal(riftStatus(s, t).stock, FEST_RULES.rift.perDay);
+  assert.equal(riftStatus(s, at(2027, 2, 9)).stock, FEST_RULES.rift.maxStock, 'réserve plafonnée');
+  const t2 = at(2027, 2, 9, 13);
+  const strong = { dps: 1e12, hpOf: () => 1 };
+  assert.equal(riftFight(s, strong, t2).error, 'state', 'il faut entrer d\'abord');
+  assert.ok(startRift(s, t2));
+  assert.equal(startRift(s, t2), null, 'une course à la fois');
+  assert.equal(riftStatus(s, t2).stock, FEST_RULES.rift.maxStock - 1);
+  const w = riftFight(s, strong, t2);
+  assert.ok(w.won);
+  assert.equal(w.coins, FEST_RULES.rift.coins.base + FEST_RULES.rift.coins.per);
+  const offer = riftStatus(s, t2).run.offer;
+  assert.equal(offer.length, 3);
+  assert.equal(new Set(offer).size, 3);
+  assert.deepEqual(riftOffer(riftStatus(s, t2).run.seed, 1), offer, 'tirage reproductible');
+  assert.equal(riftFight(s, strong, t2).error, 'state', 'choisir avant de continuer');
+  assert.equal(riftPick(s, 'nope', t2), null);
+  const run = riftPick(s, offer[0], t2);
+  assert.equal(run.floor, 2);
+  assert.deepEqual(run.blessings, [offer[0]]);
+  for (let n = 2; n <= 4; n += 1) { assert.ok(riftFight(s, strong, t2).won); riftPick(s, riftStatus(s, t2).run.offer[0], t2); }
+  const five = riftFight(s, strong, t2);
+  assert.equal(five.given.ticketLimited, 1, 'palier 5 la première fois');
+  riftPick(s, riftStatus(s, t2).run.offer.find((id) => !RIFT_BLESSINGS[id].hearts) ?? riftStatus(s, t2).run.offer[0], t2);
+  const hearts = riftStatus(s, t2).run.hearts;
+  const weak = { dps: 0, hpOf: () => 1 };
+  for (let k = 1; k < hearts; k += 1) assert.equal(riftFight(s, weak, t2).end, undefined);
+  const lost = riftFight(s, weak, t2);
+  assert.equal(lost.end.cleared, 5);
+  assert.equal(riftStatus(s, t2).best, 5);
+  assert.equal(riftStatus(s, t2).run, null);
+  // Seconde course : le palier 5 ne redonne rien ; quitter garde la monnaie.
+  startRift(s, t2);
+  riftFight(s, strong, t2);
+  const before = festRecord(s, t2).coins;
+  const q = riftQuit(s, t2);
+  assert.equal(q.cleared, 1);
+  assert.equal(festRecord(s, t2).coins, before);
+  // Sauvegarde : la Brèche est gardée.
+  startRift(s, t2);
+  const back = sanitizeState(JSON.parse(JSON.stringify(s)), undefined, t2);
+  assert.deepEqual(back.economy.events['fest-2027-02-g'].fest.rift.run.floor, 1);
+  assert.equal(back.economy.events['fest-2027-02-g'].fest.rift.best, 5);
+  // Fermée pendant l'échange et pendant la petite fête.
+  assert.equal(startRift(s, at(2027, 2, 15)), null);
+  assert.equal(riftStatus(s, at(2027, 2, 20)), null);
+});

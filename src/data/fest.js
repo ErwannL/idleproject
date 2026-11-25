@@ -33,6 +33,14 @@ export const FEST_RULES = {
   ],
   // Petite fête : un peu de monnaie en jouant (1 par 150 monstres, 1 par boss), 25 au plus par jour.
   trickle: { kills: 150, bosses: 1, dailyCap: 25 },
+  // Mode de la grande fête : la BRÈCHE (10 paliers, une bénédiction à choisir entre deux paliers, 3 cœurs).
+  // Entrées : 2 par jour, jusqu'à 6 en réserve. Combat résolu d'un coup (dégâts × durée contre les PV du gardien).
+  rift: {
+    floors: 10, perDay: 2, maxStock: 6, hearts: 3, fightSeconds: 30,
+    scale: { from: 0.75, per: 0.07 }, // palier n : record × (0,75 + 0,07 n) → de 0,82 à 1,45 × le record
+    coins: { base: 6, per: 2 }, // palier n gagné : 6 + 2 n (avant bénédictions)
+    firstClear: { 5: { ticketLimited: 1 }, 10: { ticketLimited: 2, gems: 200 } }, // une fois par fête
+  },
   leftoverShards: 10, // monnaie restante à la fin de l'échange : convertie en éclats (10 par pièce), jamais perdue
   // Missions du jour : 3 tirées chaque jour dans la liste de la fête (même tirage pour tous les joueurs).
   dailyCount: 3,
@@ -158,6 +166,16 @@ export const FEST_MONTHS = [
   },
 ];
 
+// Bénédictions de la Brèche (3 proposées après chaque palier gagné, gardées jusqu'à la fin de la course).
+export const RIFT_BLESSINGS = {
+  force: { name: 'Lame bénie', text: '+20 % de dégâts', icon: 'icon_damage', dmg: 0.2 },
+  fury: { name: 'Fureur', text: '+35 % de dégâts, −5 s de combat', icon: 'icon_crit', dmg: 0.35, secs: -5 },
+  time: { name: 'Sablier', text: '+6 s de combat', icon: 'icon_timer', secs: 6 },
+  loot: { name: 'Bourse pleine', text: '+30 % de monnaie', icon: 'icon_chest', coins: 0.3 },
+  heart: { name: 'Second souffle', text: '+1 cœur', icon: 'icon_heart', hearts: 1 },
+  focus: { name: 'Concentration', text: '+10 % de dégâts, +3 s', icon: 'icon_bolt', dmg: 0.1, secs: 3 },
+};
+
 // Noms des unités (affichage, admin) : vérifiés contre data/companions.js et data/grand-bosses.js par les tests.
 export const FEST_NAMES = {
   demon_queen: 'Reine démone', sylvan_guardian: 'Gardienne sylvestre', archangel: 'Archange', shadow_lord: 'Seigneur de l\'ombre', ice_empress: 'Impératrice des glaces',
@@ -248,6 +266,16 @@ export function festLiveItems(t, months = 6) {
 }
 export { DAY as FEST_DAY };
 
+function sanitizeRift(r, int, strs) {
+  const run = r.run && typeof r.run === 'object' ? r.run : null;
+  const ok = (a) => strs(a, 12).filter((b) => RIFT_BLESSINGS[b]);
+  return {
+    stock: int(r.stock, FEST_RULES.rift.maxStock), refill: typeof r.refill === 'string' ? r.refill.slice(0, 10) : '', best: int(r.best, FEST_RULES.rift.floors),
+    firsts: Array.isArray(r.firsts) ? r.firsts.filter((x) => Number.isInteger(x) && x > 0 && x <= FEST_RULES.rift.floors).slice(0, 10) : [],
+    run: run ? { floor: Math.max(1, int(run.floor, FEST_RULES.rift.floors + 1)), hearts: int(run.hearts, 20), blessings: ok(run.blessings),
+      offer: Array.isArray(run.offer) ? ok(run.offer).slice(0, 3) : null, coins: int(run.coins), seed: int(run.seed, 2 ** 32) } : null,
+  };
+}
 // Nettoyage d'une sauvegarde (core/wallet.js sanitizeEconomy) : champ `fest` d'un enregistrement d'événement.
 export function sanitizeFestRecord(raw) {
   if (!raw || typeof raw !== 'object') return undefined;
@@ -261,6 +289,7 @@ export function sanitizeFestRecord(raw) {
     daily: { day: typeof d.day === 'string' ? d.day.slice(0, 10) : '', p: map(d.p), done: strs(d.done, 12) },
     trickle: { day: typeof t.day === 'string' ? t.day.slice(0, 10) : '', got: int(t.got, 1000), kills: int(t.kills, 1e6) },
     until: int(raw.until, 1e15), settled: raw.settled === true,
+    ...(raw.rift && typeof raw.rift === 'object' ? { rift: sanitizeRift(raw.rift, int, strs) } : {}),
   };
 }
 

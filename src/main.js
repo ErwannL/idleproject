@@ -100,6 +100,7 @@ import { buyLights, claimLightsAll, claimLightsStep } from './core/lights.js'; /
 import { claimBounty106, foldBounty, refuseBounty } from './core/herald-bounty.js'; // v10.6 (partie 2)
 import { BLACK_MARKET_SHARDS, ascendItems, buyBlackMarket, canAscend, canEngrave, engraveItem } from './core/bastion-ages.js'; // v10.8
 import { buyEventItem, claimEventGoal, fightStage, finishWorldBoss, startWorldBoss, worldBossStatus } from './core/ancients.js';
+import { riftFight, riftPick, riftQuit, startRift } from './core/fest.js'; // v10.14 : la Brèche (mode de la grande fête)
 import { buyFest, claimFestAll, claimFestMission, claimFestStep, claimFestSteps, festBossStatus, festFight, finishFestBoss, settleFests, startFestBoss } from './core/fest.js'; // v10.14 : Fêtes du mois
 import { bossHpForDay } from './core/world-boss.js'; // v9.2.9 : World Boss en vrai combat
 import { bossesForStage, enemyStats, isBossStage, stageInZone } from './core/combat.js';
@@ -1132,6 +1133,17 @@ const actions = {
   festMissionsAll() { const r = claimFestAll(state); done(Boolean(r), r ? `Missions : +${r.coins}` : null); return r; },
   festStep(key) { const r = claimFestStep(state, key); done(Boolean(r), null); return r; },
   festStepsAll() { const r = claimFestSteps(state); done(Boolean(r), null); return r; },
+  riftStart() { const r = startRift(state); done(Boolean(r), r ? 'Brèche ouverte : palier 1' : null, '#c9a8ff'); return r; },
+  riftFight() {
+    const hpOf = (stage) => enemyStats(stage, bossesForStage(stage)[0], true).hp;
+    const r = riftFight(state, { dps: computeHeroStats(state).dps, hpOf });
+    if (r.error) return r;
+    const msg = r.won ? `Palier ${r.floor} franchi : +${r.coins}` : r.end ? `Brèche refermée au palier ${r.floor}` : `Palier ${r.floor} : gardien trop solide (${r.hearts} cœur${r.hearts > 1 ? 's' : ''})`;
+    done(true, msg, r.won ? '#7fe0a0' : '#ff8a6a');
+    return r;
+  },
+  riftPick(id) { const r = riftPick(state, id); done(Boolean(r), null); return r; },
+  riftQuit() { const r = riftQuit(state); done(Boolean(r), r ? `Brèche quittée : ${r.cleared} palier${r.cleared > 1 ? 's' : ''}, +${r.coins}` : null); return r; },
   festBuy(id) { const r = buyFest(state, id); done(Boolean(r), r ? 'Échange effectué' : null); return r; },
   bountyClaim() { const r = claimBounty106(state); done(Boolean(r), null); return r; },
   bountyRefuse() { refuseBounty(state); done(true, null); },

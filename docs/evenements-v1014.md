@@ -4,6 +4,30 @@ Code : `src/data/fest.js` (feuilles, calendrier, rotation), `src/core/fest.js` (
 (`festPage`), `src/ui/fest1014.css`, `server/live.mjs` (`importFestCalendar`), tests `tests/v1014-fest.test.js`.
 Captures : `docs/screenshots/v10.14/`.
 
+## L'écran de la fête
+
+Une interface à part, plein cadre (`src/ui/fest-hub.js`), ouverte par l'icône « Fête » de la colonne d'événements ou
+par l'onglet Événement (affiche, « Entrer dans la fête » et une tuile par partie). En bas, de grandes tuiles :
+
+- **Aventure** : la Carte du héros sur les décors du monde de la fête (3 régions, chemin, coffres, World Boss à
+  l'étape 10, fragment à l'étape 30), le héros du mois en grand avec « Invoquer » et les jalons d'invocation.
+- **World Boss** : le Titan animé dans son décor, ses phases, tentatives, record, paliers, « Attaquer ».
+- **Brèche** : le mode supplémentaire des 14 jours (voir plus bas).
+- **Missions** : du jour et de la fête, illustrées, « Tout récupérer ».
+- **Boutique** : objets illustrés, stock et prix.
+
+La petite fête a la même interface avec Sentier (héros et familier gratuits en grand), Missions et Boutique.
+Échap ou ✕ ferme l'écran ; les fenêtres de récompense s'ouvrent par-dessus.
+
+## La Brèche (mode de la grande fête)
+
+- 10 paliers ; gardien du palier n = record × (0,75 + 0,07 n), combat résolu d'un coup (30 s de dégâts).
+- Après chaque palier gagné : **1 bénédiction parmi 3** (Lame bénie, Fureur, Sablier, Bourse pleine, Second souffle,
+  Concentration), gardée jusqu'à la fin de la course.
+- 3 cœurs ; une défaite en coûte un. La monnaie de chaque palier (6 + 2 n) est gagnée tout de suite.
+- 2 entrées par jour, jusqu'à 6 en réserve (on peut rater 2 jours sans rien perdre).
+- Premières fois (une fois par fête) : palier 5 → 1 ticket limité ; palier 10 → 2 tickets limités et 200 gemmes.
+
 ## Le rythme d'un mois
 
 | Jours | Quoi | Ce que le joueur fait |

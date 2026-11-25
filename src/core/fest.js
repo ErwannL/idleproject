@@ -6,7 +6,7 @@
 //   - config live connue (core/live.js) : un élément d'événement de type « fest » et sa feuille (params.sheet) ;
 //   - serveur jamais joint : le calendrier de data/fest.js (festAt), à l'heure locale.
 // Progression : state.economy.events[<id de la fête>] (même enregistrement que les autres événements) + son champ `fest`.
-import { FEST_DAY, FEST_MISSIONS, FEST_MISSION_TYPES, FEST_RULES, FEST_SHOPS, LIGHT_PATH, festAt, festSheet } from '../data/fest.js';
+import { FEST_DAY, FEST_MISSIONS, FEST_MISSION_TYPES, FEST_RULES, FEST_SHOPS, LIGHT_PATH, RIFT_BLESSINGS, festAt, festSheet } from '../data/fest.js';
 import { COMPANIONS } from '../data/companions.js';
 import { TIER_OF } from '../data/economy.js';
 import { eventParams } from '../data/live-catalog.js';
@@ -243,6 +243,111 @@ function seedOf(text) {
   return h >>> 0;
 }
 
+// ---- Grande fête : la Brèche (mode de la fête) ---------------------------------------------------------------------
+// Course de 10 paliers. Entre deux paliers gagnés : 1 bénédiction parmi 3 (gardée jusqu'à la fin de la course).
+// Un palier perdu coûte un cœur (3 au départ) ; sans cœur, la course s'arrête. La monnaie de chaque palier est gagnée
+// tout de suite (rien n'est perdu à la défaite). 2 entrées par jour, 6 au plus en réserve.
+const RF = () => R.rift;
+function riftRec(rec, now) {
+  const today = dayKey(now);
+  rec.fest.rift ??= { stock: RF().perDay, refill: today, run: null, best: 0, firsts: [] };
+  const r = rec.fest.rift;
+  if (r.refill !== today) {
+    const days = Math.max(1, Math.round((new Date(`${today}T12:00:00`) - new Date(`${r.refill}T12:00:00`)) / DAY));
+    r.stock = Math.min(RF().maxStock, r.stock + RF().perDay * days);
+    r.refill = today;
+  }
+  return r;
+}
+const blessSum = (run, key) => (run?.blessings ?? []).reduce((s, b) => s + (RIFT_BLESSINGS[b]?.[key] ?? 0), 0);
+export const riftFloorLevel = (state, n) => {
+  const best = Math.max(1, state.records?.bestStage ?? 1, state.maxStage ?? 1);
+  return Math.max(1, Math.round(best * (RF().scale.from + RF().scale.per * n)));
+};
+export const riftSeconds = (run) => Math.max(10, RF().fightSeconds + blessSum(run, 'secs'));
+export const riftDamageMult = (run) => 1 + blessSum(run, 'dmg');
+export const riftCoins = (f, run, n) => Math.round((RF().coins.base + RF().coins.per * n) * (1 + blessSum(run, 'coins')) * mult(f, 'coinMult'));
+
+export function riftStatus(state, now = liveNow()) {
+  const f = currentFest(now);
+  if (!f || f.kind !== 'grand') return null;
+  const r = riftRec(ensure(state, f), now);
+  return { open: playing(f), stock: r.stock, maxStock: RF().maxStock, perDay: RF().perDay, run: r.run, best: r.best, firsts: r.firsts, floors: RF().floors };
+}
+export function startRift(state, now = liveNow()) {
+  const f = currentFest(now);
+  if (!playing(f) || f.kind !== 'grand') return null;
+  const r = riftRec(ensure(state, f), now);
+  if (r.run || r.stock <= 0) return null;
+  r.stock -= 1;
+  r.run = { floor: 1, hearts: RF().hearts, blessings: [], offer: null, coins: 0, seed: seedOf(`${f.id}#${dayKey(now)}#${r.stock}#${r.best}`) };
+  return r.run;
+}
+function endRun(r) {
+  const cleared = r.run.floor - (r.run.offer ? 0 : 1);
+  r.best = Math.max(r.best, Math.min(RF().floors, cleared));
+  const out = { cleared: Math.min(RF().floors, cleared), coins: r.run.coins };
+  r.run = null;
+  return out;
+}
+// Offre de bénédictions après le palier n : 3 différentes, tirées de la graine de la course.
+export function riftOffer(seed, n) {
+  const ids = Object.keys(RIFT_BLESSINGS);
+  let h = (seed ^ Math.imul(n + 1, 2654435761)) >>> 0;
+  const out = [];
+  while (out.length < 3) {
+    h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+    const id = ids[h % ids.length];
+    if (!out.includes(id)) out.push(id);
+  }
+  return out;
+}
+// Combat du palier en cours. `power` = { dps, hpOf(stage) }.
+export function riftFight(state, power, now = liveNow()) {
+  const f = currentFest(now);
+  if (!f || f.kind !== 'grand') return { error: 'closed' };
+  if (!playing(f)) return { error: 'pause' };
+  const rec = ensure(state, f);
+  const r = riftRec(rec, now);
+  const run = r.run;
+  if (!run || run.offer) return { error: 'state' };
+  const n = run.floor;
+  const hp = power.hpOf(riftFloorLevel(state, n));
+  const dealt = power.dps * riftSeconds(run) * riftDamageMult(run);
+  if (dealt < hp) {
+    run.hearts -= 1;
+    const out = { won: false, floor: n, dealt, hp, hearts: run.hearts };
+    if (run.hearts <= 0) out.end = endRun(r);
+    return out;
+  }
+  const coins = earn(rec, riftCoins(f, run, n));
+  run.coins += coins;
+  const out = { won: true, floor: n, dealt, hp, coins };
+  const bonus = RF().firstClear[n];
+  if (bonus && !r.firsts.includes(n)) { r.firsts.push(n); out.given = grantReward(state, bonus); }
+  if (n >= RF().floors) { run.floor = n + 1; out.end = endRun(r); return out; }
+  run.offer = riftOffer(run.seed, n);
+  return out;
+}
+export function riftPick(state, id, now = liveNow()) {
+  const f = currentFest(now);
+  if (!playing(f) || f.kind !== 'grand') return null;
+  const r = riftRec(ensure(state, f), now);
+  const run = r.run;
+  if (!run?.offer?.includes(id)) return null;
+  run.blessings.push(id);
+  run.hearts += RIFT_BLESSINGS[id].hearts ?? 0;
+  run.offer = null;
+  run.floor += 1;
+  return run;
+}
+export function riftQuit(state, now = liveNow()) {
+  const f = currentFest(now);
+  if (!f || f.kind !== 'grand') return null;
+  const r = riftRec(ensure(state, f), now);
+  return r.run ? endRun(r) : null;
+}
+
 // ---- Petite fête : sentier (héros et familier gratuits) ----------------------------------------------------------
 export function festPath(state, now = liveNow()) {
   const f = currentFest(now);
@@ -286,7 +391,8 @@ export function festReady(state, now = liveNow()) {
   if (!f) return 0;
   const steps = [...festSummonSteps(state, now), ...festPath(state, now)].filter((s) => s.reached && !s.claimed).length;
   const m = festMissions(state, now);
-  return steps + [...m.daily, ...m.event].filter((x) => x.ready).length;
+  const rift = riftStatus(state, now);
+  return steps + [...m.daily, ...m.event].filter((x) => x.ready).length + (rift?.open && rift.stock > 0 && !rift.run ? 1 : 0);
 }
 export function claimFestSteps(state, now = liveNow()) {
   const keys = [...festSummonSteps(state, now).map((s) => ({ s, k: `s${s.index}` })), ...festPath(state, now).map((s) => ({ s, k: `p${s.index}` }))]

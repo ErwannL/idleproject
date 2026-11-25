@@ -4,6 +4,8 @@
 
 Le vrai système d'événements arrive. Chaque mois, à partir de février 2027 :
 
+- **Un écran à part pour la fête**, plein cadre et illustré : Aventure (la Carte sur les décors du monde, le héros du mois en grand), World Boss (le Titan animé), Brèche, Missions, Boutique.
+- **La Brèche**, mode de la grande fête : 10 paliers, une bénédiction à choisir parmi 3 après chaque victoire, 3 cœurs, 2 entrées par jour.
 - **Grande fête (du 1er au 14)** : le **héros du mois** à invoquer en vedette, sa **Carte** de 30 étapes (+25 % de monnaie quand il est dans ton équipe), le **World Boss** du thème (3 tentatives par jour), des **jalons d'invocation** (gemmes, tickets, fragments Légendaires), des missions du jour et de la fête, et une **boutique de fête**.
 - **Petite fête (du 17 à la fin du mois)** : plus légère, avec **un héros et un familier gratuits à farmer** sur un sentier de 12 étapes, et leurs copies en boutique.
 - **2 jours d'échange** après chaque fête : les combats s'arrêtent, la boutique reste ouverte. La monnaie qui reste est convertie en éclats, jamais perdue.
