@@ -39,6 +39,29 @@ demander au joueur.
 
 ## 2. Les planches (PixelLab)
 
+> **Le joueur le demande explicitement : « Il faut générer les boss sur PixelLab comme d'hab et leur faire des
+> animations, que ce soit épique. »** Tout se fait avec PixelLab, comme pour le Colosse : personnages générés, puis
+> animés avec l'API d'animation de PixelLab (comme `tools/art/pl939_anims.py`). Pas de dessin à la main. Chaque géant
+> doit être **plus impressionnant que le Colosse**, pas moins.
+
+**Ce qui rend une animation épique** (à vérifier sur chaque planche avant de l'installer) :
+- **Anticipation, coup, retombée** : le géant se ramasse ou recule avant chaque attaque (2 à 3 images), frappe en
+  1 à 2 images très rapides, puis reste figé un instant avant de revenir. Pas de mouvement mou et régulier.
+- **Grande amplitude** : la tête, les ailes, la queue ou le marteau bougent beaucoup (un quart de l'image au moins
+  pendant `attack`, `throw` et `beam`). Le sol se fissure, la vase gicle, le sable vole, les feuilles tombent.
+- **Repos vivant** : `idle` n'est jamais figé. Le Léviathan ondule, la Mère des Dragons respire du feu par les
+  naseaux et bat lentement des ailes, l'Hydre balance ses cinq têtes à des rythmes différents, l'Arbre-Monde perd
+  des feuilles, le Dévoreur cligne de ses yeux un par un.
+- **Lumière** : yeux, runes, gueule ou cristaux qui s'allument pendant la charge du souffle (`beam` images 3 et 4),
+  puis éclatent pendant le souffle.
+- **Phase 3** : fais aussi `idle3`, `attack3`, `throw3` et `beam3` (déclarés dans `extra`). La forme de colère doit se
+  voir de loin : couleurs plus chaudes ou plus sombres, marques lumineuses, posture plus agressive. Fais `transform`
+  (le passage en colère) et `quake` (frappe au sol) pour au moins la Mère des Dragons, le Dieu de l'Orage et le
+  Dévoreur du Néant.
+- **Chute** : `death` est longue et lourde (le géant s'écroule, rebondit, de la poussière). Le jeu la rejoue à l'envers
+  quand il se relève à chaque Éveil : elle doit aussi être belle à l'envers.
+- Montre au joueur un GIF de chaque géant (repos, jet, souffle, phase 3) **avant** de passer au suivant.
+
 Même méthode que le Colosse et `LISTE-PIXELLAB.md` : l'API PixelLab (`tools/art/pl939_api.py`, clé
 `PIXELLAB_API_KEY`) et un nouveau script `tools/art/pl1015_giants.py` sur le modèle de `tools/art/pl1014_art.py` et
 `tools/art/pl939_anims.py`. Les sorties brutes vont dans `tools/art/pixellab1015/<id>/`, et `--install` les copie dans
