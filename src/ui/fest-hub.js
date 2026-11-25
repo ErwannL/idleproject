@@ -24,18 +24,19 @@ import { reduceMotion } from './prefs.js';
 
 const A106 = 'assets/ui/art106/';
 const A98 = 'assets/ui/art98/';
+const A1014 = 'assets/ui/art1014/'; // v10.14.1 : décors et icônes des fêtes
 const TABS = {
   grand: [
-    { id: 'adventure', label: 'Aventure', art: `${A98}expedition_map.png` },
+    { id: 'adventure', label: 'Aventure', art: `${A1014}fest_tab_adventure.png` },
     { id: 'boss', label: 'World Boss', art: null },
-    { id: 'rift', label: 'Brèche', art: `${A106}hud_event_rift.png` },
-    { id: 'missions', label: 'Missions', art: `${A106}event_lights_mission_monsters.png` },
-    { id: 'shop', label: 'Boutique', art: `${A106}event_lights_shop_chest.png` },
+    { id: 'rift', label: 'Brèche', art: `${A1014}fest_tab_rift.png` },
+    { id: 'missions', label: 'Missions', art: `${A1014}fest_tab_missions.png` },
+    { id: 'shop', label: 'Boutique', art: `${A1014}fest_tab_shop.png` },
   ],
   light: [
-    { id: 'path', label: 'Sentier', art: `${A106}event_lights_node_done.png` },
-    { id: 'missions', label: 'Missions', art: `${A106}event_lights_mission_monsters.png` },
-    { id: 'shop', label: 'Boutique', art: `${A106}event_lights_shop_chest.png` },
+    { id: 'path', label: 'Sentier', art: `${A1014}fest_tab_path.png` },
+    { id: 'missions', label: 'Missions', art: `${A1014}fest_tab_missions.png` },
+    { id: 'shop', label: 'Boutique', art: `${A1014}fest_tab_shop.png` },
   ],
 };
 const bgOf = (zoneIndex) => `assets/bg/${ZONES[zoneIndex]?.id ?? 'plains'}_far.png`;
@@ -100,7 +101,7 @@ function hubHtml(state, f, tab, hub = {}) {
   const now = liveNow();
   const rec = festRecord(state);
   const timer = f.phase === 'play' ? `⏳ ${festLeft(f.playEnd - now)}` : `🔁 Échange · ${festLeft(f.end - now)}`;
-  const bg = f.art?.key ?? (f.kind === 'grand' ? bgOf(f.zone) : `${A106}event_lights_key.png`);
+  const bg = tab === 'rift' ? `${A1014}fest_rift_bg.png` : f.art?.key ?? (f.kind === 'grand' ? bgOf(f.zone) : `${A106}event_lights_key.png`);
   const m = festMissions(state);
   const missionsReady = [...m.daily, ...m.event].filter((x) => x.ready).length;
   const rift = riftStatus(state);
@@ -193,7 +194,7 @@ function adventure(state, f, hub = {}) {
   const N = per;
   const xy = (i) => [6 + (i * 88) / (N - 1), 66 + Math.sin(i * 0.9 + 0.4) * 14];
   const road = Array.from({ length: N - 1 }, (_, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
-  const tints = ['rgba(255,190,120,.10)', 'rgba(120,80,200,.22)', 'rgba(20,10,40,.45)'];
+  const tints = f.art?.regions ? ['rgba(0,0,0,.06)', 'rgba(0,0,0,.06)', 'rgba(0,0,0,.06)'] : ['rgba(255,190,120,.10)', 'rgba(120,80,200,.22)', 'rgba(20,10,40,.45)'];
   const M = FEST_RULES.map;
   const regions = (f.regions ?? []).slice(0, M.regions).map((name, ri) => {
     const doneR = rec.cleared >= (ri + 1) * per;
@@ -385,7 +386,7 @@ function pathTab(state, f) {
     const st = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
     const gift = [s.give ? festGive(s.give) : '', s.hero ? unitArt(f.hero, 'mini') : '', s.pet ? unitArt(f.pet, 'mini pet') : ''].join('');
     return `<button type="button" class="fh-pnode ${st}${s.hero || s.pet ? ' prize' : ''}" style="left:${x}%;top:${y}%" ${s.reached && !s.claimed ? `data-action="fest-step" data-value="p${i}"` : 'disabled'}>
-      <img class="px" src="${A106}${s.reached ? 'event_lights_node_done' : 'event_lights_node'}.png" alt=""><span class="fh-pgift">${gift}</span><small class="num">${s.at}</small>${i === here ? `<span class="fh-hero">${sprite(f.hero)}</span>` : ''}</button>`;
+      <img class="px" src="${(s.reached ? f.art?.nodeDone : f.art?.node) ?? `${A106}${s.reached ? 'event_lights_node_done' : 'event_lights_node'}.png`}" alt=""><span class="fh-pgift">${gift}</span><small class="num">${s.at}</small>${i === here ? `<span class="fh-hero">${sprite(f.hero)}</span>` : ''}</button>`;
   }).join('');
   const ready = path.filter((s) => s.reached && !s.claimed).length;
   const hero = LIGHT_PATH.filter((s) => s.hero).length;
@@ -393,7 +394,7 @@ function pathTab(state, f) {
   return `<div class="fh-gifts"><span class="fh-gift">${unitArt(f.hero, 'big')}<b>${escapeHtml(unitName(f.hero))}</b><small>Héros gratuit · ×${hero} sur le sentier</small></span>
       <span class="fh-gift">${unitArt(f.pet, 'big pet')}<b>${escapeHtml(unitName(f.pet))}</b><small>Familier gratuit · ×${pet} sur le sentier</small></span></div>
     <b class="fh-h">${img('icon_map')} Sentier · ${formatNumber(earned)} ${escapeHtml(f.currency)} gagnés</b>
-    <div class="fh-path" style="background-image:url(${A106}event_lights_path.png)"><svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div>
+    <div class="fh-path" style="background-image:url(${f.art?.path ?? `${A106}event_lights_path.png`})"><svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div>
     ${ready > 1 ? `<button type="button" class="m-btn-gold fh-wide" data-action="fest-steps-all">Tout récupérer (${ready})</button>` : ''}
     <small class="fh-help">La monnaie tombe en jouant (monstres et boss, ${FEST_RULES.trickle.dailyCap} par jour au plus) et avec les missions. Dépenser ne fait pas reculer sur le sentier.</small>`;
 }
