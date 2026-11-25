@@ -136,7 +136,7 @@ const GIANT_OPTIONAL = ['idle3', 'attack3', 'quake', 'embers', 'transform', 'thr
 // `extra` : planches facultatives posées (les autres sont retirées : une animation déclarée sans fichier rendrait le géant
 // invisible) ; `from` : premier mois ('AAAA-MM') où le géant peut entrer dans une Fête ; `eyes`, `hands`, `box`, `shadow` :
 // repères mesurés sur les planches (remplacent les valeurs provisoires).
-const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false, extra, from, eyes, hands, box, shadow, dx }) => {
+const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false, extra, from, eyes, hands, box, shadow, dx, marks = {} }) => {
   const anims = GIANT_ANIMS(frame);
   delete anims._frame;
   if (extra) for (const k of GIANT_OPTIONAL) { if (!extra.includes(k)) delete anims[k]; else anims[k] ??= { ...anims[k.replace('3', '')] }; }
@@ -149,7 +149,7 @@ const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 
       hands: hands ?? { throw: [Math.round(frame * 0.15), Math.round(frame * 0.3)] },
       beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] },
       projectile, debris,
-      box: box ?? [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88], ...(shadow ? { shadow } : {}), ...(dx ? { dx } : {}) },
+      box: box ?? [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88], ...(shadow ? { shadow } : {}), ...(dx ? { dx } : {}), ...marks },
     fight: { ...COLOSSUS_FIGHT, name,
       phases: [
         { at: 0.75, id: 'quake', name: phases[0], hit: 0.18, speed: 1.15, power: 1.15 },
@@ -200,7 +200,12 @@ export const GIANTS = [
   giant({ id: 'storm_god', name: 'Dieu de l\'Orage', title: 'Celui qui forge la foudre', element: 'light', zone: 'sky', mapZone: 7, accent: '#9fc3ff', frame: 160,
     lore: 'Un géant de nuages et de bronze. Son marteau fait tomber la pluie sur trois royaumes.',
     beam: ['#9fc3ff', '#ffffff'], projectile: { vfx: 'wb_boulder', tint: '#c9d8ff', tint3: '#ffe24a', size: 2.4, spin: 12, dust: ['#56607a', '#e0eaff'] },
-    phases: ['Tonnerre', 'Pluie d\'éclairs', 'Colère du ciel'], abilities: ['Marteau-tonnerre', 'Foudre divine'] }),
+    phases: ['Tonnerre', 'Pluie d\'éclairs', 'Colère du ciel'], abilities: ['Marteau-tonnerre', 'Foudre divine'],
+    // v10.15 : planches PixelLab posées et repères mesurés (tools/art/pl1015_storm_god.py). `from` : 3e géant, Fête de décembre 2027.
+    extra: ['idle3', 'attack3', 'throw3', 'beam3', 'quake', 'embers', 'transform'], from: '2027-12', ready: true,
+    marks: { eyes: { beam: [[60, 46, 65, 46], [74, 44, 79, 44], [83, 47, 88, 47], [84, 47, 90, 47], [80, 47, 85, 47], [77, 47, 82, 47], [59, 48, 64, 48], [56, 50, 62, 50], [52, 50, 57, 50], [57, 50, 62, 50], [55, 53, 60, 53], [56, 52, 62, 52], [59, 47, 64, 47]],
+      beam3: [[62, 48, 67, 48], [74, 44, 79, 44], [81, 46, 86, 46], [84, 46, 90, 46], [78, 47, 83, 47], [74, 46, 79, 46], [64, 48, 69, 48], [62, 50, 67, 50], [61, 51, 66, 51], [59, 53, 64, 53], [59, 51, 64, 51], [62, 50, 67, 50], [62, 48, 67, 48]] },
+      hands: { throw: [7, 88], throw3: [17, 100] }, box: [10, 32, 106, 122], shadow: 39 } }),
   giant({ id: 'hydra', name: 'Hydre des Marais', title: 'Les cinq têtes du marais', element: 'green', zone: 'swamp', mapZone: 6, accent: '#7be36a',
     lore: 'Coupe une tête, deux repoussent. Le marais tout entier respire avec elle.',
     beam: ['#7be36a', '#d8ff9a'], projectile: { vfx: 'wb_boulder', tint: '#7be36a', tint3: '#d8ff4a', size: 2, spin: 3, dust: ['#3a5a2a', '#a8e05a'] }, debris: '#4a6a3a',
