@@ -44,7 +44,13 @@ Titan. À partir d'août 2027, un mois sur deux accueille un géant, dans l'ordr
 le mois garde le boss de la rotation d'avant. La Carte de la fête prend alors le décor du géant, et la fête sa couleur.
 
 **Admin** (`src/data/live-catalog.js`) : le choix du boss (World Boss, Grand boss commun) liste toutes les fiches
-jouables (`GRAND_BOSS_IDS`), Titans du jour compris, puis les géants dès qu'ils sont prêts.
+jouables (`GRAND_BOSS_IDS`), Titans du jour compris, puis les géants dès qu'ils sont prêts. Un événement qui choisit un boss
+récent relève d'office sa version minimale du client (`bossSince` : Titans 9.8.0, géants 10.15.0, `server/live.mjs`),
+pour qu'un vieux client ne combatte pas le Colosse à sa place.
+
+**Planches déclarées** : une fiche de géant ne déclare que les 6 planches obligatoires et celles listées dans `extra`
+(jamais d'animation sans fichier). `from` fixe le premier mois de Fête possible (une fête en cours ne change pas de
+boss).
 
 **Petits correctifs trouvés pendant le test** : les bulles d'aide (« Bonus du moment… ») ne s'affichent plus
 par-dessus un combat de World Boss ni par-dessus l'écran de la fête. Le Panthéon montre la première image du boss au

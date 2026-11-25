@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { createNewState } from '../src/core/state.js';
 import { WorldBossFight } from '../src/core/world-boss.js';
-import { GIANTS, GIANT_ORDER, GIANT_REQUIRED_ANIMS, GRAND_BOSSES, GRAND_BOSS_IDS, READY_GIANTS } from '../src/data/grand-bosses.js';
+import { GIANTS, GIANT_ANIM_DEFS, GIANT_ORDER, GIANT_REQUIRED_ANIMS, GRAND_BOSSES, GRAND_BOSS_IDS, READY_GIANTS, bossSince } from '../src/data/grand-bosses.js';
+import { validateItem } from '../server/live.mjs';
 import { FEST_MONTHS, FEST_POOLS, festBoss, festMonth } from '../src/data/fest.js';
 import { ZONES } from '../src/data/zones.js';
 import { LIVE_EVENT_TYPES } from '../src/data/live-catalog.js';
@@ -25,6 +26,11 @@ test('8 géants, chacun complet et différent', () => {
     for (const a of GIANT_REQUIRED_ANIMS) assert.ok(g.art.anims[a], `${g.id} : animation ${a}`);
     assert.equal(g.art.eyes.beam.length, g.art.anims.beam.n, `${g.id} : un repère de souffle par image`);
     assert.ok(g.art.hands.throw, `${g.id} : point de départ du projectile`);
+    for (const v of g.art.hands.throw) assert.ok(v >= 0 && v < g.art.frame, `${g.id} : main dans l'image`);
+    // Seules les obligatoires et les planches posées (`extra`) sont déclarées : jamais d'animation sans fichier.
+    for (const k of Object.keys(g.art.anims)) assert.ok(k === 'rise' || k in GIANT_ANIM_DEFS, `${g.id} : ${k}`);
+    if (!g.ready) assert.deepEqual(Object.keys(g.art.anims).filter((k) => k !== 'rise').sort(), [...GIANT_REQUIRED_ANIMS].sort());
+    assert.ok(g.ready ? /^\d{4}-\d{2}$/.test(g.from ?? '') : true, `${g.id} : mois « from » obligatoire une fois prêt`);
     assert.equal(g.fight.phases.length, 3);
     assert.deepEqual(g.fight.abilities.map((a) => a.id), ['boulder', 'eyebeam']);
     assert.ok(ZONES.some((z) => z.id === g.zone), `${g.id} : décor ${g.zone}`);
@@ -39,13 +45,13 @@ test('géant prêt : chaque planche existe, au bon format, et ses repères tombe
     for (const [name, a] of Object.entries(g.art.anims)) {
       if (a.src) continue;
       const file = `${g.art.dir}/${g.art.prefix}${name}.png`;
-      if (!GIANT_REQUIRED_ANIMS.includes(name) && !existsSync(file)) continue; // facultative
       assert.ok(existsSync(file), `${file} manquante`);
       const { w, h } = pngSize(file);
       assert.equal(h, frame, `${file} : hauteur ${frame}`);
       assert.equal(w, a.n * frame, `${file} : ${a.n} images de ${frame} px`);
     }
     for (const e of g.art.eyes.beam) for (const v of e) assert.ok(v >= 0 && v < frame);
+    for (const v of g.art.hands.throw) assert.ok(v >= 0 && v < frame);
   }
 });
 
@@ -102,6 +108,11 @@ test('Fêtes : les 6 mois écrits gardent leur Titan, un mois sur deux ensuite a
   const one = [GIANT_ORDER[1]];
   assert.equal(festBoss(FEST_MONTHS.length + 2, one), GIANT_ORDER[1]);
   assert.equal(festBoss(FEST_MONTHS.length, one), FEST_POOLS.boss[FEST_MONTHS.length % FEST_POOLS.boss.length]);
+  // Un géant prêt n'entre jamais avant son mois « from » (une fête commencée ne change pas de boss).
+  const g = GIANTS[1];
+  const keep = g.from;
+  g.from = '2099-01';
+  try { assert.notEqual(festBoss(FEST_MONTHS.length + 2, [g.id]), g.id); } finally { g.from = keep; }
   // Le boss de chaque mois existe toujours vraiment (jamais un géant sans planches).
   for (let i = 0; i < 24; i++) assert.ok(GRAND_BOSSES[festMonth(i).grand.boss], `mois ${i}`);
   assert.deepEqual(READY_GIANTS, GIANTS.filter((g) => g.ready).map((g) => g.id));
@@ -112,4 +123,23 @@ test('admin : tous les grands boss jouables se programment (Titans du jour compr
   assert.deepEqual(values, GRAND_BOSS_IDS);
   assert.ok(values.includes('titan_ember'));
   for (const g of GIANTS) assert.equal(values.includes(g.id), Boolean(g.ready));
+});
+
+test('un géant sans planches facultatives retombe sur les obligatoires (phase 3 comprise)', () => {
+  const art = GIANTS[0].art;
+  for (const k of ['idle3', 'attack3', 'hurt3', 'throw3', 'beam3', 'quake', 'embers', 'transform', 'fury', 'rise']) {
+    const r = resolveAnim(art, k);
+    assert.ok(GIANT_REQUIRED_ANIMS.includes(r) || (k === 'rise' && r === 'rise'), `${k} → ${r}`);
+  }
+});
+
+test('admin : un événement qui choisit un boss récent relève la version minimale du client', () => {
+  assert.equal(bossSince('colossus'), '9.3.0');
+  assert.equal(bossSince('titan_ember'), '9.8.0');
+  const v = validateItem({ kind: 'event', ref: 'grandBoss', data: { params: { boss: 'titan_ember' } } });
+  assert.equal(v.minClient, '9.8.0');
+  assert.throws(() => validateItem({ kind: 'event', ref: 'grandBoss', minClient: '9.7.1', data: { params: { boss: 'titan_ember' } } }), /9\.8\.0/);
+  const c = validateItem({ kind: 'event', ref: 'grandBoss', data: { params: { boss: 'colossus' } } });
+  assert.equal(c.minClient, '9.7.1'); // version du gabarit, inchangée
+  for (const g of GIANTS) assert.equal(g.since, '10.15.0');
 });

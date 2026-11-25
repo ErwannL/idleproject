@@ -111,7 +111,8 @@ export class WorldBossScene {
   play(name, then = null) {
     if (this.r.focus) return; // « Réduire les animations » : poses fixes
     this.interrupt();
-    this.anim = { name: resolveAnim(this.art, name), t: 0, then }; // v10.15 : planche absente → la plus proche
+    // v10.15 : planche absente → la plus proche (`name`) ; `want` garde l'animation demandée (forme de phase 3…).
+    this.anim = { name: resolveAnim(this.art, name), want: name, t: 0, then };
   }
 
   // v9.3.0 : une attaque propre coupée avant son coup (chute du Colosse…) frappe quand même : dégâts affichés.
@@ -136,7 +137,7 @@ export class WorldBossScene {
       if (k < 0) {
         const then = this.anim.then;
         this.interrupt();
-        this.anim = then ? { name: resolveAnim(this.art, then), t: 0, then: null } : null;
+        this.anim = then ? { name: resolveAnim(this.art, then), want: then, t: 0, then: null } : null;
       } else { name = this.anim.name; i = a.reverse ? a.n - 1 - k : k; }
     }
     let breathe = 0;
@@ -233,12 +234,12 @@ export class WorldBossScene {
       const [hx, hy] = this.at(...(this.art.hands?.[name] ?? this.art.hands?.throw ?? [16, 34]));
       const tx = this.heroX() - 14;
       this.r.teamBrace = this.r.time + 0.9; // v9.11 (2) : l'équipe se protège du rocher
-      this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: name === 'throw3' });
+      this.attacks.push({ kind: 'boulder', ev: an.ev, x0: hx, y0: hy, x1: tx, y1: this.r.groundY - 6, t: 0, dur: 0.62, arc: 70 + Math.max(0, hy - this.r.groundY + 90) * 0.2, fire: (an.want ?? name) === 'throw3' });
     }
     if (a.fire && i >= a.fire[0] && !an.fired) {
       an.fired = true;
       const end = a.durs.slice(0, a.fire[1] + 1).reduce((x, y) => x + y, 0);
-      this.attacks.push({ kind: 'beam', ev: an.ev, name, t: 0, dur: end - an.t, hit: false, puff: 0, burn: 0 });
+      this.attacks.push({ kind: 'beam', ev: an.ev, name, look: an.want === 'beam3' ? 'beam3' : name, t: 0, dur: end - an.t, hit: false, puff: 0, burn: 0 });
       this.r.shake = Math.max(this.r.shake, 3);
     }
   }
@@ -248,16 +249,18 @@ export class WorldBossScene {
     const d = this.drawn;
     // Charge lumineuse dans les yeux (avant le faisceau) : lueur posée sur chaque œil, image par image.
     const ca = d && this.art.anims[d.name]?.charge;
-    if (ca && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
-      const e = this.eyes();
+    const e0 = ca && this.eyes(); // v10.15 : sans repères (yeux, bouche), pas de charge lumineuse
+    if (e0 && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
+      const e = e0;
+      const look = this.anim.want === 'beam3' ? 'beam3' : d.name;
       const p = Math.min(1, Math.max(0.2, (this.anim.t - 0.2) / 0.5));
       const fi = Math.floor(r.time * 14) % 8;
-      for (const [ex, ey] of e) drawVfxFrame(ctx, 'wb_eye_charge', fi, ex, ey, { size: 0.5 + p * 0.9, tint: d.name === 'beam3' ? '#ff8a2a' : null, alpha: 0.9 });
+      for (const [ex, ey] of e) drawVfxFrame(ctx, 'wb_eye_charge', fi, ex, ey, { size: 0.5 + p * 0.9, tint: look === 'beam3' ? '#ff8a2a' : null, alpha: 0.9 });
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       for (const [ex, ey] of e) {
         const g = ctx.createRadialGradient(ex, ey, 0, ex, ey, 6 + p * 8);
-        const bc = this.art.beamColors[d.name] ?? this.art.beamColors.beam;
+        const bc = this.art.beamColors[look] ?? this.art.beamColors.beam;
         g.addColorStop(0, bc[2]);
         g.addColorStop(0.4, bc[0]);
         g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -322,7 +325,7 @@ export class WorldBossScene {
     const to = heroX - 70;
     const tx = from + (to - from) * u;
     const ty = r.groundY - 2;
-    const [c0, c1, c2] = this.art.beamColors[at.name] ?? this.art.beamColors.beam;
+    const [c0, c1, c2] = this.art.beamColors[at.look] ?? this.art.beamColors.beam;
     const fade = Math.min(1, at.t * 10, (at.dur - at.t) * 8);
     const wob = 1 + 0.25 * Math.sin(r.time * 60);
     const mx = (e[0][0] + e[1][0]) / 2, my = (e[0][1] + e[1][1]) / 2;
@@ -349,12 +352,12 @@ export class WorldBossScene {
     at.burn -= dt;
     if (at.puff <= 0) {
       at.puff = 0.1;
-      vfx(r, 'wb_beam_flash', tx, ty - 4, { size: 1.1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
+      vfx(r, 'wb_beam_flash', tx, ty - 4, { size: 1.1, tint: at.look === 'beam3' ? '#ff7a2a' : null });
       r.burst(tx, ty - 3, c1, 5, 55);
     }
     if (at.burn <= 0) {
       at.burn = 0.14;
-      vfx(r, 'wb_beam_burn', tx, ty + 2, { size: 0.9, tint: at.name === 'beam3' ? '#ff6a1a' : null });
+      vfx(r, 'wb_beam_burn', tx, ty + 2, { size: 0.9, tint: at.look === 'beam3' ? '#ff6a1a' : null });
     }
     r.shake = Math.max(r.shake, 2.5);
     if (!at.hit && tx <= heroX + 6) {

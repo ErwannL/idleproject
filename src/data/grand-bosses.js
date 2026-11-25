@@ -121,22 +121,29 @@ export const grandBoss = (id) => GRAND_BOSSES[id] ?? GRAND_BOSSES.colossus;
 //   `ready: false` tant que les planches ne sont pas dans assets/ : le géant reste hors du jeu (ni Panthéon, ni
 //   rotations, ni admin). Planches posées et repères mesurés (eyes, hands) → `ready: true` ; le test
 //   tests/v1015-giants.test.js vérifie alors chaque fichier.
-const GIANT_ANIMS = (frame) => ({
-  idle: { n: 8, fps: 8, loop: true }, idle3: { n: 8, fps: 10, loop: true },
-  attack: { n: 9, fps: 16 }, attack3: { n: 9, fps: 18 }, hurt: { n: 6, fps: 16 },
-  quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, transform: { n: 13, fps: 12 },
-  death: { n: 13, fps: 10 }, rise: { n: 13, fps: 14, src: 'death', reverse: true },
-  throw: { n: 13, durs: [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08], release: 9 },
-  beam: { n: 13, durs: [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08], charge: [3, 4], fire: [5, 8] },
-  _frame: frame,
-});
-// Les animations que les planches doivent fournir (les autres sont facultatives).
+// Toutes les animations qu'un géant PEUT avoir. Sa fiche ne déclare que les obligatoires et celles listées dans
+// `extra` (planches posées) : une animation déclarée sans fichier laisserait le boss invisible.
+const THROW_DURS = [0.07, 0.07, 0.08, 0.09, 0.12, 0.12, 0.1, 0.1, 0.24, 0.1, 0.1, 0.08, 0.08];
+const BEAM_DURS = [0.08, 0.08, 0.08, 0.22, 0.26, 0.1, 0.32, 0.32, 0.32, 0.1, 0.08, 0.08, 0.08];
+export const GIANT_ANIM_DEFS = {
+  idle: { n: 8, fps: 8, loop: true }, attack: { n: 9, fps: 16 }, hurt: { n: 6, fps: 16 },
+  throw: { n: 13, durs: THROW_DURS, release: 9 }, beam: { n: 13, durs: BEAM_DURS, charge: [3, 4], fire: [5, 8] },
+  death: { n: 13, fps: 10 },
+  // facultatives
+  idle3: { n: 8, fps: 10, loop: true }, attack3: { n: 9, fps: 18 }, hurt3: { n: 6, fps: 16 },
+  throw3: { n: 13, durs: THROW_DURS, release: 9 }, beam3: { n: 13, durs: BEAM_DURS, charge: [3, 4], fire: [5, 8] },
+  quake: { n: 9, fps: 11 }, embers: { n: 9, fps: 11 }, transform: { n: 13, fps: 12 }, fury: { n: 9, fps: 12 },
+};
 export const GIANT_REQUIRED_ANIMS = ['idle', 'attack', 'hurt', 'throw', 'beam', 'death'];
-const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false }) => {
-  const anims = GIANT_ANIMS(frame);
-  delete anims._frame;
+// `since` : version du jeu qui connaît ce géant (l'admin ne le programme pas pour un client plus ancien).
+// `from` : premier mois (« 2027-08 ») où il peut entrer dans une Fête ; à régler au passage à `ready: true` sur un mois
+// pas encore commencé, pour qu'une fête en cours ne change jamais de boss.
+const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false, extra = [], since = '10.15.0', from = null }) => {
+  const anims = {};
+  for (const k of [...GIANT_REQUIRED_ANIMS, ...extra]) anims[k] = { ...GIANT_ANIM_DEFS[k] };
+  anims.rise = { n: 13, fps: 14, src: 'death', reverse: true }; // l'Éveil : la chute jouée à l'envers
   return {
-    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready,
+    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready, since, from,
     art: { dir: `assets/world-boss/${id}`, prefix: `${id}_`, frame, foot: frame - 6, exactSheets: true, anims,
       // Repères à mesurer sur les planches finies (pixels de l'image) : `eyes.beam` = 13 × [x1, y1, x2, y2] (bouche :
       // deux fois le même point), `hands.throw` = point d'où part le projectile à l'image `release`.
@@ -197,3 +204,6 @@ export const READY_GIANTS = GIANTS.filter((g) => g.ready).map((g) => g.id);
 export const GIANT_ORDER = GIANTS.map((g) => g.id);
 // Grands boss que l'admin peut programmer (catalogue live) : fiches complètes, Titans du jour et géants prêts.
 export const GRAND_BOSS_IDS = Object.keys(GRAND_BOSSES);
+// Version du jeu qui connaît chaque grand boss (l'admin relève la version minimale d'un événement qui le choisit).
+const BOSS_SINCE = { colossus: '9.3.0', shade: '9.7.1' };
+export const bossSince = (id) => BOSS_SINCE[id] ?? GRAND_BOSSES[id]?.since ?? (GRAND_BOSSES[id]?.titan ? '9.8.0' : '9.3.0');
