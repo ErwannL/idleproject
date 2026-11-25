@@ -827,7 +827,12 @@
       file.addEventListener('change', () => svSend(file, row.key));
       const mk = (text, cls, fn) => { const b = document.createElement('button'); b.className = `btn small ${cls}`; b.textContent = text; b.setAttribute('aria-label', `${text} : ${row.label}`); b.addEventListener('click', fn); return b; };
       box.append(file, mk('Remplacer', '', () => file.click()));
-      if (row.key === 'phone' || row.key === 'poster') box.append(mk(row.key === 'phone' ? 'Refaire depuis la vidéo PC' : 'Refaire l\'aperçu', row.stale ? 'primary' : '', () => svRebuild(row.key)));
+      if (row.key === 'phone' || row.key === 'poster' || row.key === 'webm') box.append(mk(row.key === 'phone' ? 'Refaire depuis la vidéo PC' : row.key === 'webm' ? (row.path ? 'Refaire le WebM depuis le MP4' : 'Fabriquer le WebM depuis le MP4') : 'Refaire l\'aperçu', row.stale ? 'primary' : '', () => svRebuild(row.key)));
+      if (row.path) {
+        const link = new URL(`/${row.url}`, location.origin).href;
+        box.append(mk('Copier le lien', '', async () => { try { await navigator.clipboard.writeText(link); toast('Lien copié : ' + link); } catch { prompt('Lien du fichier :', link); } }));
+        const a = document.createElement('a'); a.href = link; a.target = '_blank'; a.rel = 'noopener'; a.className = 'btn small'; a.textContent = 'Ouvrir'; box.append(a);
+      }
       if (row.source !== 'défaut du dépôt' && row.source !== 'absente') box.append(mk('Supprimer', 'danger', () => svDelete(row)));
       act.append(box);
       tr.append(name, src, svCell(svMo(row.size), 'Poids'), def, prev, act);

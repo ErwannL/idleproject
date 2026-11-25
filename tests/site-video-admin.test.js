@@ -85,14 +85,14 @@ test('video : une seule vidéo -> le serveur fabrique téléphone et aperçu, so
   assert.equal(row(st, 'mp4').source, 'envoyée');
   assert.equal(row(st, 'phone').source, 'fabriquée');
   assert.equal(row(st, 'poster').source, 'fabriquée');
-  assert.equal(row(st, 'webm').source, 'absente');
+  assert.equal(row(st, 'webm').source, 'fabriquée', 'une seule vidéo MP4 : le serveur fait aussi le WebM');
   assert.equal(st.stale, false);
   assert.equal(row(st, 'mp4').info.height, 1080);
   assert.ok(row(st, 'phone').size > 0);
   const args = s.runs.find((a) => a.includes('scale=-2:540,fps=30'));
   assert.ok(args, 'ffmpeg : 540 p, 30 i/s');
   // Noms fabriqués côté serveur : rien du client ne finit dans le nom du fichier.
-  for (const f of readdirSync(`${s.uploadsDir}/video`)) assert.match(f, /^[a-z0-9]+-(site|phone|poster)\.(mp4|jpg)$/);
+  for (const f of readdirSync(`${s.uploadsDir}/video`)) assert.match(f, /^[a-z0-9]+-(site|phone|poster)\.(mp4|jpg|webm)$/);
 });
 
 test('video : deux vidéos -> pas de fabrication ; téléphone et PC remplaçables séparément ; retard signalé puis refait', async (t) => {
@@ -169,7 +169,7 @@ test('video : type vérifié (signature + type annoncé), genres fermés, rien d
   const bad = await fetch(`${s.base}/api/admin/video/..%2Fx`, { method: 'DELETE', headers: s.auth });
   assert.equal(bad.status, 404);
   assert.equal((await s.json('PUT', '/api/admin/video/mode', { mode: '../x' })).status, 400);
-  assert.equal((await s.json('POST', '/api/admin/video/rebuild', { what: 'webm' })).status, 400);
+  assert.equal((await s.json('POST', '/api/admin/video/rebuild', { what: 'xyz' })).status, 400);
   const st = await s.state();
   assert.match(st.mp4, /^assets\/uploads\/video\/[a-z0-9]+-site\.mp4$/);
 });

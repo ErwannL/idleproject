@@ -1232,6 +1232,8 @@ export function createApp({
         if (next.mode === 'single') { clear('phone'); delete next.phoneFrom; }
         if (next.posterMode === 'auto') clear('poster');
         if (next.mode === 'single') jobs.push('phone');
+        // Une seule vidéo MP4 envoyée : le serveur fait aussi la version WebM (VP9), plus légère pour les navigateurs qui la lisent.
+        if (next.mode === 'single' && next.mp4 && !next.webm) jobs.push('webm');
         if (next.posterMode === 'auto') jobs.push('poster');
       }
       writeVideoMeta(next);
@@ -1259,7 +1261,7 @@ export function createApp({
     { method: 'POST', path: /^\/api\/admin\/video\/rebuild$/, handler: async ({ req }) => {
       requireAdmin(req);
       const what = String((await readJson(req)).what ?? '');
-      if (!['phone', 'poster'].includes(what)) throw new HttpError(400, 'Choisis la version téléphone ou l\'aperçu');
+      if (!['phone', 'poster', 'webm'].includes(what)) throw new HttpError(400, 'Choisis la version téléphone, la version WebM ou l\'aperçu');
       await requireRebuild(what);
       return { status: 202, body: await videoState() };
     } },
@@ -1273,6 +1275,8 @@ export function createApp({
       next[key] = null; delete next.src[key]; delete next.at[key]; delete next.info[key];
       if (key === 'phone') delete next.phoneFrom;
       if (key === 'poster') next.posterMode = 'auto';
+      // Le WebM fabriqué à partir du MP4 part avec lui.
+      if (key === 'mp4' && next.webm && next.src.webm === 'fabriquée') { drop.push(next.webm); next.webm = null; delete next.src.webm; delete next.at.webm; delete next.info.webm; }
       // Plus aucune vidéo PC envoyée : retour complet à l'origine (jamais un mélange nouvelle/ancienne vidéo).
       if ((key === 'mp4' || key === 'webm') && !next.mp4 && !next.webm) {
         for (const k of ['phone', 'poster']) if (next[k]) drop.push(next[k]);
@@ -1457,7 +1461,10 @@ export function createApp({
     (async () => {
       const id = `${now().toString(36)}${randomBytes(2).toString('hex')}`;
       let name, ok;
-      if (what === 'phone') {
+      if (what === 'webm') {
+        name = `${id}-site.webm`;
+        ok = await tools.run(['-loglevel', 'error', '-y', '-i', src.file, '-an', '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '34', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '4', '-pix_fmt', 'yuv420p', join(dir, name)]);
+      } else if (what === 'phone') {
         name = `${id}-phone.mp4`;
         ok = await tools.run(['-loglevel', 'error', '-y', '-i', src.file, '-an', '-vf', 'scale=-2:540,fps=30', '-c:v', 'libx264', '-profile:v', 'main', '-preset', 'veryfast', '-crf', '28', '-maxrate', '1500k', '-bufsize', '3000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(dir, name)]);
       } else {
@@ -1467,22 +1474,22 @@ export function createApp({
       }
       const path = `assets/uploads/video/${name}`;
       const out = join(dir, name);
-      const info = ok && what === 'phone' ? summarizeProbe(await tools.probe(out), existsSafe(out) ? statSync(out).size : 0) : null;
+      const info = ok && (what === 'phone' || what === 'webm') ? summarizeProbe(await tools.probe(out), existsSafe(out) ? statSync(out).size : 0) : null;
       busy.delete(what);
       const cur = readVideoMeta();
       if (!ok || (cur?.pcId ?? 'origine') !== src.pcId || (what === 'poster' && cur?.posterMode === 'manual' && cur?.poster)) {
         try { unlinkSync(out); } catch { /* rien à retirer */ }
-        log(`vidéo du site : ${what === 'phone' ? 'version téléphone' : 'aperçu'} ${ok ? 'abandonné (autre vidéo envoyée entre-temps)' : 'non fait (ffmpeg absent ou vidéo illisible)'}`);
+        log(`vidéo du site : ${what === 'phone' ? 'version téléphone' : what === 'webm' ? 'version WebM' : 'aperçu'} ${ok ? 'abandonné (autre vidéo envoyée entre-temps)' : 'non fait (ffmpeg absent ou vidéo illisible)'}`);
         return;
       }
       const next = { mode: 'single', posterMode: 'auto', ...cur, src: { ...cur?.src, [what]: 'fabriquée' }, at: { ...cur?.at, [what]: now() }, info: { ...cur?.info }, updated: now() };
       const old = next[what];
       next[what] = path;
-      if (info) next.info.phone = info;
-      if (what === 'phone') next.phoneFrom = src.pcId; else next.posterMode = 'auto';
+      if (info) next.info[what] = info;
+      if (what === 'phone') next.phoneFrom = src.pcId; else if (what === 'poster') next.posterMode = 'auto';
       writeVideoMeta(next);
       removeUploads([old], next);
-      log(`vidéo du site : ${what === 'phone' ? 'version téléphone faite' : 'aperçu fait'}`);
+      log(`vidéo du site : ${what === 'phone' ? 'version téléphone faite' : what === 'webm' ? 'version WebM faite' : 'aperçu fait'}`);
     })().catch((err) => { busy.delete(what); log(`vidéo du site : échec (${err.message})`); });
   }
 
