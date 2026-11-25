@@ -131,3 +131,15 @@ test('coréen : Fêtes du mois — titres, monnaies, régions, écran, messages 
   };
   for (const [fr, ko] of Object.entries(cases)) assert.equal(translate(fr), ko, fr);
 });
+
+// v10.14.2 : nouveaux textes téléphone en coréen (./src/i18n/ko-1014-2.js).
+test('coréen : Carnet, Recycler, Marchands, Guilde, Invocation (10.14.2)', () => {
+  const cases = {
+    'Carnet 3/8': '일지 3/8', 'Carnet 8/8 ✓': '일지 8/8 ✓', 'Carnet 8/8 · ouvre le coffre du jour ›': '일지 8/8 · 오늘의 상자 열기 ›',
+    'Coffre à ouvrir': '열 상자 있음', 'Épique 4': '영웅 4', 'Tout 12': '전체 12', '+5 autres': '+5개 더',
+    'Le chariot dort au loin': '수레가 멀리서 잠들어 있어요', 'Taux': '확률', 'Ça dort': '잠자는 항목',
+    'Légendaire garanti dans 12 tirages': '12회 안에 전설 확정', 'Un boss, toute la guilde': '보스 하나, 길드 전체',
+    'Outils et réinitialisation': '도구 및 초기화', 'Filtrer par rareté': '등급으로 거르기',
+  };
+  for (const [fr, ko] of Object.entries(cases)) { assert.equal(translate(fr), ko, fr); assert.ok(!latin(translate(fr)), fr); }
+});
