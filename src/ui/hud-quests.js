@@ -122,14 +122,14 @@ function pathHtml(q) {
     <span class="hq-foot"><span class="hq-reward">${rewardIcons(q.reward)}</span>${btn}</span></span>`;
 }
 function carnetHtml(c, phone, mphone) {
+  // v10.14.2 (B1, téléphone) : une pastille d'une ligne (icône + « Carnet 0/8 » + point rouge quand le coffre du jour attend), à côté d'« Avance auto » ; elle ouvre le Carnet.
+  if (mphone) {
+    const full = c.total && c.done >= c.total;
+    const dot = full && !c.chest ? '<i class="hq-carnet-dot" aria-label="Coffre à ouvrir"></i>' : '';
+    return `<button class="hq-carnet-pill" data-action="open-tab" data-value="daybook">${img('icon_trophy')}<b>Carnet ${c.done}/${c.total}${full ? ' ✓' : ''}</b>${dot}</button>`;
+  }
   // v10.9 (partie 4) : Carnet fini → une seule ligne verte, à la même place (rien d'autre ne bouge).
   if (c.total && c.done >= c.total) return `<button class="hq-carnet-done" data-action="open-tab" data-value="daybook">${img('icon_chest')}<b>Carnet ${c.done}/${c.total} · ${c.chest ? 'coffre du jour ouvert ✓' : 'ouvre le coffre du jour ›'}</b></button>`;
-  // v10.13.1 (téléphone, maquette t07) : le même cadre que la carte de zone : titre en petites capitales dorées et une seule ligne (la première mission à faire).
-  if (mphone) {
-    const t = c.list.find((x) => !x.done) ?? c.list[0];
-    const act = (x) => (x.done ? 'data-action="open-tab" data-value="daybook"' : x.action ? `data-action="${x.action}"` : `data-action="open-tab" data-value="${x.tab}"`);
-    return `<button class="hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour · ${c.done} / ${c.total} ›</button>${t ? `<button class="hq-task${t.done ? ' done' : ''}" ${act(t)}>${img(t.icon)}<span>${escapeHtml(t.title)}</span><b class="num">${t.done ? '✓ ' : ''}${Math.min(t.n, t.target)}/${t.target}</b></button>` : ''}`;
-  }
   if (phone) return `<button class="hq-carnet-chip" data-action="open-tab" data-value="daybook">${img('icon_trophy')}<b>Carnet ${c.done}/${c.total}</b></button>`;
   const rows = c.list.map((t) => {
     const act = t.done ? 'data-action="open-tab" data-value="daybook"' : t.action ? `data-action="${t.action}"` : `data-action="open-tab" data-value="${t.tab}"`;
@@ -258,7 +258,7 @@ export class HudQuests {
     const L = `${Math.round(leftC)}px`, W = `${Math.round(w - (leftC - left))}px`;
     if (st.left !== L) st.left = L;
     if (st.maxWidth !== W) st.maxWidth = W;
-    if (this.mphone) return 8; // v10.13.1 : grille de 4 colonnes sur 2 rangées (maquette t07) ; le reste passe dans « + »
+    if (this.mphone) return 4; // v10.14.2 (B1) : une seule rangée de 4 (3 icônes et « + » quand il y en a plus) ; le reste s'ouvre avec « + »
     const cell = this.phone ? 62 : 92; // v10.13 : cadre 76 px (56 sur téléphone) + écart
     return Math.max(2, Math.floor((w - 12) / cell));
   }

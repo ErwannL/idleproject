@@ -24,8 +24,8 @@ test('10.13 (8.1) : événements — cadre 76 px (PC) / 36 px en grille de 4 col
   assert.match(d, /#hq-events \.hq-ev-art \{[^}]*width: 76px; height: 76px/);
   assert.match(d, /#hq-events \.hq-ev-art img \{[^}]*width: 58px; height: 58px[^}]*object-fit: contain/);
   assert.match(d, /\.hq-ev-timer \{[^}]*margin-top: -8px/);
-  assert.match(m, /#hq-events \.hq-ev-art \{[^}]*width: 36px !important; height: 36px !important/);
-  assert.match(m, /#hq-events \.hq-ev-art img \{[^}]*width: 28px !important; height: 28px !important/);
+  assert.match(m, /#hq-events \.hq-ev-art \{[^}]*width: 34px !important; height: 34px !important/);
+  assert.match(m, /#hq-events \.hq-ev-art img \{[^}]*width: 26px !important; height: 26px !important/);
   assert.match(m, /#hq-events \{[^}]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(m, /#hq-events \.hq-ev-art img \{[^}]*object-fit: contain/);
   assert.match(d, /#hq-events \.hq-ev\.ready \.hq-ev-art \{[^}]*border-color: var\(--hud-good\)/);
@@ -107,15 +107,15 @@ test('10.13.1 (téléphone, t07) : mobile-hud.css n\'a plus à suivre la scène 
 test('10.13.1 (téléphone, t07) : carte de zone, événements, Carnet, console — les règles du téléphone', () => {
   const m = css('src/ui/mobile-hud.css');
   assert.match(m, /--evw: 178px/);
-  assert.match(m, /#zone-card \{[^}]*height: 76px/);
+  assert.match(m, /#zone-card \{[^}]*height: 68px/);
   assert.match(m, /#zone-card::before \{[^}]*height: var\(--pzone-h\)/);
-  assert.match(m, /#hq-left > #hq-carnet \{[^}]*order: -1[^}]*border: 2px solid var\(--hud-gold\)/); // même cadre que la zone
+  assert.match(m, /#hq-left > #hq-carnet \{[^}]*order: -1[^}]*height: 44px[\s\S]*?border: 2px solid var\(--hud-gold\)/); // même cadre que la zone, pastille d'une ligne (10.14.2, B1)
   assert.match(m, /#auto-toggle \{[^}]*width: var\(--evw\)/);
   assert.match(m, /#combat-console #boost-group #boost-toggle/); // « Boosts » est une étiquette de la console
   assert.match(m, /#skill-bar \.skill-btn\.big \.cd::after \{[^}]*counter\(sk\)/); // numéros 1, 2, 3
   const h = src('src/ui/hud-quests.js');
-  assert.match(h, /if \(this\.mphone\) return 8;/);
-  assert.match(h, /hq-carnet-title" data-action="open-tab" data-value="daybook">Carnet du jour/);
+  assert.match(h, /if \(this\.mphone\) return 4;/); // 10.14.2 (B1) : une seule rangée
+  assert.match(h, /hq-carnet-pill" data-action="open-tab" data-value="daybook">/);
   const u = src('src/ui/ui.js'), c = src('src/ui/combat-console.js');
   assert.match(u, /Boss dans \$\{n\} étape/);
   assert.match(u, /placeBoostGroup\(this\)/);
