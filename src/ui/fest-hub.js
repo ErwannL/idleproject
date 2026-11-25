@@ -242,24 +242,47 @@ function adventure(state, f, hub = {}) {
 }
 
 // ---- World Boss -------------------------------------------------------------------------------------------------
-function bossTab(state, f) {
+// Barre de PV du boss dessinée : une marque par phase (seuil de PV restants), avec son nom dessous.
+function bossHpBar(gb) {
+  const ph = gb.fight?.phases ?? [];
+  const marks = ph.map((p) => `<i class="fh-hp-mark" style="left:${Math.round(p.at * 100)}%"></i>`).join('');
+  const names = ph.map((p) => `<span class="fh-hp-phase" style="left:${Math.round(p.at * 100)}%"><b class="num">${Math.round(p.at * 100)} %</b><small>${escapeHtml(p.name)}</small></span>`).join('');
+  return `<div class="fh-hp"><div class="fh-hp-bar" role="img" aria-label="PV du boss"><i class="fh-hp-fill"></i>${marks}</div>${ph.length ? `<div class="fh-hp-names">${names}</div>` : ''}</div>`;
+}
+
+function bossTab(state, f, hub = {}) {
   const st = festBossStatus(state);
   const gb = grandBoss(f.boss);
   if (!st) return '<div class="fh-card">Le World Boss est fermé pour cette fête.</div>';
   const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="fh-tier${i < st.tiers ? ' on' : ''}"><b class="num">${Math.round(t * 100)} %</b><small>+${FEST_RULES.boss.coinsPerTier}</small></span>`).join('');
-  const phases = (gb.fight?.phases ?? []).map((p) => `<span class="fh-phase"><b class="num">${Math.round(p.at * 100)} %</b> ${escapeHtml(p.name)}</span>`).join('');
-  const lock = st.pause ? 'Fermé pendant l\'échange.' : `Libère l'étape ${st.unlockStage} de la Carte pour l'affronter.`;
-  return `<div class="fh-boss" style="background-image:linear-gradient(180deg,rgba(5,7,13,.1),rgba(5,7,13,.85)),url(assets/bg/${bossZone(f.boss)}_far.png)">
-    <div class="fh-boss-stage">${bossArt(f.boss, 'big')}</div>
+  // Tentatives : une épée par essai du jour, pleine ou vide.
+  const swords = Array.from({ length: st.perDay }, (_, i) => `<i class="fh-sword${i < st.left ? ' on' : ''}">${img('icon_damage')}</i>`).join('');
+  const arena = f.art?.arena;
+  const bg = arena ? `url(${arena})` : `url(assets/bg/${bossZone(f.boss)}_far.png)`;
+  const rep = hub.bossReport;
+  const report = rep && st.open
+    ? `<div class="fh-report" role="status"><b>Bilan de la tentative</b>
+        <span class="fh-report-row"><span>${img('icon_damage')}<small>Dégâts</small><b class="num">${formatNumber(rep.damage)}</b></span>
+          <span class="${rep.record ? 'new' : ''}">${img('icon_trophy')}<small>${rep.record ? 'Nouveau record' : 'Record'}</small><b class="num">${formatNumber(rep.best)}</b></span>
+          <span>${img('icon_boss')}<small>Palier</small><b class="num">${rep.tiers}/${WORLD_BOSS.tiers.length}</b></span>
+          <span>${festCoin(f)}<small>Gagné</small><b class="num">+${formatNumber(rep.coins)}</b></span></span></div>` : '';
+  const open = st.open;
+  const lock = st.pause
+    ? `<div class="fh-card fh-lock">${img('icon_lock')} Fermé pendant l'échange.</div>`
+    : `<div class="fh-card fh-lock">${img('icon_lock')}<span>Titan verrouillé</span>
+        <button type="button" class="m-btn" data-action="fest-hub-tab" data-value="adventure">Libère l'étape ${st.unlockStage} ›</button></div>`;
+  return `<div class="fh-boss${open ? '' : ' fh-locked'}" style="background-image:linear-gradient(180deg,rgba(5,7,13,.05),rgba(5,7,13,.7)),${bg}">
+    <div class="fh-boss-stage"><span class="fh-boss-fig">${bossArt(f.boss, 'big')}</span>${open ? '' : `<span class="fh-boss-lock">${img('icon_lock')}</span>`}</div>
     <div class="fh-boss-info"><small>World Boss de la fête</small><b class="fh-boss-name">${escapeHtml(gb.name)}</b>
-      ${phases ? `<div class="fh-phases">${phases}</div>` : ''}
-      ${st.open ? `<div class="fh-stats"><span>${img('icon_boss')}<small>Tentatives</small><b class="num">${st.left}/${st.perDay}</b></span>
+      ${bossHpBar(gb)}
+      ${open ? `<div class="fh-stats"><span>${img('icon_boss')}<small>Tentatives</small><span class="fh-swords" aria-label="${st.left} sur ${st.perDay}">${swords}</span></span>
         <span>${img('icon_trophy')}<small>Record</small><b class="num">${formatNumber(st.best)}</b></span>
         <span>${img('icon_damage')}<small>Aujourd'hui</small><b class="num">${formatNumber(st.today)}</b></span></div>
         <div class="fh-tiers">${tiers}</div>
         <button type="button" class="m-btn-gold fh-attack" data-action="fest-boss" ${st.left ? '' : 'disabled'}>${img('icon_boss')}<span>${st.left ? 'Attaquer' : 'Reviens demain'}</span></button>
-        <small class="fh-help">Combat de ${WORLD_BOSS.seconds} s avec toute l'équipe · +${FEST_RULES.boss.coinsBase} ${escapeHtml(f.currency)} par tentative, +${FEST_RULES.boss.coinsPerTier} par palier.</small>`
-    : `<div class="fh-card fh-lock">${img('icon_lock')} ${lock}</div>`}
+        ${report}
+        <small class="fh-help">Combat de ${WORLD_BOSS.seconds} s · +${FEST_RULES.boss.coinsBase} ${escapeHtml(f.currency)} par tentative, +${FEST_RULES.boss.coinsPerTier} par palier.</small>`
+    : lock}
     </div></div>`;
 }
 

@@ -1218,7 +1218,7 @@ export class UI {
       case 'fest-chain': { const r = a.festChain(Number(value)); if (r && this.festHub) this.festHub.lost = { n: Number(value) + (r.won ?? 0), at: Date.now() }; this.invalidate(); break; } // la chaîne s'arrête sur le gardien trop solide
       case 'fest-hub-go': closeFestHub(this); this.openTab(value); break; // v10.14.1 : ferme l'écran de la fête puis ouvre l'onglet (Forge, Invocation, Compagnons)
       case 'fest-boss':
-        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => a.festBossFinish(setup, r), left: () => a.festBossLeft(), closed: () => this.invalidate() });
+        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => { const res = a.festBossFinish(setup, r); if (res && this.festHub) this.festHub.bossReport = res; return res; }, left: () => a.festBossLeft(), closed: () => this.invalidate() });
         break;
       case 'fest-mission': a.festMission(value); break;
       case 'fest-missions-all': a.festMissionsAll(); break;

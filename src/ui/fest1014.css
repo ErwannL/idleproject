@@ -394,3 +394,49 @@ html.reduce-motion #app .fest-hub * { animation: none !important; transition: no
 #app.m-phone .fest-hub .fh-hero-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; justify-items: start; text-align: left; }
 #app.m-phone .fest-hub .fh-hero-card .fest-unit-art.big { grid-row: 1 / 4; max-height: 150px; justify-self: center; }
 #app.m-phone .fest-hub .fh-bonus { align-items: flex-start; align-self: start; }
+
+/* ===== v10.14.1 — § 5.3 : World Boss ===== */
+#app .fest-hub .fh-boss { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; padding: 16px; background-size: cover; background-position: center bottom; image-rendering: pixelated; }
+#app .fest-hub .fh-boss-stage { position: relative; min-height: 400px; display: grid; place-items: end center; }
+#app .fest-hub .fh-boss-stage::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 72%; height: 30px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0,0,0,.7), transparent 70%); }
+#app .fest-hub .fh-boss-fig { position: relative; z-index: 1; display: block; width: min(100%, 360px); }
+#app .fest-hub .fh-boss-fig .fh-boss-art.big { width: 100%; }
+#app .fest-hub .fh-boss.fh-locked .fh-boss-fig { filter: brightness(.32) saturate(.5); }
+#app .fest-hub .fh-boss-lock { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; }
+#app .fest-hub .fh-boss-lock img { width: 64px; height: 64px; filter: drop-shadow(0 2px 6px #000); }
+#app .fest-hub .fh-boss-info { padding: 14px; border: 1.5px solid #2c3a66; border-radius: 14px; background: rgba(8,12,26,.8); }
+#app .fest-hub .fh-boss-info > small { font-size: 12px; }
+#app .fest-hub .fh-boss-info > small.fh-help { margin: 0; text-transform: none; letter-spacing: 0; color: #9fb0d8; }
+#app .fest-hub .fh-hp { margin: 4px 0 2px; }
+#app .fest-hub .fh-hp-bar { position: relative; height: 20px; border: 2px solid #0b1124; border-radius: 10px; background: #2a0f12; }
+#app .fest-hub .fh-hp-fill { position: absolute; inset: 0; border-radius: 8px; background: linear-gradient(180deg, #ff7a68, #b3221c); }
+#app .fest-hub .fh-hp-mark { position: absolute; top: -5px; bottom: -5px; width: 4px; margin-left: -2px; border-radius: 2px; background: #fff; box-shadow: 0 0 0 1.5px #0b1124; }
+#app .fest-hub .fh-hp-names { position: relative; height: 54px; margin-top: 6px; }
+#app .fest-hub .fh-hp-phase { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; max-width: 25%; text-align: center; line-height: 1.15; }
+#app .fest-hub .fh-hp-phase b { font-size: 13px; color: #fff; }
+#app .fest-hub .fh-hp-phase small { font-size: 12px; color: #ffcfc7; }
+#app .fest-hub .fh-stats .fh-swords { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 2px; padding: 0; border: 0; background: none; }
+#app .fest-hub .fh-stats .fh-sword { display: block; width: 24px; height: 24px; }
+#app .fest-hub .fh-stats .fh-sword img { width: 24px; height: 24px; filter: grayscale(1) brightness(.55); opacity: .55; }
+#app .fest-hub .fh-stats .fh-sword.on img { filter: drop-shadow(0 0 4px #ff8a6a); opacity: 1; }
+#app .fest-hub .fh-lock { flex-wrap: wrap; gap: 8px 12px; }
+#app#app .fest-hub .fh-lock .m-btn { width: auto; padding: 0 16px; }
+#app .fest-hub .fh-report { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1.5px solid var(--fh-accent, #c9a14a); border-radius: 12px; background: rgba(24,34,63,.95); }
+#app .fest-hub .fh-report > b { font-size: 14px; color: #f3d27a; }
+#app .fest-hub .fh-report-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+#app .fest-hub .fh-report-row > span { display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; }
+#app .fest-hub .fh-report-row img { width: 24px; height: 24px; }
+#app .fest-hub .fh-report-row small { font-size: 12px; color: #9fb0d8; text-align: center; }
+#app .fest-hub .fh-report-row b { font-size: 15px; }
+#app .fest-hub .fh-report-row .new b, #app .fest-hub .fh-report-row .new small { color: #7dffa0; }
+@media (max-width: 720px) {
+  #app .fest-hub .fh-boss { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; }
+  #app .fest-hub .fh-boss-stage { min-height: 290px; }
+  #app .fest-hub .fh-boss-fig { width: min(100%, 260px); }
+  #app .fest-hub .fh-report-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* téléphone (#app.m-phone) */
+#app.m-phone .fest-hub .fh-boss { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; }
+#app.m-phone .fest-hub .fh-boss-stage { min-height: 290px; }
+#app.m-phone .fest-hub .fh-boss-fig { width: min(100%, 260px); }
+#app.m-phone .fest-hub .fh-report-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
