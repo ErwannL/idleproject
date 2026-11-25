@@ -339,7 +339,7 @@ test('préinscription rattachée à sa source ; entonnoir ; parrainage attribué
   const s = await setup();
   t.after(() => s.close());
   // Visiteur 1 : arrive depuis un Short, regarde la vidéo, voit la section, saisit son e-mail.
-  await s.track({ s: 'sess-reg-00001', v: 'visiteur-R1', nv: 1, h: 1, m: { u: { s: 'youtube', m: 'shorts', c: 'shorts-nov', k: 'short-02' }, r: 'youtube.com', w: 390, l: 'fr' },
+  await s.track({ s: 'sess-reg-00001', v: 'visiteur-R1', nv: 1, h: 1, m: { u: { s: 'youtube', m: 'shorts', c: 'shorts-nov', k: 'short-02', t: 'Idle RPG' }, r: 'youtube.com', w: 390, l: 'fr' },
     e: [{ n: 'pv', p: '/' }, { n: 'vid', a: 'play' }, { n: 'sec', a: 'join' }, { n: 'form', a: 'input' }, { n: 'act', x: 25000 }] }, { ip: '198.51.100.1', ua: UA_PHONE });
   // Visiteur 2 : arrive depuis X, mais sans passer par la vidéo (inscription directe).
   await s.track({ s: 'sess-reg-00002', v: 'visiteur-R2', nv: 1, h: 1, m: { u: { s: 'x', m: 'social', c: 'lancement-nov' }, r: 't.co', w: 1440, l: 'en' }, e: [{ n: 'pv', p: '/' }, { n: 'ref', a: 'arrive', v: 'AAAAAA' }] }, { ip: '198.51.100.2' });
@@ -411,6 +411,15 @@ test('préinscription rattachée à sa source ; entonnoir ; parrainage attribué
   assert.equal(camp['shorts-nov'].preregs, 1);
   assert.equal(camp['shorts-nov'].medium, 'shorts');
   assert.equal(rep.contents[0].content, 'short-02');
+  // Même attribution par variante (utm_content), mot-clé (utm_term), referrer, page d'entrée et audience : plus de trou à 0.
+  assert.equal(first.s_term, 'idle-rpg');
+  assert.deepEqual([rep.contents[0].preregs, rep.contents[0].conversion, rep.contents[0].referrals], [1, 1, 1]);
+  assert.deepEqual([rep.terms[0].key, rep.terms[0].sessions, rep.terms[0].preregs], ['idle-rpg', 1, 1]);
+  assert.deepEqual([rep.referrers.find((r) => r.key === 'youtube.com').preregs, rep.referrers.find((r) => r.key === 't.co').preregs], [1, 1]);
+  assert.equal(rep.entryPages[0].preregs, 2);
+  assert.equal(rep.audience.devices.find((d) => d.key === 'mobile').preregs, 1);
+  assert.equal(rep.audience.devices.find((d) => d.key === 'desktop').preregs, 1);
+  assert.equal(rep.audience.langs.find((d) => d.key === 'fr').preregs, 1);
   assert.equal(rep.referral.top[0].count, 1);
   assert.match(rep.referral.top[0].who, /^pr\*\*\*@e\*\*\*$/);
   assert.equal(rep.referral.chains[0].size, 1);

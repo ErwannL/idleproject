@@ -230,7 +230,7 @@ export function ensureSiteStatsSchema(db) {
   db.exec(SCHEMA);
   const cols = new Set(db.prepare('PRAGMA table_info(preregistrations)').all().map((c) => c.name));
   if (cols.size) {
-    for (const [col, def] of [['s_sid', 'TEXT'], ['s_channel', 'TEXT'], ['s_source', 'TEXT'], ['s_medium', 'TEXT'], ['s_campaign', 'TEXT'], ['s_content', 'TEXT'],
+    for (const [col, def] of [['s_sid', 'TEXT'], ['s_channel', 'TEXT'], ['s_source', 'TEXT'], ['s_medium', 'TEXT'], ['s_campaign', 'TEXT'], ['s_content', 'TEXT'], ['s_term', 'TEXT'],
       ['s_referrer', 'TEXT'], ['s_device', 'TEXT'], ['s_country', 'TEXT'], ['s_first_ts', 'INTEGER']]) {
       if (!cols.has(col)) db.exec(`ALTER TABLE preregistrations ADD COLUMN ${col} ${def}`);
     }
@@ -451,10 +451,10 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
   function attribute({ sid, utm } = {}) {
     const s = typeof sid === 'string' && ID_RE.test(sid) ? q.getSession.get(sid) : null;
     if (s) {
-      return { sid: s.sid, channel: s.channel, source: s.source, medium: s.medium, campaign: s.campaign, content: s.content, referrer: s.referrer, device: s.device, country: s.country, firstTs: s.first_ts };
+      return { sid: s.sid, channel: s.channel, source: s.source, medium: s.medium, campaign: s.campaign, content: s.content, term: s.term, referrer: s.referrer, device: s.device, country: s.country, firstTs: s.first_ts };
     }
     const source = cleanTag(utm);
-    return { sid: null, channel: source ? classifyChannel({ source }) : null, source, medium: null, campaign: null, content: null, referrer: null, device: null, country: null, firstTs: null };
+    return { sid: null, channel: source ? classifyChannel({ source }) : null, source, medium: null, campaign: null, content: null, term: null, referrer: null, device: null, country: null, firstTs: null };
   }
   function markPrereg(sid, { duplicate = false } = {}) {
     if (typeof sid !== 'string' || !ID_RE.test(sid) || !q.getSession.get(sid)) return;
@@ -561,7 +561,7 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
 
   // Toutes les préinscriptions (liens de parrainage, session d'origine) : base des entonnoirs et des chaînes.
   function allPreregs() {
-    const rows = db.prepare(`SELECT email, ref, referrer, consent_at, confirmed_at, lang, s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_referrer, s_device, s_country, s_first_ts
+    const rows = db.prepare(`SELECT email, ref, referrer, consent_at, confirmed_at, lang, s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_term, s_referrer, s_device, s_country, s_first_ts
       FROM preregistrations`).all();
     const bySid = new Map(); const byRef = new Map(); const kids = new Map();
     for (const r of rows) {
@@ -578,7 +578,7 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
     const humans = all.filter((s) => s.human === 1);
     for (const s of humans) s.prereg = pre.bySid.get(s.sid) ?? null;
     const pw = preregWhere(f);
-    const preregs = pre.rows.length ? db.prepare(`SELECT email, ref, referrer, consent_at, confirmed_at, lang, s_sid, s_channel, s_campaign, s_device, s_first_ts FROM preregistrations
+    const preregs = pre.rows.length ? db.prepare(`SELECT email, ref, referrer, consent_at, confirmed_at, lang, s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_term, s_referrer, s_device, s_country, s_first_ts FROM preregistrations
       WHERE consent_at >= ? AND consent_at < ?${pw.sql}`).all(r.fromTs, r.toTs, ...pw.args) : [];
     return { all, humans, preregs };
   }
@@ -742,6 +742,7 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
     }, periodKids);
     const contents = groupRows(humans.filter((s) => s.campaign && s.content), preregs.filter((p) => p.s_campaign && p.s_content), pre, (s) => `${s.campaign}/${s.content}`, (p) => `${p.s_campaign}/${p.s_content}`, (g, key) => ({ campaign: key.split('/')[0], content: key.split('/').slice(1).join('/') }), periodKids)
       .map(({ funnel, ...rest }) => rest);
+    const terms = groupRows(humans.filter((s) => s.term), preregs.filter((p) => p.s_term), pre, (s) => s.term, (p) => p.s_term, () => ({}), periodKids).map(({ funnel, ...rest }) => rest);
     const referrers = groupRows(humans.filter((s) => s.referrer), preregs.filter((p) => p.s_referrer), pre, (s) => s.referrer, (p) => p.s_referrer, (g) => ({ channel: g.sessions[0]?.channel ?? null }), periodKids)
       .map(({ funnel, ...rest }) => rest).slice(0, 40);
     const pageGroup = (field) => {
@@ -783,7 +784,11 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
     const sections = sectionRows.map((s) => ({ id: s.id, sessions: s.sessions, rate: pct(s.sessions, humans.length) }));
 
     // Audience
-    const dim = (get, limit = 12) => topRows(humans.reduce((m, s) => { const v = get(s); if (v) inc(m, v); return m; }, new Map()), limit);
+    const dim = (get, limit = 12) => {
+      const regs = new Map();
+      for (const s of humans) { const v = get(s); if (v && s.prereg) inc(regs, v); }
+      return topRows(humans.reduce((m, s) => { const v = get(s); if (v) inc(m, v); return m; }, new Map()), limit, (k, n) => ({ key: k, count: n, preregs: regs.get(k) ?? 0 }));
+    };
     const heat = Array.from({ length: 7 }, () => new Array(24).fill(0));
     for (const s of humans) { const d = new Date(s.first_ts - r.tz * 60000); heat[(d.getUTCDay() + 6) % 7][d.getUTCHours()] += 1; }
     const audience = {
@@ -836,7 +841,7 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
       now: t, range: { from: r.from, to: r.to, days: r.days, granularity: gran, tz: r.tz, all: r.all }, previousRange: prevRange ? { from: prevRange.from, to: prevRange.to } : null, filters: f, options,
       kpis, previous, live: { active: live.length, byChannel: topRows(live.reduce((m, s) => { inc(m, s.channel); return m; }, new Map()), 8), pages: topRows(live.reduce((m, s) => { inc(m, s.exit_page ?? '/'); return m; }, new Map()), 5) },
       series: seriesOf(data, r, gran, f), funnel: funnelOf(humans, pre),
-      channels, campaigns, contents, referrers, entryPages: pageGroup('entry_page'), exitPages: pageGroup('exit_page'), pages,
+      channels, campaigns, contents, terms, referrers, entryPages: pageGroup('entry_page'), exitPages: pageGroup('exit_page'), pages,
       clicks, outbound: [...outbound.values()].sort((a, b) => b.count - a.count), video, scroll, sections, audience, referral,
       quality: { errors: errRows.map((e) => ({ message: e.msg, source: e.src, count: e.n, sessions: e.sessions, last: e.last, page: e.page })), vitals, bots: { ua: botRows.find((b) => b.reason === 'ua')?.n ?? 0, noInteraction, byReason: botRows } },
       campaignsCreated: created, channelLabels: SITE_CHANNELS,
@@ -845,7 +850,7 @@ export function createSiteStats({ db, now = () => Date.now(), retentionDays = SI
 
   const CSV_TABLES = {
     series: (rep) => rep.series, channels: (rep) => rep.channels.map(({ funnel, ...x }) => ({ ...x, ...Object.fromEntries(funnel.map((n, i) => [`funnel_${i + 1}`, n])) })),
-    campaigns: (rep) => rep.campaigns.map(({ funnel, ...x }) => x), contents: (rep) => rep.contents, referrers: (rep) => rep.referrers,
+    campaigns: (rep) => rep.campaigns.map(({ funnel, ...x }) => x), contents: (rep) => rep.contents, terms: (rep) => rep.terms, referrers: (rep) => rep.referrers,
     entry_pages: (rep) => rep.entryPages, exit_pages: (rep) => rep.exitPages, pages: (rep) => rep.pages, clicks: (rep) => rep.clicks, outbound: (rep) => rep.outbound,
     sections: (rep) => rep.sections, funnel: (rep) => rep.funnel, errors: (rep) => rep.quality.errors, sponsors: (rep) => rep.referral.top,
     devices: (rep) => rep.audience.devices, os: (rep) => rep.audience.os, browsers: (rep) => rep.audience.browsers, screens: (rep) => rep.audience.screens,

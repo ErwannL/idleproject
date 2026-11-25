@@ -169,7 +169,7 @@
   }
   const dimBars = (rows, { names = (k) => k, total, color } = {}) => {
     const t = total ?? rows.reduce((s, r) => s + r.count, 0);
-    return hbars(rows.map((r) => ({ label: names(r.key), value: r.count, sub: t ? pc(r.count / t, 0) : '', color: color?.(r.key) })), {});
+    return hbars(rows.map((r) => ({ label: names(r.key), value: r.count, sub: `${t ? pc(r.count / t, 0) : ''}${r.preregs ? ` · ${nf(r.preregs)} inscr.` : ''}`, color: color?.(r.key) })), {});
   };
 
   // Tableau triable.
@@ -283,6 +283,8 @@
       el('h4', { text: 'Campagnes (utm_campaign)', style: 'margin:20px 0 8px' }), table(campCols, d.campaigns, { empty: 'Aucune campagne utm sur la période. Fabriquez un lien dans « Générateur de liens » plus bas.' }),
       d.contents.length ? el('h4', { text: 'Variantes (utm_content)', style: 'margin:20px 0 8px' }) : null,
       d.contents.length ? table([{ key: 'campaign', label: 'Campagne' }, { key: 'content', label: 'Variante' }, ...srcCols.slice(1)], d.contents) : null,
+      d.terms.length ? el('h4', { text: 'Mots-clés (utm_term)', style: 'margin:20px 0 8px' }) : null,
+      d.terms.length ? table([{ key: 'key', label: 'Mot-clé' }, ...srcCols.slice(1)], d.terms) : null,
       el('div', { class: 'ss-grid', style: 'margin-top:20px' },
         card('Sites d\'origine (referrers)', 'Domaines seulement, jamais l\'adresse complète.', table([{ key: 'key', label: 'Site', wrap: true }, { key: 'sessions', label: 'Visites', num: true, fmt: int }, { key: 'preregs', label: 'Inscrits', num: true, fmt: int }], d.referrers, { empty: 'Aucun referrer (visites directes ou applications sans referrer).' })),
         card('Pages d\'entrée', null, table([{ key: 'page', label: 'Page' }, { key: 'sessions', label: 'Visites', num: true, fmt: int }, { key: 'bounceRate', label: 'Rebond', num: true, fmt: (v) => pc(v, 0) }, { key: 'preregs', label: 'Inscrits', num: true, fmt: int }], d.entryPages)),

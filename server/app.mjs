@@ -469,7 +469,7 @@ export function createApp({
     deletePreregByToken: db.prepare('DELETE FROM preregistrations WHERE confirm_token = ?'),
     findPreregByRef: db.prepare('SELECT email, ref, ip_hash, consent_at FROM preregistrations WHERE ref = ?'),
     insertPrereg: db.prepare(`INSERT INTO preregistrations (email, consent_version, consent_at, ref, referrer, confirm_token, ip_hash, utm_source,
-      s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_referrer, s_device, s_country, s_first_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING`),
+      s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_term, s_referrer, s_device, s_country, s_first_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING`),
     setPreregRef: db.prepare('UPDATE preregistrations SET ref = ?, confirm_token = COALESCE(confirm_token, ?) WHERE email = ? AND ref IS NULL'),
     confirmPrereg: db.prepare('UPDATE preregistrations SET confirmed_at = ? WHERE confirm_token = ? AND confirmed_at IS NULL'),
     countReferrals: db.prepare('SELECT COUNT(*) AS n FROM preregistrations WHERE referrer = ? AND confirmed_at IS NOT NULL'),
@@ -720,7 +720,7 @@ export function createApp({
       const at = siteStats.attribute({ sid, utm: source });
       if (!existing) {
         for (let i = 0; i < 8; i++) {
-          try { q.insertPrereg.run(mail, CONSENT_VERSION, now(), newRefCode(), referrer, token, ipHash, source, at.sid, at.channel, at.source, at.medium, at.campaign, at.content, at.referrer, at.device, at.country, at.firstTs); break; } catch (e) { if (i === 7) throw e; }
+          try { q.insertPrereg.run(mail, CONSENT_VERSION, now(), newRefCode(), referrer, token, ipHash, source, at.sid, at.channel, at.source, at.medium, at.campaign, at.content, at.term, at.referrer, at.device, at.country, at.firstTs); break; } catch (e) { if (i === 7) throw e; }
         }
       } else if (!existing.ref) {
         for (let i = 0; i < 8; i++) { try { q.setPreregRef.run(newRefCode(), token, mail); break; } catch (e) { if (i === 7) throw e; } }
