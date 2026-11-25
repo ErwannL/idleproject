@@ -78,7 +78,7 @@ export function eventColumn(ui, state, now = Date.now()) {
   const ev = fest ? null : currentEvent(t);
   if (fest && vis('event')) {
     const end = fest.phase === 'play' ? fest.playEnd : fest.end;
-    out.push({ id: 'market', art: fest.kind === 'light' ? LIGHTS_EVENT.art.hud : `${ART}hud_event_pass.png`, name: fest.title, short: 'Fête', timer: fest.phase === 'play' ? shortTime(end - t) : 'échange', badge: festReady(state, t), action: 'fest-hub-open', value: '', soon: end - t < 3600000 });
+    out.push({ id: 'market', art: 'assets/ui/art1014/hud_event_fest.png', name: fest.title, short: 'Fête', timer: fest.phase === 'play' ? shortTime(end - t) : 'échange', badge: festReady(state, t), action: 'fest-hub-open', value: '', soon: end - t < 3600000 });
   }
   if (ev && vis('event')) {
     const small = Boolean(lightsEvent(t));
