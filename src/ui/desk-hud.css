@@ -299,3 +299,6 @@
 #app:not(.m-phone) .boss-warning .bw-sub { font-size: 12px; }
 #app:not(.m-phone) .bc-txt small { font-size: 12px; }
 #app:not(.m-phone) .best-card .btn.small { font-size: 12px; }
+
+/* v10.14.1 : la Prime du Héraut ne chevauche plus la colonne de gauche sur un PC étroit. */
+@media (max-width: 1250px) { #app:not(.m-phone):not(.hud-narrow) #hud106 #hq-bounty { width: 380px; margin-left: -150px; } }

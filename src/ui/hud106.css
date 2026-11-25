@@ -57,7 +57,7 @@
 #hq-bounty .hb-frame { position: absolute; inset: 0; background: url(../../assets/ui/art106/hud_bounty_frame.png) center / 100% 100% no-repeat; image-rendering: pixelated; z-index: -1; filter: drop-shadow(0 4px 8px #000a); }
 #hq-bounty .hb-boss { width: 80px; height: 80px; object-fit: contain; border-radius: 8px; background: #3a2a40; border: 2px solid #6b4a2a; flex: none; }
 #hq-bounty .hb-main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
-#hq-bounty .hb-kicker { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a2b1a; font-weight: 800; }
+#hq-bounty .hb-kicker { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #8a2b1a; font-weight: 800; }
 #hq-bounty .hb-name { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hq-bounty .hb-clock { font-size: 17px; letter-spacing: .05em; }
 #hq-bounty .hb-reward img { width: 18px; height: 18px; }

@@ -403,6 +403,7 @@ html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .
   #app#app .fest-hub .fh-gift { padding: 8px 4px; }
   #app#app .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
   #app#app .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }
+  #app#app .fest-hub .fh-wallet small { display: none; }
 }
 /* Téléphone (#app.m-phone : l'interface est mise à l'échelle). */
 #app#app.m-phone .fest-hub .fh-rift { grid-template-columns: 1fr; padding: 10px; }
@@ -433,6 +434,7 @@ html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .
 #app#app.m-phone .fest-hub .fh-gift { padding: 8px 4px; }
 #app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
 #app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }
+#app#app.m-phone .fest-hub .fh-wallet small { display: none; }
 
 /* ===== v10.14.1 — § 5.1 : en-tête et tuiles ===== */
 #app .fest-hub .fh-top { border-bottom-width: 3px; }

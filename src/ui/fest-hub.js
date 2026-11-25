@@ -20,7 +20,7 @@ import { WORLD_BOSS } from '../core/world-boss.js';
 import { escapeHtml, formatNumber, img } from './common.js';
 import { festCoin, festGive, festLeft, festSteps, unitArt, unitName } from './panels/event.js';
 import { missionsTab, pathTab, riftTab, shopTab } from './fest-tabs.js'; // v10.14.1
-import { preloadFestArt } from './fest-art.js';
+import { pickArt, preloadFestArt } from './fest-art.js';
 import { walletIcon } from './panels/shop.js';
 import { reduceMotion } from './prefs.js';
 
@@ -128,7 +128,7 @@ function hubHtml(state, f, tab, hub = {}) {
       <span class="fh-head"><small>${f.kind === 'grand' ? 'Grande fête' : 'Petite fête'} · jour ${Math.min(f.day, f.days)}/${f.days}</small>
         <span class="fh-title"><b>${escapeHtml(f.title)}</b><button type="button" class="fh-help-btn" data-action="fest-hub-help" aria-label="Comment ça marche ?">?</button></span></span>
       <span class="fh-timer"><b>${timer}</b>${f.phase === 'play' ? `<small>puis ${FEST_RULES.pauseDays} jours d'échange</small>` : ''}</span>
-      <span class="fh-wallet${bump}">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b><small>${escapeHtml(f.currency)}</small></span>
+      <span class="fh-wallet${bump}" title="${escapeHtml(f.currency)}">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b><small>${escapeHtml(f.currency)}</small></span>
       <button type="button" class="fh-close" data-action="fest-hub-close" aria-label="Fermer">✕</button>
     </header>
     ${pause}
@@ -206,7 +206,7 @@ function adventure(state, f, hub = {}) {
       const [x, y] = xy(i);
       const st = n <= rec.cleared ? 'done' : n === next ? 'next' : 'off';
       const special = n === M.fragmentStage ? 'crown' : n === M.bossUnlockStage ? 'boss' : n % per === 0 ? 'chest' : '';
-      const mark = special ? img(`icon_${special}`) : `<b class="num">${n}</b>`;
+      const mark = special ? (() => { const u = pickArt(`${A1014}fest_node_${special}.png`, null); return u ? `<img class="px" src="${u}" alt="">` : img(`icon_${special}`); })() : `<b class="num">${n}</b>`;
       const tip = n === M.fragmentStage ? `Étape ${n} : fragment Légendaire universel`
         : n === M.bossUnlockStage ? `Étape ${n} : débloque le World Boss · +${M.stageCoins + M.regionCoins} ${f.currency}`
           : n % per === 0 ? `Étape ${n} : coffre de région · +${M.stageCoins + M.regionCoins} ${f.currency}` : `Étape ${n} : +${M.stageCoins} ${f.currency}`;
