@@ -2122,3 +2122,7 @@ PATTERNS.unshift(...patterns1013Hud());
 import { EXACT_1013_EQUIP, patterns1013Equip } from './en-1013-equip.js';
 for (const [k, v] of Object.entries(EXACT_1013_EQUIP)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1013Equip());
+// v10.14.1 (lot 4) : Fêtes du mois (./en-1014.js).
+import { EXACT_1014, patterns1014 } from './en-1014.js';
+for (const [k, v] of Object.entries(EXACT_1014)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1014(lookup));

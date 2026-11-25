@@ -467,3 +467,7 @@ PATTERNS.unshift(...patterns1040Bastion(lookup)); // en tête : « Nain guerrier
 import { EXACT_108, patterns108 } from './ko-108.js';
 for (const [k, v] of Object.entries(EXACT_108)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns108(lookup));
+// v10.14.1 (lot 4) : Fêtes du mois (./ko-1014.js).
+import { EXACT_1014, patterns1014 } from './ko-1014.js';
+for (const [k, v] of Object.entries(EXACT_1014)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1014(lookup));

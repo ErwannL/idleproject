@@ -183,3 +183,33 @@ test('coréen : dictionnaire, motifs et règles génériques', async () => {
     ...RARITIES.map((r) => r.label), ...Object.values(STAT_LABELS), ...Object.values(SLOTS), ...ZONES.map((z) => z.name)];
   assert.deepEqual(texts.filter((s) => /[A-Za-zÀ-ÿ]{2}/.test(ko(s).replace(/\b(?:HP|Lv|XP)\b/g, ''))), []);
 });
+
+// v10.14.1 (lot 4) : Fêtes du mois en anglais (./src/i18n/en-1014.js).
+test('anglais : Fêtes du mois — titres, monnaies, régions, écran, messages et notifications (v10.14.1)', async () => {
+  const { festTexts } = await import('./helpers/fest-texts.js');
+  const texts = festTexts();
+  assert.ok(texts.length > 300);
+  const SAME = new Set(['Shuriken', 'Missions', 'Participant']); // mêmes mots dans les deux langues
+  for (const s of texts) {
+    const out = translate(s);
+    assert.ok(!FRENCH.test(out), `traduction encore française : ${s} → ${out}`);
+    assert.ok(out !== s || SAME.has(s) || !/[a-zé]{4}/.test(s), `non traduit : ${s}`);
+  }
+  const cases = {
+    'Fête des Cœurs ardents': 'Festival of Burning Hearts', 'Cœurs de braise': 'Ember Hearts', 'Trône des braises': 'Ember Throne',
+    'Fête du héros : Archange': 'Hero Festival: Archangel', 'Foire : Lame rose': 'Fair: Rose Blade',
+    'Vaincre 6 000 monstres': 'Defeat 6,000 monsters', 'Faire 40 invocations': 'Do 40 summons', 'Lame bénie': 'Blessed Blade',
+    'Carte de Reine démone · 12/30': "Demon Queen's Map · 12/30", 'Gardien niv. 3-5 ×2': 'Guardian lvl 3-5 ×2',
+    'Grande fête · jour 5/14': 'Grand festival · day 5/14', '🔁 Échange · 1 j 12 h': '🔁 Exchange · 1d 12h', "puis 2 jours d'échange": 'then 2 days of exchange',
+    'Dépense tes Pétales : encore 1 j 12 h': 'Spend your Petals: 1d 12h left',
+    'Missions du jour : elles changent à minuit · 4 h 12': 'Daily missions: they change at midnight · 4h 12m',
+    'Tu gardes les 24 Cœurs de braise gagnés.': 'You keep the 24 Ember Hearts you earned.',
+    'Palier 3 franchi : choisis une bénédiction': 'Floor 3 cleared: choose a blessing', 'Brèche quittée : 3 paliers, +24': 'Breach left: 3 floors, +24',
+    'Étape 5 réussie : +14': 'Stage 5 cleared: +14', '3 étapes gagnées : +42': '3 stages won: +42',
+    'World Boss : 1,5 M dégâts · +12 · record !': 'World Boss: 1.5 M damage · +12 · record!', 'Classement de la fête : Top 10 %': 'Festival ranking: Top 10%',
+    'Reste 3/5': '3/5 left', 'Acheter pour 40 Pétales': 'Buy for 40 Petals', '1 faite ▸': '1 done ▸', 'Faite ✓': 'Done ✓',
+    'Quitter​': 'Leave', "Jalons de la fête : 35 sur 50. Ouvrir l'Aventure de la fête": 'Festival milestones: 35 of 50. Open the festival Adventure',
+    'La fête commence': 'The festival begins',
+  };
+  for (const [fr, en] of Object.entries(cases)) assert.equal(translate(fr), en, fr);
+});

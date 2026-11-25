@@ -116,7 +116,45 @@ Chaque liste de `FEST_POOLS` avance d'un cran par mois. Sa longueur fixe le dél
 - Chaque fête reste modifiable dans l'admin comme avant (dates, réglages, arrêt, suppression).
 - Sans serveur (jamais joint) : le jeu suit le même calendrier, à l'heure locale.
 
-## Ce qui reste à faire (art et finitions)
+## Ce que la 10.14.1 ajoute (images, accent, écrans, notifications, classement, traductions)
 
-Voir `prompt-v10.14-fetes.md` dans le dossier partagé : affiches et monnaies dessinées par fête, traductions EN/KO,
-notifications « nouvelle fête » et « dernier jour », classement par tranches du World Boss.
+- **Images** (`assets/ui/art1014/`, PixelLab) : par grande fête une affiche, 3 décors de région, une arène de boss et une monnaie ;
+  par petite fête une affiche, un fond de sentier, 2 étapes et une monnaie ; une fois : icônes des tuiles, fond de la Brèche,
+  6 bénédictions, étapes spéciales (boss, coffre, fragment), icône « Fête » de la colonne. Chaque fête les déclare dans
+  `FEST_MONTHS[].art` ; sans fichier (`ui/fest-art.js`), l'ancienne image reste : jamais d'image cassée. Les mois de la rotation
+  automatique gardent le décor de la zone du boss.
+- **Couleur d'accent** par fête (`accent`, posée en `--fh-accent` sur `.fest-hub`) : onglet actif, étape suivante, liseré, halo.
+  Rotation automatique : couleur de l'élément du boss. L'or reste réservé au bouton principal (un seul doré par onglet).
+- **En-tête** : « ? » (fiche en 4 lignes : rythme, monnaie, échange, éclats), minuteur avec « puis 2 jours d'échange », bannière
+  illustrée pendant l'échange, monnaie qui rebondit quand on gagne, tuiles à icônes avec pastille.
+- **Aventure** : Carte à gauche (60 %), héros du mois à droite ; Combattre sombre et Enchaîner doré ; « Améliorer › » après une
+  défaite ; badge « +25 % » (vert dans l'équipe, sinon « Mettre dans l'équipe › » ou « Invoquer › ») ; jalons en barre continue.
+- **World Boss** : arène de la fête, Titan plus grand, barre de PV à phases, épées de tentatives, bilan de la tentative.
+  **Brèche** : colonne de pierres, cartes de bénédiction qui se retournent, cœurs en icônes, confirmation avant de quitter, fenêtre de
+  fin de course. **Missions** : faites repliées, la plus proche de la fin en premier, « Y aller » ferme l'écran.
+  **Boutique** : grand article en vedette, « il manque N », tampon « Épuisé », « Dernière chance » pendant l'échange.
+  **Sentier** : fond et étapes de la fête, halos d'accent, « 1 / 3 obtenus ».
+- **Onglet Événement** : porte d'entrée (affiche, « Entrer dans la fête », tuiles à pastilles) ; **Invocation** : ligne
+  « Jalons : 35 / 50 › » sous la vedette pendant la grande fête.
+- **Notifications** (`core/notify-plan.js`, ids 5 à 8, 2 par jour au plus, jamais entre 22 h et 9 h, désactivables) : « La fête
+  commence » (jour 1, 12 h), « Entrées de Brèche pleines » (6/6, 18 h), « Dernier jour » (veille de l'échange, 18 h, s'il reste
+  quelque chose), « Échange » (premier jour d'échange, 12 h, s'il reste de la monnaie). Elles suivent la langue du jeu
+  (`ui/notifications.js` passe titre et texte par `t()`).
+- **Classement du World Boss** : le score part comme `eventBossFinish` (`cloud.wbReport`, mode `event`, identifiant de la fête)
+  et donne un classement **par tranches** (Top 10 %, 30 %, 60 %, Participant), remis à zéro à chaque fête ; jamais de classement
+  absolu. Toast « Classement de la fête : Top 10 % ».
+- **Admin** : le menu « Feuille de la fête » affiche « 2027-02-g · Fête des Cœurs ardents ».
+- **Traductions** : `src/i18n/en-1014.js` et `ko-1014.js` (branchés à la fin de `en.js` / `ko.js`) couvrent les 12 fêtes écrites à
+  la main (titres, phrases, monnaies, régions), les titres automatiques, les missions, les bénédictions, tout l'écran de la fête,
+  l'onglet Événement, les messages de `main.js`, la fiche « ? », les 4 notifications et la ligne « Jalons ». Les monnaies sont
+  citées par leur nom dans les phrases : une nouvelle monnaie s'ajoute à `FEST_CURRENCIES_EN` / `FEST_CURRENCIES_KO`, une nouvelle
+  région ou phrase au dictionnaire `EXACT_1014`. Le bouton « Quitter » de la Brèche porte un espace de largeur nulle (`QUIT` dans
+  `fest-tabs.js`) : « Quitter » seul veut dire « quitter la guilde » en coréen. Tests : `tests/helpers/fest-texts.js`,
+  `tests/i18n.test.js`, `tests/i18n-ko.test.js` (24 mois, toutes les phrases, notifications).
+- Captures : `docs/screenshots/v10.14.1/final/` (français, 1116 × 993, 1920 × 1080, 412 × 915) ; vérifiées aussi en anglais et en
+  coréen à 1116, 1920, 412 et 390 (aucun débordement, texte de 12 px au moins, un seul doré).
+
+## Ce qui reste à faire
+
+Rien côté art, traductions, notifications ou classement : tout est livré en 10.14.1. À mesurer après une semaine de jeu réel :
+l'économie (`FEST_RULES`, `FEST_SHOPS`, `LIGHT_PATH`, `RIFT_BLESSINGS`), qu'on n'a pas touchée.

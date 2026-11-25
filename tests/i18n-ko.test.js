@@ -105,3 +105,29 @@ test('coréen : motifs dans l\'ordre des mots coréen', () => {
   assert.equal(translate('Prochain : Coffre à l\'étape 2-5'), '다음: 스테이지 2-5에서 창고');
   assert.equal(translate('Haut fait « Vétéran » : +50 gemmes, +1 % dégâts et or pour toujours'), '업적 「베테랑」: 보석 +50, 공격력·골드 영구 +1%');
 });
+
+// v10.14.1 (lot 4) : Fêtes du mois en coréen (./src/i18n/ko-1014.js).
+test('coréen : Fêtes du mois — titres, monnaies, régions, écran, messages et notifications (v10.14.1)', async () => {
+  const { festTexts } = await import('./helpers/fest-texts.js');
+  const texts = festTexts();
+  assert.ok(texts.length > 300);
+  const bad = texts.filter((s) => lookup(s.replace(/\s+/g, ' ').trim()) === null || latin(translate(s)));
+  assert.deepEqual(bad, []);
+  const cases = {
+    'Fête des Cœurs ardents': '타오르는 하트 축제', 'Cœurs de braise': '불씨 하트', 'Trône des braises': '불씨의 왕좌',
+    'Fête du héros : Archange': '영웅 축제: 대천사', 'Foire : Lame rose': '장터: 장미검',
+    'Vaincre 6 000 monstres': '몬스터 6,000마리 처치', 'Faire 40 invocations': '소환 40회',
+    'Carte de Reine démone · 12/30': '마녀 여왕의 지도 · 12/30', 'Gardien niv. 3-5 ×2': '수호자 Lv.3-5 ×2',
+    'Grande fête · jour 5/14': '대축제 · 5/14일째', '🔁 Échange · 1 j 12 h': '🔁 교환 · 1일 12시간', "puis 2 jours d'échange": '이후 교환 2일',
+    'Dépense tes Pétales : encore 1 j 12 h': '꽃잎 사용하기: 1일 12시간 남음',
+    'Missions du jour : elles changent à minuit · 4 h 12': '일일 미션: 자정에 바뀌어요 · 4시간 12분',
+    'Tu gardes les 24 Cœurs de braise gagnés.': '획득한 불씨 하트 24개는 그대로 가져가요.',
+    'Palier 3 franchi : choisis une bénédiction': '3층 돌파: 축복을 고르세요', 'Brèche quittée : 3 paliers, +24': '틈새에서 나왔어요: 3개 층, +24',
+    'Étape 5 réussie : +14': '스테이지 5 클리어: +14', '3 étapes gagnées : +42': '스테이지 3개 클리어: +42',
+    'World Boss : 1,5 M dégâts · +12 · record !': '월드 보스: 피해 1.5 M · +12 · 기록 경신!', 'Classement de la fête : Top 10 %': '축제 순위: 상위 10%',
+    'Reste 3/5': '남음 3/5', 'Acheter pour 40 Pétales': '구매: 꽃잎 40', '1 faite ▸': '1개 완료 ▸', 'Faite ✓': '완료 ✓',
+    'Quitter​': '나가기', 'Quitter': '탈퇴', "Jalons de la fête : 35 sur 50. Ouvrir l'Aventure de la fête": '축제 이정표: 50 중 35. 축제 모험 열기',
+    'La fête commence': '축제가 시작돼요',
+  };
+  for (const [fr, ko] of Object.entries(cases)) assert.equal(translate(fr), ko, fr);
+});

@@ -25,6 +25,10 @@ function entering(key, span = 1100) {
   const el = now - starts.get(key);
   return el < span ? el : null;
 }
+// « Quitter » seul se traduit par « quitter la guilde » (coréen) : un espace de largeur nulle donne à la Brèche sa propre entrée du dictionnaire.
+// Espace insécable entre un nombre et son unité (« +3 s », « 20 % ») : l'unité ne reste pas seule sur une ligne.
+const nb = (x) => escapeHtml(x).replace(/(\d) (s|%)(?![\p{L}])/gu, '$1\u00a0$2');
+const QUIT = 'Quitter\u200b';
 const phase = (i, period = 3600) => `-${(Date.now() + i * 377) % period}ms`; // flottement continu d'un redessin à l'autre
 
 // ---- Brèche : le mode de la fête ---------------------------------------------------------------------------------
@@ -64,12 +68,12 @@ export function riftTab(state, f) {
   else if (!run) {
     main = `${head}<div class="fh-card fh-rift-start">${img('icon_map', 'fh-rift-door')}<span><b>Prêt à entrer ?</b><small>Gardien du palier 1 : niv. ${stageLabel(riftFloorLevel(state, 1))}</small>${hearts(FEST_RULES.rift.hearts, FEST_RULES.rift.hearts)}</span>
       <button type="button" class="m-btn-gold" data-action="rift-start" ${r.stock > 0 ? '' : 'disabled'}>${img('icon_damage')}<span>${r.stock > 0 ? 'Entrer (1 entrée)' : 'Plus d\'entrée aujourd\'hui'}</span></button></div>
-      <div class="fh-bless-list">${Object.entries(RIFT_BLESSINGS).map(([id, b]) => `<span class="fh-bless-mini">${blessArt(id)}<b>${escapeHtml(b.name)}</b><small>${escapeHtml(b.text)}</small></span>`).join('')}</div>`;
+      <div class="fh-bless-list">${Object.entries(RIFT_BLESSINGS).map(([id, b]) => `<span class="fh-bless-mini">${blessArt(id)}<b>${escapeHtml(b.name)}</b><small>${nb(b.text)}</small></span>`).join('')}</div>`;
   } else if (run.offer) {
     const el = entering(`rift:${run.seed}:${run.floor}`);
     const cards = run.offer.map((id, i) => {
       const b = RIFT_BLESSINGS[id];
-      return `<button type="button" class="fh-bless${el !== null ? ' fh-flip' : ''}" ${el !== null ? `style="animation-delay:${i * 200 - el}ms"` : ''} data-action="rift-pick" data-value="${id}">${blessArt(id, 'fh-bless-ico')}<span><b>${escapeHtml(b.name)}</b><small>${escapeHtml(b.text)}</small></span></button>`;
+      return `<button type="button" class="fh-bless${el !== null ? ' fh-flip' : ''}" ${el !== null ? `style="animation-delay:${i * 200 - el}ms"` : ''} data-action="rift-pick" data-value="${id}">${blessArt(id, 'fh-bless-ico')}<span><b>${escapeHtml(b.name)}</b><small>${nb(b.text)}</small></span></button>`;
     }).join('');
     main = `${head}<div class="fh-offer-h"><b class="fh-h">Palier ${run.floor} franchi : choisis une bénédiction</b>${hearts(run.hearts, FEST_RULES.rift.hearts)}</div><div class="fh-bless-row">${cards}</div>`;
   } else {
@@ -77,7 +81,7 @@ export function riftTab(state, f) {
     main = `${head}<div class="fh-card fh-rift-fight"><span class="fh-rf-info"><b>Palier ${run.floor}/${r.floors}</b><small>Gardien niv. ${stageLabel(riftFloorLevel(state, run.floor))}</small>
         <span class="fh-bigchips"><span class="fh-bigchip">${img('icon_damage')}<b class="num">dégâts ×${comma(dmg)}</b></span><span class="fh-bigchip">${img('icon_timer')}<b class="num">${riftSeconds(run)} s</b></span></span>
         <small>Victoire : ${festCoin(f)} +${riftCoins(f, run, run.floor)} · gagné dans cette course : ${run.coins}</small></span>${hearts(run.hearts, FEST_RULES.rift.hearts)}
-      <button type="button" class="m-btn" data-action="rift-quit-ask">Quitter</button>
+      <button type="button" class="m-btn" data-action="rift-quit-ask">${QUIT}</button>
       <button type="button" class="m-btn-gold" data-action="rift-fight">${img('icon_damage')}<span>Combattre</span></button></div>`;
   }
   return `<div class="fh-rift${bg ? ' has-bg' : ''}"${bg ? ` style="background-image:url(${bg})"` : ''}>${side}<section class="fh-rmain">${main}</section></div>`;
@@ -89,7 +93,7 @@ export function riftQuitAsk(ui) {
   const f = currentFest();
   ui.openModal(`<div class="fh-ask"><h2 id="modal-title">Quitter la Brèche ?</h2>
     <p>${run ? `Tu gardes les ${formatNumber(run.coins)} ${escapeHtml(f?.currency ?? 'pièces')} gagnés.` : 'La course est finie.'}</p>
-    <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button><button class="btn btn-danger" data-action="rift-quit">Quitter</button></div></div>`);
+    <div class="detail-actions"><button class="btn" data-action="close-modal">Continuer</button><button class="btn btn-danger" data-action="rift-quit">${QUIT}</button></div></div>`);
 }
 export function riftEnd(ui, end, given = null) {
   const r = riftStatus(ui.state);

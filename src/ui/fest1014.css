@@ -2,10 +2,10 @@
    seuls les éléments propres aux fêtes sont ici : héros/familier à gagner sur l'affiche, bandeau d'échange, jalons. */
 #app .cb-frame.fest-page .fest-poster { height: auto; min-height: 160px; background-size: cover; background-position: center; }
 #app .cb-frame.fest-page .fest-poster .ev-wallet { white-space: nowrap; }
-.fest-page .fest-kicker { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--m-gold, #f2c060); }
+.fest-page .fest-kicker { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--m-gold, #f2c060); }
 .fest-page .fest-timer { font-weight: 700; }
 .fest-page .fest-prize { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 4px; text-align: center; }
-.fest-page .fest-prize small { flex-basis: 100%; font-size: 11px; color: #fff3c8; text-shadow: 0 1px 2px #000; }
+.fest-page .fest-prize small { flex-basis: 100%; font-size: 12px; color: #fff3c8; text-shadow: 0 1px 2px #000; }
 .fest-page .fest-unit-art { max-height: 110px; max-width: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
 .fest-page .fest-prize.two .fest-unit-art { max-height: 92px; max-width: 48%; }
 .fest-page .fest-unit-art.pet { max-height: 64px; }
@@ -34,12 +34,12 @@
 #app .fest-hub > * { position: relative; }
 #app .fest-hub .fh-top { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 2px solid var(--fh-accent, #c9a14a); background: linear-gradient(180deg, rgba(18,26,51,.95), rgba(11,17,36,.85)); }
 #app .fest-hub .fh-head { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-#app .fest-hub .fh-head small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-head small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
 #app .fest-hub .fh-head b { font-size: 20px; line-height: 1.15; text-shadow: 0 2px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #app .fest-hub .fh-timer { padding: 4px 10px; border: 1.5px solid var(--fh-accent, #c9a14a); border-radius: 999px; background: rgba(0,0,0,.35); font-weight: 700; white-space: nowrap; }
 #app .fest-hub .fh-wallet { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: rgba(0,0,0,.45); white-space: nowrap; }
 #app .fest-hub .fh-wallet b { font-size: 16px; }
-#app .fest-hub .fh-wallet small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .fh-wallet small { font-size: 12px; color: #9fb0d8; }
 #app .fest-hub .lt-cur { width: 22px; height: 22px; image-rendering: pixelated; }
 #app .fest-hub .fh-close { width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--fh-accent, #c9a14a); background: #18223f; color: #fff; font-size: 18px; cursor: pointer; flex: 0 0 auto; }
 #app .fest-hub .fh-pause { margin: 8px 14px 0; padding: 8px 12px; border: 1.5px solid #7fd4ff; border-radius: 10px; background: rgba(10,30,50,.8); font-size: 13px; }
@@ -74,7 +74,7 @@
 #app .fest-hub .fh-herocol { display: flex; flex-direction: column; gap: 6px; }
 #app .fest-hub .fh-hero-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px; border: 2px solid var(--fh-accent, #c9a14a); border-radius: 14px;
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--fh-accent, #f3d27a) 32%, transparent), rgba(24,34,63,.95) 65%); text-align: center; }
-#app .fest-hub .fh-hero-card small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-hero-card small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
 #app .fest-hub .fh-hero-card > b { font-size: 18px; }
 #app .fest-hub .fh-bonus { font-size: 12px; color: #9fb0d8; }
 #app .fest-hub .fh-bonus.on { color: #5be37d; font-weight: 700; }
@@ -111,19 +111,19 @@
 #app .fest-hub .fh-boss-art.mini { width: 56px; animation: none; }
 @keyframes fh-idle { to { background-position: 100% 0; } }
 #app .fest-hub .fh-boss-info { display: flex; flex-direction: column; gap: 8px; }
-#app .fest-hub .fh-boss-info > small { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
+#app .fest-hub .fh-boss-info > small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #f3d27a; }
 #app .fest-hub .fh-boss-name { font-size: 26px; line-height: 1.1; text-shadow: 0 3px 0 #000; }
 #app .fest-hub .fh-phases { display: flex; flex-wrap: wrap; gap: 6px; }
 #app .fest-hub .fh-phase { padding: 3px 8px; border-radius: 8px; background: rgba(120,20,20,.6); font-size: 12px; }
 #app .fest-hub .fh-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 #app .fest-hub .fh-stats span { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; background: rgba(11,17,36,.8); border: 1.5px solid #2c3a66; }
 #app .fest-hub .fh-stats img { width: 24px; height: 24px; }
-#app .fest-hub .fh-stats small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .fh-stats small { font-size: 12px; color: #9fb0d8; }
 #app .fest-hub .fh-stats b { font-size: 16px; }
 #app .fest-hub .fh-tiers { display: flex; gap: 6px; }
 #app .fest-hub .fh-tier { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 2px; border-radius: 10px; border: 1.5px solid #2c3a66; background: rgba(11,17,36,.8); }
 #app .fest-hub .fh-tier.on { border-color: #f3d27a; background: rgba(80,60,10,.8); }
-#app .fest-hub .fh-tier small { color: #f3d27a; font-size: 11px; }
+#app .fest-hub .fh-tier small { color: #f3d27a; font-size: 12px; }
 #app .fest-hub .fh-attack { width: 100%; min-height: 54px; font-size: 18px; }
 
 /* Brèche */
@@ -152,7 +152,7 @@
 #app .fest-hub .fh-bless-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; }
 #app .fest-hub .fh-bless-mini { display: grid; grid-template-columns: 28px 1fr; grid-template-rows: auto auto; column-gap: 6px; align-items: center; padding: 6px 8px; border-radius: 10px; background: rgba(24,34,63,.85); border: 1.5px solid #2c3a66; }
 #app .fest-hub .fh-bless-mini img { grid-row: 1 / 3; width: 28px; height: 28px; }
-#app .fest-hub .fh-bless-mini small { font-size: 11px; color: #9fb0d8; }
+#app .fest-hub .fh-bless-mini small { font-size: 12px; color: #9fb0d8; }
 #app .fest-hub .fh-owned { display: flex; flex-wrap: wrap; gap: 6px; }
 #app .fest-hub .fh-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: rgba(60,30,110,.8); font-size: 12px; }
 #app .fest-hub .fh-chip img { width: 18px; height: 18px; }
@@ -176,7 +176,7 @@
 #app .fest-hub .fh-pnode.claimed { opacity: .55; }
 #app .fest-hub .fh-pnode.prize > img { width: 48px; height: 48px; }
 #app .fest-hub .fh-pgift { display: flex; gap: 2px; align-items: center; }
-#app .fest-hub .fh-pnode small { font-size: 11px; text-shadow: 0 1px 0 #000; }
+#app .fest-hub .fh-pnode small { font-size: 12px; text-shadow: 0 1px 0 #000; }
 #app .fest-hub .fh-pnode .fh-hero { bottom: 46px; }
 
 /* Téléphone et fenêtres étroites : une colonne. */
