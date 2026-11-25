@@ -1,6 +1,6 @@
 // Encyclopédie (v9.0.5) : bestiaire, boss, mutations, équipements (une entrée par rareté) et compagnons.
 // Ce qui n'a pas encore été découvert apparaît en silhouette « ??? ». Chaque entrée a sa fiche détaillée.
-import { GRAND_BOSSES } from '../../data/grand-bosses.js'; // v9.7.1 (lot 7)
+import { GRAND_BOSSES, GIANTS } from '../../data/grand-bosses.js'; // v9.7.1 (lot 7)
 import { REVENGE_STEPS, revengeLevel } from '../../core/revenge.js';
 import { museumView } from './inventory.js';
 import { MUSEUM_PIECES, museumCount } from '../../core/museum.js';
@@ -372,10 +372,10 @@ function mMuseum(state) {
   });
   return `${head}${mGrid(tiles, 3)}`;
 }
-const FUTURE_P = ['Titan des Abysses', 'Dieu de l\'Orage', 'Mère des Dragons'];
+const FUTURE_P = GIANTS.filter((g) => !g.ready).map((g) => g.name); // v10.15 : géants à venir (silhouettes)
 function mPantheon() {
   const met = Object.values(GRAND_BOSSES).filter((b) => !b.test);
-  const cards = met.map((b) => `<button type="button" class="m-card mp-cell" data-action="mp-open" data-value="enc:p:${esc(b.id)}"><span class="mp-cell-pic"><span class="mp-art" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></span></span><span class="mp-cell-name">${esc(b.name)}</span></button>`).join('');
+  const cards = met.map((b) => `<button type="button" class="m-card mp-cell" data-action="mp-open" data-value="enc:p:${esc(b.id)}"><span class="mp-cell-pic"><span class="mp-art" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png');background-size:auto 100%;background-position:0 50%"></span></span><span class="mp-cell-name">${esc(b.name)}</span></button>`).join('');
   const ghosts = FUTURE_P.map(() => '<div class="m-card mp-cell unknown"><span class="mp-cell-pic"><span class="mp-art silhouette"></span></span><span class="mp-cell-name">???</span></div>').join('');
   return mcells(cards + ghosts);
 }
@@ -385,7 +385,7 @@ function mPantheonSheet(ui, state, id) {
   const best = id === 'colossus' ? Math.max(state.worldBoss?.best ?? 0, state.records?.worldBossBest ?? 0) : state.grand?.[id]?.best ?? 0;
   const names = { gems: ['icon_gem', 'Gemmes'], shards: ['icon_shard', 'Éclats'] };
   const gives = Object.entries(b.rewards ?? {}).map(([k, n]) => pRow(names[k]?.[0] ?? '', names[k]?.[1] ?? esc(k), nl(n)));
-  return mSheet(b.name, `${pHero(`<span class="mp-art big" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png')"></span>`, esc(b.name), b.title ? pChip(esc(b.title), true) : '')}
+  return mSheet(b.name, `${pHero(`<span class="mp-art big" style="background-image:url('${b.art.dir}/${b.art.prefix}idle.png');background-size:auto 100%;background-position:0 50%"></span>`, esc(b.name), b.title ? pChip(esc(b.title), true) : '')}
     ${pStats([pRow('icon_trophy', 'Meilleur score', nl(best)), id === 'colossus' ? pRow('icon_skull', 'Revanche', `${revengeLevel(state)}/${REVENGE_STEPS}`) : ''])}
     ${gives.length ? `<div class="m-card mp-srows"><div class="mp-sub0">Il donne</div>${gives.join('')}</div>` : ''}
     ${b.lore ? pFoldN(ui, 'enc-plore', 'Histoire', esc(b.lore)) : ''}`, mShut);
@@ -596,7 +596,7 @@ export default {
 
 // v9.7.1 (lot 7) : Panthéon — la galerie des grands boss rencontrés (fiches data/grand-bosses.js) : histoire, meilleur
 // score, ce qu'ils donnent ; les emplacements futurs (Titans, dieux) sont visibles en silhouette, pour donner envie.
-const FUTURE = ['Titan des Abysses', 'Dieu de l\'Orage', 'Mère des Dragons'];
+const FUTURE = GIANTS.filter((g) => !g.ready).map((g) => g.name); // v10.15 : géants à venir
 function pantheonCount() { return `${Object.values(GRAND_BOSSES).filter((b) => !b.test).length}/${Object.values(GRAND_BOSSES).filter((b) => !b.test).length + FUTURE.length}`; }
 function pantheonView(state) {
   const met = Object.values(GRAND_BOSSES).filter((b) => !b.test);
