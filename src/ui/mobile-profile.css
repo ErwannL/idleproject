@@ -334,3 +334,33 @@
 #app.m-phone .mp-bpic .enc-mutant-real { width: 88px; height: 88px; max-width: none; max-height: none; object-fit: contain; }
 #app.m-phone .mp-file { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 8px 0; padding: 0 12px; border: 1px dashed rgba(255, 210, 120, .55); border-radius: 10px; background: rgba(255, 255, 255, .04); color: #f3e6c4; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 #app.m-phone .mp-file::before { content: '📂'; }
+
+/* v10.14.2 (B6) Fiche du héros : Duel = vrai bouton doré du kit (action principale de l'écran) ; onglets Fiche / Classe / Records comme .m-modes (44 px). */
+#app.m-phone .rank-card .primary-action, #app.m-phone .rank-card .btn-gold {
+  box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; min-height: 52px; margin-top: 8px; padding: 0 14px;
+  border-radius: 12px; border: 2px solid #fff0b8; color: #2a1a05; font: 900 16px/1.1 system-ui, sans-serif;
+  background: linear-gradient(180deg, #ffe08a 0%, #f0b93f 55%, #c8892a 100%);
+  box-shadow: 0 3px 0 #7a5214, 0 0 12px rgba(243, 210, 122, .45), inset 0 1px 0 rgba(255, 255, 255, .6);
+}
+#app.m-phone .rank-card .primary-action:active { transform: translateY(2px); box-shadow: 0 1px 0 #7a5214, 0 0 8px rgba(243, 210, 122, .4); }
+#app.m-phone #panel-body > .seg { display: flex; flex-wrap: nowrap; gap: 6px; margin: 0 0 8px; padding: 2px; border: 0; border-radius: 0; overflow: visible; }
+#app.m-phone #panel-body > .seg .seg-btn {
+  flex: 1 1 0; min-width: 0; height: 44px; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 6px;
+  border: 1.5px solid var(--m-btn-line); border-radius: 12px; background: linear-gradient(180deg, #1e2a4d, #121a33); color: var(--m-soft); font: 800 13px/1.1 system-ui, sans-serif; box-shadow: none;
+}
+#app.m-phone #panel-body > .seg .seg-btn img { width: 20px; height: 20px; image-rendering: pixelated; }
+#app.m-phone #panel-body > .seg .seg-btn.active { color: var(--m-text); border-color: var(--m-gold-hi); background: linear-gradient(180deg, #34456f, #1a2547); box-shadow: 0 0 0 1px var(--m-gold), 0 0 12px rgba(243, 210, 122, .55), inset 0 0 10px rgba(243, 210, 122, .18); }
+
+/* v10.14.2 (B7) Guilde sans compte : bannière illustrée, phrase sous chaque icône. */
+#app.m-phone .mp-gbanner { margin: 0 0 8px; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--m-btn-line); }
+#app.m-phone .mp-gbanner img { display: block; width: 100%; height: auto; aspect-ratio: 5 / 2; object-fit: cover; image-rendering: pixelated; }
+#app.m-phone .mp-perk small { font-size: 11px; line-height: 1.25; color: var(--m-soft); text-align: center; overflow-wrap: normal; hyphens: none; }
+
+/* v10.14.2 (B8) Carnet : « Ça dort » en liste verticale, une ligne par ressource (icône + texte + ›). */
+#app.m-phone .mp-sleep-list { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+#app.m-phone .mp-sleep-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; box-sizing: border-box; padding: 6px 12px 6px 8px; border-radius: 12px; border: 1.5px solid var(--m-btn-line); background: #141c38; color: var(--m-text); font: 700 14px/1.25 system-ui, sans-serif; text-align: left; cursor: pointer; }
+#app.m-phone .mp-sleep-row:active { background: #1d2850; }
+#app.m-phone .mp-sleep-ico { flex: none; width: 28px; height: 28px; display: grid; place-items: center; }
+#app.m-phone .mp-sleep-ico img { width: 24px; height: 24px; image-rendering: pixelated; }
+#app.m-phone .mp-sleep-t { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+#app.m-phone .mp-sleep-go { flex: none; font-size: 20px; font-weight: 900; color: var(--m-soft); }

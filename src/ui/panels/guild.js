@@ -63,7 +63,10 @@ function guildPreview() {
 
 
 // ---------- v10.12 : Guilde sur téléphone (kit mobile) ----------
-const perks = () => `<div class="mp-perks">${[['icon_boss', 'Boss commun'], ['icon_star', 'Bonus de guilde'], ['icon_trophy', 'Classement']].map(([ic, t]) => `<span class="mp-perk"><span class="mp-ico big">${img(ic)}</span><b>${t}</b></span>`).join('')}</div>`;
+// v10.14.2 (B7) : téléphone, une courte phrase sous chaque icône (ce que ça apporte) ; PC inchangé.
+const PERK_SUB = { icon_boss: 'Un boss, toute la guilde', icon_star: 'Plus de dégâts et d\'or', icon_trophy: 'Grimpe avec tes amis' };
+const perks = (phone = false) => `<div class="mp-perks">${[['icon_boss', 'Boss commun'], ['icon_star', 'Bonus de guilde'], ['icon_trophy', 'Classement']].map(([ic, t]) => `<span class="mp-perk"><span class="mp-ico big">${img(ic)}</span><b>${t}</b>${phone ? `<small>${PERK_SUB[ic]}</small>` : ''}</span>`).join('')}</div>`;
+const guildBanner = (phone) => (phone ? '<div class="mp-gbanner"><img src="assets/ui/art101/banner_guild.png" alt=""></div>' : '');
 
 function mRanking(g) {
   const r = g.ranking;
@@ -105,12 +108,12 @@ function mNoGuild(ui, g) {
 
 function guildPhone(ui, phone = true) {
   const g = ui.guild ?? {};
-  const empty = (txt) => mEmpty(txt, { icon: 'icon_crown', button: `${perks()}${mBtnGold('Créer mon compte', { action: 'open-account' })}` });
+  const empty = (txt) => `${guildBanner(phone)}${mEmpty(txt, { icon: phone ? '' : 'icon_crown', button: `${perks(phone)}${mBtnGold('Créer mon compte', { action: 'open-account' })}` })}`;
   let body;
   if (g.needAccount) body = empty('Rejoins une guilde : bannière, salle commune et boss partagés.');
   else {
     const msg = g.error ? `<div class="state-error mp-reset">${escapeHtml(g.error)}</div>` : g.message ? `<div class="good mp-reset">${escapeHtml(g.message)}</div>` : '';
-    if (!g.data) body = `${msg}${mEmpty(g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment : voici ce qui t\'attend.', { icon: 'icon_crown', button: perks() })}`;
+    if (!g.data) body = `${msg}${guildBanner(phone)}${mEmpty(g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment : voici ce qui t\'attend.', { icon: phone ? '' : 'icon_crown', button: perks(phone) })}`;
     else body = `${msg}${g.data.guild ? mMyGuild(ui, g.data) : mNoGuild(ui, g)}<div class="mp-sub">Classement des guildes</div>${mRanking(g)}`;
   }
   return mpFrame('icon_crown', 'Guilde', body);

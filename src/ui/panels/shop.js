@@ -140,7 +140,11 @@ function phoneView(ui, state, desk = false) {
   let body;
   if (cat === 'merchants') {
     const merchants = merchantsHtml(state);
-    body = `<div class="m-card">${merchants || '<div class="state-empty">Aucun marchand de passage pour le moment</div>'}</div>`;
+    // v10.14.2 (B5) : téléphone, rien de passage = état vide illustré (le jeu ne connaît pas l'heure du prochain : ils passent au hasard pendant les combats).
+    const noMerchant = desk ? '<div class="state-empty">Aucun marchand de passage pour le moment</div>'
+      : `<div class="m-empty m-merch-empty"><img class="m-empty-art" src="assets/ui/art104/shop_cat_merchants.png" alt=""><p><b>Le chariot dort au loin</b></p>
+        <p class="m-empty-sub">Les marchands passent au hasard pendant tes combats. Continue de vaincre des ennemis : le prochain arrive bientôt.</p></div>`;
+    body = `<div class="m-card">${merchants || noMerchant}</div>`;
   } else {
     const offers = allOffers().filter((o) => o.cat === cat);
     body = `<div class="m-offers">${offers.map((o) => mOfferCard(ui, state, o)).join('')}</div>

@@ -83,7 +83,9 @@ function phoneView(ui, state, { tasks, doneN, all, book }) {
     <div class="mp-main"><div class="mp-head-line"><b class="num">${doneN}/${tasks.length}</b><small>${book.chest ? 'Coffre ouvert · à demain !' : all ? 'Journée accomplie !' : 'Coffre du jour'}</small></div>
       ${mBar(doneN / Math.max(1, tasks.length))}<div class="mp-head-rw">${rewardIcons(DAYBOOK_CHEST)}</div></div>${chestBtn}</div>`;
   const d = dormantResources(state, daybookOpen(ui));
-  const dormant = d.length ? `<div class="mp-sleep"><small>Ça dort</small><div class="m-chips">${d.map((x) => mChip(`${x.text} ›`, { action: 'open-tab', value: x.tab })).join('')}</div></div>` : '';
+  // v10.14.2 (B8) : liste verticale, une ligne par ressource qui dort (icône + texte + ›), plus de bulles coupées dans une rangée qui défile.
+  const SLEEP_ICON = { keys: 'icon_key', tickets: 'icon_summon', arena: 'icon_trophy', expeditions: 'icon_expedition' };
+  const dormant = d.length ? `<div class="mp-sleep"><small>Ça dort</small><div class="mp-sleep-list">${d.map((x) => `<button type="button" class="mp-sleep-row" data-action="open-tab" data-value="${esc(x.tab)}"><span class="mp-sleep-ico">${img(SLEEP_ICON[x.id] ?? 'icon_star')}</span><span class="mp-sleep-t">${esc(x.text)}</span><span class="mp-sleep-go" aria-hidden="true">›</span></button>`).join('')}</div></div>` : '';
   const line = bastionDaybookLine(state);
   const bastion = line ? `<div class="m-card mp-row mp-bastion"><span class="mp-ico"><img class="px" src="assets/ui/art104/bastion_forge_lv1.png" alt=""></span><div class="mp-main"><b class="mp-name">${esc(line)}</b></div>${mBtn('Bastion', { action: 'bastion-open', cls: 'auto' })}</div>` : '';
   return mpFrame('icon_book', 'Carnet du jour', `${head}${fw.html}${dormant}${bastion}<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`);

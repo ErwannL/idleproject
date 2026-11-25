@@ -11,7 +11,7 @@ import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
 import { currentFest, festRecord, festSummonSteps } from '../../core/fest.js'; // v10.14.1 : jalons de la grande fête
 import { animCanvas } from '../animator.js';
 import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, stars } from '../common.js';
-import { mGrid, mModes, mTabs, mTile, mTitle } from '../mobile-kit.js';
+import { mBar, mGrid, mModes, mTabs, mTile, mTitle } from '../mobile-kit.js';
 import { walletIcon } from './shop.js';
 
 function unitPortrait(u) {
@@ -263,10 +263,16 @@ function phoneView(ui, state, desk = false) {
     <button type="button" class="m-q${open ? ' on' : ''}" data-action="summon-odds" data-value="${pool}" aria-expanded="${open}" aria-label="Règles et probabilités">?</button></div>`;
   const gauge = `<div class="m-sum-gauge" title="Légendaire garanti dans ${left} invocations"><span class="vt-bar"><i style="width:${Math.round((100 * g.ssr) / BANNERS[pool].hard)}%"></i></span>${img('icon_chest')}<b class="num">${left}</b></div>`;
   const pay = pool === 'pet' ? mPay(state, pool, 'ticketPet', true) : `${mPay(state, pool, TICKET[pool], true)}${mPay(state, pool, 'gems', false)}`;
+  // v10.14.2 (B9) : téléphone, sous les boutons : « Taux » en pastilles de rareté, puis la pitié en barre (remplace la petite jauge du haut).
+  const bn = BANNERS[pool];
+  const rate = (cls, label, v, d) => `<span class="m-sum-rate ${cls}"><i></i>${label} <b class="num">${pct(v, d)}</b></span>`;
+  const rates = `<div class="m-sum-rates"><b>Taux</b>${rate('r-legendary', 'Légendaire', bn.rates.SSR, 1)}${rate('r-epic', 'Épique', bn.rates.SR, 0)}${rate('r-rare', 'Rare', 1 - bn.rates.SSR - bn.rates.SR, 1)}</div>`;
+  const soft = g.ssr + 1 >= bn.softStart;
+  const pity = `<div class="m-sum-pity"><div class="m-sum-pity-t"><span>Légendaire garanti dans <b class="num">${left}</b> tirage${left > 1 ? 's' : ''}</span>${soft ? '<b class="eco-soft">Chances en hausse</b>' : ''}</div>${mBar(Math.min(1, g.ssr / bn.hard))}</div>`;
   const hist = (state.summon.history ?? []).length ? `<div class="m-card">${fold(ui, 'summon-history', 'Historique', () => historyBlock(state))}</div>` : '';
   const frag = fragmentBlock(state);
   return `<div class="m-frame m-summon${desk ? ' d-summon' : ''}">${mTitle('icon_summon', 'Invocation', true)}${tabs}
-    <div class="m-card m-sum-card">${head}<div class="m-sum-body">${mBannerBody(state, pool)}</div>${gauge}${pay}
+    <div class="m-card m-sum-card">${head}<div class="m-sum-body">${mBannerBody(state, pool)}</div>${desk ? gauge : ''}${pay}${desk ? '' : `${rates}${pity}`}
       ${open ? `${ratesLine(pool)}${pityLine(state, pool)}${oddsBlock(state, pool)}` : ''}${resultsBlock(ui, pool)}</div>
     ${frag ? frag.replace('class="card"', 'class="m-card"') : ''}${hist}</div>`;
 }
