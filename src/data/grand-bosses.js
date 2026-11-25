@@ -132,19 +132,24 @@ const GIANT_ANIMS = (frame) => ({
 });
 // Les animations que les planches doivent fournir (les autres sont facultatives).
 export const GIANT_REQUIRED_ANIMS = ['idle', 'attack', 'hurt', 'throw', 'beam', 'death'];
-const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false }) => {
+const GIANT_OPTIONAL = ['idle3', 'attack3', 'quake', 'embers', 'transform', 'throw3', 'beam3'];
+// `extra` : planches facultatives posées (les autres sont retirées : une animation déclarée sans fichier rendrait le géant
+// invisible) ; `from` : premier mois ('AAAA-MM') où le géant peut entrer dans une Fête ; `eyes`, `hands`, `box`, `shadow` :
+// repères mesurés sur les planches (remplacent les valeurs provisoires).
+const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false, extra, from, eyes, hands, box, shadow }) => {
   const anims = GIANT_ANIMS(frame);
   delete anims._frame;
+  if (extra) for (const k of GIANT_OPTIONAL) { if (!extra.includes(k)) delete anims[k]; else anims[k] ??= { ...anims[k.replace('3', '')] }; }
   return {
-    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready,
+    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready, from, extra,
     art: { dir: `assets/world-boss/${id}`, prefix: `${id}_`, frame, foot: frame - 6, exactSheets: true, anims,
       // Repères à mesurer sur les planches finies (pixels de l'image) : `eyes.beam` = 13 × [x1, y1, x2, y2] (bouche :
       // deux fois le même point), `hands.throw` = point d'où part le projectile à l'image `release`.
-      eyes: { beam: Array.from({ length: 13 }, () => [Math.round(frame * 0.22), Math.round(frame * 0.3), Math.round(frame * 0.22), Math.round(frame * 0.3)]) },
-      hands: { throw: [Math.round(frame * 0.15), Math.round(frame * 0.3)] },
+      eyes: eyes ?? { beam: Array.from({ length: 13 }, () => [Math.round(frame * 0.22), Math.round(frame * 0.3), Math.round(frame * 0.22), Math.round(frame * 0.3)]) },
+      hands: hands ?? { throw: [Math.round(frame * 0.15), Math.round(frame * 0.3)] },
       beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] },
       projectile, debris,
-      box: [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88] },
+      box: box ?? [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88], ...(shadow ? { shadow } : {}) },
     fight: { ...COLOSSUS_FIGHT, name,
       phases: [
         { at: 0.75, id: 'quake', name: phases[0], hit: 0.18, speed: 1.15, power: 1.15 },
@@ -170,10 +175,19 @@ export const GIANTS = [
     lore: 'Un géant de nuages et de bronze. Son marteau fait tomber la pluie sur trois royaumes.',
     beam: ['#9fc3ff', '#ffffff'], projectile: { vfx: 'wb_boulder', tint: '#c9d8ff', tint3: '#ffe24a', size: 2.4, spin: 12, dust: ['#56607a', '#e0eaff'] },
     phases: ['Tonnerre', 'Pluie d\'éclairs', 'Colère du ciel'], abilities: ['Marteau-tonnerre', 'Foudre divine'] }),
-  giant({ id: 'hydra', name: 'Hydre des Marais', title: 'Les cinq têtes du marais', element: 'green', zone: 'swamp', mapZone: 6, accent: '#7be36a',
-    lore: 'Coupe une tête, deux repoussent. Le marais tout entier respire avec elle.',
-    beam: ['#7be36a', '#d8ff9a'], projectile: { vfx: 'wb_boulder', tint: '#7be36a', tint3: '#d8ff4a', size: 2, spin: 3, dust: ['#3a5a2a', '#a8e05a'] }, debris: '#4a6a3a',
-    phases: ['Morsures', 'Pluie d\'acide', 'Cinq têtes'], abilities: ['Crachat d\'acide', 'Souffle putride'] }),
+  (() => { // planches PixelLab posées (assets/world-boss/hydra), repères mesurés ; 4e géant : Fête de février 2028 (festBoss)
+    const g = giant({ id: 'hydra', name: 'Hydre des Marais', title: 'Les cinq têtes du marais', element: 'green', zone: 'swamp', mapZone: 6, accent: '#7be36a',
+      lore: 'Coupe une tête, deux repoussent. Le marais tout entier respire avec elle.',
+      beam: ['#7be36a', '#d8ff9a'], projectile: { vfx: 'wb_boulder', tint: '#7be36a', tint3: '#d8ff4a', size: 2, spin: 3, dust: ['#3a5a2a', '#a8e05a'] }, debris: '#4a6a3a',
+      phases: ['Morsures', 'Pluie d\'acide', 'Cinq têtes'], abilities: ['Crachat d\'acide', 'Souffle putride'],
+      ready: true, from: '2028-02', extra: ['idle3', 'attack3', 'throw3', 'beam3', 'quake', 'embers', 'transform'], box: [4, 12, 154, 140], shadow: 60,
+      eyes: { beam: [[28, 54, 28, 54], [28, 54, 28, 54], [32, 46, 32, 46], [34, 44, 34, 44], [34, 46, 34, 46], [32, 50, 32, 50], [31, 47, 31, 47], [31, 50, 31, 50], [33, 48, 33, 48], [30, 53, 30, 53], [28, 55, 28, 55], [30, 50, 30, 50], [30, 50, 30, 50]],
+        beam3: [[28, 55, 28, 55], [28, 55, 28, 55], [32, 52, 32, 52], [47, 45, 47, 45], [48, 45, 48, 45], [47, 42, 47, 42], [50, 38, 50, 38], [35, 50, 35, 50], [38, 58, 38, 58], [30, 52, 30, 52], [22, 55, 22, 55], [22, 52, 22, 52], [22, 52, 22, 52]] },
+      hands: { throw: [10, 60], throw3: [18, 66] } });
+    g.art.beamColors.beam3 = ['#ff7a1f', '#ffc04a', '#fff3c8']; // phase 3 : souffle de braise
+    g.art.scale = 0.85; // très large (155 px sur 160) : un peu plus petit que sa planche, pour rester dans le cadre en phase 3
+    return g;
+  })(),
   giant({ id: 'sand_wyrm', name: 'Ver des Sables colossal', title: 'Le dévoreur des dunes', element: 'red', zone: 'desert', mapZone: 3, accent: '#e0b15a',
     lore: 'Il nage sous les dunes. Une caravane entière a disparu dans sa gueule.',
     beam: ['#e0b15a', '#fff0b8'], projectile: { vfx: 'wb_boulder', tint: '#d8a85a', tint3: '#ff8a3d', size: 2.6, spin: 8, dust: ['#a07a3a', '#f0d08a'] }, debris: '#c8a060',

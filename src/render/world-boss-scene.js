@@ -121,7 +121,7 @@ export class WorldBossScene {
     this.attacks = this.attacks.filter((x) => x.kind !== 'beam');
   }
 
-  get scale() { return 1.15 + 0.06 * this.fight.phase; }
+  get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scale ?? 1); } // v10.15 : `art.scale` réduit un géant très large
 
   drawColossus(ctx, boss, dt) {
     const r = this.r;
@@ -150,7 +150,12 @@ export class WorldBossScene {
     const im = sheet(this.art, a.src ?? name);
     const k = this.scale;
     const w = this.art.frame * k;
-    const cx = r.wx(boss.x) + 14;
+    let cx = r.wx(boss.x) + 14;
+    // v10.15 : un géant large (Hydre…) reste dans le cadre, même en phase 3 (échelle ×1,33) : son bord droit visible ne dépasse pas la scène
+    // (le cadrage de la scène la décale vers la droite de `shift`).
+    const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0);
+    const over = cx - w / 2 + (this.look.box[0] + this.look.box[2]) * k + shift - (r.width - 2);
+    if (over > 0) cx -= Math.min(over, 120);
     const x = Math.round(cx - w / 2);
     const y = Math.round(r.groundY + 1 - this.art.foot * k + breathe);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
