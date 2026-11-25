@@ -185,7 +185,7 @@ function phoneBranchSheet(state, b) {
 // v10.12 (round 2) : Arbre avancé sur téléphone — plus de zoom ni de glisser : une région à la fois (puces), ses talents
 // visibles rangés par anneau, de haut en bas, reliés par des traits ; chaque nœud est une pastille ronde de 54 px
 // (icône, nom sur 2 lignes, rang n/max) ; toucher un nœud ouvre sa fiche (effet, coût, Apprendre).
-const NODE_ROW = 4;
+const NODE_ROW = 5; // v10.14.2 : 5 nœuds par rangée, anneaux à la suite (une branche entière tient en ~1 400 px)
 function phoneAdvanced(ui, state) {
   const shown = visibleTalents(state);
   const regions = TALENT_BRANCHES.filter((b) => TALENTS.some((t) => t.region === b.id && shown.has(t.id)));
@@ -196,11 +196,9 @@ function phoneAdvanced(ui, state) {
   const list = TALENTS.filter((t) => t.region === reg.id || t.id === 'core');
   const rings = new Map();
   for (const t of list) { if (!rings.has(t.ring)) rings.set(t.ring, []); rings.get(t.ring).push(t); }
+  const ordered = [...rings.keys()].sort((a, b) => a - b).flatMap((ring) => rings.get(ring).sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x)));
   const rows = [];
-  for (const ring of [...rings.keys()].sort((a, b) => a - b)) {
-    const ts = rings.get(ring).sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
-    for (let i = 0; i < ts.length; i += NODE_ROW) rows.push(ts.slice(i, i + NODE_ROW));
-  }
+  for (let i = 0; i < ordered.length; i += NODE_ROW) rows.push(ordered.slice(i, i + NODE_ROW));
   // Le prochain nœud achetable : le premier (de haut en bas) que les fragments permettent, sinon le premier ouvert.
   const canBuy = (t) => { const st = nodeState(state, t); return (st === 'open' || st === 'owned') && (state.talents[t.id] ?? 0) < t.max; };
   const flat = rows.flat();
@@ -212,11 +210,11 @@ function phoneAdvanced(ui, state) {
     const cost = st === 'maxed' ? 0 : talentCost(t, lv);
     const mark = st === 'maxed' ? '<i class="m-tn-b ok">✓</i>' : st === 'gated' || st === 'locked' ? `<i class="m-tn-b lock">${img('icon_lock')}</i>` : afford ? '<i class="m-tn-b up">▲</i>' : '';
     return `<button type="button" class="m-tnode ${st}${afford ? ' afford' : ''}${t.id === nextId ? ' next' : ''} k-${t.kind}" data-action="m-set" data-key="mTreeSheet" data-value="t:${t.id}" aria-label="${escapeHtml(`${t.name}, ${lv} sur ${t.max}, ${STATE_LABEL[st]}`)}">
-      <span class="m-tn-disc">${img(nodeIcon(t))}${mark}</span><span class="m-tn-name">${escapeHtml(t.name)}</span><span class="m-tn-sub"><small class="m-tn-rk">${lv}/${t.max}</small>${cost ? `<small class="m-tn-cost${state.fragments >= cost ? ' ok' : ''}">${img('icon_fragment')}${formatNumber(cost)}</small>` : ''}</span></button>`;
+      <span class="m-tn-disc">${img(nodeIcon(t))}${mark}</span>${st === 'locked' || st === 'gated' ? '' : `<span class="m-tn-name">${escapeHtml(t.name)}</span>`}<span class="m-tn-sub"><small class="m-tn-rk">${lv}/${t.max}</small>${cost ? `<small class="m-tn-cost${state.fragments >= cost ? ' ok' : ''}">${img('icon_fragment')}${formatNumber(cost)}</small>` : ''}</span></button>`;
   };
   const body = rows.map((r, i) => {
     const lit = r.some((t) => (state.talents[t.id] ?? 0) > 0);
-    return `${i ? `<i class="m-lv-link${lit ? ' on' : ''}" aria-hidden="true"></i>` : ''}<div class="m-lv${r.length > 1 ? ' rail' : ''}${lit ? ' on' : ''}">${r.map(node).join('')}</div>`;
+    return `<div class="m-lv${lit ? ' on' : ''}">${r.map(node).join('')}</div>`;
   }).join('');
   const head = `<div class="m-card m-advhead" style="--branch:${reg.color}"><b>${reg.id === 'bridge' ? 'Ponts' : reg.label}</b><span>${reg.id === 'bridge' ? `${list.length} talents visibles` : `${pts(reg.id)} pts · ${list.filter((t) => (state.talents[t.id] ?? 0) > 0).length}/${TALENTS.filter((t) => t.region === reg.id).length}`}</span></div>`;
   return `<div class="m-adv" data-reg="${reg.id}">${chips}${head}<div class="m-card m-lvs" style="--branch:${reg.color}">${body}</div>${mBtn('Outils et réinitialisation', { action: 'm-set', attrs: 'data-key="mTreeSheet" data-value="tools"' })}</div>`;

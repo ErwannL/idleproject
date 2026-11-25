@@ -365,3 +365,12 @@
 #app.m-phone .m-rbgo { gap: 10px; height: 64px; min-height: 64px; font-size: 22px; }
 #app.m-phone .m-rbgo img { width: 30px; height: 30px; } #app.m-phone .m-rbgo img:last-child { width: 24px; height: 24px; }
 #app.m-phone .m-rb > .m-note { margin: 4px 2px; }
+
+/* v10.14.2 (B4) : arbre avancé compact : 5 nœuds de 54 px par rangée, nom seulement pour les nœuds ouverts, cadenas + coût en pastille */
+#app.m-phone .m-lvs { padding: 10px 4px; gap: 8px; }
+#app.m-phone .m-lv { width: 100%; justify-content: flex-start; gap: 2px; margin: 0; align-items: flex-start; }
+#app.m-phone .m-tnode { flex: 0 0 calc(20% - 2px); width: calc(20% - 2px); gap: 2px; }
+#app.m-phone .m-tn-name { min-height: 0; }
+#app.m-phone .m-tn-sub { flex-direction: column; gap: 1px; }
+#app.m-phone .m-tnode.locked .m-tn-rk, #app.m-phone .m-tnode.gated .m-tn-rk { display: none; }
+#app.m-phone .m-tnode.locked .m-tn-cost, #app.m-phone .m-tnode.gated .m-tn-cost { color: var(--m-soft); }
