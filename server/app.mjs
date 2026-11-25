@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import { realTools, summarizeProbe, videoAdvice, versionedUrl, resolveVideo, videoVersion, phoneIsStale } from './video.mjs';
 import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
 import { createGuilds, GuildError } from './guilds.mjs'; // v9.3.2 : guildes et World Boss
+import { createSiteStats, SITE_LIMITS } from './sitestats.mjs'; // mesure d'audience du site (admin > Site)
 import { MAIL_LIMITS, confirmationEmail, friendJoinedEmail } from './mailer.mjs'; // emails de la préinscription (Brevo)
 
 const scrypt = promisify(scryptCb);
@@ -408,6 +409,7 @@ export function createApp({
   videoMaxBytes = VIDEO_MAX_BYTES, // poids maximal d'une vidéo envoyée (VIDEO_MAX_MB dans server/index.mjs)
   tools = realTools(), // ffprobe / ffmpeg (remplaçables dans les tests)
   mailer = null, // service d'envoi des emails (server/mailer.mjs) ; absent : aucun email
+  siteStatsRetentionDays = SITE_LIMITS.retentionDays, // purge des événements bruts de la mesure d'audience (13 mois par défaut)
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
   const failures = createFailureLimiter(LIMITS.authAttempts, now);
@@ -417,6 +419,7 @@ export function createApp({
   const adminSessions = new Map();
   const live = createLive({ db, now }); // v9.3.0 : live-ops (server/live.mjs)
   const guilds = createGuilds({ db, now }); // v9.3.2 (server/guilds.mjs)
+  const siteStats = createSiteStats({ db, now, retentionDays: siteStatsRetentionDays, maskEmail, baseUrl: mailer?.baseUrl ?? 'https://ascendrya.com', log });
 
   // Premier démarrage : le mot de passe admin historique devient le compte « erwann ».
   if (adminPasswordHash && db.prepare('SELECT COUNT(*) AS n FROM admin_users').get().n === 0) {
@@ -465,7 +468,8 @@ export function createApp({
     setPreregLang: db.prepare('UPDATE preregistrations SET lang = ? WHERE email = ? AND lang IS NULL'),
     deletePreregByToken: db.prepare('DELETE FROM preregistrations WHERE confirm_token = ?'),
     findPreregByRef: db.prepare('SELECT email, ref, ip_hash, consent_at FROM preregistrations WHERE ref = ?'),
-    insertPrereg: db.prepare('INSERT INTO preregistrations (email, consent_version, consent_at, ref, referrer, confirm_token, ip_hash, utm_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING'),
+    insertPrereg: db.prepare(`INSERT INTO preregistrations (email, consent_version, consent_at, ref, referrer, confirm_token, ip_hash, utm_source,
+      s_sid, s_channel, s_source, s_medium, s_campaign, s_content, s_referrer, s_device, s_country, s_first_ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING`),
     setPreregRef: db.prepare('UPDATE preregistrations SET ref = ?, confirm_token = COALESCE(confirm_token, ?) WHERE email = ? AND ref IS NULL'),
     confirmPrereg: db.prepare('UPDATE preregistrations SET confirmed_at = ? WHERE confirm_token = ? AND confirmed_at IS NULL'),
     countReferrals: db.prepare('SELECT COUNT(*) AS n FROM preregistrations WHERE referrer = ? AND confirmed_at IS NOT NULL'),
@@ -698,7 +702,7 @@ export function createApp({
 
     { method: 'POST', path: /^\/api\/preregister$/, handler: async ({ req }) => {
       rateLimit(preregLimit, `prereg:${clientIp(req, trustProxy)}`);
-      const { email, consent, ref, utm, lang: lang0 } = await readJson(req);
+      const { email, consent, ref, utm, sid, lang: lang0 } = await readJson(req);
       const lang = lang0 === 'en' ? 'en' : 'fr';
       if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email.trim())) {
         throw new HttpError(400, 'Adresse email invalide');
@@ -712,13 +716,16 @@ export function createApp({
       const source = typeof utm === 'string' && /^[\w.-]{1,40}$/.test(utm) ? utm : null;
       const token = randomBytes(24).toString('base64url');
       const existing = q.findPrereg.get(mail);
+      // Mesure d'audience : provenance (canal, utm, referrer, appareil) copiée côté serveur depuis la session du visiteur.
+      const at = siteStats.attribute({ sid, utm: source });
       if (!existing) {
         for (let i = 0; i < 8; i++) {
-          try { q.insertPrereg.run(mail, CONSENT_VERSION, now(), newRefCode(), referrer, token, ipHash, source); break; } catch (e) { if (i === 7) throw e; }
+          try { q.insertPrereg.run(mail, CONSENT_VERSION, now(), newRefCode(), referrer, token, ipHash, source, at.sid, at.channel, at.source, at.medium, at.campaign, at.content, at.referrer, at.device, at.country, at.firstTs); break; } catch (e) { if (i === 7) throw e; }
         }
       } else if (!existing.ref) {
         for (let i = 0; i < 8; i++) { try { q.setPreregRef.run(newRefCode(), token, mail); break; } catch (e) { if (i === 7) throw e; } }
       }
+      siteStats.markPrereg(at.sid, { duplicate: !!existing });
       q.setPreregLang.run(lang, mail);
       const row = q.findPrereg.get(mail);
       // Email de confirmation (avec le lien de parrainage) : pas si l'adresse est déjà confirmée, et au plus un par heure.
@@ -729,6 +736,16 @@ export function createApp({
         await mailer.send({ to: mail, ...m });
       }
       return { status: 202, body: { ok: true, ref: row.ref } };
+    } },
+
+    // Mesure d'audience du site (stats.js) : envoi groupé, sans cookie. Voir server/sitestats.mjs et confidentialite.html.
+    { method: 'POST', path: /^\/api\/site\/track$/, handler: async ({ req }) => {
+      let body;
+      try { body = await readJson(req, SITE_LIMITS.body); } catch (e) { throw e instanceof HttpError && e.status === 413 ? e : new HttpError(400, 'Requête invalide'); }
+      const out = siteStats.ingest({ ip: clientIp(req, trustProxy), ua: String(req.headers['user-agent'] ?? ''), headers: req.headers }, body);
+      if (out.status === 429) throw new HttpError(429, 'Trop de requêtes');
+      if (out.status !== 204) throw new HttpError(out.status, 'Requête invalide');
+      return { status: 204 };
     } },
 
     { method: 'POST', path: /^\/api\/preregister\/remove$/, handler: async ({ req }) => {
@@ -767,6 +784,37 @@ export function createApp({
       const code = String(params[0]).toUpperCase();
       if (!REF_RE.test(code)) throw new HttpError(404, 'Code inconnu');
       return { body: { count: q.countReferrals.get(code).n } };
+    } },
+    // Mesure d'audience du site (onglet « Site » de l'admin).
+    { method: 'GET', path: /^\/api\/admin\/site-stats$/, handler: ({ req, url }) => {
+      requireAdmin(req);
+      return { body: siteStats.report(Object.fromEntries(url.searchParams)) };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/site-stats\/live$/, handler: ({ req }) => {
+      requireAdmin(req);
+      return { body: siteStats.live() };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/site-stats\/csv$/, handler: ({ req, url }) => {
+      requireAdmin(req);
+      const out = siteStats.csv(Object.fromEntries(url.searchParams));
+      if (!out) throw new HttpError(400, 'Tableau inconnu');
+      return { raw: out.text, type: 'text/csv; charset=utf-8', headers: { 'Content-Disposition': `attachment; filename="ascendrya-site-${out.name}.csv"` } };
+    } },
+    { method: 'GET', path: /^\/api\/admin\/site-campaigns$/, handler: ({ req }) => {
+      requireAdmin(req);
+      return { body: { presets: siteStats.campaigns.presets, campaigns: siteStats.campaigns.list(), baseUrl: mailer?.baseUrl ?? 'https://ascendrya.com' } };
+    } },
+    { method: 'POST', path: /^\/api\/admin\/site-campaigns$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const made = siteStats.campaigns.create(await readJson(req));
+      if (!made) throw new HttpError(400, 'Source, support et campagne sont requis (lettres, chiffres, - _ .)');
+      if (made.error) throw new HttpError(409, made.error);
+      return { status: made.existed ? 200 : 201, body: made };
+    } },
+    { method: 'DELETE', path: /^\/api\/admin\/site-campaigns\/(\d+)$/, handler: ({ req, params }) => {
+      requireAdmin(req);
+      if (!siteStats.campaigns.remove(params[0])) throw new HttpError(404, 'Campagne inconnue');
+      return { status: 204 };
     } },
     // v10.8 (site) : les 10 meilleurs parrains (email masqué) pour l'admin.
     { method: 'GET', path: /^\/api\/admin\/referrers$/, handler: ({ req }) => {
@@ -1560,7 +1608,7 @@ export function createApp({
           if (!match) continue;
           const result = await route.handler({ req, res, url, params: match.slice(1) });
           if (result?.raw !== undefined) {
-            sendText(res, result.status ?? 200, result.raw, result.type);
+            sendText(res, result.status ?? 200, result.raw, result.type, result.headers);
             return finish(result.status ?? 200);
           }
           const code = result?.status ?? 200;

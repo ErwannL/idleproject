@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Administration · Ascendrya</title>
+  <link rel="stylesheet" href="/admin/site-stats.css">
   <link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
   <style>
     :root {
@@ -299,7 +300,8 @@
       <div class="brand"><img src="/assets/icon.png" alt=""><div><b>Ascendrya</b><span>Administration</span></div></div>
       <nav class="nav" id="nav">
         <button data-tab="stats" class="active">Vue d'ensemble</button>
-        <button data-tab="analytics">Analytique</button>
+        <button data-tab="site">Site</button>
+        <button data-tab="analytics">Analytique du jeu</button>
         <button data-tab="players">Joueurs</button>
         <button data-tab="prereg">Préinscriptions</button>
         <button data-tab="team">Équipe</button>
@@ -327,7 +329,7 @@
 
       <section data-panel="analytics" class="hidden">
         <div class="page-head">
-          <div><h2>Analytique des joueurs</h2><p id="an-time">Chargement…</p></div>
+          <div><h2>Analytique du jeu</h2><p id="an-time">Chargement…</p></div>
           <div class="toolbar">
             <select id="an-days" aria-label="Période"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="90">90 jours</option></select>
             <button class="btn" id="an-refresh">Actualiser</button>
@@ -352,6 +354,15 @@
           <div class="panel"><h3>Étape max atteinte</h3><div id="an-stages"></div></div>
           <div class="panel"><h3>Niveau</h3><div id="an-levels"></div></div>
         </div>
+      </section>
+
+      <!-- Mesure d'audience du site (site-stats.js, API /api/admin/site-stats) -->
+      <section data-panel="site" class="hidden">
+        <div class="page-head">
+          <div><h2>Site : audience et campagnes</h2><p id="ss-time">Chargement…</p></div>
+          <div class="toolbar"><button class="btn" id="ss-refresh">Actualiser</button></div>
+        </div>
+        <div id="ss-root"><p class="muted">Ouvrez l'onglet pour charger les statistiques.</p></div>
       </section>
 
       <section data-panel="players" class="hidden">
@@ -1209,5 +1220,6 @@
     });
   </script>
   <script src="/admin/live-admin.js"></script>
+  <script src="/admin/site-stats.js"></script>
 </body>
 </html>

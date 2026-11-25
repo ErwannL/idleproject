@@ -19,13 +19,14 @@ export function startServer({
   adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '',
   gameWeb = process.env.GAME_WEB === '1',
   videoMaxBytes = (Number(process.env.VIDEO_MAX_MB) || 4096) * 1048576,
+  siteStatsRetentionDays = Number(process.env.SITE_STATS_RETENTION_DAYS) || 395, // mesure d'audience : purge des événements bruts (13 mois)
 } = {}) {
   const db = openDatabase(dbFile);
   const log = (line) => console.log(`${new Date().toISOString()} ${line}`);
   // Emails de la préinscription (Brevo) : clé et adresses dans /etc/idle-rpg.env, jamais dans le dépôt.
   const mailer = createMailer({ apiKey: process.env.BREVO_API_KEY || '', from: process.env.MAIL_FROM || 'Ascendrya <contact@ascendrya.com>', baseUrl: process.env.PUBLIC_BASE_URL || 'https://ascendrya.com', log });
   if (!process.env.BREVO_API_KEY) log('BREVO_API_KEY absente : les emails de préinscription sont seulement journalisés');
-  const server = createServer(createApp({ db, siteDir, webDir, uploadsDir, trustProxy, adminPasswordHash, gameWeb, videoMaxBytes, log, mailer }));
+  const server = createServer(createApp({ db, siteDir, webDir, uploadsDir, trustProxy, adminPasswordHash, gameWeb, videoMaxBytes, siteStatsRetentionDays, log, mailer }));
   server.listen(port, host, () => log(`écoute sur ${host}:${port}`));
   const close = () => {
     server.close(() => {

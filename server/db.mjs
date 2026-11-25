@@ -3,6 +3,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { ensureSiteStatsSchema } from './sitestats.mjs'; // mesure d'audience du site (tables site_*, colonnes s_* des préinscriptions)
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS accounts (
@@ -107,5 +108,6 @@ export function openDatabase(file) {
   // v9.1.7 : classements de temps (0 = inconnu) ; first_zone = JSON { monde: secondes de jeu au premier passage }.
   for (const col of ['best_rebirth', 'best_transcend']) addColumnIfMissing(db, 'saves', col, 'REAL NOT NULL DEFAULT 0');
   addColumnIfMissing(db, 'saves', 'first_zone', "TEXT NOT NULL DEFAULT '{}'");
+  ensureSiteStatsSchema(db);
   return db;
 }

@@ -251,7 +251,7 @@
         <a href="#discover" data-t="nav.discover">Discover</a>
       </nav>
       <div class="langs" id="langs" role="group" aria-label="Language" data-t-attr="aria-label:nav.lang"></div>
-      <a class="btn" href="#join" data-t="nav.cta">Pre-register</a>
+      <a class="btn" href="#join" data-track="cta_nav" data-t="nav.cta">Pre-register</a>
     </div>
   </header>
 
@@ -264,7 +264,7 @@
       <p class="slogan" data-t="hero.slogan">Build your team. Conquer your destiny.</p>
       <p class="pitch" data-t="hero.pitch">An epic Fantasy Idle RPG. Collect legendary heroes, summon magical companions and conquer powerful bosses.</p>
       <div class="platforms" data-t="hero.platforms">PC (Steam) &amp; Mobile</div>
-      <div><a class="btn big" href="#join" data-t="hero.cta">PRE-REGISTER NOW</a></div>
+      <div><a class="btn big" href="#join" data-track="cta_hero" data-t="hero.cta">PRE-REGISTER NOW</a></div>
     </div>
     <button class="reel-toggle" id="reel-toggle" type="button" hidden aria-label="Pause video">❚❚</button>
   </section>
@@ -323,7 +323,7 @@
           <label class="lbl" for="email" data-t="form.email">Email address</label>
           <input id="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@email.com" data-t-attr="placeholder:form.placeholder">
           <label class="consent"><input id="consent" type="checkbox" required><span><span data-t="form.consent">I agree to be contacted about the launch of the game.</span> <a href="confidentialite.html" data-t="form.privacy">Privacy policy</a></span></label>
-          <button class="btn big" type="submit" data-t="form.submit">Pre-register</button>
+          <button class="btn big" type="submit" data-track="prereg_submit" data-t="form.submit">Pre-register</button>
           <p class="status" id="status" role="status"></p>
         </form>
         <div id="thanks" class="thanks" hidden></div>
@@ -337,7 +337,8 @@
     <nav><a href="confidentialite.html" data-t="footer.privacy">Privacy</a><a href="classement/" data-t="footer.ranking">Leaderboard</a><a href="#top" data-t="footer.top">Back to top</a></nav>
     <small>© <span id="year">2026</span> Ascendrya · <span data-t="footer.rights">All rights reserved.</span></small>
   </footer>
-  <div class="sticky" id="sticky"><a class="btn big" href="#join" data-t="hero.cta">PRE-REGISTER NOW</a></div>
+  <div class="sticky" id="sticky"><a class="btn big" href="#join" data-track="cta_sticky" data-t="hero.cta">PRE-REGISTER NOW</a></div>
+  <script src="/stats.js" defer></script>
   <script type="module" src="site.js"></script>
 </body>
 </html>

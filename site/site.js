@@ -10,6 +10,7 @@ import { DEFAULT_GOALS } from './live.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const track = (...a) => { try { window.ascendryaTrack?.(...a); } catch { /* mesure d'audience : jamais bloquante */ } }; // stats.js
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* privé */ } },
   ss: (k) => { try { return sessionStorage.getItem(k) || undefined; } catch { return undefined; } } };
@@ -146,6 +147,8 @@ async function loadGoals() {
 }
 
 // ---------- Formulaire (aucune réussite simulée : seul un 2xx du serveur confirme) ----------
+// Identifiant de session de la mesure d'audience (stats.js) : le serveur en tire la provenance de l'inscription (canal, utm, referrer).
+const mySid = () => { try { return JSON.parse(sessionStorage.getItem('ascendrya-sid') || 'null')?.id || undefined; } catch { return undefined; } };
 const form = $('#prereg');
 const status = $('#status');
 const say = (key, ok = false) => { status.className = `status ${ok ? 'ok' : 'err'}`; status.textContent = t(key); };
@@ -153,17 +156,18 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = $('#email').value.trim();
   const consent = $('#consent').checked;
-  if (!email) return say('form.errEmail');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say('form.errInvalid');
-  if (!consent) return say('form.errConsent');
+  track('form', 'submit');
+  if (!email) { track('form', 'error', 'email'); return say('form.errEmail'); }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { track('form', 'error', 'invalid'); return say('form.errInvalid'); }
+  if (!consent) { track('form', 'error', 'consent'); return say('form.errConsent'); }
   status.className = 'status';
   status.textContent = t('form.sending');
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
-    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent, ref: store.ss('ascendrya-ref'), utm: store.ss('ascendrya-utm'), lang }) });
-    if (res.status === 429) return say('form.errRate');
-    if (!res.ok) return say('form.errInvalid');
+    const res = await fetch('api/preregister', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent, ref: store.ss('ascendrya-ref'), utm: store.ss('ascendrya-utm'), sid: mySid(), lang }) });
+    if (res.status === 429) { track('form', 'error', 'rate'); return say('form.errRate'); }
+    if (!res.ok) { track('form', 'error', `http${res.status}`); return say('form.errInvalid'); }
     const data = await res.json().catch(() => ({}));
     form.reset();
     say('form.ok', true);
@@ -172,7 +176,7 @@ form.addEventListener('submit', async (event) => {
     renderInvite();
     document.body.classList.add('registered'); // la barre flottante ne passe plus par-dessus l'encadré (téléphone)
     loadGoals();
-  } catch { say('form.errNet'); } finally { btn.disabled = false; }
+  } catch { track('form', 'error', 'network'); say('form.errNet'); } finally { btn.disabled = false; }
   return undefined;
 });
 
@@ -221,12 +225,12 @@ function showThanks(ref) {
   const steps = t('ref.steps').map(([n, r]) => `<li><b>${n}</b><span>${r}</span></li>`).join('');
   box.innerHTML = `<h3>${t('ref.title')}</h3><p>${t('ref.lead')}</p>
     <div class="ref-link"><input id="ref-url" readonly value="${link}"><button type="button" class="btn" id="ref-copy">${t('ref.copy')}</button></div>
-    <div class="ref-share"><a class="btn small" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">X</a><a class="btn small" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">WhatsApp</a></div>
+    <div class="ref-share"><a class="btn small" data-track="ref_share_x" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">X</a><a class="btn small" data-track="ref_share_whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(t('ref.share') + ' ' + link)}">WhatsApp</a></div>
     <ol class="ref-steps">${steps}</ol><p class="muted" id="ref-count">${t('ref.count', 0)}</p>${followHtml()}`;
   box.hidden = false;
   fetch(`api/preregister/ref/${encodeURIComponent(ref)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
     .then((d) => { if (d && Number.isFinite(d.count)) $('#ref-count').textContent = t('ref.count', d.count); }).catch(() => {});
-  $('#ref-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#ref-url').select(); });
+  $('#ref-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#ref-url').select(); track('ref', 'copy'); });
 }
 
 // ---------- 10.8.3 : section Parrainage, visible avant l'inscription ----------
@@ -252,7 +256,7 @@ function renderInvite() {
     const left = nextI < 0 ? t('invite.all') : t('invite.left', REF_STEPS[nextI][0] - n, names[nextI]?.[1] ?? '');
     act = `<div class="mine"><b>${esc(t('invite.mine'))}</b>
       <div class="ref-link"><input id="inv-url" readonly value="${esc(link)}" aria-label="${esc(t('invite.mine'))}"><button type="button" class="btn" id="inv-copy">${esc(t('ref.copy'))}</button></div>
-      <div class="ref-share"><a class="btn" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${msg}">X</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${msg}">WhatsApp</a>${navigator.share ? `<button type="button" class="btn" id="inv-share">${esc(t('invite.share'))}</button>` : ''}</div>
+      <div class="ref-share"><a class="btn" data-track="ref_share_x" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${msg}">X</a><a class="btn" data-track="ref_share_whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=${msg}">WhatsApp</a>${navigator.share ? `<button type="button" class="btn" id="inv-share">${esc(t('invite.share'))}</button>` : ''}</div>
       <p class="count">${esc(t('ref.count', n))}</p><p>${esc(left)}</p></div>`;
   } else {
     act = `<a class="btn big" href="#join">${esc(t('invite.cta'))}</a><p>${esc(t('invite.ctaNote'))}</p>`;
@@ -265,8 +269,8 @@ function renderInvite() {
   const ff = $('#from-friend'); if (ff) { ff.hidden = !(from && !mine); ff.textContent = `🎁 ${t('invite.from')}`; }
   if (mine) {
     const link = $('#inv-url').value;
-    $('#inv-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#inv-url').select(); });
-    $('#inv-share')?.addEventListener('click', () => navigator.share({ title: 'Ascendrya', text: t('ref.share'), url: link }).catch(() => {}));
+    $('#inv-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#inv-url').select(); track('ref', 'copy'); });
+    $('#inv-share')?.addEventListener('click', () => { track('ref', 'share'); return navigator.share({ title: 'Ascendrya', text: t('ref.share'), url: link }).catch(() => {}); });
     if (refCount === null) {
       refCount = 0;
       fetch(`api/preregister/ref/${encodeURIComponent(mine)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
@@ -289,12 +293,12 @@ const realLink = (u) => typeof u === 'string' && /^https:\/\//.test(u) && !/TON-
 function followHtml() {
   const s = SITE.socials ?? {};
   const links = Object.keys(ICONS).filter((k) => s[k]);
-  return links.length ? `<p class="follow">${t('ref.follow')}</p><div class="socials">${links.map((k) => `<a href="${esc(s[k])}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('')}</div>` : '';
+  return links.length ? `<p class="follow">${t('ref.follow')}</p><div class="socials">${links.map((k) => `<a href="${esc(s[k])}" data-track="thanks_social_${k}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('')}</div>` : '';
 }
 function renderSocials() {
   const s = SITE.socials ?? {};
   const links = Object.keys(NAMES).filter((k) => realLink(s[k]));
-  $('#socials').innerHTML = links.map((k) => `<a href="${esc(s[k])}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('');
+  $('#socials').innerHTML = links.map((k) => `<a href="${esc(s[k])}" data-track="social_${k}" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[k]}"/></svg>${NAMES[k]}</a>`).join('');
   $('.follow').hidden = !links.length;
 }
 
