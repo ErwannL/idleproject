@@ -8,6 +8,7 @@ import { bannerStats, canPay, featuredEnds, featuredUnit, normalizePool, permane
 import { companionById, duplicates } from '../../core/companions.js';
 import { walletAmount } from '../../core/wallet.js';
 import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
+import { currentFest, festRecord, festSummonSteps } from '../../core/fest.js'; // v10.14.1 : jalons de la grande fête
 import { animCanvas } from '../animator.js';
 import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, stars } from '../common.js';
 import { mGrid, mModes, mTabs, mTile, mTitle } from '../mobile-kit.js';
@@ -114,6 +115,20 @@ function card(ui, state, pool, head, body) {
   </div>`;
 }
 
+// v10.14.1 : pendant la grande fête, sous la vedette : « Jalons : 35 / 50 › » ouvre l'écran de la fête sur l'Aventure
+// (jalons d'invocation de la bannière limitée). Rien hors grande fête.
+export function festMilestoneLine(state) {
+  const f = currentFest();
+  if (!f || f.kind !== 'grand') return '';
+  const steps = festSummonSteps(state);
+  if (!steps.length) return '';
+  const n = festRecord(state)?.fest?.summons ?? 0;
+  const next = steps.find((x) => n < x.at) ?? steps[steps.length - 1];
+  const done = Math.min(n, next.at);
+  return `<button type="button" class="sum-fest-line" data-action="fest-hub-open" data-value="adventure" aria-label="${escapeHtml(`Jalons de la fête : ${done} sur ${next.at}. Ouvrir l'Aventure de la fête`)}">
+    <span class="sum-fest-txt">Jalons : <b class="num">${done} / ${next.at}</b></span><span class="sum-fest-bar"><i style="width:${Math.round((100 * done) / next.at)}%"></i></span><span class="sum-fest-go" aria-hidden="true">›</span></button>`;
+}
+
 function limitedCard(ui, state) {
   const f = featuredUnit('limited');
   // v9.3.0 : sans bannière vedette active dans la config live, la bannière limitée reste ouverte sans vedette.
@@ -126,7 +141,7 @@ function limitedCard(ui, state) {
       <div class="eco-feature-art">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
       <div class="eco-feature-info"><div class="vt-ribbon">✦ Vedette ✦</div><div class="vt-name">${escapeHtml(c.name)}</div>
         <div><span class="r-legendary rarity-text">Légendaire</span> ${role ? `· ${escapeHtml(role.label)}` : ''}${owned && !owned.trial ? ` · ${stars(duplicates(owned))}` : ''}</div>
-        <div class="muted"><span>Jusqu'au</span> ${dateText(featuredEnds() - 86400000)}</div></div></div>`;
+        <div class="muted"><span>Jusqu'au</span> ${dateText(featuredEnds() - 86400000)}</div></div></div>${festMilestoneLine(state)}`;
   return card(ui, state, 'limited', `${img('icon_summon')}<b>Bannière limitée</b>${walletChip(state, 'ticketLimited')}`, body);
 }
 
@@ -216,7 +231,7 @@ function mBannerBody(state, pool) {
     return `<div class="eco-feature m-sum-feature" style="--vt:${c.fx ?? '#f2c060'}"><div class="eco-feature-art">${hdArt(c, 'vt-art') || unitPortrait(f)}</div>
       <div class="eco-feature-info"><div class="vt-ribbon">✦ Vedette ✦</div><div class="vt-name">${escapeHtml(c.name)}</div>
         <div><span class="r-legendary rarity-text">Légendaire</span>${role ? ` · ${escapeHtml(role.label)}` : ''}${owned && !owned.trial ? ` · ${stars(duplicates(owned))}` : ''}</div>
-        <div class="muted">Jusqu'au ${dateText(featuredEnds() - 86400000)}</div></div></div>`;
+        <div class="muted">Jusqu'au ${dateText(featuredEnds() - 86400000)}</div></div></div>${festMilestoneLine(state)}`;
   }
   if (pool === 'permanent') {
     const wish = state.summon.wishlist ?? [];

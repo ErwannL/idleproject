@@ -865,6 +865,7 @@ export function createApp({
       const mode = url.searchParams.get('mode') === 'event' ? 'event' : 'global';
       return { body: guilds.ranking(mode, url.searchParams.get('period'), me) };
     } },
+    { method: 'GET', path: /^\/api\/worldboss\/bracket$/, handler: ({ req, url }) => ({ body: guilds.eventBracket(authenticate(req), url.searchParams.get('period')) }) }, // v10.14.1 : tranche de la fête
     { method: 'GET', path: /^\/api\/guild$/, handler: ({ req }) => ({ body: guilds.mine(authenticate(req)) }) },
     { method: 'GET', path: /^\/api\/guilds$/, handler: ({ url }) => ({ body: { guilds: guilds.search(url.searchParams.get('q')) } }) },
     { method: 'POST', path: /^\/api\/guilds$/, handler: async ({ req }) => ({ status: 201, body: guilds.create(authenticate(req), await readJson(req)) }) },

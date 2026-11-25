@@ -1206,7 +1206,7 @@ export class UI {
       case 'lights-all': { const r = a.lightsAll(); if (r?.length) this.chestReveal(Object.assign({}, ...r.map((x) => x.given)), 'Lanternes'); break; }
       case 'lights-buy': { const g = a.lightsBuy(value); if (g) this.chestReveal(g, 'Échoppe des Lueurs'); break; }
       // v10.14 : Fêtes du mois (ui/panels/event.js, core/fest.js) ; écran à part (ui/fest-hub.js) et Brèche.
-      case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); openFestHub(this, value || null); break;
+      case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); if (el.closest('#panel') && this.root?.classList?.contains('m-phone')) this.closePanel(); /* v10.14.1 : sur téléphone le panneau flotte au-dessus de l'écran de la fête */ openFestHub(this, value || null); break;
       case 'fest-hub-tab': festHubTab(this, value); break;
       case 'fest-hub-close': closeFestHub(this); this.invalidate(); break;
       case 'rift-start': a.riftStart(); break;

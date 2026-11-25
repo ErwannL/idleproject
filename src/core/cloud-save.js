@@ -142,6 +142,7 @@ export function createCloudClient({ baseUrl = '', storage, fetchImpl = globalThi
     wbReport: (report) => request('POST', '/api/worldboss/report', { body: report }),
     wbGlobal: () => request('GET', '/api/worldboss/global', { auth: false }),
     wbRanking: (mode, period = '') => request('GET', `/api/worldboss/ranking?mode=${mode}&period=${encodeURIComponent(period)}`, { auth: 'optional' }),
+    wbBracket: (event) => request('GET', `/api/worldboss/bracket?period=${encodeURIComponent(event)}`), // v10.14.1 : tranche du World Boss de fête
     guild: () => request('GET', '/api/guild'),
     guilds: (q = '') => request('GET', `/api/guilds?q=${encodeURIComponent(q)}`, { auth: false }),
     guildCreate: (data) => request('POST', '/api/guilds', { body: data }),

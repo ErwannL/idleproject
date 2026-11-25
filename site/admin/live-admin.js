@@ -180,7 +180,7 @@
       box.innerHTML = Object.entries(spec).map(([k, p]) => {
         const v = val[k] ?? p.def;
         if (p.type === 'bool') return `<label>${esc(p.label)}<select data-param="${k}" data-type="bool"><option value="1"${v ? ' selected' : ''}>Oui</option><option value="0"${v ? '' : ' selected'}>Non</option></select></label>`;
-        if (p.type === 'enum') return `<label>${esc(p.label)}<select data-param="${k}" data-type="enum">${p.values.map((x) => `<option${x === v ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`;
+        if (p.type === 'enum') return `<label>${esc(p.label)}<select data-param="${k}" data-type="enum">${p.values.map((x) => `<option value="${esc(x)}"${x === v ? ' selected' : ''}>${esc(p.labels?.[x] ?? x)}</option>`).join('')}</select></label>`;
         return `<label>${esc(p.label)} <small>(${p.min} à ${p.max})</small><input data-param="${k}" data-type="${p.type}" type="number" step="${p.type === 'int' ? 1 : 0.1}" min="${p.min}" max="${p.max}" value="${v}"></label>`;
       }).join('');
     } else if (kind === 'announcement') {
