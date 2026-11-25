@@ -204,6 +204,40 @@
       .reveal { opacity: 1; transform: none; transition: none; }
       .logo, .slogan, .pitch, .platforms, .hero .btn { animation: none; }
     }
+    /* 10.8.3 : section Parrainage (visible avant l'inscription) */
+    .invite { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--line); border-radius: var(--r); padding: 24px 18px; box-shadow: 0 18px 40px rgba(0,0,0,.35); display: grid; gap: 22px; }
+    .inv-from, .from-friend { margin: 0; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--gold); background: rgba(242,180,58,.12); font-weight: 800; text-align: center; }
+    .from-friend { margin-bottom: 14px; }
+    .inv-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; counter-reset: st; }
+    .inv-steps li { counter-increment: st; background: #0d1530; border: 1px solid var(--line); border-radius: 14px; padding: 16px 14px; display: grid; gap: 6px; justify-items: center; text-align: center; }
+    .inv-steps li::before { content: counter(st); font: 14px/1 var(--pixel); color: #1d1000; background: var(--gold-soft); border: 2px solid var(--gold-deep); border-radius: 10px; padding: 8px 10px; }
+    .inv-steps b { font-size: 15px; } .inv-steps span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .inv-track { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .inv-track::before { content: ''; position: absolute; left: 10%; right: 10%; top: 50px; height: 4px; background: var(--line); border-radius: 4px; }
+    .inv-track { list-style: none; margin: 0; padding: 0; }
+    .inv-track .rw { position: relative; display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; }
+    .inv-track .ic { width: 100px; height: 100px; display: grid; place-items: center; border-radius: 50%; background: #0d1530; border: 3px solid var(--line); }
+    .inv-track .ic img { width: 64px; height: 64px; object-fit: contain; }
+    .inv-track .n { font: 10px/1.3 var(--pixel); color: var(--ice); }
+    .inv-track .r { font-weight: 800; font-size: 13px; line-height: 1.3; }
+    .inv-track .rw.got .ic { border-color: var(--ok); box-shadow: 0 0 18px rgba(111,224,138,.45); }
+    .inv-track .rw.next .ic { border-color: var(--gold); box-shadow: 0 0 18px rgba(242,180,58,.5); }
+    .inv-track .rw.top .ic { border-color: var(--violet); box-shadow: 0 0 22px rgba(183,140,255,.5); }
+    .inv-act { display: grid; gap: 10px; justify-items: center; text-align: center; }
+    .inv-act p { margin: 0; color: var(--muted); }
+    .inv-act .mine { width: 100%; max-width: 560px; display: grid; gap: 10px; }
+    .inv-act .count { font-weight: 800; color: var(--text); }
+    .inv-act .ref-share .btn { padding: 10px 16px; font-size: 14px; }
+    .inv-fine { margin: 0; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 720px) {
+      .inv-steps { grid-template-columns: 1fr; }
+      .inv-steps li { grid-template-columns: auto 1fr; justify-items: start; text-align: left; align-items: center; }
+      .inv-steps li::before { grid-row: span 2; }
+      .inv-track { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+      .inv-track::before { top: 32px; }
+      .inv-track .ic { width: 64px; height: 64px; border-width: 2px; } .inv-track .ic img { width: 40px; height: 40px; }
+      .inv-track .r { font-size: 11px; } .inv-track .n { font: 800 11px/1.2 var(--body); white-space: nowrap; }
+    }
   </style>
 </head>
 <body>
@@ -213,6 +247,7 @@
       <a class="brand" href="#top"><img src="assets/icon.png" alt="" width="28" height="28" class="px">ASCENDRYA</a>
       <nav aria-label="Menu">
         <a href="#rewards" data-t="nav.rewards">Rewards</a>
+        <a href="#invite" data-t="nav.invite">Invite friends</a>
         <a href="#discover" data-t="nav.discover">Discover</a>
       </nav>
       <div class="langs" id="langs" role="group" aria-label="Language" data-t-attr="aria-label:nav.lang"></div>
@@ -255,6 +290,15 @@
       </div>
     </section>
 
+    <section class="block wrap" id="invite" aria-labelledby="t-inv">
+      <div class="head reveal">
+        <div class="kicker" data-t="invite.kicker">Referral</div>
+        <h2 id="t-inv" data-t="invite.title">Invite your friends, win together</h2>
+        <p data-t="invite.lead">Every friend who pre-registers with your link earns you rewards at launch, and moves the counter forward for everyone.</p>
+      </div>
+      <div class="invite reveal" id="invite-box"></div>
+    </section>
+
     <section class="block wrap" id="discover" aria-labelledby="t-disc">
       <div class="head reveal">
         <div class="kicker" data-t="discover.kicker">Discover Ascendrya</div>
@@ -274,6 +318,7 @@
       <div class="signup reveal">
         <h2 id="t-join" data-t="form.title">JOIN THE ADVENTURE!</h2>
         <p data-t="form.lead">Get the launch announcement and every milestone reward. One email, nothing else.</p>
+        <p class="from-friend" id="from-friend" hidden></p>
         <form id="prereg" novalidate>
           <label class="lbl" for="email" data-t="form.email">Email address</label>
           <input id="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@email.com" data-t-attr="placeholder:form.placeholder">

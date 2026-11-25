@@ -56,6 +56,7 @@ async function setLang(code, push = false) {
   $('#reel-toggle').setAttribute('aria-label', t(reelPaused ? 'hero.play' : 'hero.pause'));
   renderGoal();
   renderSocials();
+  renderInvite();
 }
 $('#langs').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (b && b.dataset.lang !== lang) setLang(b.dataset.lang, true); });
 
@@ -166,7 +167,9 @@ form.addEventListener('submit', async (event) => {
     const data = await res.json().catch(() => ({}));
     form.reset();
     say('form.ok', true);
+    if (data.ref) store.set('ascendrya-myref', data.ref);
     showThanks(data.ref);
+    renderInvite();
     document.body.classList.add('registered'); // la barre flottante ne passe plus par-dessus l'encadré (téléphone)
     loadGoals();
   } catch { say('form.errNet'); } finally { btn.disabled = false; }
@@ -224,6 +227,52 @@ function showThanks(ref) {
   fetch(`api/preregister/ref/${encodeURIComponent(ref)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
     .then((d) => { if (d && Number.isFinite(d.count)) $('#ref-count').textContent = t('ref.count', d.count); }).catch(() => {});
   $('#ref-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#ref-url').select(); });
+}
+
+// ---------- 10.8.3 : section Parrainage, visible avant l'inscription ----------
+// Paliers de parrainage (mêmes que ref.steps) : nombre d'amis et image.
+const REF_STEPS = [[1, 'assets/icon_gem.png'], [3, 'assets/shop/hero_ticket_permanent.webp'], [5, 'assets/shop/theme_legendary.webp'], [10, 'assets/shop/hero_ticket_limited.webp'], [25, 'assets/px/pet_kitsune.webp']];
+let refCount = null; // filleuls confirmés du visiteur (lien gardé sur cet appareil après l'inscription)
+function renderInvite() {
+  const box = $('#invite-box'); if (!box) return;
+  const mine = store.get('ascendrya-myref');
+  const from = store.ss('ascendrya-ref');
+  const names = t('ref.steps');
+  const n = refCount ?? 0;
+  const nextI = REF_STEPS.findIndex(([k]) => n < k);
+  const track = REF_STEPS.map(([k, img], i) => {
+    const cls = mine && n >= k ? 'got' : mine && i === nextI ? 'next' : i === REF_STEPS.length - 1 ? 'top' : '';
+    return `<li class="rw ${cls}"><div class="ic"><img class="px" src="${img}" alt="" loading="lazy" decoding="async"></div><span class="n">${esc(names[i]?.[0] ?? k)}</span><span class="r">${esc(names[i]?.[1] ?? '')}</span></li>`;
+  }).join('');
+  const steps = t('invite.steps').map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join('');
+  let act;
+  if (mine) {
+    const link = `https://${SITE.domain}/?ref=${encodeURIComponent(mine)}`;
+    const msg = encodeURIComponent(`${t('ref.share')} ${link}`);
+    const left = nextI < 0 ? t('invite.all') : t('invite.left', REF_STEPS[nextI][0] - n, names[nextI]?.[1] ?? '');
+    act = `<div class="mine"><b>${esc(t('invite.mine'))}</b>
+      <div class="ref-link"><input id="inv-url" readonly value="${esc(link)}" aria-label="${esc(t('invite.mine'))}"><button type="button" class="btn" id="inv-copy">${esc(t('ref.copy'))}</button></div>
+      <div class="ref-share"><a class="btn" target="_blank" rel="noopener" href="https://x.com/intent/post?text=${msg}">X</a><a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${msg}">WhatsApp</a>${navigator.share ? `<button type="button" class="btn" id="inv-share">${esc(t('invite.share'))}</button>` : ''}</div>
+      <p class="count">${esc(t('ref.count', n))}</p><p>${esc(left)}</p></div>`;
+  } else {
+    act = `<a class="btn big" href="#join">${esc(t('invite.cta'))}</a><p>${esc(t('invite.ctaNote'))}</p>`;
+  }
+  box.innerHTML = `${from && !mine ? `<p class="inv-from">🎁 ${esc(t('invite.from'))}</p>` : ''}
+    <ol class="inv-steps">${steps}</ol>
+    <ol class="inv-track">${track}</ol>
+    <div class="inv-act">${act}</div>
+    <p class="inv-fine">${esc(t('invite.fine'))}</p>`;
+  const ff = $('#from-friend'); if (ff) { ff.hidden = !(from && !mine); ff.textContent = `🎁 ${t('invite.from')}`; }
+  if (mine) {
+    const link = $('#inv-url').value;
+    $('#inv-copy').addEventListener('click', () => { navigator.clipboard?.writeText(link).catch(() => {}); $('#inv-url').select(); });
+    $('#inv-share')?.addEventListener('click', () => navigator.share({ title: 'Ascendrya', text: t('ref.share'), url: link }).catch(() => {}));
+    if (refCount === null) {
+      refCount = 0;
+      fetch(`api/preregister/ref/${encodeURIComponent(mine)}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (d && Number.isFinite(d.count)) { refCount = d.count; renderInvite(); } }).catch(() => {});
+    }
+  }
 }
 
 // ---------- Réseaux ----------
