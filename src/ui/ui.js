@@ -1214,8 +1214,9 @@ export class UI {
       case 'rift-fight': { const r = a.riftFight(); if (r?.given && Object.keys(r.given).length) this.chestReveal(r.given, `Brèche · palier ${r.floor} pour la première fois`); else if (r?.end) this.chestReveal({}, `Brèche terminée : ${r.end.cleared} palier${r.end.cleared > 1 ? 's' : ''}`, `+${r.end.coins} gagnés pendant la course`); break; }
       case 'rift-pick': a.riftPick(value); break;
       case 'rift-quit': a.riftQuit(); break;
-      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); this.invalidate(); break; }
-      case 'fest-chain': a.festChain(Number(value)); this.invalidate(); break;
+      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); if (r?.won === false && this.festHub) this.festHub.lost = { n: Number(value), at: Date.now() }; this.invalidate(); break; }
+      case 'fest-chain': { const r = a.festChain(Number(value)); if (r && this.festHub) this.festHub.lost = { n: Number(value) + (r.won ?? 0), at: Date.now() }; this.invalidate(); break; } // la chaîne s'arrête sur le gardien trop solide
+      case 'fest-hub-go': closeFestHub(this); this.openTab(value); break; // v10.14.1 : ferme l'écran de la fête puis ouvre l'onglet (Forge, Invocation, Compagnons)
       case 'fest-boss':
         openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => a.festBossFinish(setup, r), left: () => a.festBossLeft(), closed: () => this.invalidate() });
         break;

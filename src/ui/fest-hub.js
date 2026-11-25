@@ -128,7 +128,7 @@ function hubHtml(state, f, tab, hub = {}) {
       <button type="button" class="fh-close" data-action="fest-hub-close" aria-label="Fermer">✕</button>
     </header>
     ${pause}
-    <main class="fh-main">${body(state, f)}</main>
+    <main class="fh-main">${body(state, f, hub)}</main>
     <nav class="fh-nav">${nav}</nav>`;
 }
 
@@ -152,46 +152,92 @@ export function festHubHelp(ui) {
 }
 
 // ---- Aventure : Carte du héros ----------------------------------------------------------------------------------
-function adventure(state, f) {
+// Jalons d'invocation : une barre continue qui passe par les 5 récompenses (posées dessus), position actuelle marquée.
+function summonTrack(state, f) {
+  const steps = festSummonSteps(state);
+  const have = festRecord(state).fest.summons;
+  if (!steps.length) return '';
+  const n = steps.length;
+  const centre = (i) => ((i + 0.5) / n) * 100;
+  let fill = 100;
+  if (have < steps[n - 1].at) {
+    let prevAt = 0;
+    let prevPos = 0;
+    for (let i = 0; i < n; i += 1) {
+      if (have <= steps[i].at) { fill = prevPos + ((have - prevAt) / (steps[i].at - prevAt)) * (centre(i) - prevPos); break; }
+      prevAt = steps[i].at;
+      prevPos = centre(i);
+    }
+  }
+  const next = steps.find((s) => s.at > have);
+  const ready = steps.filter((s) => s.reached && !s.claimed).length;
+  const tiles = steps.map((s) => {
+    const cls = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
+    return `<button type="button" class="fh-ms ${cls}" ${s.reached && !s.claimed ? `data-action="fest-step" data-value="s${s.index}"` : 'disabled'} title="${s.at} invocations">
+      <span class="fh-ms-gift">${festGive(s.give)}</span>${s.claimed ? '<i class="fh-ms-ok">✓</i>' : ''}<small class="num">${s.at}</small></button>`;
+  }).join('');
+  const dots = steps.map((s, i) => `<i class="fh-ms-dot${have >= s.at ? ' on' : ''}" style="left:${centre(i)}%"></i>`).join('');
+  return `<div class="fh-summons"><b class="fh-h">${img('icon_summon')} Jalons d'invocation</b>
+    <div class="fh-ms-row">${tiles}</div>
+    <div class="fh-ms-bar" role="progressbar" aria-valuenow="${have}" aria-valuemin="0" aria-valuemax="${steps[n - 1].at}"><i class="fh-ms-fill" style="width:${fill.toFixed(1)}%"></i>${dots}
+      <i class="fh-ms-pos" style="left:${fill.toFixed(1)}%"></i><b class="fh-ms-label num">${have}${next ? ` / ${next.at}` : ''}</b></div>
+    ${ready > 1 ? `<button type="button" class="m-btn fh-wide" data-action="fest-steps-all">Tout récupérer (${ready})</button>` : ''}</div>`;
+}
+
+function adventure(state, f, hub = {}) {
   const rec = festRecord(state);
   const per = FEST_RULES.map.stagesPerRegion;
   const next = rec.cleared + 1;
   const total = festTotalStages();
   const open = f.phase === 'play';
   const N = per;
-  const xy = (i) => [6 + (i * 88) / (N - 1), 52 + Math.sin(i * 0.9 + 0.4) * 24];
+  const xy = (i) => [6 + (i * 88) / (N - 1), 66 + Math.sin(i * 0.9 + 0.4) * 14];
   const road = Array.from({ length: N - 1 }, (_, i) => { const [x1, y1] = xy(i), [x2, y2] = xy(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
   const tints = ['rgba(255,190,120,.10)', 'rgba(120,80,200,.22)', 'rgba(20,10,40,.45)'];
-  const regions = (f.regions ?? []).slice(0, FEST_RULES.map.regions).map((name, ri) => {
+  const M = FEST_RULES.map;
+  const regions = (f.regions ?? []).slice(0, M.regions).map((name, ri) => {
     const doneR = rec.cleared >= (ri + 1) * per;
     const nodes = Array.from({ length: N }, (_, i) => {
       const n = ri * per + i + 1;
       const [x, y] = xy(i);
       const st = n <= rec.cleared ? 'done' : n === next ? 'next' : 'off';
-      const mark = n === FEST_RULES.map.fragmentStage ? img('icon_crown') : n === FEST_RULES.map.bossUnlockStage ? img('icon_boss') : n % per === 0 ? img('icon_chest') : `<b class="num">${n}</b>`;
-      return `<span class="fh-node ${st}" style="left:${x}%;top:${y}%">${mark}${n === next && open ? `<span class="fh-hero">${sprite(f.featured)}</span>` : ''}</span>`;
+      const special = n === M.fragmentStage ? 'crown' : n === M.bossUnlockStage ? 'boss' : n % per === 0 ? 'chest' : '';
+      const mark = special ? img(`icon_${special}`) : `<b class="num">${n}</b>`;
+      const tip = n === M.fragmentStage ? `Étape ${n} : fragment Légendaire universel`
+        : n === M.bossUnlockStage ? `Étape ${n} : débloque le World Boss · +${M.stageCoins + M.regionCoins} ${f.currency}`
+          : n % per === 0 ? `Étape ${n} : coffre de région · +${M.stageCoins + M.regionCoins} ${f.currency}` : `Étape ${n} : +${M.stageCoins} ${f.currency}`;
+      return `<span class="fh-node ${st}${special ? ` sp-${special}` : ''}" style="left:${x}%;top:${y}%" title="${escapeHtml(tip)}">${mark}${n === next && open ? `<span class="fh-hero">${sprite(f.featured)}</span>` : ''}</span>`;
     }).join('');
-    return `<div class="fh-region${doneR ? ' cleared' : ''}" style="background-image:linear-gradient(${tints[ri]},${tints[ri]}),url(${bgOf(f.zone)})">
-      <span class="fh-region-name">${escapeHtml(name)}</span>${doneR ? '<span class="fh-region-done">✓ Région libérée</span>' : ''}
-      <svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div>`;
+    const art = f.art?.regions?.[ri];
+    const bg = art ? `linear-gradient(180deg,rgba(11,17,36,0),rgba(11,17,36,.3)),url(${art})` : `linear-gradient(${tints[ri]},${tints[ri]}),url(${bgOf(f.zone)})`;
+    return `<div class="fh-region${doneR ? ' cleared' : ''}"><div class="fh-region-head"><span class="fh-region-name">${escapeHtml(name)}</span>${doneR ? '<span class="fh-region-done">✓ Région libérée</span>' : ''}</div>
+      <div class="fh-stage" style="background-image:${bg}"><svg class="fh-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${road}"/></svg>${nodes}</div></div>`;
   }).join('');
-  const bonus = featuredInTeam(state, f);
+  // Combat : Combattre (sombre) et Enchaîner (doré) sur une ligne ; une défaite fait trembler la carte et propose d'améliorer.
+  const since = Date.now() - (hub.lost?.at ?? 0);
+  const lost = hub.lost?.n === next;
+  const shake = lost && since < 450 && !reduceMotion() ? ` shake" style="animation-delay:-${Math.round(since)}ms` : '';
   const fight = next <= total
-    ? `<div class="fh-card fh-fight"><span><b>Étape ${next}</b><small>Gardien niv. ${stageLabel(festStageLevel(state, next))} · combat de ${FEST_RULES.map.fightSeconds} s</small></span>
+    ? `<div class="fh-card fh-fight${lost ? ' lost' : ''}${shake}"><span class="fh-fight-info"><b>Étape ${next}</b><span class="fh-power">Gardien niv. ${stageLabel(festStageLevel(state, next))}</span><small>combat de ${M.fightSeconds} s</small></span>
+        ${lost ? '<button type="button" class="m-btn fh-upgrade" data-action="fest-hub-go" data-value="forge">Améliorer ›</button>' : ''}
         <button type="button" class="m-btn" data-action="fest-fight" data-value="${next}" ${open ? '' : 'disabled'}>Combattre</button>
         <button type="button" class="m-btn-gold" data-action="fest-chain" data-value="${next}" ${open ? '' : 'disabled'}>${img('icon_map')}<span>Enchaîner</span></button></div>`
     : '<div class="fh-card good">Carte terminée : bravo !</div>';
-  const summons = festSummonSteps(state);
+  // Bonus du héros du mois : badge vert dans l'équipe, sinon il propose de le mettre dans l'équipe ou de l'invoquer.
+  const bonus = featuredInTeam(state, f);
+  const pct = `+${Math.round(M.featuredBonus * 100)} % de ${escapeHtml(f.currency)}`;
+  const owned = Boolean(state.companions?.owned?.[f.featured]);
+  const badge = bonus ? `<span class="fh-bonus on"><b>✓ ${pct}</b><small>Dans l'équipe</small></span>`
+    : open ? `<button type="button" class="fh-bonus act" data-action="fest-hub-go" data-value="${owned ? 'companions' : 'summon'}"><b>${pct}</b><small>${owned ? 'Mettre dans l\'équipe ›' : 'Invoquer ›'}</small></button>`
+      : `<span class="fh-bonus"><b>${pct}</b><small>avec le héros dans l'équipe</small></span>`;
   return `<div class="fh-adv">
-    <section class="fh-herocol">
-      <div class="fh-hero-card">${unitArt(f.featured, 'big')}<small>Héros du mois</small><b>${escapeHtml(unitName(f.featured))}</b>
-        <span class="fh-bonus${bonus ? ' on' : ''}">${bonus ? '✓ Dans l\'équipe' : 'Dans l\'équipe'} : +${Math.round(FEST_RULES.map.featuredBonus * 100)} % de ${escapeHtml(f.currency)}</span>
-        ${open ? `<button type="button" class="m-btn" data-action="open-tab" data-value="summon">${img('icon_summon')}<span>Invoquer</span></button>` : ''}</div>
-      ${festSteps(f, summons, 's', `Jalons · ${festRecord(state).fest.summons} invocations`, 'invocations')}
-    </section>
     <section class="fh-mapcol"><b class="fh-h">${img('icon_map')} Carte de ${escapeHtml(unitName(f.featured))} · ${rec.cleared}/${total}</b>
       <div class="fh-map">${regions}</div>${fight}
-      <small class="fh-help">Étape ${FEST_RULES.map.bossUnlockStage} : World Boss · étape ${FEST_RULES.map.fragmentStage} : fragment Légendaire universel ${festGive({ ssrFragment: 1 })}</small></section>
+      <small class="fh-help">Étape ${M.bossUnlockStage} : World Boss · étape ${M.fragmentStage} : fragment Légendaire universel ${festGive({ ssrFragment: 1 })}</small></section>
+    <section class="fh-herocol">
+      <div class="fh-hero-card">${unitArt(f.featured, 'big')}<small>Héros du mois</small><b>${escapeHtml(unitName(f.featured))}</b>${badge}</div>
+      ${summonTrack(state, f)}
+    </section>
   </div>`;
 }
 

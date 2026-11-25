@@ -266,7 +266,9 @@
 #app .fest-hub .fh-timer small { font-size: 12px; font-weight: 400; color: #9fb0d8; }
 #app .fest-hub .fh-wallet { gap: 6px; padding: 4px 12px 4px 8px; }
 #app .fest-hub .fh-wallet b { font-size: 18px; }
-#app .fest-hub .fh-wallet small { font-size: 12px; }
+#app .fest-hub .fh-wallet small { font-size: 12px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app .fest-hub .fh-close { width: 44px; height: 44px; }
+#app .fest-hub .fh-summons .fh-wide { margin-top: 12px; }
 #app .fest-hub .fh-wallet .lt-cur { width: 28px; height: 28px; }
 #app .fest-hub .fh-wallet.bump .lt-cur, #app .fest-hub .fh-wallet.bump b { animation: fh-bump 450ms cubic-bezier(.3, 1.6, .5, 1) both; }
 @keyframes fh-bump { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
@@ -288,7 +290,7 @@
   #app .fest-hub .fh-head { flex: 1 1 100%; }
   #app .fest-hub .fh-title b { font-size: 17px; }
   #app .fest-hub .fh-timer { padding: 2px 10px; }
-  #app .fest-hub .fh-wallet { flex: 1 1 auto; justify-content: center; }
+  #app .fest-hub .fh-wallet { flex: 1 1 0; min-width: 0; justify-content: center; }
   #app .fest-hub .fh-nav { gap: 4px; padding-left: 6px; padding-right: 6px; }
   #app .fest-hub .fh-tab { min-height: 88px; padding: 6px 2px 5px; }
   #app .fest-hub .fh-tab b { font-size: 12px; }
@@ -301,10 +303,94 @@
 #app.m-phone .fest-hub .fh-head { flex: 1 1 100%; }
 #app.m-phone .fest-hub .fh-title b { font-size: 17px; }
 #app.m-phone .fest-hub .fh-timer { padding: 2px 10px; }
-#app.m-phone .fest-hub .fh-wallet { flex: 1 1 auto; justify-content: center; }
+#app.m-phone .fest-hub .fh-wallet { flex: 1 1 0; min-width: 0; justify-content: center; }
 #app.m-phone .fest-hub .fh-nav { gap: 4px; padding-left: 6px; padding-right: 6px; }
 #app.m-phone .fest-hub .fh-tab { min-height: 88px; padding: 6px 2px 5px; }
 #app.m-phone .fest-hub .fh-tab b { font-size: 12px; }
 #app.m-phone .fest-hub .fh-tab-art, #app.m-phone .fest-hub .fh-tab-art img, #app.m-phone .fest-hub .fh-tab-art .fh-boss-art.mini { width: 56px; height: 56px; max-width: 56px; max-height: 56px; }
 #app.m-phone .fest-hub .fh-badge { right: 4px; }
 #app.m-phone .fest-hub .fh-swap { padding: 8px 10px; }
+
+/* ===== v10.14.1 — § 5.2 : Aventure ===== */
+html.reduce-motion #app .fest-hub * { animation: none !important; transition: none !important; }
+#app .fest-hub .fh-adv { grid-template-columns: minmax(0, 60%) minmax(0, 1fr); gap: 16px; }
+#app .fest-hub .fh-mapcol { order: 0; min-width: 0; }
+#app .fest-hub .fh-herocol { min-width: 0; gap: 12px; }
+#app .fest-hub .fh-map { gap: 10px; }
+#app .fest-hub .fh-region { height: auto; border: 0; background: none; overflow: visible; display: flex; flex-direction: column; gap: 4px; image-rendering: auto; }
+#app .fest-hub .fh-region-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#app .fest-hub .fh-region-name { position: static; padding: 3px 14px; border: 1.5px solid #c9a14a; border-radius: 8px; background: linear-gradient(180deg, #3a2f12, #241c0a); color: #f3d27a; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+#app .fest-hub .fh-region-done { position: static; font-size: 12px; }
+#app .fest-hub .fh-stage { position: relative; height: 170px; border: 2px solid var(--fh-accent, #c9a14a); border-radius: 14px; overflow: hidden; background-size: cover; background-position: center; image-rendering: pixelated; }
+#app .fest-hub .fh-region.cleared .fh-stage { border-color: #5be37d; }
+#app .fest-hub .fh-region.cleared .fh-stage::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 110%, rgba(255,232,160,.34), transparent 70%); pointer-events: none; }
+#app .fest-hub .fh-node { width: 40px; height: 40px; font-size: 14px; }
+#app .fest-hub .fh-node .num { font-size: 14px; }
+#app .fest-hub .fh-node img { width: 26px; height: 26px; }
+#app .fest-hub .fh-node.done::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #2f9d55; color: #fff; font-size: 12px; font-weight: 800; line-height: 16px; text-align: center; }
+#app .fest-hub .fh-node.next { animation: fh-pulse 1.4s ease-in-out infinite; }
+@keyframes fh-pulse { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--fh-accent, #f3d27a) 14%, transparent), 0 0 20px var(--fh-accent, #f3d27a); } }
+#app .fest-hub .fh-node .fh-hero { bottom: calc(100% - 2px); }
+#app .fest-hub .fh-node .fh-hero .fh-sprite { width: 56px; height: 56px; filter: drop-shadow(0 3px 3px rgba(0,0,0,.6)); }
+#app .fest-hub .fh-fight { gap: 8px 12px; flex-wrap: wrap; transition: border-color .2s; }
+#app .fest-hub .fh-card.fh-fight > span.fh-fight-info { display: flex; flex-direction: column; gap: 1px; flex: 1 1 170px; min-width: 0; }
+#app .fest-hub .fh-fight-info > b { font-size: 16px; }
+#app .fest-hub .fh-power { font-size: 15px; font-weight: 700; color: #fff; }
+#app .fest-hub .fh-fight .m-btn, #app .fest-hub .fh-fight .m-btn-gold { white-space: nowrap; }
+#app .fest-hub .fh-fight { position: sticky; bottom: 4px; z-index: 3; background: #18223f; box-shadow: 0 -6px 14px rgba(11,17,36,.8); } /* PC : le bouton Enchaîner reste visible */
+#app .fest-hub .fh-fight.lost { border-color: #ff6b6b; }
+#app .fest-hub .fh-fight.shake { animation: fh-shake 400ms ease-in-out both; }
+@keyframes fh-shake { 20% { transform: translateX(-7px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+#app#app .fest-hub .fh-fight .fh-upgrade { border-color: #ff6b6b; color: #ffd0d0; }
+#app .fest-hub .fh-hero-card { padding: 14px 12px; }
+#app .fest-hub .fh-hero-card > small { font-size: 12px; }
+#app .fest-hub .fh-hero-card .fest-unit-art.big { max-height: 230px; }
+#app .fest-hub .fh-bonus { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 44px; padding: 4px 16px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(11,17,36,.75); color: #cdd8f5; font: inherit; line-height: 1.25; }
+#app .fest-hub .fh-bonus b { font-size: 14px; color: inherit; }
+#app .fest-hub .fh-bonus small { font-size: 12px; letter-spacing: 0; text-transform: none; color: #9fb0d8; }
+#app .fest-hub .fh-bonus.on { border-color: #5be37d; background: rgba(20,70,40,.75); color: #7dffa0; }
+#app .fest-hub .fh-bonus.on small { color: #b8f0c8; }
+#app .fest-hub .fh-bonus.act { cursor: pointer; border-color: var(--fh-accent, #c9a14a); color: #fff; }
+#app .fest-hub .fh-bonus.act small { color: var(--fh-accent, #f3d27a); font-weight: 700; }
+#app .fest-hub .fh-summons { padding: 10px 10px 14px; border: 1.5px solid #2c3a66; border-radius: 12px; background: rgba(24,34,63,.9); }
+#app .fest-hub .fh-summons .fh-h { margin-top: 0; }
+#app .fest-hub .fh-ms-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#app .fest-hub .fh-ms { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 4px; margin: 0 3px; padding: 6px 2px 4px; min-height: 76px; border: 1.5px solid #2c3a66; border-radius: 10px; background: rgba(11,17,36,.85); color: #fff; font: inherit; }
+#app .fest-hub .fh-ms-gift { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 13px; }
+#app .fest-hub .fh-ms small { font-size: 12px; color: #9fb0d8; }
+#app .fest-hub .fh-ms.ready { border-color: var(--fh-accent, #f3d27a); box-shadow: 0 0 10px color-mix(in srgb, var(--fh-accent, #f3d27a) 55%, transparent); cursor: pointer; }
+#app .fest-hub .fh-ms.claimed { opacity: .55; }
+#app .fest-hub .fh-ms-ok { position: absolute; top: 1px; right: 4px; color: #5be37d; font-style: normal; font-weight: 800; font-size: 13px; }
+#app .fest-hub .fh-ms-bar { position: relative; height: 24px; margin-top: 12px; border: 1.5px solid #2c3a66; border-radius: 12px; background: #0b1124; }
+#app .fest-hub .fh-ms-fill { position: absolute; inset: 0 auto 0 0; border-radius: 11px; background: linear-gradient(90deg, color-mix(in srgb, var(--fh-accent, #c9a14a) 45%, #0b1124), var(--fh-accent, #c9a14a)); transition: width .3s; }
+#app .fest-hub .fh-ms-dot { position: absolute; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #0b1124; background: #3a4a7a; }
+#app .fest-hub .fh-ms-dot.on { background: #fff; }
+#app .fest-hub .fh-ms-pos { position: absolute; top: -9px; width: 0; height: 0; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #fff; border-bottom: 0; }
+#app .fest-hub .fh-ms-label { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: #fff; text-shadow: 0 1px 2px #000, 0 0 4px #000; pointer-events: none; }
+@media (max-width: 720px) {
+  #app .fest-hub .fh-adv { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  #app .fest-hub .fh-stage { height: 150px; }
+  #app .fest-hub .fh-region { height: auto; }
+  #app .fest-hub .fh-node { width: 34px; height: 34px; font-size: 13px; }
+  #app .fest-hub .fh-node .num { font-size: 13px; }
+  #app .fest-hub .fh-node img { width: 22px; height: 22px; }
+  #app#app .fest-hub .fh-fight .m-btn, #app#app .fest-hub .fh-fight .m-btn-gold { flex: 1 1 0; padding: 0 8px; }
+  #app .fest-hub .fh-card.fh-fight > span.fh-fight-info { flex-basis: 100%; }
+  #app .fest-hub .fh-fight { position: static; box-shadow: none; }
+  #app .fest-hub .fh-hero-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; justify-items: start; text-align: left; }
+  #app .fest-hub .fh-hero-card .fest-unit-art.big { grid-row: 1 / 4; max-height: 150px; justify-self: center; }
+  #app .fest-hub .fh-bonus { align-items: flex-start; align-self: start; }
+}
+/* téléphone (#app.m-phone) */
+#app.m-phone .fest-hub .fh-adv { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+#app.m-phone .fest-hub .fh-stage { height: 150px; }
+#app.m-phone .fest-hub .fh-region { height: auto; }
+#app.m-phone .fest-hub .fh-node { width: 34px; height: 34px; font-size: 13px; }
+#app.m-phone .fest-hub .fh-node .num { font-size: 13px; }
+#app.m-phone .fest-hub .fh-node img { width: 22px; height: 22px; }
+#app#app.m-phone .fest-hub .fh-fight .m-btn, #app#app.m-phone .fest-hub .fh-fight .m-btn-gold { flex: 1 1 0; padding: 0 8px; }
+#app.m-phone .fest-hub .fh-card.fh-fight > span.fh-fight-info { flex-basis: 100%; }
+#app.m-phone .fest-hub .fh-fight { position: static; box-shadow: none; }
+#app.m-phone .fest-hub .fh-hero-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; align-items: center; justify-items: start; text-align: left; }
+#app.m-phone .fest-hub .fh-hero-card .fest-unit-art.big { grid-row: 1 / 4; max-height: 150px; justify-self: center; }
+#app.m-phone .fest-hub .fh-bonus { align-items: flex-start; align-self: start; }
