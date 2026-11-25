@@ -114,7 +114,11 @@ def install():
             else:
                 dy = FOOT - (b3 if anim.endswith('3') else b1)
             f = f.transform(f.size, Image.AFFINE, (1, 0, 0, 0, 1, -dy), Image.NEAREST)
-            sh.paste(f, (i * FRAME, 0))
+            # Réduit de 1/8 (plus proche voisin) : à l'échelle de la phase 3 (x1,33) le ver tient dans l'écran, sans toucher le bord
+            small = f.resize((FRAME * 7 // 8, FRAME * 7 // 8), Image.NEAREST)
+            cell = Image.new('RGBA', (FRAME, FRAME))
+            cell.paste(small, (2, FOOT - round(FOOT * 7 / 8)))
+            sh.paste(cell, (i * FRAME, 0))
         sh.save(os.path.join(dst, f'sand_wyrm_{anim}.png'), optimize=True)
         print('installé', anim, n)
 
