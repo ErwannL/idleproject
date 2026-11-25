@@ -75,7 +75,8 @@ export function riftTab(state, f) {
       const b = RIFT_BLESSINGS[id];
       return `<button type="button" class="fh-bless${el !== null ? ' fh-flip' : ''}" ${el !== null ? `style="animation-delay:${i * 200 - el}ms"` : ''} data-action="rift-pick" data-value="${id}">${blessArt(id, 'fh-bless-ico')}<span><b>${escapeHtml(b.name)}</b><small>${nb(b.text)}</small></span></button>`;
     }).join('');
-    main = `${head}<div class="fh-offer-h"><b class="fh-h">Palier ${run.floor} franchi : choisis une bénédiction</b>${hearts(run.hearts, FEST_RULES.rift.hearts)}</div><div class="fh-bless-row">${cards}</div>`;
+    main = `${head}<div class="fh-offer-h"><b class="fh-h">Palier ${run.floor} franchi : choisis une bénédiction</b>${hearts(run.hearts, FEST_RULES.rift.hearts)}</div><div class="fh-bless-row">${cards}</div>
+      <div class="fh-bigchips fh-state"><span class="fh-bigchip">${img('icon_damage')}<b class="num">dégâts ×${comma(riftDamageMult(run))}</b></span><span class="fh-bigchip">${img('icon_timer')}<b class="num">${riftSeconds(run)} s</b></span><span class="fh-bigchip">${festCoin(f)}<b class="num">+${formatNumber(run.coins)}</b></span></div>`;
   } else {
     const dmg = riftDamageMult(run);
     main = `${head}<div class="fh-card fh-rift-fight"><span class="fh-rf-info"><b>Palier ${run.floor}/${r.floors}</b><small>Gardien niv. ${stageLabel(riftFloorLevel(state, run.floor))}</small>
@@ -191,8 +192,8 @@ export function pathTab(state, f) {
   const N = path.length;
   // Deux dessins du chemin : une ligne qui serpente (PC), deux rangées en serpentin (téléphone, 6 étapes par rangée).
   const xy = (i) => [5 + (i * 90) / (N - 1), 46 + Math.sin(i * 1.05 + 0.5) * 22];
-  const half = Math.ceil(N / 2);
-  const xyP = (i) => { const r = i < half ? 0 : 1; const c = r ? N - 1 - i : i; return [9 + (c * 82) / (half - 1), r ? 76 : 26]; };
+  const per = 4;
+  const xyP = (i) => { const r = Math.floor(i / per); const c0 = i % per; const c = r % 2 ? per - 1 - c0 : c0; return [12.5 + c * 25, 17 + r * 33]; };
   const line = (pos) => path.slice(0, -1).map((s, i) => { const [x1, y1] = pos(i), [x2, y2] = pos(i + 1); return `M${x1} ${y1} L${x2} ${y2}`; }).join(' ');
   const bg = pickArt(f.art?.path, `${A106}event_lights_path.png`);
   const nodeOff = pickArt(f.art?.node, `${A106}event_lights_node.png`);
@@ -217,7 +218,7 @@ export function pathTab(state, f) {
     <b class="fh-h">${img('icon_map')} Sentier · ${festCoin(f)} ${formatNumber(earned)} ${escapeHtml(f.currency)} gagnés</b>
     <div class="fh-path" style="background-image:url(${bg})"><svg class="fh-road d" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${line(xy)}"/></svg><svg class="fh-road p" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${line(xyP)}"/></svg>${nodes}</div>
     ${ready > 1 ? `<button type="button" class="m-btn-gold fh-wide" data-action="fest-steps-all">Tout récupérer (${ready})</button>` : ''}
-    <small class="fh-help">La monnaie tombe en jouant (monstres et boss, ${FEST_RULES.trickle.dailyCap} par jour au plus) et avec les missions. Dépenser ne fait pas reculer sur le sentier.</small>`;
+    <small class="fh-help">La monnaie tombe en jouant et avec les missions (détails : « ? »).</small>`;
 }
 function spriteOf(id) { const c = COMPANIONS.find((x) => x.id === id); return c ? img(c.sprite, 'fh-sprite') : ''; }
 

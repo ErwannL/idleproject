@@ -354,7 +354,7 @@
 #app .fest-hub .fh-item .fh-miss { color: #ff6b6b; font-size: 12px; font-weight: 700; }
 #app .fest-hub .fh-sold { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); padding: 2px 14px; border: 3px solid #ff6b6b; border-radius: 6px; background: rgba(11,17,36,.85); color: #ff6b6b; font-size: 18px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; pointer-events: none; }
 /* ---- Sentier ---- */
-#app .fest-hub .fh-path { height: 300px; }
+#app .fest-hub .fh-path { height: 360px; }
 #app .fest-hub .fh-pnode { left: var(--x); top: var(--y); }
 #app .fest-hub .fh-road.p { display: none; }
 #app .fest-hub .fh-gifts .fest-unit-art.big { max-height: 150px; }
@@ -372,6 +372,19 @@
 .fest-page .fest-pill { position: absolute; top: 6px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #e2453c; color: #fff; font-size: 12px; font-style: normal; font-weight: 700; display: grid; place-items: center; }
 html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .fh-flip { animation: none; }
 .fh-end h2, .fh-ask h2 { text-align: center; }
+#app .fest-hub .fh-rmain { justify-content: center; }
+#app .fest-hub .fh-state { justify-content: center; }
+#app .fest-hub .fh-pnode > img { width: 44px; height: 44px; padding: 3px; border-radius: 50%; background: radial-gradient(circle, rgba(11,17,36,.92) 60%, rgba(11,17,36,.5)); }
+#app .fest-hub .fh-pnode.prize > img { width: 48px; height: 48px; }
+#app .fest-hub .fh-pgift { padding: 1px 6px; border-radius: 10px; background: rgba(11,17,36,.85); }
+#app .fest-hub .fh-pgift:empty { display: none; }
+@media (min-width: 900px) {
+  #app:not(.m-phone) .fest-hub .fh-bless { padding: 30px 16px; min-height: 300px; justify-content: center; }
+  #app:not(.m-phone) .fest-hub .fh-bless .fh-bless-ico { width: 128px; height: 128px; }
+  #app:not(.m-phone) .fest-hub .fh-bless b { font-size: 20px; }
+  #app:not(.m-phone) .fest-hub .fh-bless small { font-size: 15px; }
+  #app:not(.m-phone) .fest-hub .fh-bigchip b { font-size: 20px; }
+}
 
 /* Fenêtres étroites. */
 @media (max-width: 720px) {
@@ -404,6 +417,11 @@ html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .
   #app#app .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
   #app#app .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }
   #app#app .fest-hub .fh-wallet small { display: none; }
+  #app#app .fest-hub .fh-path { height: 430px; }
+  #app#app .fest-hub .fh-pnode { width: 84px; }
+  #app#app .fest-hub .fh-pnode .fh-hero { top: -8px; right: 2px; bottom: auto; left: auto; transform: none; animation: none; }
+  #app#app .fest-hub .fh-pnode .fh-hero .fh-sprite { width: 34px; height: 34px; }
+  #app#app .fest-hub .fh-bless .fh-bless-ico { width: 96px; height: 96px; }
 }
 /* Téléphone (#app.m-phone : l'interface est mise à l'échelle). */
 #app#app.m-phone .fest-hub .fh-rift { grid-template-columns: 1fr; padding: 10px; }
@@ -435,6 +453,11 @@ html.reduce-motion #app .fest-hub .fh-stone, html.reduce-motion #app .fest-hub .
 #app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.big { max-height: 96px; }
 #app#app.m-phone .fest-hub .fh-gifts .fest-unit-art.pet.big { max-height: 80px; }
 #app#app.m-phone .fest-hub .fh-wallet small { display: none; }
+#app#app.m-phone .fest-hub .fh-path { height: 430px; }
+#app#app.m-phone .fest-hub .fh-pnode { width: 84px; }
+#app#app.m-phone .fest-hub .fh-pnode .fh-hero { top: -8px; right: 2px; bottom: auto; left: auto; transform: none; animation: none; }
+#app#app.m-phone .fest-hub .fh-pnode .fh-hero .fh-sprite { width: 34px; height: 34px; }
+#app#app.m-phone .fest-hub .fh-bless .fh-bless-ico { width: 96px; height: 96px; }
 
 /* ===== v10.14.1 — § 5.1 : en-tête et tuiles ===== */
 #app .fest-hub .fh-top { border-bottom-width: 3px; }
