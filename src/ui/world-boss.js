@@ -92,14 +92,17 @@ export function openWorldBoss(state, actions) {
   if (typeof navigator !== 'undefined' && navigator.webdriver) window.__wbScene = scene; // v9.7.1 : captures de contrôle (tests)
 
   // Paysage : la scène remplit l'écran. Portrait (téléphone) : la scène du téléphone ne montrerait que 160 à 215 px
-  // logiques de large (le boss géant hors champ) ; elle est donc rendue comme sur PC (300 px logiques, zoom ×3) puis
+  // logiques de large (le boss géant hors champ) ; elle est donc rendue comme sur PC (410 px logiques, zoom ×3) puis
   // réduite à la largeur de l'écran, centrée sous la barre du boss.
   const fit = () => {
     const w = el.clientWidth;
     const h = el.clientHeight;
+    scene.phone = w < h; // v10.15.1 : cadrage propre au téléphone (WorldBossScene : dxPhone)
     if (w < h) {
-      const vw = 900; // 300 px logiques
-      const vh = Math.min(840, Math.round((h * 0.55 * vw) / w));
+      // v10.15.1 : 410 px logiques (au lieu de 300) : le Colosse, les Titans et les géants (phase 3 : × 1,33) tiennent entiers
+      // à côté de l'équipe, sans sortir à droite (la scène est réduite d'autant : 412 px d'écran pour 1230 px de scène).
+      const vw = 1230;
+      const vh = Math.min(1150, Math.round((h * 0.55 * vw) / w));
       scene.resize(vw, vh);
       const k = w / vw;
       canvas.classList.add('wb-portrait');

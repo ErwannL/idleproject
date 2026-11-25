@@ -2130,3 +2130,6 @@ PATTERNS.unshift(...patterns1014(lookup));
 import { EXACT_1014_2, patterns1014_2 } from './en-1014-2.js';
 for (const [k, v] of Object.entries(EXACT_1014_2)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1014_2());
+// v10.15.1 : les 8 Géants (./en-1015.js).
+import { EXACT_1015 } from './en-1015.js';
+for (const [k, v] of Object.entries(EXACT_1015)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

@@ -1,11 +1,30 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.15.0 — Préparer les Géants
+## Ascendrya v10.15.1 — Les Géants
+
+8 vrais géants rejoignent le World Boss, chacun avec sa propre silhouette, ses animations et son décor. À partir d'août 2027, un géant vient un mois sur deux dans la grande fête.
+
+- **Léviathan des Abysses** : serpent de mer, dans les Abysses. Première fête : août 2027.
+- **Mère des Dragons** : reine des ailes de feu, dans le Volcan. Première fête : octobre 2027.
+- **Dieu de l'Orage** : géant de nuages et de bronze, dans le Ciel. Première fête : décembre 2027.
+- **Hydre des Marais** : cinq têtes, dans le Marais. Première fête : février 2028.
+- **Ver des Sables colossal** : le dévoreur des dunes, dans le Désert. Première fête : avril 2028.
+- **Jarl du Givre** : roi des géants des glaces, dans les Montagnes. Première fête : juin 2028.
+- **Arbre-Monde** : une forêt sur ses épaules, dans la Forêt. Première fête : août 2028.
+- **Dévoreur du Néant** : la gueule entre les étoiles, dans le Néant. Première fête : octobre 2028.
+- **Chaque géant** a ses 3 phases, un projectile et un souffle qui partent de sa gueule ou de sa main, et sa forme de colère. Les chiffres de combat et les récompenses sont ceux du Colosse.
+- **Téléphone** : le Colosse, les Titans et les géants ne sont plus coupés à droite. Ils tiennent entiers à l'écran, en phase 1 comme en phase 3. Le PC ne change pas.
+- **Panthéon et admin** : les 8 géants ont leur carte au Panthéon et se programment depuis l'admin (World Boss, Grand boss commun).
+- **Langues** : les noms, titres, histoires, phases et attaques des géants sont en anglais et en coréen.
+
+<details><summary>Ascendrya v10.15.0 — Préparer les Géants</summary>
 
 - **Les Géants arrivent** : le moteur des grands boss du World Boss est prêt pour 8 géants (Léviathan, Mère des Dragons, Dieu de l'Orage, Hydre, Ver des Sables, Jarl du Givre, Arbre-Monde, Dévoreur du Néant). Ils seront jouables dès que leurs illustrations seront prêtes ; à partir d'août 2027, un géant viendra un mois sur deux dans les Fêtes.
 - **Panthéon** : les géants à venir s'y montrent en silhouette.
 - **Pendant le World Boss et l'écran de la fête**, les bulles d'aide ne passent plus par-dessus.
 - **Site** : la vidéo d'accueil se règle entièrement depuis l'admin (une vidéo ou deux, version téléphone faite toute seule, conseils si la vidéo est trop lourde), et le téléphone n'affiche plus l'ancienne vidéo.
+
+</details>
 
 <details><summary>Ascendrya v10.14.2 — Téléphone, dernières finitions</summary>
 

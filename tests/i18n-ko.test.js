@@ -143,3 +143,18 @@ test('coréen : Carnet, Recycler, Marchands, Guilde, Invocation (10.14.2)', () =
   };
   for (const [fr, ko] of Object.entries(cases)) { assert.equal(translate(fr), ko, fr); assert.ok(!latin(translate(fr)), fr); }
 });
+
+// v10.15.1 : les 8 Géants en coréen (./src/i18n/ko-1015.js) : noms, titres, histoires, phases, attaques.
+test('coréen : les 8 Géants (10.15.1)', async () => {
+  const { GIANTS } = await import('../src/data/grand-bosses.js');
+  assert.equal(GIANTS.length, 8);
+  assert.equal(translate('Arbre-Monde'), '세계수');
+  assert.equal(translate('Mère des Dragons'), '용의 어머니');
+  for (const g of GIANTS) {
+    for (const fr of [g.name, g.title, g.lore, ...g.fight.phases.map((p) => p.name), ...g.fight.abilities.map((a) => a.name)]) {
+      const ko = translate(fr);
+      assert.ok(ko && ko !== fr, `${g.id} : ${fr}`);
+      assert.ok(!latin(ko), `${g.id} : ${ko}`);
+    }
+  }
+});

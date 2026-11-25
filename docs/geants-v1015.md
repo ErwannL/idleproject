@@ -50,7 +50,35 @@ jouables (`GRAND_BOSS_IDS`), Titans du jour compris, puis les géants dès qu'il
 par-dessus un combat de World Boss ni par-dessus l'écran de la fête. Le Panthéon montre la première image du boss au
 lieu de toute la planche écrasée.
 
-## Ce qui reste : les dessins
+## État de la 10.15.1 : les 8 géants sont prêts
 
-Voir `docs/prompt-v10.15-geants.md` (planches PixelLab, repères à mesurer, `ready: true`, traductions, version 10.15.0).
-Tests : `node --test tests/v1015-giants.test.js`.
+Les 8 géants sont `ready: true`, avec toutes leurs planches (`assets/world-boss/<id>/`), leurs repères mesurés
+(`eyes`, `hands`, `box`, `shadow`) et leur premier mois de Fête (`from`) :
+
+| id | Première Fête |
+| --- | --- |
+| leviathan | août 2027 |
+| dragon_mother | octobre 2027 |
+| storm_god | décembre 2027 |
+| hydra | février 2028 |
+| sand_wyrm | avril 2028 |
+| frost_giant | juin 2028 |
+| elder_treant | août 2028 |
+| void_maw | octobre 2028 |
+
+**Une seule fabrique, un seul moteur.** `giant()` (`src/data/grand-bosses.js`) accepte : `extra` (planches facultatives
+posées, parmi `GIANT_OPTIONAL`), `from`, `eyes`, `hands`, `box`, `shadow`, `dx`, et `marks` (champs libres ajoutés à
+`art` : `scale`, `beamColors`, `dxPhone`…). Le moteur (`src/render/world-boss-scene.js`) lit :
+- `art.scale` : réduit un géant très large (Hydre 0,85, Arbre-Monde 0,8) ;
+- `art.dx` (PC) et `art.dxPhone` (téléphone, 0 par défaut) : décalent le géant vers la gauche, en pixels de l'image ;
+- un garde-fou du bord droit pour les planches exactes (le géant ne sort jamais du cadre en phase 3).
+
+**Cadrage téléphone.** Sur téléphone (portrait), `fit()` (`src/ui/world-boss.js`) rend la scène sur 1230 px
+(410 px logiques, zoom ×3) puis la réduit à la largeur de l'écran. Avant : 900 px (300 logiques), et le Colosse, les
+Titans et plusieurs géants sortaient à droite. Le PC (paysage) ne change pas : Colosse et Titans sont identiques.
+Outils : `node tools/measure-cadrage.mjs` (bord droit du boss en phase 1 et 3, par taille d'écran) et
+`node tools/capture-cadrage.mjs` (captures dans `docs/screenshots/v10.15/cadrage/`).
+
+**Langues.** `src/i18n/en-1015.js` et `ko-1015.js` : noms, titres, histoires, phases et attaques des 8 géants.
+
+Tests : `node --test tests/v1015-giants.test.js tests/i18n.test.js tests/i18n-ko.test.js`.

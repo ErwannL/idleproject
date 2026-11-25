@@ -227,3 +227,19 @@ test('anglais : Carnet, Recycler, Marchands, Guilde, Invocation (10.14.2)', () =
   };
   for (const [fr, en] of Object.entries(cases)) { assert.equal(translate(fr), en, fr); assert.ok(!FRENCH.test(translate(fr)), fr); }
 });
+
+// v10.15.1 : les 8 Géants en anglais (./src/i18n/en-1015.js) : noms, titres, histoires, phases, attaques.
+test('anglais : les 8 Géants (10.15.1)', async () => {
+  const { GIANTS } = await import('../src/data/grand-bosses.js');
+  assert.equal(GIANTS.length, 8);
+  assert.equal(translate('Arbre-Monde'), 'World Tree');
+  assert.equal(translate('Jarl du Givre'), 'Frost Jarl');
+  assert.equal(translate('Dévoreur du Néant'), 'Void Devourer');
+  for (const g of GIANTS) {
+    for (const fr of [g.name, g.title, g.lore, ...g.fight.phases.map((p) => p.name), ...g.fight.abilities.map((a) => a.name)]) {
+      const en = translate(fr);
+      assert.ok(en && en !== fr || /^(Avalanche)$/.test(fr), `${g.id} : ${fr}`);
+      assert.ok(!FRENCH.test(en), `${g.id} : ${en}`);
+    }
+  }
+});
