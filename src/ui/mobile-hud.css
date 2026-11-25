@@ -10,45 +10,44 @@
 #app.m-phone { --hud-gold: #c9a14a; --hud-gold2: #f3d27a; --hud-edge: #6a4a6a; --hud-good: #5be37d; --hud-text: #eef2ff; --hud-soft: #9fb0d8; --hud-card: linear-gradient(#2a1a26f2, #160d18f2); }
 /* --evw : largeur du cadre des événements ; --pzone-h : hauteur du cadre de la zone (122 px avec les compteurs, 82 px sans) ; --pev-h : hauteur
    du cadre des événements (0 : cachés ; 66 px : une rangée ; 122 px : deux rangées) ; --row-h : la plus grande des deux. */
-#app.m-phone #stage-area { --ph-top: 6px; --evw: 178px; --pzone-h: 82px; --pev-h: 0px; --row-h: max(var(--pzone-h), var(--pev-h)); --under-h: calc(var(--ph-top) + var(--row-h) + 6px); }
-#app.m-phone #stage-area:has(#goals-pill:not(.hidden)) { --pzone-h: 122px; }
-#app.m-phone #stage-area:has(#hud106:not(.hidden) #hq-events:not(.hidden)) { --pev-h: 66px; }
-#app.m-phone #stage-area:has(#hud106:not(.hidden) #hq-events:not(.hidden) .hq-ev:nth-child(5)) { --pev-h: 122px; }
+#app.m-phone #stage-area { --ph-top: 6px; --evw: 178px; --pzone-h: 68px; --pev-h: 0px; --row-h: max(var(--pzone-h), var(--pev-h)); --under-h: calc(var(--ph-top) + var(--row-h) + 6px); }
+#app.m-phone #stage-area:has(#goals-pill:not(.hidden)) { --pzone-h: 100px; }
+#app.m-phone #stage-area:has(#hud106:not(.hidden) #hq-events:not(.hidden)) { --pev-h: 54px; } /* v10.14.2 (B1) : une seule rangée ; le reste est derrière « + » */
 
 /* ---------- Événements : grille de 4 colonnes ---------- */
 #app#app.m-phone #hud106.hq-phone #hq-events { top: var(--ph-top) !important; left: auto !important; right: 6px !important; width: var(--evw) !important; max-width: none !important; height: var(--pev-h) !important; box-sizing: border-box;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 52px; align-content: start; justify-items: center; gap: 4px 2px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 44px; align-content: start; justify-items: center; gap: 4px 2px;
   padding: 5px 5px !important; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; z-index: 4; }
-#app#app.m-phone #hud106.hq-phone #hq-events.expanded-col { height: auto !important; min-height: var(--pev-h); }
-#app.m-phone #hq-events .hq-ev { font-size: 11px; line-height: 14px; width: 100% !important; height: 52px; padding: 0; display: block; position: relative; text-align: center; overflow: visible; }
-#app.m-phone #hq-events .hq-ev-art { display: grid; place-items: center; box-sizing: border-box; width: 36px !important; height: 36px !important; margin: 0 auto; border-radius: 9px; border: 2px solid #e8b86a; background: radial-gradient(#4a2a40, #1a0d1a); box-shadow: inset 0 0 6px #000a; overflow: hidden; }
-#app.m-phone #hq-events .hq-ev-art img { width: 28px !important; height: 28px !important; max-width: none; object-fit: contain; image-rendering: pixelated; }
-#app.m-phone #hq-events .hq-ev-timer { position: relative; z-index: 1; display: block; width: max-content; max-width: 46px; margin: 2px auto 0; padding: 0 3px; border-radius: 7px; background: #000d; border: 1px solid #6a4a6a; color: var(--hud-text); font-style: normal; font-size: 11px; font-weight: 900; line-height: 12px; transform: none; left: auto; bottom: auto; white-space: nowrap; }
+#app#app.m-phone #hud106.hq-phone #hq-events.expanded-col { height: auto !important; min-height: var(--pev-h); z-index: 8; }
+#app.m-phone #hq-events .hq-ev { font-size: 11px; line-height: 14px; width: 100% !important; height: 44px; padding: 0; display: block; position: relative; text-align: center; overflow: visible; }
+#app.m-phone #hq-events .hq-ev-art { display: grid; place-items: center; box-sizing: border-box; width: 34px !important; height: 34px !important; margin: 0 auto; border-radius: 9px; border: 2px solid #e8b86a; background: radial-gradient(#4a2a40, #1a0d1a); box-shadow: inset 0 0 6px #000a; overflow: hidden; }
+#app.m-phone #hq-events .hq-ev-art img { width: 26px !important; height: 26px !important; max-width: none; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone #hq-events .hq-ev-timer { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); z-index: 1; display: block; width: max-content; max-width: 46px; margin: 0; padding: 0 3px; border-radius: 7px; background: #000d; border: 1px solid #6a4a6a; color: var(--hud-text); font-style: normal; font-size: 11px; font-weight: 900; line-height: 12px; white-space: nowrap; }
 #app.m-phone #hq-events .hq-ev-timer.empty { visibility: hidden; }
 #app.m-phone #hq-events .hq-ev small { display: none; }
-#app.m-phone #hq-events .hq-dot { top: -5px; right: -3px; min-width: 16px; height: 16px; line-height: 12px; padding: 0 3px; box-sizing: border-box; font-size: 11px; font-weight: 900; z-index: 2; transform: none; }
+#app.m-phone #hq-events .hq-dot { top: -4px; right: -3px; min-width: 16px; height: 16px; line-height: 12px; padding: 0 3px; box-sizing: border-box; font-size: 11px; font-weight: 900; z-index: 2; transform: none; }
 #app.m-phone #hq-events .hq-ev.ready .hq-ev-art { border-color: var(--hud-good); box-shadow: inset 0 0 6px #000a, 0 0 8px #5be37d88; }
 #app.m-phone #hq-events .hq-ev.ready .hq-ev-timer { border-color: var(--hud-good); color: var(--hud-good); }
 #app.m-phone #hq-events .hq-more .hq-ev-art { background: #2a1830; }
 #app.m-phone #hq-events .hq-more-sign { font-size: 24px; font-weight: 900; color: var(--hud-gold2); line-height: 1; }
 
 /* ---------- Carte de zone à trois lignes ---------- */
-#app#app.m-phone #stage-area #zone-card { top: var(--ph-top) !important; left: 6px !important; width: calc(100% - var(--evw) - 18px); max-width: none !important; min-width: 0 !important; height: 76px; box-sizing: border-box; padding: 10px 12px !important;
-  display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 8px; text-align: left; color: var(--hud-text); }
+#app#app.m-phone #stage-area #zone-card { top: var(--ph-top) !important; left: 6px !important; width: calc(100% - var(--evw) - 18px); max-width: none !important; min-width: 0 !important; height: 68px; box-sizing: border-box; padding: 8px 12px !important;
+  display: flex !important; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; text-align: left; color: var(--hud-text); }
 #app#app.m-phone #stage-area #zone-card::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: var(--pzone-h); box-sizing: border-box; z-index: -1; pointer-events: none; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; }
-#app.m-phone #zone-card #zone-name { display: flex !important; align-items: center; gap: 6px; height: 36px; font-size: 13px !important; font-weight: 900; color: var(--hud-text); min-width: 0; overflow: visible !important; }
+#app.m-phone #zone-card #zone-name { display: flex !important; align-items: center; gap: 6px; height: 34px; font-size: 13px !important; font-weight: 900; color: var(--hud-text); min-width: 0; overflow: visible !important; }
 #app.m-phone #zone-name .zn-skull { display: none; } /* le crâne du boss termine déjà la piste : on garde la place pour le nom entier */
 #app.m-phone #zone-name .zn-t { flex: 1 1 auto; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: normal; line-height: 16px; }
 #app.m-phone #zone-name .zn-x { margin-left: auto; flex: none; font-style: normal; font-size: 12px; line-height: 18px; padding: 0 5px; border-radius: 7px; background: #5a1a2a; border: 1px solid #ff6b8a; color: #ffd6e0; }
-#app.m-phone #stage-pips { display: flex; align-items: center; gap: 4px; height: 22px; margin: 0; }
+#app.m-phone #stage-pips { display: flex; align-items: center; gap: 4px; height: 18px; margin: 0; }
 #app.m-phone #stage-pips .pip { flex: 1 1 0; min-width: 0; width: auto; height: 8px; border: 0; border-radius: 4px; background: #3a2a3a; box-shadow: none; }
 #app.m-phone #stage-pips .pip.done { background: var(--hud-good); }
 #app.m-phone #stage-pips .pip.current { background: #ffd45a; box-shadow: 0 0 8px #ffd45a; }
 #app.m-phone #stage-pips .pip-link { display: none; }
-#app.m-phone #stage-pips .pip-boss { flex: none; width: 22px; height: 22px; opacity: .85; }
+#app.m-phone #stage-pips .pip-boss { flex: none; width: 18px; height: 18px; opacity: .85; }
 #app.m-phone #stage-pips .pip-boss.current { opacity: 1; }
 #app.m-phone #zone-card #wave-frieze { display: none !important; }
-#app#app.m-phone #stage-area #goals-pill { position: absolute !important; z-index: 4; left: 18px !important; top: calc(var(--ph-top) + 84px) !important; right: auto !important; width: calc(100% - var(--evw) - 18px - 24px); height: 28px; box-sizing: border-box; padding: 0;
+#app#app.m-phone #stage-area #goals-pill { position: absolute !important; z-index: 4; left: 18px !important; top: calc(var(--ph-top) + 64px) !important; right: auto !important; width: calc(100% - var(--evw) - 18px - 24px); height: 28px; box-sizing: border-box; padding: 0;
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border: 0; background: none; box-shadow: none; }
 #app.m-phone #goals-pill > span { display: flex; align-items: center; justify-content: center; gap: 3px; height: 28px; min-width: 0; border-radius: 8px; background: #0008; border: 1px solid var(--hud-edge); font-weight: 900; font-size: 12px; white-space: nowrap; color: var(--hud-text); }
 #app.m-phone #goals-pill > span img { width: 14px; height: 14px; flex: none; }
@@ -59,31 +58,28 @@
 #app.m-phone #stage-area:has(#hud106:not(.hidden)) #auto-toggle { top: var(--under-h) !important; }
 
 /* ---------- Chemin du héros et Carnet ---------- */
+/* v10.14.2 (B1) : Carnet = pastille d'une ligne (44 px) ; Chemin du héros = une ligne (icône 32 px, étape, mini-barre dessous) et « Récupérer » (44 px) seulement quand c'est prêt. */
+#app.m-phone #hq-carnet .hq-carnet-pill { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; padding: 0 12px; margin: 0; border: 0; border-radius: 12px; background: none; color: var(--hud-text); font: inherit; font-size: 14px; font-weight: 900; white-space: nowrap; }
+#app.m-phone #hq-carnet .hq-carnet-pill img { width: 22px; height: 22px; flex: none; }
+#app.m-phone #hq-carnet .hq-carnet-pill b { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 900; }
+#app.m-phone #hq-carnet .hq-carnet-dot { position: absolute; top: 6px; right: 8px; width: 12px; height: 12px; border-radius: 50%; background: #ff3b4e; border: 2px solid #1a0d1a; box-sizing: border-box; }
 #app#app.m-phone #hud106.hq-phone #hq-left { top: var(--under-h) !important; left: 6px; right: 6px; width: auto; gap: 6px; display: flex; flex-direction: column; align-items: stretch; }
-#app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet { order: -1; position: relative !important; top: auto !important; right: auto !important; left: auto !important; align-self: flex-start; width: calc(100% - var(--evw) - 6px); box-sizing: border-box; padding: 6px 12px 8px; display: flex; flex-direction: column; gap: 2px;
+#app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet { order: -1; position: relative !important; top: auto !important; right: auto !important; left: auto !important; align-self: flex-start; width: calc(100% - var(--evw) - 6px); height: 44px; box-sizing: border-box; padding: 0; display: block;
   border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; color: var(--hud-text); }
 #app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet.hidden { display: none !important; }
-#app.m-phone #hq-carnet .hq-carnet-title { display: block; width: 100%; padding: 0; margin: 0; border: 0; background: none; text-align: left; font: inherit; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--hud-gold2); line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#app.m-phone #hq-carnet .hq-task { display: none; align-items: center; gap: 6px; width: 100%; min-height: 28px; padding: 0; margin: 0; border: 0; background: none; text-align: left; font: inherit; font-size: 12px; font-weight: 700; color: var(--hud-text); }
-#app.m-phone #hq-carnet .hq-carnet-title + .hq-task { display: flex; }
-#app.m-phone #hq-carnet .hq-task img { width: 16px; height: 16px; flex: none; }
-#app.m-phone #hq-carnet .hq-task span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#app.m-phone #hq-carnet .hq-task b { flex: none; color: var(--hud-gold2); font-weight: 900; }
-#app.m-phone #hq-carnet .hq-task.done b { color: var(--hud-good); }
-#app.m-phone #hq-carnet .hq-carnet-done { min-height: 44px; max-width: 100%; border: 0; background: none; padding: 0; font-size: 12px; color: var(--hud-good); text-align: left; display: flex; align-items: center; gap: 6px; white-space: normal; line-height: 15px; }
-#app.m-phone #hq-carnet .hq-carnet-done img { width: 18px; height: 18px; flex: none; }
 #app.m-phone #hud106 #hq-left > #hq-path { box-sizing: border-box; padding: 6px 10px !important; border: 2px solid var(--hud-gold); border-radius: 14px; background: var(--hud-card); box-shadow: 0 4px 14px #0008; color: var(--hud-text);
-  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "kick kick kick" "world title btn" "world bar btn"; column-gap: 8px; row-gap: 2px; align-items: center; min-height: 0; }
+  display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "world title" "world bar"; column-gap: 10px; row-gap: 3px; align-items: center; min-height: 0; }
+#app.m-phone #hud106 #hq-left > #hq-path.ready { grid-template-columns: 32px minmax(0, 1fr) auto; grid-template-areas: "world title btn" "world bar btn"; }
 #app.m-phone #hq-path .hq-main, #app.m-phone #hq-path .hq-foot { display: contents !important; position: static !important; transform: none !important; padding: 0 !important; }
-#app.m-phone #hq-path .hq-kicker { grid-area: kick; margin-bottom: 2px; font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--hud-gold2); }
-#app.m-phone #hq-path .hq-world { grid-area: world; width: 40px !important; height: 40px !important; border: 2px solid var(--hud-gold); border-radius: 9px; object-fit: cover; }
-#app.m-phone #hq-path .hq-title { grid-area: title; min-width: 0; font-size: 14px !important; font-weight: 900; line-height: 1.2; color: var(--hud-text); }
+#app.m-phone #hq-path .hq-kicker { display: none; }
+#app.m-phone #hq-path .hq-world { grid-area: world; width: 32px !important; height: 32px !important; border: 2px solid var(--hud-gold); border-radius: 8px; object-fit: cover; }
+#app.m-phone #hq-path .hq-title { grid-area: title; min-width: 0; font-size: 14px !important; font-weight: 900; line-height: 18px; color: var(--hud-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #app.m-phone #hq-path .hq-bar { grid-area: bar; height: 8px; border-radius: 4px; background: #0b0610; border: 1px solid var(--hud-edge); }
 #app.m-phone #hq-path .hq-bar i { background: #ffd45a; }
 #app.m-phone #hq-path .hq-reward { display: none !important; }
-#app.m-phone #hq-path .hq-btn { grid-area: btn; align-self: center; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px !important; border-radius: 12px; font-size: 14px !important; font-weight: 900; background: #2a1a30; color: var(--hud-gold2); border: 2px solid var(--hud-gold); }
-#app.m-phone #hq-path.ready .hq-btn { background: linear-gradient(#1f6a3a, #134a28); color: #d9ffe2; border-color: #5be37d; box-shadow: 0 3px 0 #0008; }
-#app#app.m-phone #hud106.hq-phone #hq-bounty { top: calc(var(--under-h) + 160px); }
+#app.m-phone #hq-path .hq-btn { display: none; }
+#app.m-phone #hq-path.ready .hq-btn { grid-area: btn; align-self: center; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 14px !important; border-radius: 12px; font-size: 14px !important; font-weight: 900; background: linear-gradient(#1f6a3a, #134a28); color: #d9ffe2; border: 2px solid #5be37d; box-shadow: 0 3px 0 #0008; }
+#app#app.m-phone #hud106.hq-phone #hq-bounty { top: calc(var(--under-h) + 112px); }
 
 /* ---------- Console du bas : une ligne d'actions, la vague, les PV, les étiquettes ---------- */
 #app.m-phone #combat-console { position: absolute; z-index: 5; left: 6px; right: 6px; bottom: 8px; box-sizing: border-box; display: grid; grid-template-columns: auto minmax(0, 1fr) 48px; grid-template-areas: "atk seal chest" "wave wave wave"; align-items: center; gap: 6px 6px; padding: 7px 8px 8px;
