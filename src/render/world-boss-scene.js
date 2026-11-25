@@ -150,8 +150,10 @@ export class WorldBossScene {
     const im = sheet(this.art, a.src ?? name);
     const k = this.scale;
     const w = this.art.frame * k;
-    const cx = r.wx(boss.x) + 14 - (this.art.dx ?? 0) * k; // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche : il ne dépasse pas du cadre en phase 3
-    const x = Math.round(cx - w / 2);
+    let x = Math.round(r.wx(boss.x) + 14 - (this.art.dx ?? 0) * k - w / 2); // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche
+    // v10.15 : un géant à grande planche (160/192 px) ne dépasse jamais du cadre à droite (phase 3 : × 1,33).
+    if (this.art.exactSheets) { const [bx, , bw] = this.look.box; const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0); x = Math.min(x, Math.floor(r.width - shift - 2 - (bx + bw) * k)); } // le calque est décalé de `shift`
+    const cx = x + w / 2;
     const y = Math.round(r.groundY + 1 - this.art.foot * k + breathe);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).
     ctx.save();

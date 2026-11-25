@@ -162,11 +162,29 @@ const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 
   };
 };
 
+// v10.15 : repères du Léviathan, mesurés sur ses planches (assets/world-boss/leviathan/, tools/art/pl1015_leviathan.py).
+// Souffle et jet partent de la gueule ; il a les planches facultatives idle3, attack3, hurt3, throw3, beam3, quake, embers, transform.
+const leviathan = (g) => {
+  const m = (pts) => pts.map(([x, y]) => [x, y, x, y]); // bouche : deux fois le même point
+  const A = g.art.anims;
+  A.hurt3 = { n: 6, fps: 16 };
+  A.throw3 = { ...A.throw };
+  A.beam3 = { ...A.beam };
+  g.art.eyes.beam = m([[36, 60], [33, 52], [52, 48], [50, 45], [52, 45], [48, 42], [20, 58], [14, 62], [14, 65], [13, 62], [25, 60], [34, 62], [36, 60]]);
+  g.art.eyes.beam3 = m([[36, 58], [46, 48], [48, 47], [50, 48], [34, 56], [22, 60], [20, 60], [20, 62], [15, 62], [20, 62], [20, 62], [30, 60], [36, 58]]);
+  g.art.hands = { throw: [12, 66], throw3: [14, 68] };
+  g.art.box = [6, 10, 152, 138];
+  g.art.shadow = 56;
+  g.extra = ['idle3', 'attack3', 'hurt3', 'throw3', 'beam3', 'quake', 'embers', 'transform'];
+  g.from = '2027-08'; // 1er géant : août 2027 (festBoss)
+  return g;
+};
+
 export const GIANTS = [
-  giant({ id: 'leviathan', name: 'Léviathan des Abysses', title: 'Le Titan des Abysses', element: 'blue', zone: 'abyss', mapZone: 11, accent: '#2fb8ff',
+  leviathan(giant({ id: 'leviathan', name: 'Léviathan des Abysses', title: 'Le Titan des Abysses', element: 'blue', zone: 'abyss', mapZone: 11, accent: '#2fb8ff', ready: true,
     lore: 'Un serpent de mer aussi long qu\'une côte. Quand il remonte, la mer recule.',
     beam: ['#2fd8ff', '#8ff8ff'], projectile: { vfx: 'wb_boulder', tint: '#3fa8ff', tint3: '#8ff8ff', size: 2.4, spin: 4, dust: ['#2f6f9a', '#9fe8ff'] },
-    phases: ['Lame de fond', 'Tourbillon', 'Colère des profondeurs'], abilities: ['Bulle des abysses', 'Jet abyssal'] }),
+    phases: ['Lame de fond', 'Tourbillon', 'Colère des profondeurs'], abilities: ['Bulle des abysses', 'Jet abyssal'] })),
   giant({ id: 'dragon_mother', name: 'Mère des Dragons', title: 'Reine des ailes de feu', element: 'red', zone: 'volcano', mapZone: 8, accent: '#ff4a2a', frame: 192,
     lore: 'Chaque dragon d\'Ascendrya est sorti d\'un de ses œufs. Elle vient reprendre ses enfants.',
     beam: ['#ff5a1f', '#ffb04a'], projectile: { vfx: 'wb_boulder', tint: '#ff6a2a', tint3: '#ffd23f', size: 2.2, spin: 6, dust: ['#5a2a1a', '#ff8a3d'] },
