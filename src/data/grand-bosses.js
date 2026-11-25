@@ -132,19 +132,24 @@ const GIANT_ANIMS = (frame) => ({
 });
 // Les animations que les planches doivent fournir (les autres sont facultatives).
 export const GIANT_REQUIRED_ANIMS = ['idle', 'attack', 'hurt', 'throw', 'beam', 'death'];
-const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false }) => {
+const GIANT_OPTIONAL = ['idle3', 'attack3', 'quake', 'embers', 'transform', 'throw3', 'beam3'];
+// `extra` : planches facultatives posées (les autres sont retirées : une animation déclarée sans fichier rendrait le géant
+// invisible) ; `from` : premier mois ('AAAA-MM') où le géant peut entrer dans une Fête ; `eyes`, `hands`, `box`, `shadow` :
+// repères mesurés sur les planches (remplacent les valeurs provisoires).
+const giant = ({ id, name, title, lore, element, zone, mapZone, accent, frame = 160, beam, projectile, debris = null, phases, abilities, ready = false, extra, from, eyes, hands, box, shadow, dx }) => {
   const anims = GIANT_ANIMS(frame);
   delete anims._frame;
+  if (extra) for (const k of GIANT_OPTIONAL) { if (!extra.includes(k)) delete anims[k]; else anims[k] ??= { ...anims[k.replace('3', '')] }; }
   return {
-    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready,
+    id, name, title, lore, element, zone, mapZone, accent, giant: true, ready, from, extra,
     art: { dir: `assets/world-boss/${id}`, prefix: `${id}_`, frame, foot: frame - 6, exactSheets: true, anims,
       // Repères à mesurer sur les planches finies (pixels de l'image) : `eyes.beam` = 13 × [x1, y1, x2, y2] (bouche :
       // deux fois le même point), `hands.throw` = point d'où part le projectile à l'image `release`.
-      eyes: { beam: Array.from({ length: 13 }, () => [Math.round(frame * 0.22), Math.round(frame * 0.3), Math.round(frame * 0.22), Math.round(frame * 0.3)]) },
-      hands: { throw: [Math.round(frame * 0.15), Math.round(frame * 0.3)] },
+      eyes: eyes ?? { beam: Array.from({ length: 13 }, () => [Math.round(frame * 0.22), Math.round(frame * 0.3), Math.round(frame * 0.22), Math.round(frame * 0.3)]) },
+      hands: hands ?? { throw: [Math.round(frame * 0.15), Math.round(frame * 0.3)] },
       beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] },
       projectile, debris,
-      box: [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88] },
+      box: box ?? [frame * 0.06, frame * 0.08, frame * 0.88, frame * 0.88], ...(shadow ? { shadow } : {}), ...(dx ? { dx } : {}) },
     fight: { ...COLOSSUS_FIGHT, name,
       phases: [
         { at: 0.75, id: 'quake', name: phases[0], hit: 0.18, speed: 1.15, power: 1.15 },
@@ -193,7 +198,12 @@ export const GIANTS = [
   giant({ id: 'frost_giant', name: 'Jarl du Givre', title: 'Roi des géants des glaces', element: 'blue', zone: 'mountains', mapZone: 4, accent: '#8fe4ff', frame: 160,
     lore: 'Il dort sous le glacier depuis mille hivers. Son réveil gèle les rivières.',
     beam: ['#8fe4ff', '#ffffff'], projectile: { vfx: 'wb_boulder', tint: '#bfefff', tint3: '#ffffff', size: 2.6, spin: 7, dust: ['#6a8aa0', '#e8f8ff'] }, debris: '#d8f0ff',
-    phases: ['Avalanche', 'Grêle', 'Hiver éternel'], abilities: ['Bloc de glace', 'Souffle glacial'] }),
+    phases: ['Avalanche', 'Grêle', 'Hiver éternel'], abilities: ['Bloc de glace', 'Souffle glacial'],
+    // planches PixelLab posées (assets/world-boss/frost_giant), repères mesurés ; 6e géant : Fête de juin 2028 (festBoss)
+    ready: true, from: '2028-06', extra: ['idle3', 'attack3', 'throw3', 'beam3', 'quake', 'embers'], box: [10, 20, 128, 134], shadow: 56, dx: 66,
+    eyes: { beam: [[76, 38, 76, 38], [88, 32, 88, 32], [100, 31, 100, 31], [104, 32, 104, 32], [100, 32, 100, 32], [38, 62, 38, 62], [38, 62, 38, 62], [38, 62, 38, 62], [38, 62, 38, 62], [38, 60, 38, 60], [45, 52, 45, 52], [63, 47, 63, 47], [78, 40, 78, 40]],
+      beam3: [[80, 44, 80, 44], [88, 36, 88, 36], [104, 30, 104, 30], [106, 30, 106, 30], [101, 30, 101, 30], [48, 60, 48, 60], [48, 58, 48, 58], [46, 58, 46, 58], [47, 58, 47, 58], [47, 58, 47, 58], [48, 60, 48, 60], [56, 55, 56, 55], [77, 46, 77, 46]] },
+    hands: { throw: [8, 78], throw3: [6, 100] } }),
   giant({ id: 'elder_treant', name: 'Arbre-Monde', title: 'Le plus vieux des sylvains', element: 'green', zone: 'forest', mapZone: 1, accent: '#63d98a', frame: 192,
     lore: 'Une forêt entière sur ses épaules. Il ne se lève que si les bois sont menacés.',
     beam: ['#b8ff6a', '#f0ffc8'], projectile: { vfx: 'wb_boulder', tint: '#8a6a3a', tint3: '#b8ff6a', size: 2.6, spin: 5, dust: ['#5a4a2a', '#7bc85a'] }, debris: '#5aa04a',
