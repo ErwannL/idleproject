@@ -808,6 +808,15 @@ export class UI {
     }).join('') + locked.map((t) => `<button class="subtab locked" data-action="locked-tab" data-value="${t}" title="${escapeHtml(this.lockReason(t))}">
       <img class="px" src="${icon(SUB_ICONS[t])}" data-icon="${SUB_ICONS[t]}" alt=""><span class="sub-long">🔒 ${SUB_LABELS[t]}</span><span class="sub-short">🔒 ${SUB_SHORT[t] ?? SUB_LABELS[t]}</span></button>`).join('') + next;
     uiFx.syncIcons(this.root); // v9.2.6
+    // v10.13.2 : téléphone — jusqu'à 5 onglets se partagent la largeur ; un nom trop long prend sa forme courte (jamais coupé au bord).
+    if (this.root.classList.contains('m-phone')) {
+      const all = [...el.querySelectorAll('.subtab')];
+      el.classList.toggle('m-many', all.length > 5);
+      for (const b of all) {
+        const long = b.querySelector('.sub-long');
+        if (long && b.clientWidth > 0 && long.scrollWidth > b.clientWidth - 4) b.classList.add('use-short');
+      }
+    }
     // v10.12 : sur téléphone la rangée défile : l'onglet choisi reste visible.
     const act = el.querySelector('.subtab.active');
     if (act && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, act.offsetLeft - (el.clientWidth - act.offsetWidth) / 2);
@@ -3692,9 +3701,12 @@ export class UI {
     const arrow = document.createElement('div');
     arrow.className = 'gold-arrow';
     arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '◀';
-    arrow.style.left = `${Math.round(r.right + 4)}px`;
-    arrow.style.top = `${Math.round(r.top + r.height / 2 - 14)}px`;
+    // v10.13.2 : menu en bas de l'écran (téléphone) : la flèche pointe vers le bas, au-dessus du bouton (avant : sur le bouton voisin).
+    const below = r.top > window.innerHeight * 0.6;
+    arrow.textContent = below ? '▼' : '◀';
+    if (below) arrow.classList.add('down');
+    arrow.style.left = `${Math.round(below ? r.left + r.width / 2 - 12 : r.right + 4)}px`;
+    arrow.style.top = `${Math.round(below ? r.top - 30 : r.top + r.height / 2 - 14)}px`;
     document.body.appendChild(arrow);
     const done = () => arrow.remove();
     btn.addEventListener('click', done, { once: true });
