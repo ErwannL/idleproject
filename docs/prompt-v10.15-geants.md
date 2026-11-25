@@ -89,8 +89,12 @@ Une planche absente prend automatiquement la plus proche (`ANIM_FALLBACK` : `bea
    - `art.hands.throw` : le point d'où part le projectile à l'image 9 de `throw`.
    - `art.box` (facultatif) : la silhouette visible `[x, y, largeur, hauteur]`, là où tombent les coups et les
      chiffres. `art.shadow` (facultatif) : la demi-largeur de l'ombre au sol.
-3. Passe la fiche à `ready: true`. Le géant entre alors tout seul dans le **Panthéon** (sa silhouette « ??? »
-   disparaît), dans l'**admin** (World Boss et Grand boss commun) et dans les **Fêtes** : à partir d'août 2027, un mois
+3. Déclare les planches facultatives que tu as posées dans `extra` (ex. `extra: ['idle3', 'beam3', 'quake']`).
+   Une animation déclarée sans fichier rendrait le géant invisible ; une planche posée mais non déclarée ne serait
+   jamais jouée. Règle `from` sur un mois **pas encore commencé** (ex. `from: '2027-08'`) : le géant n'entre pas dans
+   une Fête avant ce mois, pour qu'une fête en cours ne change jamais de boss. Le test vérifie `extra` et `from`.
+   Passe ensuite la fiche à `ready: true`. Le géant entre alors tout seul dans le **Panthéon** (sa silhouette « ??? »
+   disparaît), dans l'**admin** (World Boss et Grand boss commun ; la version minimale du client passe d'office à `since`, 10.15.0) et dans les **Fêtes** : à partir d'août 2027, un mois
    sur deux, dans l'ordre du tableau (`festBoss`). Les 6 premiers mois gardent leur Titan.
 4. Joue-le pour de vrai, sur PC et sur téléphone : programme-le depuis l'admin (« Grand boss commun »), ou lance-le
    dans la console avec `openWorldBoss` comme dans `src/ui/ui.js` (cas `fest-boss`) en passant son `bossId`. Vérifie

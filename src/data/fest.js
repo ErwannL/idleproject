@@ -217,18 +217,19 @@ function monthAt(index) {
 const localMs = (y, m, d) => new Date(y, m - 1, d).getTime(); // minuit, heure locale (comme EVENTS.anchor)
 const pick = (list, i) => list[((i % list.length) + list.length) % list.length];
 
+const GIANT_BY_ID = Object.fromEntries(GIANTS.map((g) => [g.id, g]));
 // v10.15 : boss de la grande fête du mois n. Les 6 mois écrits à la main gardent leur Titan. Ensuite, un mois sur deux
 // accueille un GÉANT (data/grand-bosses.js, GIANTS) dans l'ordre de GIANT_ORDER ; tant que ses planches ne sont pas
-// prêtes (`ready: false`), ce mois garde le boss de la rotation d'avant (rien ne bouge pour les joueurs).
+// prêtes (`ready: false`) ou avant son mois `from`, ce mois garde le boss de la rotation d'avant.
 export function festBoss(index, ready = READY_GIANTS) {
   const k = index - FEST_MONTHS.length;
   if (k >= 0 && k % 2 === 0 && GIANT_ORDER.length) {
     const g = GIANT_ORDER[(k / 2) % GIANT_ORDER.length];
-    if (ready.includes(g)) return g;
+    const from = GIANT_BY_ID[g]?.from; // jamais avant son premier mois permis (une fête en cours ne change pas de boss)
+    if (ready.includes(g) && (!from || monthAt(index).key >= from)) return g;
   }
   return pick(FEST_POOLS.boss, index);
 }
-const GIANT_BY_ID = Object.fromEntries(GIANTS.map((g) => [g.id, g]));
 
 // Mois n (0 = premier mois des Fêtes) : ses deux fêtes, dates comprises.
 export function festMonth(index) {

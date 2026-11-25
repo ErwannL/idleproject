@@ -8,6 +8,7 @@ import {
 } from '../src/data/live-catalog.js';
 import { BANNERS, EVENTS } from '../src/data/economy.js'; // v9.3.0 : reprise du calendrier automatique de la 9.2.9
 import { festLiveItems } from '../src/data/fest.js'; // v10.14 : Fêtes du mois
+import { bossSince } from '../src/data/grand-bosses.js'; // v10.15 : version qui connaît chaque grand boss
 
 export const LIVE_SCHEMA = 1;
 const DAY = 86400000;
@@ -213,7 +214,7 @@ export function validateItem(body, prev = null) {
   if (typeof ref !== 'string') throw bad('Référence obligatoire');
   const entry = kind === 'announcement' ? { since: LIVE_MIN_CLIENT } : catalogEntry(kind, ref);
   if (!entry) throw bad(`« ${ref} » n'existe pas dans le code du jeu : livrez-le d'abord par une mise à jour`);
-  const minClient = body.minClient ?? prev?.min_client ?? defaultMinClient(kind, ref);
+  let minClient = body.minClient ?? prev?.min_client ?? defaultMinClient(kind, ref);
   if (!isVersion(minClient)) throw bad('Version minimale du client : format 9.3.0 attendu');
   if (compareVersions(minClient, entry.since) < 0) {
     throw bad(`Version minimale trop basse : « ${ref} » n'est connu du jeu qu'à partir de la ${entry.since}`);
@@ -239,6 +240,16 @@ export function validateItem(body, prev = null) {
     if (typeof raw.value !== 'boolean') throw bad('Interrupteur : valeur oui ou non attendue');
     data = { value: raw.value };
   } else data = {};
+  // v10.15 : un grand boss récent (Titan du jour, géant) n'est connu que des clients assez récents : sinon ils
+  // combattraient le Colosse à sa place. Version minimale relevée d'office, ou refusée si l'admin l'a fixée trop bas.
+  const boss = data?.params?.boss;
+  if (boss) {
+    const need = bossSince(boss);
+    if (compareVersions(minClient, need) < 0) {
+      if (body.minClient !== undefined) throw bad(`Version minimale trop basse : « ${boss} » n'est connu du jeu qu'à partir de la ${need}`);
+      minClient = need;
+    }
+  }
   return { kind, ref, title, startsAt, endsAt, minClient, data };
 }
 
