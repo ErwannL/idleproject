@@ -121,7 +121,7 @@ export class WorldBossScene {
     this.attacks = this.attacks.filter((x) => x.kind !== 'beam');
   }
 
-  get scale() { return 1.15 + 0.06 * this.fight.phase; }
+  get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scale ?? 1); } // v10.15 : `art.scale` réduit un géant très large
 
   drawColossus(ctx, boss, dt) {
     const r = this.r;
