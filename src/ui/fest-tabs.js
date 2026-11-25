@@ -149,7 +149,7 @@ const SHOP_LOOK = {
   gems: { name: 'Gemmes', icon: 'icon_gem' },
 };
 const isFeatured = (i) => Boolean(i.unit || i.give?.ssrFragment);
-function shopCard(state, f, i, big = false) {
+function shopCard(state, f, i, big = false, gold = big) {
   let art; let name; let qty = ''; let sub = '';
   if (i.unit) { art = unitArt(i.unit, big ? 'big' : 'shop'); name = `Copie : ${escapeHtml(unitName(i.unit))}`; sub = i.copy === 'pet' ? 'Familier gratuit de la fête' : 'Héros gratuit de la fête'; }
   else {
@@ -166,7 +166,7 @@ function shopCard(state, f, i, big = false) {
   const short = !sold && !i.can;
   return `<div class="fh-item${big ? ' feat' : ''}${i.can ? '' : ' off'}${sold ? ' sold' : ''}" data-item="${i.id}"><span class="fh-item-art">${art}</span>
     <span class="fh-item-txt"><b>${name}</b>${qty ? `<span class="fh-qty num">${qty}</span>` : ''}${sub ? `<small>${sub}</small>` : ''}<small class="num">${sold ? 'Épuisé' : `Reste ${i.left}/${i.stock}`}</small></span>
-    <button type="button" class="${big ? 'm-btn-gold' : 'm-btn'}${short ? ' fh-short' : ''}" data-action="fest-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'} aria-label="Acheter pour ${i.price} ${escapeHtml(f.currency)}">${festCoin(f)}<span class="num">${i.price}</span></button>
+    <button type="button" class="${gold ? 'm-btn-gold' : 'm-btn'}${short ? ' fh-short' : ''}" data-action="fest-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'} aria-label="Acheter pour ${i.price} ${escapeHtml(f.currency)}">${festCoin(f)}<span class="num">${i.price}</span></button>
     ${short ? `<small class="fh-miss num">il manque ${formatNumber(miss)}</small>` : ''}${sold ? '<span class="fh-sold">Épuisé</span>' : ''}</div>`;
 }
 export function shopTab(state, f) {
@@ -175,7 +175,7 @@ export function shopTab(state, f) {
   const rest = items.filter((i) => !isFeatured(i));
   const last = f.phase === 'pause' ? `<div class="fh-banner last">${img('icon_timer')}<span><b>Dernière chance</b> · ce qui reste à la fin devient des éclats (${FEST_RULES.leftoverShards} par ${escapeHtml(f.currency)}).</span></div>` : '';
   return `${last}<b class="fh-h">${festCoin(f)} Boutique · ${escapeHtml(f.currency)}</b>
-    ${feat.length ? `<div class="fh-feat n${feat.length}">${feat.map((i) => shopCard(state, f, i, true)).join('')}</div>` : ''}
+    ${feat.length ? `<div class="fh-feat n${feat.length}">${feat.map((i, k) => shopCard(state, f, i, true, k === 0)).join('')}</div>` : ''}
     <div class="fh-shop">${rest.map((i) => shopCard(state, f, i)).join('')}</div>
     ${f.phase === 'pause' ? '' : `<small class="fh-help">Ce qui reste à la fin de l'échange devient des éclats (${FEST_RULES.leftoverShards} par ${escapeHtml(f.currency)}).</small>`}`;
 }
