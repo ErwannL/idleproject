@@ -1,6 +1,13 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.14.2 — Téléphone, dernières finitions
+## Ascendrya v10.15.0 — Préparer les Géants
+
+- **Les Géants arrivent** : le moteur des grands boss du World Boss est prêt pour 8 géants (Léviathan, Mère des Dragons, Dieu de l'Orage, Hydre, Ver des Sables, Jarl du Givre, Arbre-Monde, Dévoreur du Néant). Ils seront jouables dès que leurs illustrations seront prêtes ; à partir d'août 2027, un géant viendra un mois sur deux dans les Fêtes.
+- **Panthéon** : les géants à venir s'y montrent en silhouette.
+- **Pendant le World Boss et l'écran de la fête**, les bulles d'aide ne passent plus par-dessus.
+- **Site** : la vidéo d'accueil se règle entièrement depuis l'admin (une vidéo ou deux, version téléphone faite toute seule, conseils si la vidéo est trop lourde), et le téléphone n'affiche plus l'ancienne vidéo.
+
+<details><summary>Ascendrya v10.14.2 — Téléphone, dernières finitions</summary>
 
 Sur téléphone (le PC ne change pas) :
 
@@ -10,6 +17,8 @@ Sur téléphone (le PC ne change pas) :
 - **Talents › Arbre avancé** : toute la branche, nœuds verrouillés compris avec leur coût, sans défiler pendant des pages.
 - **Améliorations, Marchands, Guilde, Carnet, Invocation, Fiche du héros** : plus de grands vides ; les taux et « Légendaire garanti dans N tirages » sous les tirages ; « Duel » en vrai bouton doré.
 - **Partout** : les noms des sous-onglets ne sont plus coupés, les rangées qui défilent ont un fondu au bord, les fenêtres ont leur ✕ à droite du titre, le menu ☰ est rangé et la flèche dorée ne tombe plus sur le mauvais bouton.
+
+</details>
 
 <details><summary>Ascendrya v10.14.1 — Les Fêtes, belles et faciles à jouer</summary>
 
