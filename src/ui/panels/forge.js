@@ -15,7 +15,7 @@ import { setById } from '../../core/sets.js';
 import { slotIconName } from '../../render/pixel.js';
 import { coin, escapeHtml, formatDecimal, formatNumber, img, rarityLabel, shard } from '../common.js';
 import { costLines, helpQ, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
-import { mBar, mBtn, mBtnGold, mChip, mCost, mGrid, mModes, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
+import { mBar, mBtn, mBtnGold, mChip, mCost, mEmpty, mGrid, mModes, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
 
 export function uselessPreview(state) {
   const list = uselessItems(state);
@@ -181,15 +181,23 @@ const SEGS = ['recycle', 'upgrade', 'fuse', 'craft'];
 const fgArt = (id) => `<img class="px m-fg-art" src="assets/ui/art104/forge_step_${id}.png" alt="" width="300" height="120">`;
 const fgTile = (it, o = {}) => mTile(it, { size: 56, ...o });
 
-function phoneRecycle(state, now) {
+// v10.14.2 (B2) : le sac en grille de 5 colonnes, les objets recyclables cochés (les autres grisés), un filtre de rareté
+// (affichage seulement : le bouton recycle toujours tous les objets cochés) et le total au-dessus du bouton.
+const RECYCLE_RARS = [['all', 'Tout'], ['common', 'Commun'], ['rare', 'Rare'], ['epic', 'Épique']];
+function phoneRecycle(ui, state, now) {
   const p = now.preview;
   const n = p.list.length;
-  const cells = p.list.slice(0, 15).map((i) => fgTile(i));
-  return `${fgArt('recycle')}<p class="m-fg-phrase">Les objets inutiles deviennent des éclats et de l'or.</p>
-    ${n ? `<div class="m-card">${mGrid(cells, 5)}${n > 15 ? `<p class="m-note">+${n - 15} autres</p>` : ''}</div>
-      <div class="m-gains" aria-label="Ce que ça rapporte">${shard()} <b class="num">+${formatNumber(p.shards)}</b> ${coin()} <b class="num">+${formatNumber(p.gold)}</b></div>`
-      : '<div class="m-card"><p class="m-note">Rien à recycler : tes objets sont protégés (verrouillés, meilleurs que l\'équipé ou utiles à un ensemble).</p></div>'}
-    ${mBtnGold(`Recycler${n ? ` (${n})` : ''}`, { action: 'recycle-useless', disabled: !n })}`;
+  if (!n) return mEmpty('Rien à recycler : tes objets sont protégés ou utiles.', { icon: 'icon_chest' });
+  const ids = new Set(p.list.map((i) => i.id));
+  const rar = RECYCLE_RARS.some(([k]) => k === ui.view.forgeRar) ? ui.view.forgeRar : 'all';
+  const count = (k) => (k === 'all' ? state.inventory.length : state.inventory.filter((i) => i.rarity === k).length);
+  const chips = `<div class="m-chips m-fg-rars" role="group" aria-label="Filtrer par rareté">${RECYCLE_RARS.filter(([k]) => k === 'all' || count(k)).map(([k, l]) => mChip(`${l} ${count(k)}`, { on: rar === k, action: 'forge-rar', value: k })).join('')}</div>`;
+  const bag = state.inventory.filter((i) => rar === 'all' || i.rarity === rar).sort((a, b) => ids.has(b.id) - ids.has(a.id));
+  const cells = bag.slice(0, 20).map((i) => `<span class="m-fg-cell ${ids.has(i.id) ? 'on' : 'off'}">${fgTile(i, ids.has(i.id) ? { badge: '✓' } : {})}</span>`);
+  return `${fgArt('recycle')}<p class="m-fg-phrase">Les objets cochés deviennent des éclats et de l'or.</p>${chips}
+    <div class="m-card">${bag.length ? mGrid(cells, 5) : '<p class="m-note">Aucun objet de cette rareté.</p>'}${bag.length > 20 ? `<p class="m-note">+${bag.length - 20} autres</p>` : ''}</div>
+    <div class="m-gains" aria-label="Ce que ça rapporte">${shard()} <b class="num">+${formatNumber(p.shards)}</b> éclats · ${coin()} <b class="num">+${formatNumber(p.gold)}</b> or</div>
+    ${mBtnGold(`Recycler (${n})`, { action: 'recycle-useless' })}`;
 }
 
 function phoneUpgrade(ui, state, now) {
@@ -272,7 +280,7 @@ function phoneForge(ui, state) {
   const modes = mModes([{ id: 'recycle', label: 'Recycler', icon: 'icon_rebirth' }, { id: 'upgrade', label: 'Renforcer', icon: 'icon_upgrade' }, { id: 'fuse', label: 'Fusionner', icon: 'icon_double' }, { id: 'craft', label: 'Fabriquer', icon: 'icon_anvil' }]
     .map((m) => ({ ...m, action: 'forge-seg', value: m.id })), seg, { size: 64 });
   const head = `<div class="m-stats2 m-fg-res2">${mStat('icon_shard', 'Éclats', formatNumber(state.materials.shards))}${mStat('coin', 'Or', formatNumber(state.gold))}</div>`;
-  const body = seg === 'recycle' ? phoneRecycle(state, now) : seg === 'upgrade' ? phoneUpgrade(ui, state, now) : seg === 'fuse' ? phoneFuse(ui, state, now.groups) : phoneCraft(ui, state);
+  const body = seg === 'recycle' ? phoneRecycle(ui, state, now) : seg === 'upgrade' ? phoneUpgrade(ui, state, now) : seg === 'fuse' ? phoneFuse(ui, state, now.groups) : phoneCraft(ui, state);
   return `<div class="m-frame m-hero m-fg${ui.view.forgeFx ? ' fx' : ''}">${mTitle('icon_anvil', 'Forge', true)}${head}${modes}<div class="m-fg-body">${body}</div></div>`;
 }
 

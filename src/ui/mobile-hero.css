@@ -38,6 +38,19 @@
 #app.m-phone .m-uph-d .m-missing { display: block; text-align: center; font-size: 12px; line-height: 16px; color: var(--m-ko); white-space: nowrap; overflow: hidden; }
 #app.m-phone .m-uph-d .m-missing img { width: 14px; height: 14px; vertical-align: -2px; }
 
+/* v10.14.2 (B3) : bloc du haut de la partie neuve : héros + stats, puis le bouton ; pas de rangées vides */
+#app.m-phone .m-uphead.beg { grid-template-rows: none; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 8px 10px; }
+#app.m-phone .m-uphead.beg .m-uph-hero { display: flex; align-items: center; justify-content: center; height: 84px; border-radius: 12px; background: radial-gradient(circle at 50% 60%, #26335c, #0b1124); overflow: hidden; }
+#app.m-phone .m-uphead.beg .m-uph-hero canvas { width: 64px; height: 58px; image-rendering: pixelated; }
+#app.m-phone .m-uph-stats { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+#app.m-phone .m-uph-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#app.m-phone .m-uph-mini > span { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; padding: 4px 6px; border-radius: 8px; background: rgba(0, 0, 0, .28); }
+#app.m-phone .m-uph-mini img { width: 16px; height: 16px; image-rendering: pixelated; }
+#app.m-phone .m-uph-mini small { font-size: 11px; line-height: 1.1; color: var(--m-soft); font-weight: 700; }
+#app.m-phone .m-uph-mini b { font-size: 14px; font-weight: 900; line-height: 1.1; white-space: nowrap; }
+#app.m-phone .m-uphead.beg .m-uph-d { display: flex; flex-direction: column; gap: 4px; grid-column: 1 / -1; }
+#app.m-phone .m-uphead.beg .m-uph-d .m-btn-gold { align-self: stretch; }
+
 /* ---------- Une amélioration = une ligne de 84 px ---------- */
 #app.m-phone .m-uplist { display: flex; flex-direction: column; gap: 6px; margin: 0 0 8px; }
 #app.m-phone .m-uprow { display: grid; grid-template-columns: 48px minmax(0, 1fr) 96px; gap: 8px; align-items: center; height: 84px; margin: 0; padding: 8px; overflow: hidden; }
@@ -230,6 +243,14 @@
 #app.m-phone .m-uprow { gap: 6px; padding: 8px 6px 8px 8px; }
 #app.m-phone .m-upgain .m-gtx { letter-spacing: -.2px; }
 
+/* v10.14.2 (B2) : Recycler = le sac en grille, recyclables cochés, filtres de rareté, total au-dessus du bouton */
+#app.m-phone .m-fg-rars { flex-wrap: wrap; overflow: visible; gap: 6px; padding: 0 2px; }
+#app.m-phone .m-fg-rars .m-chip { flex: 1 1 0; min-width: 0; padding: 0 8px; white-space: nowrap; }
+#app.m-phone .m-fg-cell { position: relative; display: flex; justify-content: center; min-width: 0; }
+#app.m-phone .m-fg-cell.off { opacity: .4; filter: grayscale(.6); }
+#app.m-phone .m-fg-cell .m-gain { background: var(--m-ok); color: #06210f; }
+#app.m-phone .m-fg-body > .m-empty { margin: 0; padding: 18px 16px; border: 1px solid var(--m-card-line); border-radius: 12px; background: var(--m-card); }
+
 /* ---------- Arbre avancé (téléphone) : régions en puces, niveaux de haut en bas, nœuds ronds de 54 px ---------- */
 #app.m-phone .m-adv { display: flex; flex-direction: column; gap: 8px; }
 #app.m-phone .m-adv > .m-btn { margin: 0; }
@@ -261,6 +282,13 @@
 #app.m-phone .m-tnode.afford .m-tn-disc { border-style: solid; border-color: var(--m-ok); box-shadow: 0 0 0 2px rgba(120, 230, 150, .3), 0 0 12px rgba(120, 230, 150, .5); }
 #app.m-phone .m-tnode.gated, #app.m-phone .m-tnode.locked { opacity: .6; }
 #app.m-phone .m-tnode.gated .m-tn-disc img, #app.m-phone .m-tnode.locked .m-tn-disc img { filter: grayscale(1) brightness(.8); }
+#app.m-phone .m-tnode.locked .m-tn-disc, #app.m-phone .m-tnode.gated .m-tn-disc { background: #121a33; border-color: #2c3a66; }
+#app.m-phone .m-tn-sub { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+#app.m-phone .m-tn-cost { display: inline-flex; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 800; line-height: 1; color: var(--m-ko); font-variant-numeric: tabular-nums; }
+#app.m-phone .m-tn-cost.ok { color: var(--m-ok); }
+#app.m-phone .m-tn-cost img { width: 12px; height: 12px; image-rendering: pixelated; }
+#app.m-phone .m-tn-b.lock { background: #1a2240; border-color: #4a5a90; }
+#app.m-phone .m-tnode.next .m-tn-name { color: var(--m-gold-hi); }
 #app.m-phone .m-tn-disc.big { width: 64px; height: 64px; }
 #app.m-phone .m-tn-disc.big img { width: 36px; height: 36px; }
 #app.m-phone .m-tsheet { display: flex; flex-direction: column; gap: 8px; }

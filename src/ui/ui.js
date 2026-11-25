@@ -1431,6 +1431,7 @@ export class UI {
       case 'daybook-chest': a.daybookChest(); break; // v9.8 (H1)
       case 'offline-claim': this.closeModal(); this.adviceArrow(); break; // v9.8 (C1) : le conseil devient une flèche dorée
       case 'forge-seg': local(() => { v.forgeSeg = value; }); break; // v9.8 (C2)
+      case 'forge-rar': local(() => { v.forgeRar = value; }); break; // v10.14.2 (B2) : filtre de rareté du Recycler (téléphone)
       // --- v10.3 (parties 8 et 9) : Équipement (places, onglets du personnage, Équipement rapide) et Forge ---
       case 'eq-slot': local(() => { v.selectedItemId = id || null; v.eqSlot = value; v.sheetOpen = 'item'; v.eqChange = false; v.eqQuick = null; v.itemPop = null; v.itemMore = null; if (!['gear', 'up', 'reforge', 'sets'].includes(v.eqTab)) v.eqTab = 'gear'; if (this.state?.ui && value) this.state.ui.slotFilter = value; }); break; // v10.6 (4) : toucher une case filtre le sac sur cette place
       case 'eq-tab': local(() => { v.eqTab = value; v.eqQuick = null; v.eqChange = false; v.skillPop = value === 'skills' ? 'active' : null; }); break;

@@ -248,7 +248,13 @@ export default {
         : mBtnGold(ui.view.buyAllArmed && !state.ui.buyAllOk ? 'Confirmer : tout acheter ?' : 'Tout acheter', { action: state.ui.buyAllOk || ui.view.buyAllArmed ? 'buy-best' : 'buy-all-arm' });
       const fc = !forecast ? '' : forecast.replace(/<small[^>]*>.*?<\/small>/g, '');
       const survTxt = surv.replace(/<img[^>]*>/, '').replace(/<[^>]+>/g, '').trim();
-      const head = `<div class="m-card m-uphead">
+      // v10.14.2 (B3) : partie neuve (ni pronostic, ni quantité, ni tri) : le héros à gauche, Dégâts/s en grand et 2 stats (Vie, Vitesse) à droite.
+      const begHead = `<div class="m-card m-uphead beg">
+        <div class="m-uph-hero">${animCanvas('hero', 64, 58, 1)}</div>
+        <div class="m-uph-stats"><span class="m-uph-dps"><small>Dégâts/s</small><b class="num">${formatDecimal(current.dps)}</b></span>
+          <div class="m-uph-mini"><span>${img('icon_heart')}<small>Vie</small><b class="num">${formatNumber(Math.round(current.maxHp))}</b></span><span>${img('icon_bolt')}<small>Vitesse</small><b class="num">${formatDecimal(current.attacksPerSecond, 2)}/s</b></span></div></div>
+        <div class="m-uph-d">${goldBtn}${missing ? `<small class="m-missing">Il manque ${coin()} <b class="num">${formatNumber(cheapestLeft - state.gold)}</b></small>` : ''}</div></div>`;
+      const head = beginner ? begHead : `<div class="m-card m-uphead">
         <div class="m-uph-a"><span class="m-uph-dps"><small>Dégâts/s</small><b class="num">${formatDecimal(current.dps)}</b></span>${beginner ? '' : `<span class="m-uph-surv${fragile ? ' bad' : ''}" title="${escapeHtml(survTxt)}">${img('icon_heart')}<span>${escapeHtml(survTxt)}</span></span>`}</div>
         <div class="m-uph-b">${fc}</div>
         <div class="m-uph-c">${bulkOpen ? `<div class="m-chips m-uph-chips" role="group" aria-label="Quantité">${['1', '10', '100', 'max'].map((a) => mChip(amountLabel(a), { action: 'buy-amount', value: a, on: a === amount })).join('')}</div>` : '<div class="m-chips m-uph-chips"></div>'}

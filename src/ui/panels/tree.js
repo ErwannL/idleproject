@@ -192,7 +192,8 @@ function phoneAdvanced(ui, state) {
   const reg = regions.find((b) => b.id === ui.view.mTreeRegion) ?? regions.find((b) => b.id === 'combat') ?? regions[0];
   const pts = (r) => regionPoints(state, r);
   const chips = `<div class="m-chips m-regchips" role="group" aria-label="Régions">${regions.map((b) => mChip(b.id === 'bridge' ? 'Ponts' : b.label, { action: 'm-set', on: b.id === reg.id, attrs: `data-key="mTreeRegion" data-value="${b.id}" style="--branch:${b.color}"` })).join('')}</div>`;
-  const list = TALENTS.filter((t) => (t.region === reg.id || t.id === 'core') && shown.has(t.id));
+  // v10.14.2 (B4) : la branche entière (les nœuds encore cachés sont montrés grisés, cadenas et coût), pas seulement ceux déjà révélés.
+  const list = TALENTS.filter((t) => t.region === reg.id || t.id === 'core');
   const rings = new Map();
   for (const t of list) { if (!rings.has(t.ring)) rings.set(t.ring, []); rings.get(t.ring).push(t); }
   const rows = [];
@@ -200,20 +201,25 @@ function phoneAdvanced(ui, state) {
     const ts = rings.get(ring).sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
     for (let i = 0; i < ts.length; i += NODE_ROW) rows.push(ts.slice(i, i + NODE_ROW));
   }
+  // Le prochain nœud achetable : le premier (de haut en bas) que les fragments permettent, sinon le premier ouvert.
+  const canBuy = (t) => { const st = nodeState(state, t); return (st === 'open' || st === 'owned') && (state.talents[t.id] ?? 0) < t.max; };
+  const flat = rows.flat();
+  const nextId = (flat.find((t) => canBuy(t) && state.fragments >= talentCost(t, state.talents[t.id] ?? 0)) ?? flat.find((t) => nodeState(state, t) === 'open'))?.id ?? null;
   const node = (t) => {
     const lv = state.talents[t.id] ?? 0;
     const st = nodeState(state, t);
     const afford = (st === 'open' || st === 'owned') && state.fragments >= talentCost(t, lv);
+    const cost = st === 'maxed' ? 0 : talentCost(t, lv);
     const mark = st === 'maxed' ? '<i class="m-tn-b ok">✓</i>' : st === 'gated' || st === 'locked' ? `<i class="m-tn-b lock">${img('icon_lock')}</i>` : afford ? '<i class="m-tn-b up">▲</i>' : '';
-    return `<button type="button" class="m-tnode ${st}${afford ? ' afford' : ''} k-${t.kind}" data-action="m-set" data-key="mTreeSheet" data-value="t:${t.id}" aria-label="${escapeHtml(`${t.name}, ${lv} sur ${t.max}, ${STATE_LABEL[st]}`)}">
-      <span class="m-tn-disc">${img(nodeIcon(t))}${mark}</span><span class="m-tn-name">${escapeHtml(t.name)}</span><small class="m-tn-rk">${lv}/${t.max}</small></button>`;
+    return `<button type="button" class="m-tnode ${st}${afford ? ' afford' : ''}${t.id === nextId ? ' next' : ''} k-${t.kind}" data-action="m-set" data-key="mTreeSheet" data-value="t:${t.id}" aria-label="${escapeHtml(`${t.name}, ${lv} sur ${t.max}, ${STATE_LABEL[st]}`)}">
+      <span class="m-tn-disc">${img(nodeIcon(t))}${mark}</span><span class="m-tn-name">${escapeHtml(t.name)}</span><span class="m-tn-sub"><small class="m-tn-rk">${lv}/${t.max}</small>${cost ? `<small class="m-tn-cost${state.fragments >= cost ? ' ok' : ''}">${img('icon_fragment')}${formatNumber(cost)}</small>` : ''}</span></button>`;
   };
   const body = rows.map((r, i) => {
     const lit = r.some((t) => (state.talents[t.id] ?? 0) > 0);
     return `${i ? `<i class="m-lv-link${lit ? ' on' : ''}" aria-hidden="true"></i>` : ''}<div class="m-lv${r.length > 1 ? ' rail' : ''}${lit ? ' on' : ''}">${r.map(node).join('')}</div>`;
   }).join('');
   const head = `<div class="m-card m-advhead" style="--branch:${reg.color}"><b>${reg.id === 'bridge' ? 'Ponts' : reg.label}</b><span>${reg.id === 'bridge' ? `${list.length} talents visibles` : `${pts(reg.id)} pts · ${list.filter((t) => (state.talents[t.id] ?? 0) > 0).length}/${TALENTS.filter((t) => t.region === reg.id).length}`}</span></div>`;
-  return `<div class="m-adv">${chips}${head}<div class="m-card m-lvs" style="--branch:${reg.color}">${body}</div>${mBtn('Outils et réinitialisation', { action: 'm-set', attrs: 'data-key="mTreeSheet" data-value="tools"' })}</div>`;
+  return `<div class="m-adv" data-reg="${reg.id}">${chips}${head}<div class="m-card m-lvs" style="--branch:${reg.color}">${body}</div>${mBtn('Outils et réinitialisation', { action: 'm-set', attrs: 'data-key="mTreeSheet" data-value="tools"' })}</div>`;
 }
 
 function phoneTalentSheet(state, t) {
@@ -540,6 +546,10 @@ export default {
   icon: 'icon_tree',
   extra: (ui, state) => `${fragment()}<b class="num">${formatNumber(state.fragments)}</b>`,
   afterRender(ui, body) {
+    // v10.14.2 (B4) : sur téléphone, l'arbre avancé s'ouvre centré sur le prochain nœud achetable (une fois par région).
+    const adv = body.querySelector('.m-adv');
+    if (!adv) ui.view.mTreeCentered = null;
+    else if (ui.view.mTreeCentered !== adv.dataset.reg) { ui.view.mTreeCentered = adv.dataset.reg; adv.querySelector('.m-tnode.next')?.scrollIntoView?.({ block: 'center' }); }
     // v10.13 : l'arbre avancé PC est une liste de nœuds (plus de fenêtre zoomable) ; il ne reste que la recherche.
     // Recherche : surligne les talents correspondants sans redessiner le panneau.
     const input = body.querySelector('#tree-search');
