@@ -20,6 +20,7 @@ import { WORLD_BOSS } from '../core/world-boss.js';
 import { escapeHtml, formatNumber, img } from './common.js';
 import { festCoin, festGive, festLeft, festSteps, unitArt, unitName } from './panels/event.js';
 import { walletIcon } from './panels/shop.js';
+import { reduceMotion } from './prefs.js';
 
 const A106 = 'assets/ui/art106/';
 const A98 = 'assets/ui/art98/';
@@ -87,12 +88,15 @@ export function renderFestHub(ui) {
   }
   el.className = `fest-hub fh-${f.kind} fh-tab-${ui.festHub.tab}`;
   el.style.setProperty('--fh-accent', /^#[0-9a-f]{6}$/i.test(f.accent ?? '') ? f.accent : '#c9a14a'); // v10.14.1 : couleur d'accent de la fête
-  el.innerHTML = hubHtml(state, f, ui.festHub.tab);
+  const coins = festRecord(state).coins;
+  if (typeof ui.festHub.coins === 'number' && coins > ui.festHub.coins) ui.festHub.bumpAt = Date.now();
+  ui.festHub.coins = coins;
+  el.innerHTML = hubHtml(state, f, ui.festHub.tab, ui.festHub);
   const m2 = el.querySelector('.fh-main');
   if (m2) m2.scrollTop = scroll;
 }
 
-function hubHtml(state, f, tab) {
+function hubHtml(state, f, tab, hub = {}) {
   const now = liveNow();
   const rec = festRecord(state);
   const timer = f.phase === 'play' ? `⏳ ${festLeft(f.playEnd - now)}` : `🔁 Échange · ${festLeft(f.end - now)}`;
@@ -109,16 +113,42 @@ function hubHtml(state, f, tab) {
       <span class="fh-tab-art">${art}</span><b>${t.label}</b>${badge[t.id] ? `<i class="fh-badge num">${badge[t.id]}</i>` : ''}</button>`;
   }).join('');
   const body = { adventure: adventure, boss: bossTab, rift: riftTab, missions: missionsTab, shop: shopTab, path: pathTab }[tab] ?? adventure;
+  // La monnaie rebondit quand on gagne (animation décalée de ce qui s'est déjà écoulé : un redessin ne la relance pas).
+  const since = Date.now() - (hub.bumpAt ?? 0);
+  const bump = hub.bumpAt && since < 450 && !reduceMotion() ? ` bump" style="animation-delay:-${Math.round(since)}ms` : '';
+  const pause = f.phase === 'pause'
+    ? `<div class="fh-pause fh-swap"><img class="px fh-swap-art" src="assets/ui/art102/loot_chest_open.png" alt=""><span><b>Dépense tes ${escapeHtml(f.currency)} : encore ${festLeft(f.end - now).replace(/ /g, ' ')}</b><small>Combats fermés, boutique ouverte. Le reste devient des éclats.</small></span></div>`
+    : '';
   return `<div class="fh-bg" style="background-image:url(${bg})"></div>
     <header class="fh-top">
-      <span class="fh-head"><small>${f.kind === 'grand' ? 'Grande fête' : 'Petite fête'} · jour ${Math.min(f.day, f.days)}/${f.days}</small><b>${escapeHtml(f.title)}</b></span>
-      <span class="fh-timer">${timer}</span>
-      <span class="fh-wallet">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b><small>${escapeHtml(f.currency)}</small></span>
+      <span class="fh-head"><small>${f.kind === 'grand' ? 'Grande fête' : 'Petite fête'} · jour ${Math.min(f.day, f.days)}/${f.days}</small>
+        <span class="fh-title"><b>${escapeHtml(f.title)}</b><button type="button" class="fh-help-btn" data-action="fest-hub-help" aria-label="Comment ça marche ?">?</button></span></span>
+      <span class="fh-timer"><b>${timer}</b>${f.phase === 'play' ? `<small>puis ${FEST_RULES.pauseDays} jours d'échange</small>` : ''}</span>
+      <span class="fh-wallet${bump}">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b><small>${escapeHtml(f.currency)}</small></span>
       <button type="button" class="fh-close" data-action="fest-hub-close" aria-label="Fermer">✕</button>
     </header>
-    ${f.phase === 'pause' ? '<div class="fh-pause">Échange de fin de fête : combats fermés, la boutique reste ouverte. La monnaie restante deviendra des éclats.</div>' : ''}
+    ${pause}
     <main class="fh-main">${body(state, f)}</main>
     <nav class="fh-nav">${nav}</nav>`;
+}
+
+// Fiche « ? » : la fête en 4 lignes (rythme, monnaie, échange, conversion en éclats).
+export function festHubHelp(ui) {
+  const f = currentFest();
+  if (!f) return;
+  const c = f.currency;
+  const P = FEST_RULES.pauseDays;
+  const lines = f.kind === 'grand'
+    ? [['Rythme', `la grande fête dure ${f.days} jours, puis ${P} jours d'échange, puis la petite fête du mois.`],
+      ['Monnaie', `tes ${c} se gagnent sur la Carte, au World Boss, dans la Brèche et avec les missions.`],
+      ['Échange', `les ${P} derniers jours, les combats sont fermés et la boutique reste ouverte.`],
+      ['Éclats', `ce qui reste à la fin devient des éclats (${FEST_RULES.leftoverShards} par pièce). Tu ne perds rien.`]]
+    : [['Rythme', `la petite fête dure jusqu'à l'échange des ${P} derniers jours du mois.`],
+      ['Monnaie', `tes ${c} tombent en jouant (monstres, boss) et avec les missions : elles font avancer le sentier.`],
+      ['Échange', `les ${P} derniers jours, il ne reste que la boutique.`],
+      ['Éclats', `ce qui reste à la fin devient des éclats (${FEST_RULES.leftoverShards} par pièce). Tu ne perds rien.`]];
+  ui.openModal(`<h2>${escapeHtml(f.title)}</h2><ul class="fh-help-list">${lines.map(([k, t]) => `<li><b>${k}</b> ${escapeHtml(t)}</li>`).join('')}</ul>
+    <div class="detail-actions"><button class="btn btn-gold" data-action="close-modal">Compris</button></div>`);
 }
 
 // ---- Aventure : Carte du héros ----------------------------------------------------------------------------------

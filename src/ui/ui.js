@@ -1,7 +1,7 @@
 // Interface DOM : barre du haut (monnaies, contrats, récompenses, paramètres), surimpressions légères
 // de la scène, HUD, onglets débloqués progressivement et panneaux (un module par panneau dans ./panels).
 // L'interface ne modifie jamais l'état directement : elle appelle les actions fournies par main.js.
-import { closeFestHub, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
+import { closeFestHub, festHubHelp, festHubTab, openFestHub, renderFestHub } from './fest-hub.js'; // v10.14 : écran de la fête
 import campPanel, { bastionAction, bastionBadge, bastionLiveKey, openBastion } from './panels/camp.js'; // v9.7.1 (lot 6) · v10.3 : le Bastion
 import { HudQuests } from './hud-quests.js'; // v10.6 (partie 2)
 import { buildCombatConsole, placeBoostGroup } from './combat-console.js'; // v10.13 (lot 8) : console du bas de l'écran de combat
@@ -1208,6 +1208,7 @@ export class UI {
       // v10.14 : Fêtes du mois (ui/panels/event.js, core/fest.js) ; écran à part (ui/fest-hub.js) et Brèche.
       case 'fest-hub-open': if (el.closest('#modal')) this.closeModal(); openFestHub(this, value || null); break;
       case 'fest-hub-tab': festHubTab(this, value); break;
+      case 'fest-hub-help': festHubHelp(this); break;
       case 'fest-hub-close': closeFestHub(this); this.invalidate(); break;
       case 'rift-start': a.riftStart(); break;
       case 'rift-fight': { const r = a.riftFight(); if (r?.given && Object.keys(r.given).length) this.chestReveal(r.given, `Brèche · palier ${r.floor} pour la première fois`); else if (r?.end) this.chestReveal({}, `Brèche terminée : ${r.end.cleared} palier${r.end.cleared > 1 ? 's' : ''}`, `+${r.end.coins} gagnés pendant la course`); break; }
