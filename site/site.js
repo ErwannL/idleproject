@@ -301,13 +301,21 @@ function renderSocials() {
 // ---------- Vidéo d'accueil : boucle muette lancée après la page ; image de couverture si « réduire les animations »,
 // « économiser les données » ou lecture automatique bloquée. ----------
 let reelPaused = false;
-// Vidéo choisie dans l'admin (sinon la vidéo d'origine) : { mp4, webm, poster }.
+// Vidéo choisie dans l'admin (sinon la vidéo d'origine) : { mp4, webm, phone, poster, version }.
 const REEL_DEFAULT = { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' };
+// ?v=<empreinte> au bout de chaque adresse : un téléphone ne garde jamais une ancienne vidéo en cache.
+function reelUrl(path, version) {
+  if (!path || !version) return path;
+  const [base, query = ''] = String(path).split('?');
+  return `${base}?${[...query.split('&').filter((x) => x && !x.startsWith('v=')), `v=${encodeURIComponent(version)}`].join('&')}`;
+}
 const reelConfig = fetch('api/site/video', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : REEL_DEFAULT)).catch(() => REEL_DEFAULT).then((c) => {
+  const v = c.version;
+  c = { mp4: reelUrl(c.mp4, v), webm: reelUrl(c.webm, v), phone: reelUrl(c.phone, v), poster: reelUrl(c.poster, v), custom: c.poster !== REEL_DEFAULT.poster };
   // Une vidéo envoyée depuis l'admin : son image d'aperçu, ou aucune (jamais l'image de l'ancienne vidéo).
-  if (c.poster !== REEL_DEFAULT.poster) {
-    const v = $('#reel'), m = $('.hero .media');
-    if (c.poster) v.poster = c.poster; else v.removeAttribute('poster');
+  if (c.custom || v) {
+    const el = $('#reel'), m = $('.hero .media');
+    if (c.poster) el.poster = c.poster; else el.removeAttribute('poster');
     if (m) m.style.backgroundImage = c.poster ? `url("${c.poster}")` : 'none';
   }
   return c;

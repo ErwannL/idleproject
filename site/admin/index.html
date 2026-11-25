@@ -173,6 +173,25 @@
     .lv-bar.s-ended, .lv-bar.s-disabled { opacity: .35; }
     .lv-bar.s-active { box-shadow: 0 0 0 2px #fff inset; }
     .lv-bar.clash { outline: 2px solid var(--bad); outline-offset: -2px; }
+    /* Vidéo du site */
+    .sv-modes { display: grid; gap: 8px; }
+    .sv-opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card-2); cursor: pointer; }
+    .sv-opt input { margin-top: 4px; accent-color: var(--accent); }
+    .sv-opt small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .sv-stale { border-color: #6a2a36; background: #2a1620; margin-bottom: 16px; }
+    .sv-advice { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .sv-advice li { display: flex; gap: 10px; align-items: baseline; }
+    .sv-advice .pill { flex: none; }
+    .sv-thumb { display: block; width: 160px; max-width: 100%; border-radius: 8px; background: #000; margin-bottom: 4px; }
+    .sv-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sv-table td { vertical-align: top; }
+    @media (max-width: 760px) {
+      .sv-table thead { display: none; }
+      .sv-table, .sv-table tbody, .sv-table tr, .sv-table td { display: block; width: 100%; white-space: normal; }
+      .sv-table tr { border-bottom: 1px solid var(--line); padding: 8px 0; }
+      .sv-table td { border: 0; padding: 4px 14px; }
+      .sv-table td::before { content: attr(data-label); display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+    }
     .lv-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
     .lv-form label { display: grid; gap: 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
     .lv-form input, .lv-form select, .lv-form textarea, .lv-tiers input { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; color: var(--text); outline: none; width: 100%; }
@@ -447,18 +466,33 @@
 
       <section data-panel="site-video" class="hidden">
         <div class="page-head"><div><h2>Vidéo du site</h2><p id="sv-info">La vidéo qui tourne en boucle (sans le son) en haut de la page d'accueil.</p></div>
-          <button class="btn" id="sv-reset">Remettre la vidéo d'origine</button></div>
+          <button class="btn" id="sv-reset">Revenir à la vidéo d'origine</button></div>
+        <div class="panel sv-stale hidden" id="sv-stale"><strong>La version téléphone est plus ancienne que la vidéo PC.</strong> Les téléphones voient une autre vidéo que les ordinateurs.
+          <div class="toolbar" style="margin-top:10px"><button class="btn primary small" id="sv-stale-fix">Refaire la version téléphone depuis la vidéo PC</button></div></div>
         <div class="grid2">
-          <div class="panel"><h3>Vidéo actuelle</h3>
-            <video id="sv-preview" muted loop playsinline controls style="width:100%;border-radius:10px;background:#000"></video>
-            <p class="muted" id="sv-files" style="font-size:12px"></p></div>
-          <div class="panel"><h3>Changer</h3>
-            <div class="lv-form">
-              <label>Nouvelle vidéo (MP4 ou WebM, 80 Mo au plus ; courte, 10 à 30 s, sans le son)<input id="sv-video" type="file" accept="video/mp4,video/webm"></label>
-              <label>Image d'aperçu, affichée avant la lecture et sur téléphone économe (PNG, JPEG ou WebP, 3 Mo au plus)<input id="sv-poster" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <div class="panel"><h3>Comment envoyer</h3>
+            <div class="sv-modes" role="radiogroup" aria-label="Mode d'envoi">
+              <label class="sv-opt"><input type="radio" name="sv-mode" value="single"> <span><strong>Une seule vidéo</strong><small>Tu envoies 1 fichier : le serveur fabrique la version téléphone (540 p, 30 images/s) et l'aperçu.</small></span></label>
+              <label class="sv-opt"><input type="radio" name="sv-mode" value="dual"> <span><strong>Deux vidéos</strong><small>Tu envoies la vidéo PC et la vidéo téléphone (par exemple un montage vertical), chacune remplaçable seule.</small></span></label>
             </div>
+            <div class="sv-modes" role="radiogroup" aria-label="Image d'aperçu" style="margin-top:12px">
+              <label class="sv-opt"><input type="radio" name="sv-poster" value="auto"> <span><strong>Aperçu automatique</strong><small>Image tirée de la vidéo PC.</small></span></label>
+              <label class="sv-opt"><input type="radio" name="sv-poster" value="manual"> <span><strong>Aperçu envoyé à la main</strong><small>Ton image, gardée quand tu changes de vidéo.</small></span></label>
+            </div></div>
+          <div class="panel"><h3>Envoyer</h3>
+            <div class="lv-form">
+              <label><span id="sv-l-video">Vidéo (MP4 ou WebM)</span><input id="sv-video" type="file" accept="video/mp4,video/webm"></label>
+              <label id="sv-w-phone"><span>Vidéo téléphone (MP4 H.264, 540 p conseillé)</span><input id="sv-phone" type="file" accept="video/mp4"></label>
+              <label id="sv-w-poster"><span>Image d'aperçu (PNG, JPEG ou WebP)</span><input id="sv-poster" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+            </div>
+            <p class="muted" id="sv-limits" style="font-size:12px;margin:8px 0 0"></p>
+            <progress id="sv-progress" class="hidden" max="100" value="0" style="width:100%;margin-top:8px"></progress>
             <p class="muted" id="sv-status" style="margin-top:8px"></p></div>
         </div>
+        <div class="panel" style="margin-top:16px"><h3>Analyse et conseils</h3><ul class="sv-advice" id="sv-advice"></ul></div>
+        <div class="panel" style="margin-top:16px"><h3>État actuel</h3>
+          <div class="table-wrap"><table class="table sv-table"><thead><tr><th>Variante</th><th>Source</th><th>Poids</th><th>Définition</th><th>Aperçu</th><th>Actions</th></tr></thead><tbody id="sv-body"></tbody></table></div>
+          <p class="muted" style="font-size:12px;margin:10px 0 0">« Supprimer » remet la variante d'origine ; en retirant la dernière vidéo PC envoyée, tout revient à l'origine.</p></div>
       </section>
 
       <section data-panel="live-content" class="hidden">
@@ -707,35 +741,139 @@
     $('refresh-stats').addEventListener('click', loadStats);
 
     // ---- Vidéo du site ----
-    async function loadVideo() {
-      try {
-        const v = await api('/api/admin/video');
-        const p = $('sv-preview');
-        p.poster = `/${v.poster}`;
-        p.innerHTML = `${v.webm ? `<source src="/${v.webm}" type="video/webm">` : ''}${v.mp4 ? `<source src="/${v.mp4}" type="video/mp4">` : ''}`;
-        p.load();
-        $('sv-files').textContent = `${v.custom ? 'Vidéo envoyée depuis l\'admin' : 'Vidéo d\'origine'} : ${[v.mp4, v.webm].filter(Boolean).join(' · ')} · aperçu : ${v.poster}`;
-        $('sv-reset').disabled = !v.custom;
-      } catch (err) { toast(err.message, 'bad'); }
+    const SV_LEVEL = { ok: 'ok', info: '', warn: 'warn', bad: 'bad' };
+    let svTimer = null;
+    const svMo = (b) => (b ? `${(b / 1048576).toFixed(b >= 10 * 1048576 ? 0 : 1).replace('.', ',')} Mo` : '–');
+    function svAdvice(list) {
+      const frag = document.createDocumentFragment();
+      for (const a of list) {
+        const li = document.createElement('li');
+        const pill = document.createElement('span');
+        pill.className = `pill ${SV_LEVEL[a.level] ?? ''}`;
+        pill.textContent = { ok: 'OK', info: 'Info', warn: 'Conseil', bad: 'Attention' }[a.level] ?? 'Info';
+        const txt = document.createElement('span');
+        txt.textContent = a.text;
+        li.append(pill, txt);
+        frag.append(li);
+      }
+      return frag;
     }
-    async function sendVideo(input, kind) {
+    // Envoi en flux avec barre de progression : le fichier part tel quel, le serveur l'écrit au fil de l'eau.
+    function svUpload(kind, file, statusEl) {
+      return new Promise((ok, fail) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/admin/video');
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.setRequestHeader('X-Kind', kind);
+        const bar = $('sv-progress');
+        bar.classList.remove('hidden'); bar.value = 0;
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable) { bar.value = Math.round((e.loaded / e.total) * 100); statusEl.textContent = `Envoi de ${file.name} : ${bar.value} %`; } };
+        xhr.onerror = () => { bar.classList.add('hidden'); fail(new Error('Envoi interrompu (réseau, ou fichier trop gros pour le serveur)')); };
+        xhr.onload = () => {
+          bar.classList.add('hidden');
+          let data = {};
+          try { data = JSON.parse(xhr.responseText); } catch { /* corps vide */ }
+          if (xhr.status === 401) { logout('Session expirée, reconnectez-vous.'); return fail(new Error('Session expirée')); }
+          if (xhr.status >= 300) return fail(new Error(data.error || `Erreur ${xhr.status}`));
+          ok(data);
+        };
+        xhr.send(file);
+      });
+    }
+    async function svSend(input, kind) {
       const f = input.files?.[0];
       if (!f) return;
-      $('sv-status').textContent = `Envoi de ${f.name} (${(f.size / 1048576).toFixed(1)} Mo)…`;
+      const st = $('sv-status');
+      st.textContent = `Envoi de ${f.name} (${svMo(f.size)})…`;
       try {
-        const res = await fetch('/api/admin/video', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'X-Kind': kind }, body: f });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
-        $('sv-status').textContent = kind === 'video' ? 'Vidéo en ligne : le site la montre dans la minute.' : 'Image d\'aperçu en ligne.';
+        await svUpload(kind, f, st);
+        st.textContent = kind === 'poster' ? 'Image d\'aperçu en ligne.' : kind === 'phone' ? 'Version téléphone en ligne.' : 'Vidéo en ligne : le site la montre dans la minute.';
         toast('Enregistré');
         loadVideo();
-      } catch (err) { $('sv-status').textContent = ''; toast(err.message, 'bad'); }
+      } catch (err) { st.textContent = ''; toast(err.message, 'bad'); }
       input.value = '';
     }
-    $('sv-video').addEventListener('change', (e) => sendVideo(e.target, 'video'));
-    $('sv-poster').addEventListener('change', (e) => sendVideo(e.target, 'poster'));
+    function svCell(text, label) { const td = document.createElement('td'); td.dataset.label = label; td.textContent = text; return td; }
+    function svRow(row) {
+      const tr = document.createElement('tr');
+      const name = svCell(row.label, 'Variante'); name.style.fontWeight = '700';
+      const src = svCell('', 'Source');
+      const pill = document.createElement('span');
+      pill.className = `pill ${row.source === 'fabriquée' ? 'ok' : row.source === 'envoyée' ? 'warn' : ''}`;
+      pill.textContent = row.source;
+      src.append(pill);
+      if (row.stale) { const p = document.createElement('span'); p.className = 'pill bad'; p.style.marginLeft = '6px'; p.textContent = 'en retard'; src.append(p); }
+      const info = row.info?.analyzed ? row.info : null;
+      const def = svCell(info ? `${info.width}×${info.height}${info.duration && row.key !== 'poster' ? ` · ${Math.round(info.duration)} s` : ''}${info.codec ? ` · ${info.codec}` : ''}` : (row.path ? 'non analysée' : '–'), 'Définition');
+      const prev = svCell('', 'Aperçu');
+      const note = document.createElement('div'); note.className = 'muted'; note.style.fontSize = '12px';
+      if (!row.path) note.textContent = 'aucune';
+      if (row.path && row.key === 'poster') {
+        const img = document.createElement('img'); img.className = 'sv-thumb'; img.alt = row.label;
+        img.onload = () => { note.textContent = 'visible'; note.style.color = 'var(--ok)'; };
+        img.onerror = () => { note.textContent = 'introuvable'; note.style.color = 'var(--bad)'; };
+        img.src = `/${row.url}`; prev.append(img);
+      } else if (row.path) {
+        const vid = document.createElement('video'); vid.className = 'sv-thumb'; vid.muted = true; vid.loop = true; vid.playsInline = true; vid.controls = true; vid.preload = 'metadata';
+        vid.oncanplay = () => { note.textContent = 'jouable'; note.style.color = 'var(--ok)'; };
+        vid.onerror = () => { note.textContent = 'illisible'; note.style.color = 'var(--bad)'; };
+        vid.src = `/${row.url}`; prev.append(vid);
+      }
+      prev.append(note);
+      const act = svCell('', 'Actions'); act.style.whiteSpace = 'normal';
+      const box = document.createElement('div'); box.className = 'sv-actions';
+      const file = document.createElement('input'); file.type = 'file'; file.className = 'hidden';
+      file.accept = row.key === 'poster' ? 'image/png,image/jpeg,image/webp,image/gif' : row.key === 'webm' ? 'video/webm' : 'video/mp4';
+      file.addEventListener('change', () => svSend(file, row.key));
+      const mk = (text, cls, fn) => { const b = document.createElement('button'); b.className = `btn small ${cls}`; b.textContent = text; b.setAttribute('aria-label', `${text} : ${row.label}`); b.addEventListener('click', fn); return b; };
+      box.append(file, mk('Remplacer', '', () => file.click()));
+      if (row.key === 'phone' || row.key === 'poster') box.append(mk(row.key === 'phone' ? 'Refaire depuis la vidéo PC' : 'Refaire l\'aperçu', row.stale ? 'primary' : '', () => svRebuild(row.key)));
+      if (row.source !== 'défaut du dépôt' && row.source !== 'absente') box.append(mk('Supprimer', 'danger', () => svDelete(row)));
+      act.append(box);
+      tr.append(name, src, svCell(svMo(row.size), 'Poids'), def, prev, act);
+      return tr;
+    }
+    async function svRebuild(what) {
+      try { await api('/api/admin/video/rebuild', { method: 'POST', body: { what } }); toast('Fabrication lancée, quelques instants…'); loadVideo(); } catch (err) { toast(err.message, 'bad'); }
+    }
+    async function svDelete(row) {
+      if (!confirm(`Supprimer « ${row.label} » ? La variante d'origine est remise.`)) return;
+      try { await api(`/api/admin/video/${row.key}`, { method: 'DELETE' }); toast('Supprimée'); loadVideo(); } catch (err) { toast(err.message, 'bad'); }
+    }
+    async function loadVideo() {
+      clearTimeout(svTimer);
+      try {
+        const v = await api('/api/admin/video');
+        for (const r of document.querySelectorAll('input[name="sv-mode"]')) r.checked = r.value === v.mode;
+        for (const r of document.querySelectorAll('input[name="sv-poster"]')) r.checked = r.value === v.posterMode;
+        const dual = v.mode === 'dual';
+        $('sv-w-phone').classList.toggle('hidden', !dual);
+        $('sv-l-video').textContent = dual ? 'Vidéo PC (MP4 ou WebM)' : 'Vidéo (MP4 ou WebM) : le serveur fait la version téléphone';
+        $('sv-limits').textContent = `Vidéo : ${v.limits.videoMaxMb} Mo au plus · image : ${v.limits.posterMaxMb} Mo au plus. Courte (10 à 30 s) et sans le son, c'est l'idéal.`;
+        $('sv-reset').disabled = !v.custom;
+        $('sv-stale').classList.toggle('hidden', !v.stale);
+        const body = $('sv-body'); body.replaceChildren();
+        for (const r of v.variants) body.append(svRow(r));
+        const list = [...v.advice];
+        for (const r of v.variants) if (r.key !== 'poster' && r.path) for (const a of r.advice) if (a.level !== 'ok') list.push({ ...a, text: `${r.label} : ${a.text}` });
+        if (!list.length) list.push({ level: 'ok', text: 'Rien à signaler.' });
+        $('sv-advice').replaceChildren(svAdvice(list));
+        if (v.busy.length) { $('sv-status').textContent = `Le serveur fabrique : ${v.busy.map((b) => (b === 'phone' ? 'la version téléphone' : 'l\'aperçu')).join(' et ')}…`; svTimer = setTimeout(loadVideo, 2500); }
+        else if ($('sv-status').textContent.startsWith('Le serveur fabrique')) $('sv-status').textContent = 'Fabrication terminée.';
+      } catch (err) { toast(err.message, 'bad'); }
+    }
+    async function svMode(body) {
+      try { await api('/api/admin/video/mode', { method: 'PUT', body }); toast('Enregistré'); } catch (err) { toast(err.message, 'bad'); }
+      loadVideo();
+    }
+    for (const r of document.querySelectorAll('input[name="sv-mode"]')) r.addEventListener('change', () => svMode({ mode: r.value }));
+    for (const r of document.querySelectorAll('input[name="sv-poster"]')) r.addEventListener('change', () => svMode({ posterMode: r.value }));
+    $('sv-video').addEventListener('change', (e) => svSend(e.target, 'video'));
+    $('sv-phone').addEventListener('change', (e) => svSend(e.target, 'phone'));
+    $('sv-poster').addEventListener('change', (e) => svSend(e.target, 'poster'));
+    $('sv-stale-fix').addEventListener('click', () => svRebuild('phone'));
     $('sv-reset').addEventListener('click', async () => {
-      if (!confirm('Remettre la vidéo et l\'image d\'origine ?')) return;
+      if (!confirm('Revenir à la vidéo, à la version téléphone et à l\'image d\'origine ? Les fichiers envoyés sont supprimés.')) return;
       try { await api('/api/admin/video', { method: 'DELETE' }); toast('Vidéo d\'origine remise'); loadVideo(); } catch (err) { toast(err.message, 'bad'); }
     });
 

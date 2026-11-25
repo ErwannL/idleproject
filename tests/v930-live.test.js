@@ -472,7 +472,7 @@ test('site : vidéo de l\'accueil modifiable dans l\'admin (MP4/WebM vérifiés,
   const token = (await (await fetch(`${base}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'erwann', password: 'motdepasse-admin-1' }) })).json()).token;
   const up = (kind, body, tok = token) => fetch(`${base}/api/admin/video`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'X-Kind': kind }, body });
   const pub = async () => (await fetch(`${base}/api/site/video`)).json();
-  assert.deepEqual(await pub(), { mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' });
+  assert.deepEqual({ ...(await pub()), version: undefined }, { version: undefined, mp4: 'assets/trailer.mp4', webm: 'assets/trailer.webm', phone: 'assets/trailer-phone.mp4', poster: 'assets/trailer-poster.webp' });
   assert.equal((await up('video', Buffer.from('pas une vidéo du tout'))).status, 415);
   assert.equal((await fetch(`${base}/api/admin/video`, { method: 'POST', headers: { 'X-Kind': 'video' }, body: Buffer.alloc(20) })).status, 401);
   const mp4 = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from('ftypisom'), Buffer.alloc(64)]);

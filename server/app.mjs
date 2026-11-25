@@ -2,11 +2,12 @@
 // Aucune dépendance : node:http, node:crypto, node:sqlite.
 // Ne jamais journaliser de corps de requête, d'email, de mot de passe ni de jeton.
 import { randomBytes, createHash, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
-import { createReadStream, mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { createReadStream, createWriteStream, closeSync, mkdirSync, openSync, readSync, readdirSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { once } from 'node:events';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
-import { execFile } from 'node:child_process';
+import { realTools, summarizeProbe, videoAdvice, versionedUrl, resolveVideo, videoVersion, phoneIsStale } from './video.mjs';
 import { createLive, LiveError, LIVE_MAX_AGE_S } from './live.mjs'; // v9.3.0 : live-ops
 import { createGuilds, GuildError } from './guilds.mjs'; // v9.3.2 : guildes et World Boss
 import { MAIL_LIMITS, confirmationEmail, friendJoinedEmail } from './mailer.mjs'; // emails de la préinscription (Brevo)
@@ -76,6 +77,33 @@ async function readRaw(req, limit) {
   }
   return Buffer.concat(chunks);
 }
+
+// Envoi en flux (rien en mémoire) : le corps est écrit dans un fichier temporaire du dossier `dir`, taille comptée au fil
+// de l'eau. Au-delà de `limit` : le reste est lu puis jeté (la réponse 413 peut ainsi arriver), coupé net plus loin.
+async function receiveFile(req, dir, limit, tooBig) {
+  mkdirSync(dir, { recursive: true });
+  const tmp = join(dir, `tmp-${randomBytes(8).toString('hex')}.part`);
+  const ws = createWriteStream(tmp, { flags: 'wx' });
+  let size = 0;
+  const fail = (err) => { ws.destroy(); try { unlinkSync(tmp); } catch { /* déjà parti */ } throw err; };
+  try {
+    for await (const chunk of req) {
+      size += chunk.length;
+      if (size > limit + 64 * 1048576) { req.destroy(); break; }
+      if (size > limit) continue;
+      if (!ws.write(chunk)) await once(ws, 'drain');
+    }
+    ws.end();
+    await once(ws, 'finish');
+  } catch (err) { return fail(err); }
+  if (size > limit) return fail(new HttpError(413, tooBig(size)));
+  if (size === 0) return fail(new HttpError(400, 'Fichier vide'));
+  const head = Buffer.alloc(16);
+  const fd = openSync(tmp, 'r');
+  try { readSync(fd, head, 0, 16, 0); } finally { closeSync(fd); }
+  return { tmp, size, head };
+}
+const MIME_OF = { mp4: 'video/mp4', webm: 'video/webm', png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' };
 
 // Tris du classement : liste fermée, jamais de texte de requête dans le SQL.
 const LEADERBOARD_SORTS = {
@@ -377,6 +405,8 @@ export function createApp({
   trustProxy = false,
   now = () => Date.now(),
   log = () => {},
+  videoMaxBytes = VIDEO_MAX_BYTES, // poids maximal d'une vidéo envoyée (VIDEO_MAX_MB dans server/index.mjs)
+  tools = realTools(), // ffprobe / ffmpeg (remplaçables dans les tests)
   mailer = null, // service d'envoi des emails (server/mailer.mjs) ; absent : aucun email
 }) {
   const authLimit = createRateLimiter(LIMITS.authAttempts, now);
@@ -1158,29 +1188,107 @@ export function createApp({
       writeFileSync(join(dir, file), data, { flag: 'wx' });
       return { status: 201, body: { path: `assets/uploads/${file}`, size: data.length } };
     } },
-    // Vidéo de l'accueil du site : envoi depuis l'admin (MP4, WebM, image d'aperçu), lecture publique, retour à l'origine.
+    // Vidéo de l'accueil du site (admin) : deux modes (une vidéo + version téléphone faite par le serveur, ou deux vidéos),
+    // aperçu automatique ou envoyé, analyse + conseils, état de chaque variante. Lecture publique libre.
     { method: 'GET', path: /^\/api\/site\/video$/, handler: () => ({ body: siteVideo(), headers: { 'Cache-Control': 'public, max-age=60' } }) },
-    { method: 'GET', path: /^\/api\/admin\/video$/, handler: ({ req }) => { requireAdmin(req); return { body: { ...siteVideo(), custom: Boolean(readVideoMeta()), defaults: SITE_VIDEO_DEFAULT } }; } },
+    { method: 'GET', path: /^\/api\/admin\/video$/, handler: async ({ req }) => { requireAdmin(req); return { body: await videoState() }; } },
     { method: 'POST', path: /^\/api\/admin\/video$/, handler: async ({ req }) => {
       requireAdmin(req);
+      // Le client ne donne que le genre d'envoi : le nom et le dossier du fichier sont toujours fabriqués ici.
       const kind = String(req.headers['x-kind'] ?? '');
-      if (!['video', 'poster'].includes(kind)) throw new HttpError(400, 'Choisis la vidéo ou l\'image d\'aperçu');
-      const data = await readRaw(req, kind === 'video' ? VIDEO_MAX_BYTES : ASSET_MAX_BYTES);
-      const ext = kind === 'video' ? detectVideoType(data) : detectImageType(data);
-      if (!ext) throw new HttpError(415, kind === 'video' ? 'Format refusé : MP4 ou WebM uniquement' : 'Format refusé : PNG, JPEG ou WebP');
+      if (!['video', 'mp4', 'webm', 'phone', 'poster'].includes(kind)) throw new HttpError(400, 'Choisis la vidéo PC, la vidéo téléphone ou l\'image d\'aperçu');
+      const isImage = kind === 'poster';
+      const limit = isImage ? ASSET_MAX_BYTES : videoMaxBytes;
+      const mo = (n) => (n / 1048576).toFixed(n >= 10 * 1048576 ? 0 : 1).replace(/\.0$/, '').replace('.', ',');
       const dir = join(uploadsDir, 'video');
-      mkdirSync(dir, { recursive: true });
-      const file = `${Date.now().toString(36)}-site.${ext}`;
-      writeFileSync(join(dir, file), data, { flag: 'wx' });
-      const cur = readVideoMeta() ?? {};
+      const got = await receiveFile(req, dir, limit, (size) => (isImage ? `Image trop lourde (${mo(size)} Mo, 3 Mo au plus)`
+        : `Vidéo trop lourde (${mo(size)} Mo, ${mo(limit)} Mo au plus). Allège-la, ou augmente la limite du serveur (VIDEO_MAX_MB).`));
+      const cleanup = () => { try { unlinkSync(got.tmp); } catch { /* déjà parti */ } };
+      const ext = isImage ? detectImageType(got.head) : detectVideoType(got.head);
+      const declared = String(req.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+      if (!ext) { cleanup(); throw new HttpError(415, isImage ? 'Format refusé : PNG, JPEG, WebP ou GIF' : 'Format refusé : MP4 ou WebM uniquement'); }
+      if (declared && !['application/octet-stream', MIME_OF[ext]].includes(declared) && !(ext === 'jpg' && declared === 'image/jpg')) { cleanup(); throw new HttpError(415, `Le fichier annonce « ${declared} » mais ressemble à du ${MIME_OF[ext]}`); }
+      if ((kind === 'mp4' || kind === 'phone') && ext !== 'mp4') { cleanup(); throw new HttpError(415, kind === 'phone' ? 'La version téléphone doit être un MP4 (H.264)' : 'Ici, un MP4 est attendu'); }
+      if (kind === 'webm' && ext !== 'webm') { cleanup(); throw new HttpError(415, 'Ici, un WebM est attendu'); }
+      const id = `${now().toString(36)}${randomBytes(2).toString('hex')}`;
+      const file = `${id}-${isImage ? 'poster' : kind === 'phone' ? 'tel' : 'site'}.${ext}`;
+      renameSync(got.tmp, join(dir, file));
       const path = `assets/uploads/video/${file}`;
-      // Une nouvelle vidéo remplace les deux formats (l'ancien WebM ou MP4 n'est plus proposé) ; l'aperçu est gardé.
-      const next = kind === 'poster' ? { ...cur, poster: path, posterAuto: false } : { poster: cur.posterAuto ? undefined : cur.poster, mp4: ext === 'mp4' ? path : null, webm: ext === 'webm' ? path : null, phone: null };
+      const info = isImage ? null : summarizeProbe(await tools.probe(join(dir, file)), got.size);
+      const cur = readVideoMeta() ?? {};
+      const next = { ...cur, mode: cur.mode ?? 'single', posterMode: cur.posterMode ?? 'auto', src: { ...cur.src }, at: { ...cur.at }, info: { ...cur.info }, updated: now() };
+      const drop = [];
+      const set = (key, p, source, i) => { if (next[key]) drop.push(next[key]); next[key] = p; next.src[key] = source; next.at[key] = now(); if (i) next.info[key] = i; else delete next.info[key]; };
+      const clear = (key) => { if (next[key]) drop.push(next[key]); next[key] = null; delete next.src[key]; delete next.at[key]; delete next.info[key]; };
+      let jobs = [];
+      if (kind === 'poster') { set('poster', path, 'envoyée', null); next.posterMode = 'manual'; }
+      else if (kind === 'phone') { set('phone', path, 'envoyée', info); delete next.phoneFrom; }
+      else {
+        // Nouvelle vidéo PC : « video » remplace MP4 et WebM ; « mp4 » / « webm » ne remplace que celle-là.
+        if (kind === 'video') { clear(ext === 'mp4' ? 'webm' : 'mp4'); set(ext, path, 'envoyée', info); }
+        else { if (!(cur.mp4 || cur.webm)) clear(kind === 'mp4' ? 'webm' : 'mp4'); set(kind, path, 'envoyée', info); }
+        next.pcId = id;
+        // Mode une vidéo : l'ancienne version téléphone est retirée puis refaite ; mode deux vidéos : gardée, signalée « en retard ».
+        if (next.mode === 'single') { clear('phone'); delete next.phoneFrom; }
+        if (next.posterMode === 'auto') clear('poster');
+        if (next.mode === 'single') jobs.push('phone');
+        if (next.posterMode === 'auto') jobs.push('poster');
+      }
       writeVideoMeta(next);
-      if (kind === 'video') makeVideoVariants(join(dir, file), file.replace(/\.\w+$/, ''), Boolean(next.poster));
-      return { status: 201, body: { ...siteVideo(), size: data.length } };
+      removeUploads(drop, next);
+      for (const j of jobs) startJob(j);
+      return { status: 201, body: { ...(await videoState()), size: got.size } };
     } },
-    { method: 'DELETE', path: /^\/api\/admin\/video$/, handler: ({ req }) => { requireAdmin(req); writeVideoMeta(null); return { body: siteVideo() }; } },
+    { method: 'PUT', path: /^\/api\/admin\/video\/mode$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const body = await readJson(req);
+      const next = { ...(readVideoMeta() ?? {}) };
+      if (body.mode !== undefined) {
+        if (!['single', 'dual'].includes(body.mode)) throw new HttpError(400, 'Mode inconnu');
+        next.mode = body.mode;
+      }
+      if (body.posterMode !== undefined) {
+        if (!['auto', 'manual'].includes(body.posterMode)) throw new HttpError(400, 'Mode d\'aperçu inconnu');
+        next.posterMode = body.posterMode;
+      }
+      next.updated = now();
+      writeVideoMeta(next);
+      if (body.posterMode === 'auto' && !next.poster) await requireRebuild('poster');
+      return { body: await videoState() };
+    } },
+    { method: 'POST', path: /^\/api\/admin\/video\/rebuild$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const what = String((await readJson(req)).what ?? '');
+      if (!['phone', 'poster'].includes(what)) throw new HttpError(400, 'Choisis la version téléphone ou l\'aperçu');
+      await requireRebuild(what);
+      return { status: 202, body: await videoState() };
+    } },
+    { method: 'DELETE', path: /^\/api\/admin\/video\/(mp4|webm|phone|poster)$/, handler: async ({ req, params }) => {
+      requireAdmin(req);
+      const key = params[0];
+      const cur = readVideoMeta();
+      if (!cur) throw new HttpError(409, 'Cette variante est déjà celle d\'origine');
+      const next = { ...cur, src: { ...cur.src }, at: { ...cur.at }, info: { ...cur.info }, updated: now() };
+      const drop = [next[key]].filter(Boolean);
+      next[key] = null; delete next.src[key]; delete next.at[key]; delete next.info[key];
+      if (key === 'phone') delete next.phoneFrom;
+      if (key === 'poster') next.posterMode = 'auto';
+      // Plus aucune vidéo PC envoyée : retour complet à l'origine (jamais un mélange nouvelle/ancienne vidéo).
+      if ((key === 'mp4' || key === 'webm') && !next.mp4 && !next.webm) {
+        for (const k of ['phone', 'poster']) if (next[k]) drop.push(next[k]);
+        writeVideoMeta(null);
+      } else writeVideoMeta(next);
+      removeUploads(drop, readVideoMeta());
+      if (key === 'poster' && readVideoMeta() && (await tools.has?.())?.ffmpeg) startJob('poster');
+      return { body: await videoState() };
+    } },
+    { method: 'DELETE', path: /^\/api\/admin\/video$/, handler: async ({ req }) => {
+      requireAdmin(req);
+      const cur = readVideoMeta();
+      writeVideoMeta(null);
+      if (cur) removeUploads([cur.mp4, cur.webm, cur.phone, cur.poster].filter(Boolean), null);
+      return { body: await videoState() };
+    } },
     { method: 'GET', path: /^\/api\/admin\/assets$/, handler: ({ req }) => {
       requireAdmin(req);
       // Images déjà présentes sur le serveur (dossier du site, sous-dossiers compris) puis envois de l'admin.
@@ -1232,7 +1340,9 @@ export function createApp({
     } },
   ];
 
-  // Réglage de la vidéo du site (table live_meta, clé site_video) : { mp4, webm, poster } ; absent = vidéo d'origine.
+  // ---- Vidéo du site (table live_meta, clé site_video) ----
+  // Réglage : { mode: 'single'|'dual', posterMode: 'auto'|'manual', mp4, webm, phone, poster (chemins), src, at, info, pcId,
+  // phoneFrom, updated }. Absent = vidéos d'origine du dépôt. Les chemins ne viennent jamais du client.
   function readVideoMeta() {
     try { const r = db.prepare("SELECT value FROM live_meta WHERE key = 'site_video'").get(); return r ? JSON.parse(r.value) : null; } catch { return null; }
   }
@@ -1240,28 +1350,140 @@ export function createApp({
     if (!v) db.prepare("DELETE FROM live_meta WHERE key = 'site_video'").run();
     else db.prepare("INSERT INTO live_meta (key, value) VALUES ('site_video', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(JSON.stringify(v));
   }
+  // Chemin disque d'un fichier envoyé (nom fabriqué ici, jamais un chemin libre) ou d'origine (liste fermée).
+  function videoFile(p) {
+    if (!p) return null;
+    const m = /^assets\/uploads\/video\/([a-z0-9-]+\.(?:mp4|webm|jpg|png|webp|gif))$/.exec(p);
+    if (m) return join(uploadsDir, 'video', m[1]);
+    return siteDir && Object.values(SITE_VIDEO_DEFAULT).includes(p) ? join(siteDir, p) : null;
+  }
+  // Supprime les fichiers envoyés qui ne sont plus utilisés par le réglage `meta`.
+  function removeUploads(paths, meta) {
+    const used = new Set(meta ? [meta.mp4, meta.webm, meta.phone, meta.poster] : []);
+    for (const p of paths) {
+      if (!p || used.has(p) || !p.startsWith('assets/uploads/video/')) continue;
+      const f = videoFile(p);
+      if (f) try { unlinkSync(f); } catch { /* déjà parti */ }
+    }
+  }
+  const stampOf = (p) => { const f = videoFile(p); try { return f ? Math.round(statSync(f).mtimeMs) : 0; } catch { return 0; } };
+  // Ce que le site montre : les 4 adresses + `version` (empreinte : change dès qu'un fichier change, pour le cache des téléphones).
   function siteVideo() {
     const m = readVideoMeta();
-    if (!m) return { ...SITE_VIDEO_DEFAULT };
-    const custom = m.mp4 || m.webm;
-    // Nouvelle vidéo sans image d'aperçu (pas encore faite) : pas d'image du tout, jamais celle de l'ancienne vidéo.
-    return { mp4: custom ? m.mp4 ?? null : SITE_VIDEO_DEFAULT.mp4, webm: custom ? m.webm ?? null : SITE_VIDEO_DEFAULT.webm,
-      phone: custom ? m.phone ?? null : null, poster: m.poster ?? (custom ? null : SITE_VIDEO_DEFAULT.poster) };
+    const urls = resolveVideo(m, SITE_VIDEO_DEFAULT);
+    const stamps = {};
+    for (const p of Object.values(urls)) if (p && !p.startsWith('assets/uploads/')) stamps[p] = stampOf(p);
+    return { ...urls, version: videoVersion(m, urls, stamps) };
   }
-  // Après un envoi : version légère pour téléphone (540 px, H.264, sans son, lecture immédiate) et image d'aperçu tirée
-  // de la vidéo, faites en tâche de fond par ffmpeg s'il est installé (sinon la vidéo d'origine sert partout).
-  function makeVideoVariants(src, base, hasPoster) {
+  // Analyse d'un fichier (mémorisée par chemin + date + poids pour les vidéos d'origine).
+  const probeCache = new Map();
+  async function analyze(p) {
+    const f = videoFile(p);
+    if (!f) return null;
+    let st;
+    try { st = statSync(f); } catch { return null; }
+    const key = `${f}:${st.mtimeMs}:${st.size}`;
+    if (!probeCache.has(key)) probeCache.set(key, summarizeProbe(await tools.probe(f), st.size));
+    return probeCache.get(key);
+  }
+  const busy = new Set();
+  const srcOf = (m, key, path) => {
+    if (!path) return 'absente';
+    if (!path.startsWith('assets/uploads/')) return 'défaut du dépôt';
+    return m?.src?.[key] ?? (/-(phone|poster)\.\w+$/.test(path) && key !== 'mp4' && key !== 'webm' ? 'fabriquée' : 'envoyée');
+  };
+  const LABELS = { mp4: 'Vidéo PC (MP4)', webm: 'Vidéo PC (WebM)', phone: 'Version téléphone', poster: 'Image d\'aperçu' };
+  // État complet pour l'admin : tableau des variantes (source, poids, définition, conseils) et conseils généraux.
+  async function videoState() {
+    const m = readVideoMeta();
+    const pub = siteVideo();
+    const has = (await tools.has?.()) ?? { ffmpeg: true, ffprobe: true };
+    const rows = [];
+    for (const key of ['mp4', 'webm', 'phone', 'poster']) {
+      const path = pub[key];
+      const info = path ? (m?.info?.[key] && path.startsWith('assets/uploads/') ? m.info[key] : await analyze(path)) : null;
+      let size = info?.size ?? 0;
+      const f = videoFile(path);
+      if (f && !size) try { size = statSync(f).size; } catch { /* absent */ }
+      rows.push({ key, label: LABELS[key], path, url: versionedUrl(path, pub.version), source: srcOf(m, key, path), exists: Boolean(f && existsSafe(f)), size, info });
+    }
+    const [pc, phoneRow] = [rows.find((r) => r.key === 'mp4' && r.path) ?? rows.find((r) => r.key === 'webm' && r.path), rows[2]];
+    const webmRow = rows[1];
+    const ctx = { hasPhone: Boolean(phoneRow.path), mode: m?.mode ?? 'single', ffmpeg: has.ffmpeg, webmOk: Boolean(webmRow.path && webmRow.info?.analyzed && ['vp8', 'vp9', 'av1'].includes(webmRow.info.codec)) };
+    for (const r of rows) {
+      if (r.key === 'poster') r.advice = [];
+      else r.advice = videoAdvice(r.info, r.key === 'phone' ? 'phone' : 'pc', ctx);
+    }
+    // Défauts du dépôt : le téléphone vient-il de la même vidéo que le PC ? (durées très différentes = non)
+    let defaultMismatch = false;
+    if (!(m?.mp4 || m?.webm)) {
+      const [a, b] = [await analyze(SITE_VIDEO_DEFAULT.mp4), await analyze(SITE_VIDEO_DEFAULT.phone)];
+      defaultMismatch = Boolean(a?.analyzed && b?.analyzed && Math.abs(a.duration - b.duration) > 1.5);
+    }
+    const stale = phoneIsStale(m, defaultMismatch);
+    phoneRow.stale = stale;
+    if (stale) phoneRow.advice.unshift({ level: 'bad', text: 'Cette version téléphone est plus ancienne que la vidéo PC (elle montre une autre vidéo). Refais-la depuis la vidéo PC.' });
+    const advice = [];
+    if (!has.ffprobe) advice.push({ level: 'info', text: 'ffprobe n\'est pas installé sur le serveur : pas d\'analyse automatique des vidéos.' });
+    if (!has.ffmpeg) advice.push({ level: 'warn', text: 'ffmpeg n\'est pas installé sur le serveur : il ne peut pas fabriquer la version téléphone ni l\'aperçu. Envoie-les toi-même (mode « Deux vidéos »).' });
+    return {
+      ...pub, custom: Boolean(m && (m.mp4 || m.webm || m.phone || m.poster)), defaults: SITE_VIDEO_DEFAULT,
+      mode: m?.mode ?? 'single', posterMode: m?.posterMode ?? 'auto',
+      limits: { videoMaxMb: Math.round(videoMaxBytes / 1048576), posterMaxMb: Math.round(ASSET_MAX_BYTES / 1048576) },
+      tools: has, busy: [...busy], stale, variants: rows, advice, hasPc: Boolean(pc),
+    };
+  }
+  const existsSafe = (f) => { try { return statSync(f).isFile(); } catch { return false; } };
+
+  // Lance (ou refuse) la fabrication à la demande depuis la vidéo PC.
+  async function requireRebuild(what) {
+    if (!(await tools.has?.() ?? { ffmpeg: true }).ffmpeg) throw new HttpError(503, 'ffmpeg n\'est pas installé sur le serveur : envoie le fichier toi-même.');
+    if (!videoSource()) throw new HttpError(409, 'Pas de vidéo PC à partir de laquelle fabriquer');
+    startJob(what);
+  }
+  const videoSource = () => {
+    const m = readVideoMeta();
+    const p = (m?.mp4 || m?.webm) ? (m.mp4 ?? m.webm) : SITE_VIDEO_DEFAULT.mp4;
+    return { path: p, file: videoFile(p), pcId: m?.pcId ?? 'origine' };
+  };
+  // Fabrication en tâche de fond par ffmpeg : version téléphone (540 p, 30 i/s, H.264, sans son) ou aperçu tiré de la vidéo.
+  // Le résultat n'est gardé que si la vidéo PC n'a pas changé entre-temps.
+  function startJob(what) {
+    const src = videoSource();
+    if (!src.file || busy.has(what)) return;
+    busy.add(what);
     const dir = join(uploadsDir, 'video');
-    const run = (args) => new Promise((ok) => execFile('ffmpeg', args, { timeout: 10 * 60_000 }, (err) => ok(!err)));
+    mkdirSync(dir, { recursive: true });
     (async () => {
-      const phone = `${base}-phone.mp4`, still = `${base}-poster.jpg`;
-      const okPhone = await run(['-loglevel', 'error', '-y', '-i', src, '-an', '-vf', 'scale=-2:540,fps=30', '-c:v', 'libx264', '-profile:v', 'main', '-preset', 'veryfast', '-crf', '28', '-maxrate', '1500k', '-bufsize', '3000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(dir, phone)]);
-      const okStill = hasPoster ? false : await run(['-loglevel', 'error', '-y', '-ss', '1', '-i', src, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4', join(dir, still)]);
+      const id = `${now().toString(36)}${randomBytes(2).toString('hex')}`;
+      let name, ok;
+      if (what === 'phone') {
+        name = `${id}-phone.mp4`;
+        ok = await tools.run(['-loglevel', 'error', '-y', '-i', src.file, '-an', '-vf', 'scale=-2:540,fps=30', '-c:v', 'libx264', '-profile:v', 'main', '-preset', 'veryfast', '-crf', '28', '-maxrate', '1500k', '-bufsize', '3000k', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(dir, name)]);
+      } else {
+        name = `${id}-poster.jpg`;
+        const still = (t) => tools.run(['-loglevel', 'error', '-y', '-ss', t, '-i', src.file, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4', join(dir, name)]);
+        ok = (await still('1')) || (await still('0'));
+      }
+      const path = `assets/uploads/video/${name}`;
+      const out = join(dir, name);
+      const info = ok && what === 'phone' ? summarizeProbe(await tools.probe(out), existsSafe(out) ? statSync(out).size : 0) : null;
+      busy.delete(what);
       const cur = readVideoMeta();
-      if (!cur || !String(cur.mp4 ?? cur.webm ?? '').includes(base)) return; // une autre vidéo a été envoyée entre-temps
-      writeVideoMeta({ ...cur, ...(okPhone ? { phone: `assets/uploads/video/${phone}` } : {}), ...(okStill ? { poster: `assets/uploads/video/${still}`, posterAuto: true } : {}) });
-      log(`vidéo du site : ${okPhone ? 'version téléphone faite' : 'pas de version téléphone (ffmpeg absent ?)'}${okStill ? ', aperçu fait' : ''}`);
-    })();
+      if (!ok || (cur?.pcId ?? 'origine') !== src.pcId || (what === 'poster' && cur?.posterMode === 'manual' && cur?.poster)) {
+        try { unlinkSync(out); } catch { /* rien à retirer */ }
+        log(`vidéo du site : ${what === 'phone' ? 'version téléphone' : 'aperçu'} ${ok ? 'abandonné (autre vidéo envoyée entre-temps)' : 'non fait (ffmpeg absent ou vidéo illisible)'}`);
+        return;
+      }
+      const next = { mode: 'single', posterMode: 'auto', ...cur, src: { ...cur?.src, [what]: 'fabriquée' }, at: { ...cur?.at, [what]: now() }, info: { ...cur?.info }, updated: now() };
+      const old = next[what];
+      next[what] = path;
+      if (info) next.info.phone = info;
+      if (what === 'phone') next.phoneFrom = src.pcId; else next.posterMode = 'auto';
+      writeVideoMeta(next);
+      removeUploads([old], next);
+      log(`vidéo du site : ${what === 'phone' ? 'version téléphone faite' : 'aperçu fait'}`);
+    })().catch((err) => { busy.delete(what); log(`vidéo du site : échec (${err.message})`); });
   }
 
   async function serveStatic(req, res, pathname) {
