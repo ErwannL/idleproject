@@ -11,6 +11,7 @@ import { LIGHTS_EVENT, lightsMissions, lightsPath, lightsPosition, lightsShop, l
 const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
+import { A1014, festBadges, pickArt, preloadFestArt } from '../fest-art.js'; // v10.14.1
 import { mBar, mBtn, mBtnGold, mEmpty, mStat, mTitle } from '../mobile-kit.js'; // v10.12
 import { currentFest, festMissions, festRecord, festShop, festTotalStages } from '../../core/fest.js'; // v10.14
 import { FEST_RULES } from '../../data/fest.js';
@@ -254,7 +255,7 @@ const FEST_ART = { grandNode: 'assets/ui/art106/event_lights_node.png', node: 'a
   lightKey: 'assets/ui/art106/event_lights_key.png', path: 'assets/ui/art106/event_lights_path.png', coin: 'assets/ui/art106/event_lights_currency.png' };
 // Récompense en icônes : monnaies du portefeuille (tickets, fragments) avec leur icône de boutique, le reste comme partout.
 export const festGive = (g = {}) => Object.entries(g).map(([k, v]) => (WALLET[k] ? `<span class="shop-give">${walletIcon(k)}<b class="num">${v}</b></span>` : rewardIcons({ [k]: v }))).join('');
-export const festCoin = (f) => `<img class="px lt-cur" src="${f.art?.currency ?? FEST_ART.coin}" alt="" title="${escapeHtml(f.currency)}">`;
+export const festCoin = (f) => `<img class="px lt-cur" src="${pickArt(f.art?.currency, FEST_ART.coin)}" alt="" title="${escapeHtml(f.currency)}">`;
 export const unitArt = (id, cls = '') => { const c = COMPANIONS.find((x) => x.id === id); return c ? (hdArt(c, `fest-unit-art ${cls}`) || img(c.sprite, `fest-unit-art ${cls}`)) : ''; };
 export const unitName = (id) => COMPANIONS.find((x) => x.id === id)?.name ?? id;
 export const festLeft = (ms) => { const d = Math.floor(ms / 86400000); const h = Math.floor((ms % 86400000) / 3600000); return d >= 1 ? `${d} j ${h} h` : `${Math.max(1, h)} h`; };
@@ -264,8 +265,8 @@ export function festPoster(state, f) {
   const rec = festRecord(state);
   const zone = ZONES[f.zone ?? 0];
   const bg = f.kind === 'grand'
-    ? `background-image:linear-gradient(90deg,rgba(11,17,36,.94),rgba(11,17,36,.35)),url(${f.art?.key ?? `assets/bg/${zone?.id ?? 'plains'}_far.png`})`
-    : `background-image:linear-gradient(90deg,rgba(11,17,36,.9),rgba(11,17,36,.2)),url(${f.art?.key ?? FEST_ART.lightKey})`;
+    ? `background-image:linear-gradient(90deg,rgba(11,17,36,.94),rgba(11,17,36,.35)),url(${pickArt(f.art?.key, `assets/bg/${zone?.id ?? 'plains'}_far.png`)})`
+    : `background-image:linear-gradient(90deg,rgba(11,17,36,.9),rgba(11,17,36,.2)),url(${pickArt(f.art?.key, FEST_ART.lightKey)})`;
   const timer = f.phase === 'play' ? `⏳ encore ${festLeft(f.playEnd - now)}` : `🔁 Échange : ${festLeft(f.end - now)}`;
   const prize = f.kind === 'grand'
     ? `<span class="fest-prize">${unitArt(f.featured)}<small>Héros du mois · ${escapeHtml(unitName(f.featured))}</small></span>`
@@ -312,18 +313,21 @@ export function festShopHtml(state, f) {
 // v10.14 : l'onglet Événement est la porte d'entrée de l'écran de la fête (ui/fest-hub.js) : affiche, gros bouton
 // « Entrer dans la fête » et une tuile illustrée par partie (chacune ouvre l'écran sur sa partie).
 function festPage(ui, state, f, news) {
+  preloadFestArt(f);
   const m0 = festMissions(state);
   const ready = [...m0.daily, ...m0.event].filter((x) => x.ready).length;
+  const bd = festBadges(state, f);
+  const tab = (id, old) => `<img class="px" src="${pickArt(`${A1014}fest_tab_${id}.png`, old)}" alt="">`;
   const tiles = (f.kind === 'grand'
-    ? [['adventure', 'Aventure', `<img class="px" src="assets/ui/art98/expedition_map.png" alt="">`, `${festRecord(state).cleared}/${festTotalStages()} étapes`],
-      ['boss', 'World Boss', `<img class="px" src="assets/ui/art106/hud_event_rift.png" alt="" style="filter:hue-rotate(140deg)">`, escapeHtml(grandBoss(f.boss).name)],
-      ['rift', 'Brèche', `<img class="px" src="assets/ui/art106/hud_event_rift.png" alt="">`, 'Mode de la fête'],
-      ['missions', 'Missions', `<img class="px" src="assets/ui/art106/event_lights_mission_monsters.png" alt="">`, ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
-      ['shop', 'Boutique', `<img class="px" src="assets/ui/art106/event_lights_shop_chest.png" alt="">`, escapeHtml(f.currency)]]
-    : [['path', 'Sentier', `<img class="px" src="assets/ui/art106/event_lights_node_done.png" alt="">`, 'Héros et familier gratuits'],
-      ['missions', 'Missions', `<img class="px" src="assets/ui/art106/event_lights_mission_monsters.png" alt="">`, ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
-      ['shop', 'Boutique', `<img class="px" src="assets/ui/art106/event_lights_shop_chest.png" alt="">`, escapeHtml(f.currency)]])
-    .map(([id, label, art, sub]) => `<button type="button" class="m-card fest-door" data-action="fest-hub-open" data-value="${id}">${art}<b>${label}</b><small>${sub}</small></button>`).join('');
+    ? [['adventure', 'Aventure', tab('adventure', 'assets/ui/art98/expedition_map.png'), `${festRecord(state).cleared}/${festTotalStages()} étapes`],
+      ['boss', 'World Boss', tab('boss', 'assets/ui/art106/hud_event_rift.png').replace('alt=""', 'alt="" style="filter:hue-rotate(140deg)"'), escapeHtml(grandBoss(f.boss).name)],
+      ['rift', 'Brèche', tab('rift', 'assets/ui/art106/hud_event_rift.png'), 'Mode de la fête'],
+      ['missions', 'Missions', tab('missions', 'assets/ui/art106/event_lights_mission_monsters.png'), ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
+      ['shop', 'Boutique', tab('shop', 'assets/ui/art106/event_lights_shop_chest.png'), escapeHtml(f.currency)]]
+    : [['path', 'Sentier', tab('path', 'assets/ui/art106/event_lights_node_done.png'), 'Héros et familier gratuits'],
+      ['missions', 'Missions', tab('missions', 'assets/ui/art106/event_lights_mission_monsters.png'), ready ? `${ready} à récupérer` : 'Du jour et de la fête'],
+      ['shop', 'Boutique', tab('shop', 'assets/ui/art106/event_lights_shop_chest.png'), escapeHtml(f.currency)]])
+    .map(([id, label, art, sub]) => `<button type="button" class="m-card fest-door" data-action="fest-hub-open" data-value="${id}">${art}<b>${label}</b><small>${sub}</small>${bd[id] ? `<i class="fest-pill num" aria-label="${bd[id]} à faire">${bd[id]}</i>` : ''}</button>`).join('');
   return `<div class="m-frame cb-frame fest-page">${mTitle('icon_map', 'Événement', true)}${news}${festPoster(state, f)}
     ${mBtnGold('Entrer dans la fête', { action: 'fest-hub-open', value: '', icon: 'icon_map' })}
     <div class="fest-doors">${tiles}</div></div>`;

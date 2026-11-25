@@ -17,6 +17,7 @@ import { daybookOpen } from './panels/daybook.js';
 import { lightsEvent, lightsReady, LIGHTS_EVENT } from '../core/lights.js';
 import { currentEvent } from '../core/ancients.js';
 import { currentFest, festReady } from '../core/fest.js'; // v10.14 : Fêtes du mois
+import { A1014, pickArt, preloadFestArt } from './fest-art.js'; // v10.14.1 : icône « Fête » avec repli
 import { wheelReady } from '../core/wheel.js';
 import { titanTriesLeft, titanToday } from '../core/titan.js';
 import { arenaUnlocked } from '../core/arena.js';
@@ -77,8 +78,9 @@ export function eventColumn(ui, state, now = Date.now()) {
   const fest = currentFest(t);
   const ev = fest ? null : currentEvent(t);
   if (fest && vis('event')) {
+    preloadFestArt(fest);
     const end = fest.phase === 'play' ? fest.playEnd : fest.end;
-    out.push({ id: 'market', art: fest.kind === 'light' ? LIGHTS_EVENT.art.hud : `${ART}hud_event_pass.png`, name: fest.title, short: 'Fête', timer: fest.phase === 'play' ? shortTime(end - t) : 'échange', badge: festReady(state, t), action: 'fest-hub-open', value: '', soon: end - t < 3600000 });
+    out.push({ id: 'market', art: pickArt(`${A1014}hud_event_fest.png`, fest.kind === 'light' ? LIGHTS_EVENT.art.hud : `${ART}hud_event_pass.png`), name: fest.title, short: 'Fête', timer: fest.phase === 'play' ? shortTime(end - t) : 'échange', badge: festReady(state, t), action: 'fest-hub-open', value: '', soon: end - t < 3600000 });
   }
   if (ev && vis('event')) {
     const small = Boolean(lightsEvent(t));
