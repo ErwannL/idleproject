@@ -8,7 +8,7 @@ export function setupNotifications(getState, isTitanOpen) {
   const ln = plugin();
   if (!ln || typeof document === 'undefined') return;
   let asked = false;
-  const cancel = () => ln.cancel({ notifications: [1, 2, 3].map((id) => ({ id })) }).catch(() => {});
+  const cancel = () => ln.cancel({ notifications: [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ id })) }).catch(() => {});
   const schedule = async () => {
     const state = getState();
     if (!state || state.ui?.notify?.phone === false) return;
