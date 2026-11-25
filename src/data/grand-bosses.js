@@ -208,10 +208,25 @@ export const GIANTS = [
     lore: 'Une forêt entière sur ses épaules. Il ne se lève que si les bois sont menacés.',
     beam: ['#b8ff6a', '#f0ffc8'], projectile: { vfx: 'wb_boulder', tint: '#8a6a3a', tint3: '#b8ff6a', size: 2.6, spin: 5, dust: ['#5a4a2a', '#7bc85a'] }, debris: '#5aa04a',
     phases: ['Racines', 'Pluie de feuilles', 'Colère de la forêt'], abilities: ['Souche lancée', 'Rayon de sève'] }),
-  giant({ id: 'void_maw', name: 'Dévoreur du Néant', title: 'La gueule entre les étoiles', element: 'dark', zone: 'void', mapZone: 9, accent: '#b04dff',
+  (() => { const g = giant({ id: 'void_maw', name: 'Dévoreur du Néant', title: 'La gueule entre les étoiles', element: 'dark', zone: 'void', mapZone: 9, accent: '#b04dff',
     lore: 'Une bouche sans fond, des yeux par centaines. Il a déjà mangé un monde.',
     beam: ['#b04dff', '#e0a8ff'], projectile: { vfx: 'wb_boulder', tint: '#8a3dff', tint3: '#ff4ad8', size: 2.2, spin: 10, dust: ['#3a1a5a', '#c08aff'] }, debris: '#6a3aa0',
-    phases: ['Faille', 'Pluie d\'étoiles', 'Éclipse totale'], abilities: ['Orbe du Néant', 'Regard des mille yeux'] }),
+    phases: ['Faille', 'Pluie d\'étoiles', 'Éclipse totale'], abilities: ['Orbe du Néant', 'Regard des mille yeux'] });
+    // Planches PixelLab posées (assets/world-boss/void_maw/) et repères mesurés dessus.
+    g.ready = true;
+    g.from = '2028-10'; // 8e géant : août 2027 + 2 mois par rang (festBoss) ; jamais pendant une fête en cours
+    Object.assign(g.art.anims, {
+      throw3: { ...g.art.anims.throw }, beam3: { ...g.art.anims.beam },
+    });
+    g.art.anims.attack3 = { n: 9, fps: 18 };
+    g.art.extra = ['idle3', 'attack3', 'throw3', 'beam3', 'quake', 'embers', 'transform'];
+    // Souffle : le grand œil de la tête (x1, y1) et le coin de la gueule (x2, y2), qui suivent la tête image par image.
+    const eyeBeam = [[43, 57, 36, 77], [43, 57, 36, 77], [42, 57, 35, 78], [42, 57, 34, 80], [41, 57, 34, 82], [41, 57, 34, 84], [43, 58, 35, 84], [43, 58, 35, 84], [43, 58, 35, 84], [43, 58, 35, 84], [43, 57, 35, 80], [43, 57, 36, 78], [43, 57, 36, 77]];
+    g.art.eyes = { beam: eyeBeam, beam3: eyeBeam };
+    g.art.hands = { throw: [26, 90], throw3: [26, 90] };
+    g.art.box = [10, 4, 140, 148]; g.art.shadow = 60; g.art.dx = 14; // dx : décalage à gauche, pour que la forme de colère (× 1,33) reste dans le cadre
+    return g; })(),
+
 ];
 for (const g of GIANTS) if (g.ready) GRAND_BOSSES[g.id] = g;
 // Géants prêts (planches posées), dans l'ordre de leur arrivée dans les Fêtes (data/fest.js, festBoss).
