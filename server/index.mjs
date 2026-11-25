@@ -18,7 +18,7 @@ export function startServer({
   trustProxy = process.env.TRUST_PROXY === '1',
   adminPasswordHash = process.env.ADMIN_PASSWORD_HASH || '',
   gameWeb = process.env.GAME_WEB === '1',
-  videoMaxBytes = (Number(process.env.VIDEO_MAX_MB) || 80) * 1048576,
+  videoMaxBytes = (Number(process.env.VIDEO_MAX_MB) || 4096) * 1048576,
 } = {}) {
   const db = openDatabase(dbFile);
   const log = (line) => console.log(`${new Date().toISOString()} ${line}`);
