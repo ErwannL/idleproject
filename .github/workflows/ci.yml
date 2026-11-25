@@ -1,9 +1,10 @@
 name: CI
 
-# Tests à chaque push et pull request (rapide, sans construire l'exe ni l'APK : voir windows-exe.yml).
+# Tests à chaque push sur main et à chaque pull request (rapide, sans construire l'exe ni l'APK : voir windows-exe.yml).
+# Plus de run à chaque push sur claude/** : ouvrir une PR pour tester une branche (évite les runs en double).
 on:
   push:
-    branches: [main, master, 'claude/**']
+    branches: [main, master]
     paths-ignore: ['**.md', 'docs/**']
   pull_request:
 
@@ -20,6 +21,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+      # Cache npm enregistré uniquement sur main : branches, PR et tags le lisent sans créer leur propre copie.
+      - uses: actions/cache/restore@v4
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm ci
+      - if: github.ref_name == github.event.repository.default_branch && steps.npm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - run: npm test
