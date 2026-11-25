@@ -86,6 +86,7 @@ export function renderFestHub(ui) {
     root.appendChild(el);
   }
   el.className = `fest-hub fh-${f.kind} fh-tab-${ui.festHub.tab}`;
+  el.style.setProperty('--fh-accent', /^#[0-9a-f]{6}$/i.test(f.accent ?? '') ? f.accent : '#c9a14a'); // v10.14.1 : couleur d'accent de la fête
   el.innerHTML = hubHtml(state, f, ui.festHub.tab);
   const m2 = el.querySelector('.fh-main');
   if (m2) m2.scrollTop = scroll;
