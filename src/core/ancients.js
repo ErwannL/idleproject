@@ -12,6 +12,7 @@ import { dayKey } from './income.js';
 import { attemptCoins, attemptSeed } from './world-boss.js'; // v9.2.9
 import { liveEvent, liveFlag, liveKnown, liveNow } from './live.js'; // v9.3.0 : live-ops
 import { eventParams } from '../data/live-catalog.js';
+import { festStartMs } from '../data/fest.js'; // v10.14 : Fêtes du mois
 
 const DAY = 86400000;
 const anchorMs = () => new Date(`${EVENTS.anchor}T00:00:00`).getTime();
@@ -39,6 +40,7 @@ export function currentEvent(now = liveNow()) {
 export function calendarEvent(now) {
   const t = now - anchorMs();
   if (t < 0) return null;
+  if (now >= festStartMs()) return null; // v10.14 : les Fêtes du mois (core/fest.js) prennent le relais
   const cycle = Math.floor(t / (EVENTS.cycleDays * DAY));
   const inCycle = t - cycle * EVENTS.cycleDays * DAY;
   const grand = inCycle < EVENTS.grandDays * DAY;

@@ -1,0 +1,21 @@
+/* v10.14 : Fêtes du mois (ui/panels/event.js festPage). Reprend le kit (m-card, ev-poster, ev-mission, ev-shop-grid) ;
+   seuls les éléments propres aux fêtes sont ici : héros/familier à gagner sur l'affiche, bandeau d'échange, jalons. */
+#app .cb-frame.fest-page .fest-poster { height: auto; min-height: 160px; background-size: cover; background-position: center; }
+#app .cb-frame.fest-page .fest-poster .ev-wallet { white-space: nowrap; }
+.fest-page .fest-kicker { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--m-gold, #f2c060); }
+.fest-page .fest-timer { font-weight: 700; }
+.fest-page .fest-prize { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 4px; text-align: center; }
+.fest-page .fest-prize small { flex-basis: 100%; font-size: 11px; color: #fff3c8; text-shadow: 0 1px 2px #000; }
+.fest-page .fest-unit-art { max-height: 110px; max-width: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+.fest-page .fest-prize.two .fest-unit-art { max-height: 92px; max-width: 48%; }
+.fest-page .fest-unit-art.pet { max-height: 64px; }
+.fest-page .fest-unit-art.mini { max-height: 32px; max-width: 40px; }
+.fest-page .fest-pause { border-color: #7fd4ff; display: flex; flex-direction: column; gap: 4px; }
+.fest-page .fest-steps { display: flex; gap: 6px; overflow-x: auto; padding: 8px; scroll-snap-type: x proximity; }
+.fest-page .fest-step { position: relative; flex: 0 0 auto; min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px;
+  border-radius: 10px; border: 2px solid rgba(255,255,255,.12); background: rgba(0,0,0,.25); color: inherit; scroll-snap-align: center; }
+.fest-page .fest-step.ready { border-color: var(--m-gold, #f2c060); box-shadow: 0 0 10px rgba(242,192,96,.55); cursor: pointer; }
+.fest-page .fest-step.claimed { opacity: .55; }
+.fest-page .fest-step-gift { display: flex; align-items: center; gap: 2px; min-height: 34px; }
+.fest-page .fest-ok { position: absolute; top: 2px; right: 4px; color: #7fe0a0; font-style: normal; font-weight: 700; }
+.fest-page .fest-item b { font-size: 12px; }

@@ -14,6 +14,7 @@ import { nextMasteryTier } from './powers.js';
 import { companionById } from './companions.js';
 import { eventLabel, hasRoom } from './events.js';
 import { currentEvent, eventGoals, eventRecord } from './ancients.js';
+import { festMissions } from './fest.js'; // v10.14
 
 // Chaque entrée : { key, kind, label, reward, tab, item } ; item = la récompense contient un objet (sac plein → bloquée).
 export function claimables(state, now = Date.now(), balance = BALANCE) {
@@ -68,6 +69,11 @@ export function claimables(state, now = Date.now(), balance = BALANCE) {
       for (const g of eventGoals(ev)) if (!rec.claimed.includes(g.id) && (rec.goals[g.id] ?? 0) >= g.target) push({ key: `eventGoal:${g.id}`, kind: 'eventGoal', id: g.id, label: `Événement : ${g.label}`, reward: g.give ?? {}, tab: 'event' });
     }
   } catch { /* pas d'événement */ }
+  // v10.14 : missions des Fêtes du mois remplies (monnaie de fête et récompenses) → « Tout récupérer ».
+  try {
+    const fm = festMissions(state);
+    if (fm) for (const m of [...fm.daily, ...fm.event]) if (m.ready) push({ key: `fest:${m.id}`, kind: 'festMission', id: m.id, label: `Fête : ${m.label}`, reward: m.give ?? {}, tab: 'event' });
+  } catch { /* pas de fête */ }
   return out;
 }
 

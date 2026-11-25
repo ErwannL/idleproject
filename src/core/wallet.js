@@ -1,6 +1,7 @@
 // v9.2.8 : portefeuille de l'économie (tickets héros limités et permanents, tickets familiers, fragments SSR universels,
 // écus d'événement), séparé des gemmes. Chaque monnaie ne sert qu'à un usage (data/economy.js, WALLET).
 import { WALLET_KEYS } from '../data/economy.js';
+import { sanitizeFestRecord } from '../data/fest.js'; // v10.14
 
 export function emptyEconomy() {
   return {
@@ -52,6 +53,17 @@ export function sanitizeEconomy(raw) {
         boss: { day: typeof e.boss?.day === 'string' ? e.boss.day.slice(0, 10) : '', used: int(e.boss?.used, 100), best: int(e.boss?.best, 1e300) },
         fragment: e.fragment === true,
       };
+      // v10.14 : le World Boss du jour, le Marché des Lueurs et les Fêtes gardent leur progression au rechargement
+      // (avant : `lights` et le détail du boss du jour étaient perdus à chaque chargement de la sauvegarde).
+      const b = e.boss ?? {};
+      Object.assign(out.events[id].boss, { today: int(b.today, 1e300), todayBest: int(b.todayBest, 1e300), hp: int(b.hp, 1e300), tiers: int(b.tiers, 10) });
+      if (e.lights && typeof e.lights === 'object') {
+        const L = e.lights;
+        out.events[id].lights = { steps: Array.isArray(L.steps) ? L.steps.filter((x) => Number.isInteger(x) && x >= 0 && x < 40).slice(0, 40) : [], spent: int(L.spent),
+          bought: Object.fromEntries(Object.entries(L.bought ?? {}).slice(0, 20).map(([k, v]) => [String(k).slice(0, 20), int(v, 1000)])) };
+      }
+      const f = sanitizeFestRecord(e.fest);
+      if (f) out.events[id].fest = f;
     }
   }
   const s = raw.store;

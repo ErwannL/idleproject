@@ -382,7 +382,9 @@ test('déploiement : le calendrier 9.2.9 est repris tout seul (mêmes dates, mê
   assert.equal(cur.end, old.end);
   assert.equal(cur.cycle, old.cycle);
   assert.ok(pub.events.length >= 5, 'cycles suivants programmés');
-  for (let k = 0; k < pub.events.length - 1; k += 1) assert.equal(pub.events[k].end, pub.events[k + 1].start, 'enchaînés sans trou');
+  // v10.14 : les Fêtes du mois (type « fest ») sont programmées à part, à partir de leur premier mois.
+  const legacy = pub.events.filter((e) => e.type !== 'fest');
+  for (let k = 0; k < legacy.length - 1; k += 1) assert.equal(legacy[k].end, legacy[k + 1].start, 'enchaînés sans trou');
   const vedette = pub.banners.find((b) => b.state === 'active');
   assert.equal(vedette.unit, featuredUnit('limited', at).id, 'même vedette que la 9.2.9');
   // Le jeu garde l'identifiant de l'événement de la 9.2.9 (progression conservée).

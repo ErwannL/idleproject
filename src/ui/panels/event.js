@@ -6,12 +6,18 @@ import { currentEvent, eventGoals, eventRecord, eventShop, eventStageLevel, tota
 import { liveAnnouncements, liveNextEvent, liveNow } from '../../core/live.js'; // v9.3.0 : live-ops
 import { LIVE_EVENT_TYPES } from '../../data/live-catalog.js';
 import { WORLD_BOSS } from '../../core/world-boss.js'; // v9.2.9
-import { escapeHtml, formatNumber, img, rewardIcons } from '../common.js';
+import { escapeHtml, formatNumber, hdArt, img, rewardIcons } from '../common.js';
 import { LIGHTS_EVENT, lightsMissions, lightsPath, lightsPosition, lightsShop, lightsWallet } from '../../core/lights.js'; // v10.6
 const heroPortrait = () => img('icon_hero');
 import { walletIcon } from './shop.js';
 import { stageLabel } from '../../core/combat.js';
 import { mBar, mBtn, mBtnGold, mEmpty, mStat, mTitle } from '../mobile-kit.js'; // v10.12
+import { currentFest, featuredInTeam, festBossStatus, festMissions, festPath, festRecord, festShop, festStageLevel, festSummonSteps, festTotalStages } from '../../core/fest.js'; // v10.14
+import { FEST_RULES } from '../../data/fest.js';
+import { WALLET } from '../../data/economy.js';
+import { COMPANIONS } from '../../data/companions.js';
+import { ZONES } from '../../data/zones.js';
+import { grandBoss } from '../../data/grand-bosses.js';
 const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
@@ -134,10 +140,12 @@ export default {
   title: 'Événement',
   icon: 'icon_map',
   // v10.6 (partie 3) : le Marché des Lueurs a sa propre affiche ; pas de seconde bannière au-dessus.
-  banner() { return currentEvent()?.kind === 'small' ? '' : null; },
+  banner() { return currentFest() || currentEvent()?.kind === 'small' ? '' : null; },
   render(ui, state) {
-    const ev = currentEvent();
     const news = announcements();
+    const fest = currentFest(); // v10.14 : Fêtes du mois
+    if (fest) return festPage(ui, state, fest, news);
+    const ev = currentEvent();
     const phone = isPhoneUi(ui);
     if (phone && !ev) {
       const nx = liveNextEvent();
@@ -234,4 +242,120 @@ function phoneSmall(state, ev) {
 
 function phoneEvent(ui, state, ev, news) {
   return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${ev.kind === 'grand' ? phoneGrand(ui, state, ev) : phoneSmall(state, ev)}</div>`;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// v10.14 : FÊTES DU MOIS (core/fest.js, data/fest.js). Une page par fête, même kit que le reste (PC et téléphone) :
+// affiche (titre, minuteur, monnaie, héros / familier à gagner), puis selon la fête :
+//   grande : Carte du héros (30 étapes), World Boss du thème, jalons d'invocation ;
+//   petite : sentier de 12 étapes (héros et familier gratuits) ;
+// et pour les deux : missions du jour, missions de la fête, boutique. Pendant l'échange : bandeau, combats fermés.
+const FEST_ART = { grandNode: 'assets/ui/art106/event_lights_node.png', node: 'assets/ui/art106/event_lights_node.png', nodeDone: 'assets/ui/art106/event_lights_node_done.png',
+  lightKey: 'assets/ui/art106/event_lights_key.png', path: 'assets/ui/art106/event_lights_path.png', coin: 'assets/ui/art106/event_lights_currency.png' };
+// Récompense en icônes : monnaies du portefeuille (tickets, fragments) avec leur icône de boutique, le reste comme partout.
+const festGive = (g = {}) => Object.entries(g).map(([k, v]) => (WALLET[k] ? `<span class="shop-give">${walletIcon(k)}<b class="num">${v}</b></span>` : rewardIcons({ [k]: v }))).join('');
+const festCoin = (f) => `<img class="px lt-cur" src="${f.art?.currency ?? FEST_ART.coin}" alt="" title="${escapeHtml(f.currency)}">`;
+const unitArt = (id, cls = '') => { const c = COMPANIONS.find((x) => x.id === id); return c ? (hdArt(c, `fest-unit-art ${cls}`) || img(c.sprite, `fest-unit-art ${cls}`)) : ''; };
+const unitName = (id) => COMPANIONS.find((x) => x.id === id)?.name ?? id;
+const left = (ms) => { const d = Math.floor(ms / 86400000); const h = Math.floor((ms % 86400000) / 3600000); return d >= 1 ? `${d} j ${h} h` : `${Math.max(1, h)} h`; };
+
+function festPoster(state, f) {
+  const now = liveNow();
+  const rec = festRecord(state);
+  const zone = ZONES[f.zone ?? 0];
+  const bg = f.kind === 'grand'
+    ? `background-image:linear-gradient(90deg,rgba(11,17,36,.94),rgba(11,17,36,.35)),url(${f.art?.key ?? `assets/bg/${zone?.id ?? 'plains'}_far.png`})`
+    : `background-image:linear-gradient(90deg,rgba(11,17,36,.9),rgba(11,17,36,.2)),url(${f.art?.key ?? FEST_ART.lightKey})`;
+  const timer = f.phase === 'play' ? `⏳ encore ${left(f.playEnd - now)}` : `🔁 Échange : ${left(f.end - now)}`;
+  const prize = f.kind === 'grand'
+    ? `<span class="fest-prize">${unitArt(f.featured)}<small>Héros du mois · ${escapeHtml(unitName(f.featured))}</small></span>`
+    : `<span class="fest-prize two">${unitArt(f.hero)}${unitArt(f.pet, 'pet')}<small>Gratuits · ${escapeHtml(unitName(f.hero))} et ${escapeHtml(unitName(f.pet))}</small></span>`;
+  return `<div class="m-card ev-poster ev-small fest-poster fest-${f.kind}" style="${bg}">
+    <span class="ev-poster-l"><small class="fest-kicker">${f.kind === 'grand' ? 'Grande fête' : 'Petite fête'} · jour ${Math.min(f.day, f.days)}/${f.days}</small>
+      <b class="ev-t">${escapeHtml(f.title)}</b><span class="ev-sub">${escapeHtml(f.tagline ?? '')}</span>
+      <span class="ev-sub fest-timer">${timer}</span>
+      <span class="ev-wallet">${festCoin(f)}<b class="num">${formatNumber(rec.coins)}</b> ${escapeHtml(f.currency)}</span></span>
+    <span class="ev-poster-r">${prize}</span></div>
+    ${f.phase === 'pause' ? `<div class="m-card fest-pause"><b>Échange de fin de fête</b><span class="cb-sub">Combats, boss et missions sont fermés. Dépense ta monnaie : ce qui reste à la fin sera converti en éclats (${FEST_RULES.leftoverShards} par pièce).</span></div>` : ''}`;
+}
+
+function festMap(state, f) {
+  const rec = festRecord(state);
+  const total = festTotalStages();
+  const per = FEST_RULES.map.stagesPerRegion;
+  const next = rec.cleared + 1;
+  const regions = (f.regions ?? []).slice(0, FEST_RULES.map.regions).map((name, ri) => {
+    const cells = Array.from({ length: per }, (_, i) => {
+      const n = ri * per + i + 1;
+      const cls = n <= rec.cleared ? 'done' : n === next ? 'next' : 'locked';
+      return `<span class="ev-stage ${cls}${n === FEST_RULES.map.fragmentStage ? ' frag' : ''}${n === FEST_RULES.map.bossUnlockStage ? ' boss' : ''}" title="${n}">${n}</span>`;
+    }).join('');
+    return `<div class="ev-region"><div class="ev-region-name">${escapeHtml(name)}</div><div class="ev-stages">${cells}</div></div>`;
+  }).join('');
+  const bonus = featuredInTeam(state, f);
+  const open = f.phase === 'play';
+  const fight = next <= total
+    ? `<div class="m-card ev-fight"><span class="ev-fight-t"><b>Étape ${next}</b><span class="cb-sub">Gardien niv. ${stageLabel(festStageLevel(state, next))}</span></span>
+        ${mBtn('Combattre', { action: 'fest-fight', value: next, disabled: !open })}</div>${open ? mBtnGold('Enchaîner', { action: 'fest-chain', value: next, icon: 'icon_map' }) : ''}`
+    : '<div class="m-card good">Carte terminée.</div>';
+  return `<b class="ev-h">${img('icon_map')} Carte de ${escapeHtml(unitName(f.featured))} · ${rec.cleared}/${total}</b>
+    <div class="m-card ev-mapcard"><div class="ev-map">${regions}</div></div>${fight}
+    <div class="cb-sub cb-help">Combat automatique de ${FEST_RULES.map.fightSeconds} s. Étape ${FEST_RULES.map.bossUnlockStage} : World Boss. Étape ${FEST_RULES.map.fragmentStage} : fragment Légendaire universel.
+      ${bonus ? `<b class="good">${escapeHtml(unitName(f.featured))} est dans l'équipe : +${Math.round(FEST_RULES.map.featuredBonus * 100)} % de ${escapeHtml(f.currency)}.</b>` : `Avec ${escapeHtml(unitName(f.featured))} dans l'équipe : +${Math.round(FEST_RULES.map.featuredBonus * 100)} % de ${escapeHtml(f.currency)}.`}</div>`;
+}
+
+function festBoss(state, f) {
+  const st = festBossStatus(state);
+  if (!st) return '';
+  const gb = grandBoss(st.boss);
+  const tiers = WORLD_BOSS.tiers.map((t, i) => `<span class="wb-tier${i < st.tiers ? ' on' : ''}"><b class="num">${Math.round(t * 100)} %</b></span>`).join('');
+  const body = st.open
+    ? `${mStat('icon_boss', 'Tentatives du jour', `${st.left}/${st.perDay}`)}${mStat('icon_trophy', 'Record', formatNumber(st.best))}${mStat('icon_damage', 'Dégâts du jour', formatNumber(st.today))}
+      <div class="wb-card-tiers">${tiers}</div>${mBtn('Attaquer', { action: 'fest-boss', disabled: !st.left, icon: 'icon_boss' })}
+      <div class="cb-sub">+${FEST_RULES.boss.coinsBase} ${escapeHtml(f.currency)} par tentative, +${FEST_RULES.boss.coinsPerTier} par palier atteint.</div>`
+    : `<div class="cb-sub">${st.pause ? 'Fermé pendant l\'échange.' : `Débloqué à l'étape ${st.unlockStage} de la carte.`}</div>`;
+  return `<div class="m-card ev-boss"><b class="ev-h">${img('icon_boss')} World Boss · ${escapeHtml(gb.name)}</b>${gb.titan ? '' : `<span class="cb-sub">${escapeHtml(gb.title ?? '')}</span>`}${body}</div>`;
+}
+
+function festSteps(f, list, key, label, unitLabel) {
+  if (!list.length) return '';
+  const ready = list.filter((s) => s.reached && !s.claimed).length;
+  const items = list.map((s) => {
+    const cls = s.claimed ? 'claimed' : s.reached ? 'ready' : 'off';
+    const gift = [s.give ? festGive(s.give) : '', s.hero ? unitArt(f.hero, 'mini') : '', s.pet ? unitArt(f.pet, 'mini pet') : ''].join('');
+    return `<button type="button" class="fest-step ${cls}" ${s.reached && !s.claimed ? `data-action="fest-step" data-value="${key}${s.index}"` : 'disabled'} title="${s.at} ${escapeHtml(unitLabel)}">
+      <span class="fest-step-gift">${gift}</span><small class="num">${s.at}</small>${s.claimed ? '<i class="fest-ok">✓</i>' : ''}</button>`;
+  }).join('');
+  return `<b class="ev-h">${label}</b><div class="m-card fest-steps">${items}</div>${ready > 1 ? mBtnGold(`Tout récupérer (${ready})`, { action: 'fest-steps-all' }) : ''}`;
+}
+
+function festMissionTiles(f, list, title) {
+  const tiles = list.map((m) => {
+    const btn = m.done ? '<span class="lt-stamp">Faite</span>' : m.ready ? mBtn('Récupérer', { action: 'fest-mission', value: m.id }) : m.tab && f.phase === 'play' ? mBtn('Y aller', { action: 'open-tab', value: m.tab }) : '';
+    return `<div class="m-card ev-mission${m.done ? ' lit' : ''}"><div class="ev-mission-body"><b>${escapeHtml(m.label)}</b>${mBar(m.p / m.n)}
+      <span class="lt-give">${festCoin(f)}<b class="num">+${m.coins}</b>${m.give ? festGive(m.give) : ''}<span class="cb-sub num">${formatNumber(m.p)}/${formatNumber(m.n)}</span></span></div>${btn}</div>`;
+  }).join('');
+  return `<b class="ev-h">${title}</b>${tiles}`;
+}
+
+function festShopHtml(state, f) {
+  const items = festShop(state).map((i) => {
+    const what = i.unit ? `${unitArt(i.unit, 'mini')}<b>${escapeHtml(unitName(i.unit))}</b>` : `<span class="ev-give">${festGive(i.give)}</span>`;
+    return `<div class="m-card ev-item fest-item">${what}<span class="cb-sub num">${i.bought}/${i.stock}</span>
+      <button type="button" class="m-btn" data-action="fest-buy" data-value="${i.id}" ${i.can ? '' : 'disabled'}>${festCoin(f)}<span>${i.price}</span></button></div>`;
+  }).join('');
+  return `<b class="ev-h">${festCoin(f)} Boutique · ${escapeHtml(f.currency)}</b><div class="ev-shop-grid">${items}</div>`;
+}
+
+function festPage(ui, state, f, news) {
+  const m = festMissions(state);
+  const ready = [...m.daily, ...m.event].filter((x) => x.ready).length;
+  const body = f.kind === 'grand'
+    ? `${festMap(state, f)}${festBoss(state, f)}${festSteps(f, festSummonSteps(state), 's', `${img('icon_summon')} Jalons d'invocation · ${festRecord(state).fest.summons} sur la bannière de ${escapeHtml(unitName(f.featured))}`, 'invocations')}
+       ${f.phase === 'play' ? mBtn(`Invoquer ${unitName(f.featured)}`, { action: 'open-tab', value: 'summon', icon: 'icon_summon' }) : ''}`
+    : festSteps(f, festPath(state), 'p', `${img('icon_map')} Sentier · ${formatNumber(festRecord(state).fest.earned)} ${escapeHtml(f.currency)} gagnés`, f.currency);
+  return `<div class="m-frame cb-frame fest-page">${mTitle('icon_map', 'Événement', true)}${news}${festPoster(state, f)}${body}
+    ${festMissionTiles(f, m.daily, 'Missions du jour')}${festMissionTiles(f, m.event, 'Missions de la fête')}
+    ${ready > 1 ? mBtn(`Récupérer les missions (${ready})`, { action: 'fest-missions-all' }) : ''}
+    ${festShopHtml(state, f)}</div>`;
 }

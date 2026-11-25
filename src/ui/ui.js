@@ -1195,6 +1195,17 @@ export class UI {
       case 'lights-step': { const r = a.lightsStep(value); if (r) this.chestReveal(r.given, r.label, r.companion ? 'Fée des lueurs' : null); break; }
       case 'lights-all': { const r = a.lightsAll(); if (r?.length) this.chestReveal(Object.assign({}, ...r.map((x) => x.given)), 'Lanternes'); break; }
       case 'lights-buy': { const g = a.lightsBuy(value); if (g) this.chestReveal(g, 'Échoppe des Lueurs'); break; }
+      // v10.14 : Fêtes du mois (ui/panels/event.js, core/fest.js).
+      case 'fest-fight': { const r = a.festFight(Number(value)); if (r?.error === 'pause') this.toast('Échange en cours : les combats sont fermés.'); this.invalidate(); break; }
+      case 'fest-chain': a.festChain(Number(value)); this.invalidate(); break;
+      case 'fest-boss':
+        openWorldBoss(this.state, { start: () => a.festBossStart(), finish: (setup, r) => a.festBossFinish(setup, r), left: () => a.festBossLeft(), closed: () => this.invalidate() });
+        break;
+      case 'fest-mission': a.festMission(value); break;
+      case 'fest-missions-all': a.festMissionsAll(); break;
+      case 'fest-step': { const r = a.festStep(value); if (r) this.chestReveal(r.given, 'Récompense de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
+      case 'fest-steps-all': { const r = a.festStepsAll(); if (r) this.chestReveal(r.given, 'Récompenses de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
+      case 'fest-buy': { const r = a.festBuy(value); if (r) this.chestReveal(r.given, 'Boutique de la fête', r.units.map((u) => `${u.name}${u.isNew ? ' rejoint l\'équipe !' : ` : ${u.stars}★`}`).join(' · ') || null); break; }
       case 'bounty-claim': { const g = a.bountyClaim(); if (g) this.chestReveal(g, 'Prime du Héraut'); break; }
       case 'bounty-refuse': a.bountyRefuse(); this.hudQuests?.update(this.state, true); break;
       case 'summon-odds': local(() => { v.summonOdds = v.summonOdds === value ? null : value; }); break; // v9.1.3 : « ? » d'un bassin

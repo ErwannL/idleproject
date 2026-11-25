@@ -2,7 +2,8 @@
 // Le serveur (server/live.mjs) n'accepte dans sa configuration que des éléments de ce catalogue, et seulement avec une
 // « version minimale du client » au moins égale à la version qui les a livrés (`since`). Le jeu (core/live.js)
 // n'affiche un élément que si la config live l'active ET si sa propre version est au moins la version minimale.
-// Fichier sans import : il est lu tel quel par le serveur et par le jeu.
+// Fichier lu tel quel par le serveur et par le jeu (sa seule dépendance, data/fest.js, n'importe rien).
+import { FEST_SHEET_IDS } from './fest.js';
 // Ajouter un événement : 1) coder son contenu et ses assets, 2) l'ajouter ici avec `since` = version qui le livre,
 // 3) publier la mise à jour, 4) le programmer puis l'activer depuis l'admin (docs/live-ops.md).
 
@@ -64,6 +65,21 @@ export const LIVE_EVENT_TYPES = {
     params: {
       rule: { type: 'enum', values: ['noHeal', 'bossRush', 'elements', 'speed'], def: 'bossRush', label: 'Règle vedette' },
       goalMult: { type: 'number', min: 0.1, max: 5, def: 1, label: 'Cibles des objectifs (×)' },
+    },
+  },
+  // v10.14 : FÊTES DU MOIS (data/fest.js) — une grande fête (jours 1 à 14 : héros du mois, Carte du héros, World Boss,
+  // jalons d'invocation) puis une petite fête (héros et familier gratuits à farmer), chacune suivie de 2 jours
+  // d'échange. La feuille (`sheet`) donne tout le contenu ; les dates de l'élément incluent l'échange.
+  fest: {
+    since: '10.14.0', kind: 'fest', days: 16, label: 'Fête du mois',
+    detail: 'Feuille « AAAA-MM-g » (grande fête) ou « AAAA-MM-l » (petite fête) de data/fest.js ; les 2 derniers jours sont l\'échange (boutique seule).',
+    params: {
+      sheet: { type: 'enum', values: FEST_SHEET_IDS, def: FEST_SHEET_IDS[0], label: 'Feuille de la fête' },
+      coinMult: { type: 'number', min: 0.5, max: 5, def: 1, label: 'Monnaie de fête (×)' },
+      worldBoss: { type: 'bool', def: true, label: 'World Boss ouvert (grande fête)' },
+      bossHpMult: { type: 'number', min: 0.1, max: 10, def: 1, label: 'PV du World Boss (×)' },
+      attemptsPerDay: { type: 'int', min: 1, max: 10, def: 3, label: 'Tentatives du World Boss par jour' },
+      shopStockMult: { type: 'number', min: 0, max: 5, def: 1, label: 'Stocks de la boutique (×)' },
     },
   },
   collect: {

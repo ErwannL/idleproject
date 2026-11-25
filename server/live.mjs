@@ -7,6 +7,7 @@ import {
   LIVE_EVENT_TYPES, LIVE_FEATURED_UNITS, LIVE_FLAGS, LIVE_MIN_CLIENT, LIVE_OFFER_IDS, compareVersions, eventParams, isVersion,
 } from '../src/data/live-catalog.js';
 import { BANNERS, EVENTS } from '../src/data/economy.js'; // v9.3.0 : reprise du calendrier automatique de la 9.2.9
+import { festLiveItems } from '../src/data/fest.js'; // v10.14 : Fêtes du mois
 
 export const LIVE_SCHEMA = 1;
 const DAY = 86400000;
@@ -344,6 +345,49 @@ function seedLegacyCalendar(db, meta, t) {
   }
 }
 
+// ---- v10.14 : calendrier des Fêtes du mois ------------------------------------------------------------------------
+// Programme d'un coup les fêtes (grande et petite, échange compris) et la vedette du mois de `months` mois, à partir du
+// mois en cours (ou du premier mois des Fêtes). Un élément qui chevaucherait un élément déjà programmé ou actif du
+// même type est sauté (jamais écrasé) et compté dans `skipped`. Au premier démarrage en 10.14 : une fois, 6 mois
+// (live_meta « fest_seed ») ; ensuite depuis l'admin (POST /api/admin/live/fest-import) pour prolonger la rotation.
+export function importFestCalendar(db, meta, t, { months = 6, admin = 'système' } = {}) {
+  const { events, banners } = festLiveItems(t, months);
+  const rows = db.prepare('SELECT * FROM live_items').all().filter((r) => ['scheduled', 'active'].includes(effectiveStatus(r, t)));
+  const clash = (kind, s, e) => rows.some((r) => r.kind === kind && (r.starts_at ?? 0) < e && s < (r.ends_at ?? Infinity));
+  const ins = db.prepare(`INSERT INTO live_items (kind, ref, title, status, starts_at, ends_at, min_client, data, version, created_at, updated_at, updated_by)
+    VALUES (?, ?, ?, 'scheduled', ?, ?, ?, ?, 1, ?, ?, ?)`);
+  let added = 0;
+  let skipped = 0;
+  db.exec('BEGIN');
+  try {
+    for (const e of events) {
+      if (clash('event', e.start, e.end)) { skipped += 1; continue; }
+      ins.run('event', 'fest', e.title.slice(0, 80), e.start, e.end, defaultMinClient('event', 'fest'), JSON.stringify({ params: eventParams('fest', { sheet: e.sheet }) }), t, t, admin);
+      rows.push({ kind: 'event', starts_at: e.start, ends_at: e.end });
+      added += 1;
+    }
+    for (const b of banners) {
+      if (!LIVE_FEATURED_UNITS[b.ref] || clash('banner', b.start, b.end)) { skipped += 1; continue; }
+      ins.run('banner', b.ref, `Héros du mois : ${LIVE_FEATURED_UNITS[b.ref].label}`, b.start, b.end, defaultMinClient('banner', b.ref), '{}', t, t, admin);
+      rows.push({ kind: 'banner', starts_at: b.start, ends_at: b.end });
+      added += 1;
+    }
+    db.prepare('INSERT INTO live_history (at, admin, action, item_id, kind, summary) VALUES (?, ?, ?, NULL, ?, ?)')
+      .run(t, admin, 'calendrier des Fêtes', 'event', `Fêtes du mois : ${added} élément(s) programmé(s), ${skipped} sauté(s) (chevauchement)`);
+    if (added) meta.set('programmed', '1');
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  return { added, skipped };
+}
+function seedFestCalendar(db, meta, t) {
+  if (meta.get('fest_seed')) return;
+  importFestCalendar(db, meta, t, { months: 6 });
+  meta.set('fest_seed', String(t));
+}
+
 // ---- Service -----------------------------------------------------------------------------------------------------
 export function createLive({ db, now = () => Date.now() }) {
   db.exec(LIVE_SCHEMA_SQL);
@@ -374,6 +418,7 @@ export function createLive({ db, now = () => Date.now() }) {
     meta.set('goals_1080', '1');
   }
   seedLegacyCalendar(db, meta, now());
+  seedFestCalendar(db, meta, now()); // v10.14
   const q = {
     all: db.prepare('SELECT * FROM live_items ORDER BY COALESCE(starts_at, created_at) DESC, id DESC'),
     get: db.prepare('SELECT * FROM live_items WHERE id = ?'),
@@ -583,5 +628,11 @@ export function createLive({ db, now = () => Date.now() }) {
     return { ...h, before: h.before ? JSON.parse(h.before) : null, after: h.after ? JSON.parse(h.after) : null };
   }
 
-  return { create, update, act, remove, setGoals, adminGoals, publicGoals, publicPayload, adminState, historyEntry };
+  // v10.14 : prolonge le calendrier des Fêtes (admin) : `months` mois à partir du mois en cours.
+  function festImport(admin, body = {}) {
+    const months = Number.isInteger(body.months) && body.months >= 1 && body.months <= 12 ? body.months : 6;
+    return importFestCalendar(db, meta, now(), { months, admin });
+  }
+
+  return { festImport, create, update, act, remove, setGoals, adminGoals, publicGoals, publicPayload, adminState, historyEntry };
 }

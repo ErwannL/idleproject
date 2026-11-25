@@ -1207,6 +1207,11 @@ export function createApp({
       const s = requireAdmin(req);
       return { status: 201, body: live.create(s.username, await readJson(req, 32 * 1024)) };
     } },
+    // v10.14 : programme le calendrier des Fêtes du mois (data/fest.js) sur N mois, sans écraser l'existant.
+    { method: 'POST', path: /^\/api\/admin\/live\/fest-import$/, handler: async ({ req }) => {
+      const s = requireAdmin(req);
+      return { body: live.festImport(s.username, await readJson(req)) };
+    } },
     { method: 'PUT', path: /^\/api\/admin\/live\/items\/(\d+)$/, handler: async ({ req, params }) => {
       const s = requireAdmin(req);
       return { body: live.update(s.username, Number(params[0]), await readJson(req, 32 * 1024)) };
