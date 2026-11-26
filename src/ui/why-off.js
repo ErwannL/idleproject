@@ -7,7 +7,7 @@ const SAYS = /🔒|S'ouvre|Il (te )?manque|Bientôt|plein|Aucun|Rien|Déjà|max|
 // Raison déduite du bouton (texte, classes) : pure, testée.
 export function disabledReason({ text = '', cls = '', title = '', why = '' } = {}) {
   if (why) return why;
-  if (title) return title;
+  if (title && SAYS.test(title)) return title; // une infobulle qui est vraiment une raison
   const t = String(text).replace(/\s+/g, ' ').trim();
   if (/€/.test(t)) return 'Achats pas encore ouverts';
   if (/\bko\b/.test(cls) || /^[\d,.\s]+(K|M|B|T|Qa|Qi|Sx|Sp|Oc|No|Dc|×10\S*|[a-z]{2})?$/.test(t)) return 'Pas assez pour l\'acheter';
@@ -21,15 +21,14 @@ export function explainDisabled(root) {
   let n = 0;
   const near = (box, b) => box && [...box.querySelectorAll(NOTE)].some((x) => x !== b && !x.contains(b) && (x.textContent ?? '').trim());
   for (const b of root.querySelectorAll('button:disabled, button[aria-disabled="true"]')) {
-    if (b.closest('.m-chips, .mp-chips, #tabs') || b.dataset.whyDone) continue;
-    if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step')) continue; // cases graphiques : le cadenas ou la case vide dit déjà l'état
+    if (b.closest('.m-chips, .mp-chips, #tabs') || b.nextElementSibling?.classList.contains('why-auto')) continue;
+    if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step, .stage-grid button, .world-picker .m-btn')) continue; // cases graphiques (carte, arbre, places, étapes, flèches de monde) : le cadenas ou la case dit déjà l'état
     const text = b.textContent ?? '';
     if (SAYS.test(text) || near(b.parentElement, b) || near(b.parentElement?.parentElement, b)) continue;
     const s = document.createElement('small');
     s.className = 'why-off why-auto';
     s.setAttribute('role', 'note');
     s.textContent = disabledReason({ text, cls: b.className, title: b.getAttribute('title') ?? '', why: b.dataset.why ?? '' });
-    b.dataset.whyDone = '1';
     b.after(s);
     n += 1;
   }

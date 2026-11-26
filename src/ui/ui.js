@@ -3123,6 +3123,7 @@ export class UI {
     this.morphTab = this.tab;
     try { explainDisabled(body); explainDisabled(this.$('panel')?.querySelector('.m-sheet')); } catch { /* jamais bloquant */ } // v10.16 (B5) : raison sous chaque bouton grisé
     this.syncSheets(); // v10.12 : fiches du kit mobile (déplacées dans #panel, ou retirées si le rendu n'en a plus)
+    try { this.$('panel')?.querySelectorAll('.m-sheet').forEach((s) => explainDisabled(s)); } catch { /* fiches déplacées : idem */ }
     if (body.querySelector('canvas[data-vfx]') || this.$('panel')?.querySelector('.m-sheet canvas[data-vfx]')) startVignettes(); // v10.1 (P2) : vignettes animées (v10.12 : aussi dans une fiche déplacée)
     for (const [id, value] of Object.entries(this.typed)) {
       const field = body.querySelector(`#${CSS.escape(id)}`);
