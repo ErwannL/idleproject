@@ -48,6 +48,7 @@ import { drawWorldVfx, eventVfx } from './vfx-world.js'; // v9.2.6 : compétence
 import { weaponFx } from '../data/weapon-fx.js'; // v9.3.2 : effets d'arme selon la rareté
 import { DAMAGE_COLORS, drawDamageText, drawVfx, drawVfxFrame, projFrame, vfx, vfx2Ready, vfxReady } from './vfx.js'; // v9.2.6 : effets de combat PixelLab
 import { unitGear } from '../core/companion-gear.js'; // v9.3.3 : halo d'équipement
+import { holdFrame, shiftEffects } from './frame-hold.js'; // v10.17 (A) : cadrage gardé à l'ouverture d'une fenêtre
 import { drawLootChest, drawLootChestTop } from './loot-chest.js'; // v10.3.1 : coffre de butin dessiné dans la scène
 // v9.2.9 : toiles de travail relues par getImageData : mémoire côté processeur (avertissement Chrome « willReadFrequently »).
 const RF = { willReadFrequently: true };
@@ -331,7 +332,10 @@ export class SceneRenderer {
     const room = cssHeight - hud; // place sous le HUD pour le héros et le sol
     if (!tall && room > 0) scale = Math.min(scale, room / (HERO_PX + GROUND_DEPTH + 4));
     // Échelle nette : nombre entier de pixels d'écran par pixel du jeu (minimum 1).
-    const k = Math.max(1, Math.round(scale * dpr), Math.round((cssHeight / (tall || wide ? 490 : MAX_VIEW_HEIGHT)) * dpr));
+    let k = Math.max(1, Math.round(scale * dpr), Math.round((cssHeight / (tall || wide ? 490 : MAX_VIEW_HEIGHT)) * dpr));
+    // v10.17 (A) : fenêtre (onglet, feuille) ouverte ou fermée sans que la fenêtre du navigateur change : zoom gardé.
+    const held = this.holdFrame && this.frame && this.frame.dpr === dpr ? this.frame : null;
+    if (held) k = held.k;
     scale = k / dpr;
     this.scale = scale;
     this.width = Math.max(120, Math.floor(cssWidth / scale));
@@ -347,6 +351,17 @@ export class SceneRenderer {
     // v10.11 (4) : grand écran (plus de 1300 px) : le combat se joue au milieu — le point de rencontre (héros → premier
     // monstre) est poussé vers 47 % de la largeur ; le décor continue des deux côtés.
     this.centerShift = !tall && cssWidth >= 1300 ? Math.max(0, Math.round(this.width * 0.47 - HERO_X - 34)) : 0;
+    if (held) {
+      // v10.17 (A) : même cadrage qu'avant l'ouverture ; s'il ne tient plus, on recadre (moins de décor), sans dézoomer.
+      const h = holdFrame(held, { width: Math.ceil(cssWidth / scale), height: Math.ceil(cssHeight / scale), heroX: HERO_X, minGround: MIN_VIEW_HEIGHT - GROUND_DEPTH, depth: GROUND_DEPTH });
+      this.centerShift = h.centerShift;
+      this.groundY = h.groundY;
+      this.wide = held.wide && this.groundY < Math.ceil(cssHeight / scale) - GROUND_DEPTH - 30;
+      this.tall = held.tall;
+    } else {
+      this.frame = { k, dpr, centerShift: this.centerShift, groundY: this.groundY, wide: this.wide, tall: this.tall };
+      this.meetPx = Math.round((HERO_X + this.centerShift + 90) * scale); // v10.17 (A) : largeur de la colonne de combat (main.js)
+    }
     const play = this.canvas.parentElement?.parentElement;
     if (play?.style) {
       play.classList.toggle('wide-scene', this.wide);
@@ -356,9 +371,8 @@ export class SceneRenderer {
     // v9.3.1 : un menu ouvert/fermé change la hauteur de la scène : les effets en cours (corps d'un monstre tué,
     // mort animée, chiffres, étincelles) suivent le sol au lieu de rester collés à l'ancienne hauteur (« au plafond »).
     const dy = this.groundY - prevGround;
-    if (dy && Number.isFinite(dy)) {
-      for (const fx of this.effects) for (const key of ['y', 'top', 'sy', 'y0', 'y1', 'ty']) if (typeof fx[key] === 'number') fx[key] += dy;
-    }
+    // v10.17 (A) : les compétences en cours (scene.skillFx) suivent aussi le sol : skill-fx.js lit groundY au dessin.
+    shiftEffects(this.effects, 0, Number.isFinite(dy) ? dy : 0);
     // Rendu à la résolution de l'écran (k pixels par pixel de jeu) : les sprites restent nets mais
     // les personnages et le décor se déplacent pixel d'écran par pixel d'écran (mouvement fluide).
     this.k = k;

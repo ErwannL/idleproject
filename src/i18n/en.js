@@ -2141,3 +2141,6 @@ PATTERNS.unshift(...patterns1016());
 import { EXACT_1016_MENUS, patterns1016Menus } from './en-1016-menus.js';
 for (const [k, v] of Object.entries(EXACT_1016_MENUS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1016Menus());
+// v10.17 (B) : touches d'attaque — « ✓ en attente » (./en-1017.js).
+import { EXACT_1017 } from './en-1017.js';
+for (const [k, v] of Object.entries(EXACT_1017)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

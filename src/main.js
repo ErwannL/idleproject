@@ -73,6 +73,7 @@ import { moveToStash, takeFromStash, wearSet } from './core/stash.js';
 import { exposeAll, museumDuplicates, putInMuseum, takeFromMuseum } from './core/museum.js';
 import { createJournal, journalSummary, noteDrop, noteFused, noteRecycled } from './core/journal.js';
 import { SceneRenderer } from './render/scene.js';
+import { windowKey } from './render/frame-hold.js'; // v10.17 (A)
 import { UI } from './ui/ui.js';
 import { hasPref, setPref } from './ui/prefs.js';
 import { animateMenus } from './ui/animator.js';
@@ -180,8 +181,28 @@ function resizeScene() {
   }
   renderer.hudPx = Math.min(hud, stageArea.clientHeight * 0.4);
   if (!renderer.liftShrinking) renderer.liftCap = null; // v10.0 (1) : recalculée par la colonne du bas
+  // v10.17 (A) : une fenêtre ouverte (onglet, feuille, page) ne change que la place de la scène : le zoom et le cadrage
+  // restent ceux du combat seul. Ils ne sont recalculés que si la fenêtre du navigateur change de taille (ou la taille des
+  // personnages), ou quand aucune fenêtre n'est ouverte.
+  const key = windowKey(innerWidth, innerHeight, window.devicePixelRatio || 1, SceneRenderer.sizePref);
+  const app = document.getElementById('app');
+  const open = Boolean(app?.classList.contains('panel-open'));
+  // Téléphone : une page couvre le combat (la mini-scène du haut a sa propre toile) : la scène cachée ne bouge pas du tout.
+  if (open && app.classList.contains('page-narrow') && renderer.frameKey === key) return;
+  renderer.holdFrame = open && renderer.frameKey === key;
   renderer.resize(stageArea.clientWidth, stageArea.clientHeight);
+  if (!renderer.holdFrame) renderer.frameKey = key;
+  if (!open) syncCombatColumn();
   if (!renderer.liftShrinking) setTimeout(() => window.__layoutColumn?.(), 0);
+}
+// v10.17 (A) : PC — la colonne de combat (à gauche) garde une largeur fixe pour tous les onglets : le héros et le point de
+// rencontre y restent à leur place ; la fenêtre ouverte prend le reste à droite (style : src/ui/fenetres1017.css).
+function syncCombatColumn() {
+  const app = document.getElementById('app');
+  if (!app || !renderer.scale) return;
+  const meet = renderer.meetPx ?? 0; // héros + premier ennemi, en px d'écran (scene.js resize)
+  const col = Math.round(Math.max(420, Math.min(app.clientWidth - 600, Math.max(meet + 24, app.clientWidth * 0.5))));
+  app.style.setProperty('--combat-col', `${col}px`);
 }
 new ResizeObserver(resizeScene).observe(stageArea);
 resizeScene();

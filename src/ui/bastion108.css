@@ -39,7 +39,7 @@
 #app[data-boss-focus] #topbar .chip, #app[data-boss-focus] #topbar .icon-btn, #app[data-boss-focus] #zone-card { opacity: .9 !important; }
 /* Téléphone : bande du bas à fond plein, cases de 58 px (sorts, Ultime, Boosts), textes utiles à 12 px au moins. */
 #play.phone-band #skill-bar, #play.phone-band #boost-group, #play.phone-band #next-action, #play.phone-band #scene-bottom, #play.phone-band #loot-bag { z-index: 3; }
-#play.phone-band #boost-group { display: flex; gap: 6px; } #play.phone-band #boost-toggle { position: static !important; width: 58px; height: 58px; padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; border-radius: 10px; }
+#play.phone-band #boost-group { display: flex; gap: 6px; } #play.phone-band #boost-toggle { position: relative !important; /* v10.17 (B) : relative (pas static) — sinon sa zone de clic ::before couvrait toute la console */ width: 58px; height: 58px; padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; border-radius: 10px; }
 #play.phone-band #scene-bottom { width: auto; }
 #play.phone-band #next-action { width: auto; }
 #hud106.hq-phone #hq-events small, #hud106.hq-phone #hq-events .hq-ev-timer { font-size: 12px; }

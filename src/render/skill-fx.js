@@ -15,6 +15,7 @@ import { vfx, vfx2Ready, VFX as VFX_ALL } from './vfx.js'; // v9.2.6
 import { skillVfx } from './vfx-world.js'; // v9.2.6 : effet dessiné propre à chaque compétence
 import { ALLY_ANIMS, knightHead, weaponPose } from './ally-anim.js';
 import { KNIGHT_HEAD } from './knight-gear.js';
+import { shiftEffects } from './frame-hold.js'; // v10.17 (A)
 
 // Images ajoutées aux SPRITES au chargement (même encodage que les animations des alliés : une ligne vide reprend la
 // même ligne de l'image précédente).
@@ -140,8 +141,11 @@ export function heroGesture(scene) {
 // --- Moteur d'effets ---------------------------------------------------------------------------------------------
 // Une pièce d'effet : { at (début, temps de scène), dur, draw(ctx, k, age, p) } ; k = avancement 0..1.
 
+// v10.17 (A) : chaque pièce retient le sol du moment où ses positions ont été calculées (g0) ; au dessin, elle est
+// décalée de groundY − g0 : la compétence reste collée au héros et à sa cible quand une fenêtre s'ouvre ou se ferme.
+// (Les X sont déjà relatifs au héros : tout est dessiné dans le repère décalé de la scène.)
 function add(scene, delay, dur, draw, p = {}) {
-  (scene.skillFx ??= []).push({ at: scene.time + delay, dur, draw, p, src: add.cur }); // src : effet en cours (diagnostic)
+  (scene.skillFx ??= []).push({ at: scene.time + delay, dur, draw, p, src: add.cur, g0: add.g0 ?? scene.groundY }); // src : effet en cours (diagnostic)
 }
 
 function later(scene, delay, fn) {
@@ -155,15 +159,27 @@ export function drawSkillFx(scene, ctx) {
   scene.skillFx = list.filter((e) => now < e.at + e.dur || (e.p.fn && !e.p.done));
   for (const e of list) {
     if (now < e.at) continue;
+    const dy = Number.isFinite(e.g0) ? scene.groundY - e.g0 : 0;
     if (e.p.fn) {
-      if (!e.p.done) { e.p.done = true; e.p.fn(); }
+      if (!e.p.done) { e.p.done = true; runLater(scene, e, dy); }
       continue;
     }
     const age = now - e.at;
     if (age > e.dur) continue;
+    if (dy) ctx.translate(0, dy);
     e.draw(ctx, Math.min(1, age / e.dur), age, e.p);
+    if (dy) ctx.translate(0, -dy);
   }
   ctx.globalAlpha = 1;
+}
+
+// v10.17 (A) : une suite différée (impact, éclats) calcule ses positions avec le sol du lancer : ses pièces gardent ce
+// repère (g0) et les effets de la scène qu'elle ajoute (éclats, chiffres) sont recalés sur le sol actuel.
+function runLater(scene, e, dy) {
+  const n = scene.effects?.length ?? 0;
+  add.g0 = e.g0;
+  try { e.p.fn(); } finally { add.g0 = undefined; }
+  if (dy && scene.effects) shiftEffects(scene.effects.slice(n), 0, dy);
 }
 
 const R = Math.round;
