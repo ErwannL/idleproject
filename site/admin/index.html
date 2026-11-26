@@ -401,11 +401,16 @@
       <section data-panel="prereg" class="hidden">
         <div class="page-head">
           <div><h2>Préinscriptions</h2><p id="prereg-total"></p></div>
-          <button class="btn" id="export">Exporter en CSV</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="prereg-lang" aria-label="Langue">
+              <option value="">Toutes les langues</option><option value="fr">Français (FR)</option><option value="en">Anglais (EN)</option><option value="unknown">Langue inconnue</option>
+            </select>
+            <button class="btn" id="export">Exporter en CSV</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="table">
-            <thead><tr><th>Email</th><th>Consentement</th><th>Version du texte</th><th></th></tr></thead>
+            <thead><tr><th>Email</th><th>Langue</th><th>Consentement</th><th>Version du texte</th><th></th></tr></thead>
             <tbody id="prereg-body"></tbody>
           </table>
         </div>
@@ -1103,14 +1108,18 @@
     let pPage = 0;
     async function loadPrereg() {
       try {
-        const data = await api(`/api/admin/preregistrations?limit=100&offset=${pPage * 100}`);
-        $('prereg-total').textContent = `${fmt(data.total)} préinscrit${data.total > 1 ? 's' : ''}`;
+        const lang = $('prereg-lang').value;
+        const data = await api(`/api/admin/preregistrations?limit=100&offset=${pPage * 100}${lang ? `&lang=${lang}` : ''}`);
+        const b = data.byLang ?? { fr: 0, en: 0, unknown: 0 };
+        $('prereg-total').textContent = `${fmt(data.total)} préinscrit${data.total > 1 ? 's' : ''} · FR ${fmt(b.fr)} · EN ${fmt(b.en)}${b.unknown ? ` · inconnue ${fmt(b.unknown)}` : ''}`;
         const body = $('prereg-body');
         body.innerHTML = '';
-        if (!data.items.length) body.innerHTML = '<tr><td colspan="4" class="muted">Aucune préinscription pour l\'instant.</td></tr>';
+        if (!data.items.length) body.innerHTML = '<tr><td colspan="5" class="muted">Aucune préinscription pour l\'instant.</td></tr>';
         for (const r of data.items) {
           const tr = document.createElement('tr');
           const td1 = document.createElement('td'); td1.textContent = r.email;
+          const tdL = document.createElement('td'); tdL.textContent = r.lang === 'fr' || r.lang === 'en' ? r.lang.toUpperCase() : '?';
+          tdL.title = r.lang === 'fr' ? 'Inscrit depuis le site en français' : r.lang === 'en' ? 'Inscrit depuis le site en anglais' : 'Langue non enregistrée (inscription ancienne)';
           const td2 = document.createElement('td'); td2.textContent = fmtDate(r.consentAt);
           const td3 = document.createElement('td'); td3.textContent = r.consentVersion;
           const td4 = document.createElement('td');
@@ -1125,14 +1134,15 @@
             } catch (err) { toast(err.message, 'bad'); }
           });
           td4.append(del);
-          tr.append(td1, td2, td3, td4);
+          tr.append(td1, tdL, td2, td3, td4);
           body.append(tr);
         }
         $('prereg-page').textContent = `Page ${pPage + 1}`;
         $('prereg-prev').disabled = pPage === 0;
-        $('prereg-next').disabled = (pPage + 1) * 100 >= data.total;
+        $('prereg-next').disabled = (pPage + 1) * 100 >= (data.matching ?? data.total);
       } catch (err) { toast(err.message, 'bad'); }
     }
+    $('prereg-lang').addEventListener('change', () => { pPage = 0; loadPrereg(); });
     $('prereg-prev').addEventListener('click', () => { pPage -= 1; loadPrereg(); });
     $('prereg-next').addEventListener('click', () => { pPage += 1; loadPrereg(); });
     $('export').addEventListener('click', async () => {

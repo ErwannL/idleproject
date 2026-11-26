@@ -220,7 +220,18 @@ test('admin : stats, liste joueurs, suppression, export CSV', async (t) => {
   assert.equal((await h(`/api/admin/players/${id}`)).body.progress.heroes, 0);
 
   const csv = await fetch(`${base}/api/admin/preregistrations.csv`, { headers: { Authorization: `Bearer ${admin}` } });
-  assert.match(await csv.text(), /ami@exemple\.fr/);
+  assert.match(await csv.text(), /ami@exemple\.fr,[^\n]*,fr\n/);
+
+  // Langue du site à l'inscription : colonne, totaux FR/EN et filtre.
+  await call(base, 'POST', '/api/preregister', { email: 'friend@example.com', consent: true, lang: 'en' });
+  const all = (await h('/api/admin/preregistrations')).body;
+  assert.deepEqual(all.byLang, { fr: 1, en: 1, unknown: 0 });
+  assert.equal(all.items.find((r) => r.email === 'friend@example.com').lang, 'en');
+  const onlyEn = (await h('/api/admin/preregistrations?lang=en')).body;
+  assert.deepEqual(onlyEn.items.map((r) => r.email), ['friend@example.com']);
+  assert.equal(onlyEn.matching, 1);
+  assert.equal(onlyEn.total, 2);
+  await h('/api/admin/preregistrations/friend%40example.com', 'DELETE');
 
   assert.equal((await h(`/api/admin/players/${id}`, 'DELETE')).status, 204);
   assert.equal((await h('/api/admin/players')).body.total, 0);

@@ -1196,15 +1196,23 @@ export function createApp({
       requireAdmin(req);
       const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 100, 1), 1000);
       const offset = Math.max(Number(url.searchParams.get('offset')) || 0, 0);
-      const rows = db.prepare('SELECT email, consent_version, consent_at FROM preregistrations ORDER BY consent_at DESC LIMIT ? OFFSET ?')
-        .all(limit, offset);
-      return { body: { total: q.countPrereg.get().n, items: rows.map((r) => ({ email: r.email, consentVersion: r.consent_version, consentAt: r.consent_at })) } };
+      // Langue du site au moment de l'inscription (fr / en ; null pour les inscriptions d'avant la 10.8). Filtre optionnel ?lang=fr|en|unknown.
+      const lang = url.searchParams.get('lang');
+      const where = lang === 'fr' || lang === 'en' ? 'WHERE lang = ?' : lang === 'unknown' ? "WHERE lang IS NULL OR lang NOT IN ('fr', 'en')" : '';
+      const args = lang === 'fr' || lang === 'en' ? [lang] : [];
+      const rows = db.prepare(`SELECT email, consent_version, consent_at, lang FROM preregistrations ${where} ORDER BY consent_at DESC LIMIT ? OFFSET ?`)
+        .all(...args, limit, offset);
+      const byLang = { fr: 0, en: 0, unknown: 0 };
+      for (const r of db.prepare('SELECT lang, COUNT(*) AS n FROM preregistrations GROUP BY lang').all()) byLang[r.lang === 'fr' || r.lang === 'en' ? r.lang : 'unknown'] += r.n;
+      const total = q.countPrereg.get().n;
+      const matching = lang === 'fr' || lang === 'en' || lang === 'unknown' ? byLang[lang] : total;
+      return { body: { total, matching, byLang, items: rows.map((r) => ({ email: r.email, consentVersion: r.consent_version, consentAt: r.consent_at, lang: r.lang ?? null })) } };
     } },
 
     { method: 'GET', path: /^\/api\/admin\/preregistrations\.csv$/, handler: ({ req }) => {
       requireAdmin(req);
-      const rows = db.prepare('SELECT email, consent_version, consent_at FROM preregistrations ORDER BY consent_at').all();
-      const lines = ['email,consent_version,consent_at_iso', ...rows.map((r) => `${r.email},${r.consent_version},${new Date(r.consent_at).toISOString()}`)];
+      const rows = db.prepare('SELECT email, consent_version, consent_at, lang FROM preregistrations ORDER BY consent_at').all();
+      const lines = ['email,consent_version,consent_at_iso,lang', ...rows.map((r) => `${r.email},${r.consent_version},${new Date(r.consent_at).toISOString()},${r.lang ?? ''}`)];
       return { raw: lines.join('\n') + '\n', type: 'text/csv; charset=utf-8' };
     } },
 
