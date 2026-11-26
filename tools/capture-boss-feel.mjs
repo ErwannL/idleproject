@@ -66,7 +66,10 @@ const patchBossHp = (page) => page.evaluate(() => {
 });
 
 // Planche de 16 images (4 × 4, à mi-taille) composée dans le navigateur, enregistrée en JPEG qualité 80.
-async function sheet(shots, w, h, file) {
+// PC : images au quart de la taille pour garder le dépôt léger ; téléphone : à mi-taille.
+async function sheet(shots, w0, h0, file) {
+  const k = w0 > 600 ? 0.5 : 1;
+  const w = w0 * k, h = h0 * k;
   const ctx = await app.browser.newContext({ viewport: { width: w * 2, height: h * 2 }, deviceScaleFactor: 1 });
   const p = await ctx.newPage();
   const imgs = shots.map((b) => `<img src="data:image/png;base64,${b.toString('base64')}" style="width:${w / 2}px;height:${h / 2}px;display:block">`).join('');
