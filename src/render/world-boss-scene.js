@@ -14,6 +14,7 @@ import { vfx, drawVfxFrame } from './vfx.js';
 import { WORLD_BOSS } from '../core/world-boss.js';
 import { GRAND_BOSSES, grandBoss } from '../data/grand-bosses.js';
 import { COMPANIONS } from '../data/companions.js'; // v9.7.1 (lot 7)
+import { TITAN_SKILLS, drawTitanBack, drawTitanFront, drawTitanOver, teamTransform } from './titan-skills.js'; // v10.16 : compétences des Titans
 
 // Décalage à l'écran du boss géant (unités du monde de la simulation).
 const BOSS_OFFSET = 34;
@@ -99,12 +100,19 @@ export class WorldBossScene {
       world.enemies = all.filter((e) => e !== boss);
       draw(ctx, world, dt);
       world.enemies = all;
+      drawTitanBack(this, ctx); // v10.16 : ambiance des phases des Titans, effets derrière le boss
       this.drawColossus(ctx, boss, dt);
+      drawTitanFront(this, ctx); // v10.16 : silhouette propre au Titan
     };
+    // v10.16 : poussée (jet d'eau, faille) et tour sur lui-même (siphon) appliqués au dessin du héros et de l'équipe.
+    for (const [m, hero] of [['drawHero', true], ['drawCompanions', false], ['drawPet', false]]) {
+      const f = this.r[m].bind(this.r);
+      this.r[m] = (ctx, ...rest) => { const on = teamTransform(this, ctx, hero); f(ctx, ...rest); if (on) ctx.restore(); };
+    }
     // v9.3.0 : rocher en vol et faisceau des yeux dessinés par-dessus les personnages, dans le calque des effets.
     this.attacks = []; // { kind: 'boulder' | 'beam', ... }
     const effects = this.r.drawEffects.bind(this.r);
-    this.r.drawEffects = (ctx, dt) => { effects(ctx, dt); this.drawAttacks(ctx, dt); };
+    this.r.drawEffects = (ctx, dt) => { effects(ctx, dt); this.drawAttacks(ctx, dt); drawTitanOver(this, ctx, dt); };
   }
 
   // Animation ponctuelle (attaque, phase…), puis retour au repos (ou à `then`).
@@ -121,7 +129,7 @@ export class WorldBossScene {
     this.attacks = this.attacks.filter((x) => x.kind !== 'beam');
   }
 
-  get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scale ?? 1); } // v10.15 : `art.scale` réduit un géant très large
+  get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scale ?? 1) * (this.titanGrow ?? 1); } // v10.16 : titanGrow (Ronces : +10 %) // v10.15 : `art.scale` réduit un géant très large
 
   drawColossus(ctx, boss, dt) {
     if (this.r.feelStats) this.r.feelStats.frames++; // v10.16 : mesure (le grand boss n'a pas de flash blanc par coup)
@@ -151,7 +159,7 @@ export class WorldBossScene {
     const im = sheet(this.art, a.src ?? name);
     const k = this.scale;
     const w = this.art.frame * k;
-    let x = Math.round(r.wx(boss.x) + 14 - ((this.phone ? this.art.dxPhone : this.art.dx) ?? 0) * k - w / 2); // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche (PC) ; sur téléphone, la scène est plus large (410 px logiques) : `dxPhone`, 0 par défaut
+    let x = Math.round(r.wx(boss.x) + 14 + (this.titanDx ?? 0) - ((this.phone ? this.art.dxPhone : this.art.dx) ?? 0) * k - w / 2); // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche (PC) ; sur téléphone, la scène est plus large (410 px logiques) : `dxPhone`, 0 par défaut
     // v10.15 : un géant à grande planche (160/192 px) ne dépasse jamais du cadre à droite (phase 3 : × 1,33).
     if (this.art.exactSheets) { const [bx, , bw] = this.look.box; const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0); x = Math.min(x, Math.floor(r.width - shift - 2 - (bx + bw) * k)); } // le calque est décalé de `shift`
     const cx = x + w / 2;
@@ -163,7 +171,7 @@ export class WorldBossScene {
     ctx.beginPath();
     ctx.ellipse(cx, r.groundY + 1, this.look.shadow * k, 6 * k, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.globalAlpha = this.appear;
+    ctx.globalAlpha = this.appear * (this.titanAlpha ?? 1); // v10.16 : Pas du néant (il disparaît en fumée)
     if (this.art.filter) ctx.filter = this.art.filter; // teinte d'une fiche (boss d'essai)
     if (im) ctx.drawImage(im, i * this.art.frame, 0, this.art.frame, this.art.frame, x, y, w, w);
     ctx.filter = 'none';
@@ -252,7 +260,7 @@ export class WorldBossScene {
     const d = this.drawn;
     // Charge lumineuse dans les yeux (avant le faisceau) : lueur posée sur chaque œil, image par image.
     const ca = d && this.art.anims[d.name]?.charge;
-    if (ca && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
+    if (ca && !this.anim?.quiet && this.anim?.name === d.name && d.i >= ca[0] - 1 && d.i <= ca[1] + 1) {
       const e = this.eyes();
       const p = Math.min(1, Math.max(0.2, (this.anim.t - 0.2) / 0.5));
       const fi = Math.floor(r.time * 14) % 8;
@@ -436,10 +444,21 @@ export class WorldBossScene {
     if (phase >= 2) this.r.burst(box.x, box.top + box.h * 0.3, color, 4 + phase * 2, 40);
   }
 
+  // v10.16 : image du boss affichée (doubles des Reflets du Titan de la Lune).
+  frameImage() {
+    const d = this.drawn;
+    const a = d && this.art.anims[d.name];
+    const im = a && sheet(this.art, a.src ?? d.name);
+    return im ? { im, i: d.i, frame: this.art.frame, x: d.x, y: d.y, w: this.art.frame * d.k } : null;
+  }
+
   // Attaques spéciales des phases et Éveil.
   special(ev) {
     const r = this.r;
     const box = this.bossBox() ?? { x: r.width * 0.7, y: r.groundY - 50, top: r.groundY - 100, w: 80, h: 100, foot: r.groundY };
+    // v10.16 : compétence propre d'un Titan (render/titan-skills.js) ; « Réduire les animations » : seulement le coup reçu.
+    const own = ev.type !== 'awaken' && TITAN_SKILLS[ev.id];
+    if (own) { if (r.focus) this.heroHurt(ev, 0.3, 0); else own(this, ev, box); return; }
     const heroX = BALANCE.world.heroX * WORLD_SCALE;
     const hurt = (delay) => r.later(delay, () => {
       r.hero.hurt = 0.3;

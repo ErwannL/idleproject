@@ -87,23 +87,73 @@ export const GRAND_BOSSES = {
 // v9.8 (H7) : Titans du jour — un par jour de la semaine (0 = dimanche), même moteur et mêmes planches que le Colosse,
 // une teinte, un nom et des phases propres (fiches seules, aucun code). Ils n'entrent pas au Panthéon (titan: true).
 const TITAN_ZONE = { blue: 'ocean', red: 'volcano', green: 'forest', light: 'sky', dark: 'void' };
-const titan = (id, element, name, title, filter, beam, phase) => ({
+// v10.16 : chaque Titan a SES compétences (3 attaques, 2 phases), dessinées par render/titan-skills.js.
+// Chiffres repris du Colosse : attaque 1 = part du jet de pierre (0,11), attaques 2 et 3 = part du rayon (0,15) ; la 3e
+// partage le tour de la 2e (`slot: 1`, voir core/world-boss.js pickAbility) : les dégâts reçus ne changent pas.
+// Phases à 60 % et 30 % : 0,16 et 0,26 comme avant. `kit` = 5 × [id, nom, phrase] : 3 attaques puis les 2 phases.
+const titanKit = (kit) => ({
+  abilities: [
+    { id: kit[0][0], name: kit[0][1], text: kit[0][2], hit: 0.11, from: 0 },
+    { id: kit[1][0], name: kit[1][1], text: kit[1][2], hit: 0.15, from: 1 },
+    { id: kit[2][0], name: kit[2][1], text: kit[2][2], hit: 0.15, from: 2, slot: 1 },
+  ],
+  phases: [
+    { at: 0.6, id: kit[3][0], name: kit[3][1], text: kit[3][2], hit: 0.16, speed: 1.2, power: 1.2 },
+    { at: 0.3, id: kit[4][0], name: kit[4][1], text: kit[4][2], hit: 0.26, speed: 1.45, power: 1.45 },
+  ],
+});
+const titan = (id, element, name, title, filter, beam, kit) => ({
   id, element, name, title, titan: true, test: true, lore: `${title}. Chaque jour, un Titan différent se dresse contre Ascendrya.`,
   // v9.11 (2) : vraies planches teintées (tools/art/recolor_titans.py) au lieu d'un filtre ; décor du monde de son élément.
   zone: TITAN_ZONE[element], filterOld: filter,
   art: { dir: `assets/world-boss/${id}`, prefix: 'colossus_', frame: 128, foot: 122, anims: COLOSSUS_ANIMS, eyes: COLOSSUS_EYES,
     hands: { throw: [16, 34], throw3: [18, 44] }, beamColors: { beam: [...beam, '#ffffff'], beam3: [...beam, '#fff3c8'] } },
-  fight: { ...COLOSSUS_FIGHT, name, seconds: 60, phases: [{ at: 0.6, id: 'quake', name: phase[0], hit: 0.16, speed: 1.2, power: 1.2 }, { at: 0.3, id: 'fury', name: phase[1], hit: 0.26, speed: 1.45, power: 1.45 }] },
+  fight: { ...COLOSSUS_FIGHT, name, seconds: 60, ...titanKit(kit) },
   rewards: { gems: 30 }, modes: ['solo'],
 });
 export const DAY_TITANS = [
-  titan('titan_sun', 'light', 'Titan du Soleil', 'Titan du dimanche', 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.05)', ['#ffd23f', '#fff3a8'], ['Éclat solaire', 'Midi ardent']),
-  titan('titan_moon', 'dark', 'Titan de la Lune', 'Titan du lundi', 'grayscale(1) brightness(1.15) sepia(.3) hue-rotate(180deg)', ['#c9d8ff', '#ffffff'], ['Marée lunaire', 'Nuit sans fin']),
-  titan('titan_ember', 'red', 'Titan des Braises', 'Titan du mardi', 'sepia(1) saturate(5) hue-rotate(-25deg)', ['#ff5a1f', '#ffb04a'], ['Pluie de cendres', 'Cœur de lave']),
-  titan('titan_tide', 'blue', 'Titan des Marées', 'Titan du mercredi', 'sepia(1) saturate(4) hue-rotate(160deg)', ['#2fd8ff', '#8ff8ff'], ['Lame de fond', 'Abysse']),
-  titan('titan_thorn', 'green', 'Titan des Ronces', 'Titan du jeudi', 'sepia(1) saturate(4) hue-rotate(60deg)', ['#4cd26a', '#b8ff9a'], ['Ronces', 'Forêt vivante']),
-  titan('titan_storm', 'light', 'Titan de l\'Orage', 'Titan du vendredi', 'sepia(1) saturate(3) hue-rotate(200deg) brightness(1.1)', ['#9fc3ff', '#ffffff'], ['Tonnerre', 'Colère du ciel']),
-  titan('titan_void', 'dark', 'Titan du Néant', 'Titan du samedi', 'grayscale(1) brightness(0.6) sepia(1) hue-rotate(230deg) saturate(3)', ['#b04dff', '#e0a8ff'], ['Faille', 'Éclipse']),
+  titan('titan_sun', 'light', 'Titan du Soleil', 'Titan du dimanche', 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.05)', ['#ffd23f', '#fff3a8'], [
+    ['sun_lance', 'Lance solaire', 'Un javelot de lumière se plante devant le héros et éclate en croix dorée.'],
+    ['sun_crown', 'Couronne de rayons', "Cinq colonnes de lumière tombent du ciel, l'une après l'autre."],
+    ['sun_blind', 'Éblouissement', "Un éclair blanc aveugle toute l'équipe."],
+    ['sun_rise', 'Éclat solaire', "Un soleil se lève derrière lui et le ciel passe à l'or."],
+    ['sun_noon', 'Midi ardent', "Une vague de chaleur fait onduler l'air et brûle le sol."]]),
+  titan('titan_moon', 'dark', 'Titan de la Lune', 'Titan du lundi', 'grayscale(1) brightness(1.15) sepia(.3) hue-rotate(180deg)', ['#c9d8ff', '#ffffff'], [
+    ['moon_disc', "Disque d'argent", "Un disque pâle part en boomerang : il touche à l'aller et au retour."],
+    ['moon_gaze', "Regard d'argent", "Un rayon pâle couvre l'équipe de givre."],
+    ['moon_mirror', 'Reflets', 'Deux doubles transparents surgissent et frappent avec lui.'],
+    ['moon_tide', 'Marée lunaire', "La nuit tombe, la lune se lève et une vague d'argent monte du sol."],
+    ['moon_night', 'Nuit sans fin', "Tout s'assombrit : seuls ses yeux restent visibles, puis il frappe."]]),
+  titan('titan_ember', 'red', 'Titan des Braises', 'Titan du mardi', 'sepia(1) saturate(5) hue-rotate(-25deg)', ['#ff5a1f', '#ffb04a'], [
+    ['ember_bomb', 'Bombe de magma', 'Un rocher en fusion éclate en trois gouttes qui laissent des flaques de lave.'],
+    ['ember_geyser', 'Geysers', "Le sol se fissure sous l'équipe, puis trois colonnes de lave jaillissent."],
+    ['ember_ash', 'Souffle de cendres', "Un nuage de cendres brûlantes roule vers l'équipe."],
+    ['ember_rain', 'Pluie de cendres', "Des cendres tombent jusqu'à la fin du combat."],
+    ['ember_heart', 'Cœur de lave', "Son torse s'ouvre sur un cœur rougeoyant qui explose en onde de feu."]]),
+  titan('titan_tide', 'blue', 'Titan des Marées', 'Titan du mercredi', 'sepia(1) saturate(4) hue-rotate(160deg)', ['#2fd8ff', '#8ff8ff'], [
+    ['tide_sphere', "Sphère d'eau", 'Une bulle géante éclate en éclaboussures.'],
+    ['tide_siphon', 'Siphon', 'Un tourbillon fait tourner le héros sur lui-même.'],
+    ['tide_jet', 'Jet de pression', "Un trait d'eau repousse toute l'équipe."],
+    ['tide_wave', 'Lame de fond', "Une vague géante traverse l'écran."],
+    ['tide_abyss', 'Abysse', "L'eau monte jusqu'à mi-hauteur : le combat continue sous l'eau."]]),
+  titan('titan_thorn', 'green', 'Titan des Ronces', 'Titan du jeudi', 'sepia(1) saturate(4) hue-rotate(60deg)', ['#4cd26a', '#b8ff9a'], [
+    ['thorn_seed', "Graine d'épines", "La graine lancée germe en buisson d'épines devant l'équipe."],
+    ['thorn_spores', 'Spores', "Un nuage vert empoisonne l'équipe."],
+    ['thorn_grasp', 'Étreinte', "Des racines sortent du sol et enlacent l'équipe."],
+    ['thorn_bramble', 'Ronces', 'Des lianes couvrent son corps et il grandit.'],
+    ['thorn_forest', 'Forêt vivante', 'Des arbres poussent derrière lui et une haie de ronces traverse la scène.']]),
+  titan('titan_storm', 'light', 'Titan de l\'Orage', 'Titan du vendredi', 'sepia(1) saturate(3) hue-rotate(200deg) brightness(1.1)', ['#9fc3ff', '#ffffff'], [
+    ['storm_javelin', 'Javelot de foudre', 'Un éclair lancé en ligne droite, très rapide.'],
+    ['storm_chain', "Chaîne d'éclairs", "L'éclair saute du héros à chaque compagnon."],
+    ['storm_thunder', 'Tonnerre', 'Quatre éclairs tombent sur des cercles électriques.'],
+    ['storm_clouds', 'Tonnerre', 'Des nuages noirs couvrent le ciel, la pluie tombe.'],
+    ['storm_wrath', 'Colère du ciel', "Son corps se charge d'arcs électriques, les éclairs illuminent la scène."]]),
+  titan('titan_void', 'dark', 'Titan du Néant', 'Titan du samedi', 'grayscale(1) brightness(0.6) sepia(1) hue-rotate(230deg) saturate(3)', ['#b04dff', '#e0a8ff'], [
+    ['void_orb', 'Orbe du vide', 'Un petit trou noir avale la lumière puis implose.'],
+    ['void_step', 'Pas du néant', 'Il disparaît en fumée violette, réapparaît plus près et frappe aussitôt.'],
+    ['void_rift', 'Faille', "Une déchirure derrière l'équipe aspire tout vers elle."],
+    ['void_cracks', 'Faille', 'Des fissures violettes restent ouvertes dans le décor.'],
+    ['void_eclipse', 'Éclipse', 'Un soleil noir se lève, puis une déchirure traverse la cible.']]),
 ];
 for (const t of DAY_TITANS) GRAND_BOSSES[t.id] = t;
 

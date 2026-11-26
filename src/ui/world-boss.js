@@ -191,7 +191,7 @@ export function openWorldBoss(state, actions) {
     for (ctx.abSeen ??= 0; ctx.abSeen < fight.out.length; ctx.abSeen++) {
       const ev = fight.out[ctx.abSeen];
       if (ev.type !== 'ability' || calm || ctx.bannerT > 1) continue;
-      banner(`<small><span>Attaque du Colosse</span></small><b>${escapeHtml(ev.name)}</b>`, ev.id === 'eyebeam' ? (fight.phase >= 3 ? '#ff7a2a' : '#5ff6ff') : '#c9b89a');
+      banner(`<small><span>${fight.bossId === 'colossus' ? 'Attaque du Colosse' : 'Attaque'}</span></small><b>${escapeHtml(ev.name)}</b>`, ev.id === 'eyebeam' ? (fight.phase >= 3 ? '#ff7a2a' : '#5ff6ff') : '#c9b89a');
       ctx.bannerT = 1.6;
     }
     ctx.liveT = (ctx.liveT ?? 0) - dt;

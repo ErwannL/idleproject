@@ -182,9 +182,19 @@ export class WorldBossFight {
 }
 
 // v9.3.0 : attaque propre choisie (n-ième de la tentative) : alternance parmi celles permises à cette phase.
+// v10.16 : une attaque peut partager le tour d'une autre (`slot` : rang de celle-ci dans `abilities`) — les Titans ont
+// 3 attaques, la 3e prend un tour sur deux de la 2e (même part de PV) : le rythme et les dégâts ne changent pas.
 export function pickAbility(phase, n, cfg = WORLD_BOSS) {
   const ok = cfg.abilities.filter((a) => phase >= a.from);
-  return ok[n % ok.length];
+  const slots = [];
+  for (const a of ok) {
+    const k = a.slot ?? cfg.abilities.indexOf(a);
+    let s = slots.find((x) => x.k === k);
+    if (!s) slots.push((s = { k, list: [] }));
+    s.list.push(a);
+  }
+  const s = slots[n % slots.length];
+  return s.list[Math.floor(n / slots.length) % s.list.length];
 }
 
 // PV du boss du jour : 60 s de combat mesurées (graine fixe) × hpFactor. Joueur sans équipe : au moins 1.

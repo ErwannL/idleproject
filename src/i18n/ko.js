@@ -486,3 +486,6 @@ PATTERNS.unshift(...patterns1016());
 import { EXACT_1016_MENUS, patterns1016Menus } from './ko-1016-menus.js';
 for (const [k, v] of Object.entries(EXACT_1016_MENUS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1016Menus());
+// v10.16 : 요일 타이탄 스킬 (./ko-1016-titans.js).
+import { EXACT_1016_TITANS } from './ko-1016-titans.js';
+for (const [k, v] of Object.entries(EXACT_1016_TITANS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
