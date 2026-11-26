@@ -1190,7 +1190,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
       if (manual) { addCombo(world); state.records.manualCasts = (state.records.manualCasts ?? 0) + 1; }
     }
   }
-  world.manualSkills?.clear();
+  world.manualSkills?.clear(); // (v10.17 : les appuis du joueur vont dans manualPending, que cette ligne n'efface pas)
   tickInteraction(state, world, dt);
 
   // Compétences des compagnons (v8.9 : jusqu'à 4 chacun, chacune avec sa recharge).
@@ -1342,10 +1342,13 @@ function tickInteraction(state, world, dt) {
 // Actions du joueur (UI) : renvoient true si l'action a compté.
 export function playerCast(world, skillId) {
   // v10.2 (4) : touché pendant la recharge → le prochain lancer compte comme fait à la main (l'auto ne le vole plus).
-  if ((world.skillTimers?.[skillId] ?? 1) > 0) { (world.manualPending ??= new Set()).add(skillId); return true; }
-  (world.manualSkills ??= new Set()).add(skillId);
+  // v10.17 (B) : touche prête mais aucun ennemi à portée (entre deux vagues) → l'appui est gardé de la même façon et part
+  // dès qu'un ennemi arrive (avant, il allait dans manualSkills, effacé à la fin de l'image : appui perdu).
+  (world.manualPending ??= new Set()).add(skillId);
   return true;
 }
+// v10.17 (B) : appui en attente (recharge ou pas de cible) — la touche affiche « ✓ en attente ».
+export const skillQueued = (world, skillId) => Boolean(world?.manualPending?.has(skillId) || world?.manualSkills?.has(skillId));
 export function playerGuard(world) {
   const g = world.guard;
   const boss = g && world.enemies.find((e) => e.id === g.enemyId);

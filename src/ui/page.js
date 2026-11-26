@@ -15,6 +15,8 @@ import { isPhone } from './prefs.js';
 // Panneaux ouverts en page (les autres gardent le volet latéral : Améliorations, Missions, Carnet, Boutique…).
 export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); // v10.6 (5) : les Améliorations en page // v10.4 (6) : le Bastion
 // v10.11 (6) : onglets qui se jouent dans la scène (jamais en page sur téléphone).
+// v10.17 (A) : interrupteur (false = anciennes pages plein écran sur PC).
+export const PC_SIDE_ONLY = true;
 export const SCENE_TABS = new Set(['arena']);
 // Conditions par panneau : (ui) => booléen.
 export const PAGE_WHEN = {};
@@ -26,6 +28,9 @@ export function pageActive(ui) {
   // v10.11 (6) : téléphone — tous les onglets en plein écran (le contenu commence en haut, pas à mi-hauteur).
   // (sauf l'Arène : sa carte se joue dans la scène, qu'une page cacherait).
   if ((ui?.root?.clientWidth ?? 9999) <= 600 && !SCENE_TABS.has(ui.tab)) return true;
+  // v10.17 (A) : PC — une seule façon d'ouvrir une fenêtre : colonne de combat à gauche (largeur fixe), fenêtre à droite.
+  // Héros, Équipe, Forge, Bastion… ne passent plus en plein écran avec vignette (le combat ne change plus de cadrage).
+  if (PC_SIDE_ONLY && !pageNarrow(ui)) return false;
   return PAGE_TABS.has(ui.tab) || Boolean(PAGE_WHEN[ui.tab]?.(ui));
 }
 

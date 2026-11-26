@@ -489,3 +489,6 @@ PATTERNS.unshift(...patterns1016Menus());
 // v10.16 : 요일 타이탄 스킬 (./ko-1016-titans.js).
 import { EXACT_1016_TITANS } from './ko-1016-titans.js';
 for (const [k, v] of Object.entries(EXACT_1016_TITANS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.17 (B) : touches d'attaque — « ✓ en attente » (./ko-1017.js).
+import { EXACT_1017 } from './ko-1017.js';
+for (const [k, v] of Object.entries(EXACT_1017)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

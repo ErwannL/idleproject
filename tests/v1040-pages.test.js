@@ -55,20 +55,15 @@ test('socle : PAGE_TABS, PAGE_WHEN et pageActive suivent le contrat', () => {
   assert.ok(page.PAGE_TABS instanceof Set && page.PAGE_TABS.has('inventory') && page.PAGE_TABS.has('forge'));
   assert.equal(typeof page.PAGE_WHEN, 'object');
   const ui = (tab, layout = 'tall', view = {}) => ({ tab, layout, view });
-  assert.equal(page.pageActive(ui('inventory')), true);
-  assert.equal(page.pageActive(ui('forge')), true);
-  assert.equal(page.pageActive(ui('upgrades')), true, 'v10.6 (5) : les Améliorations passent en page');
-  assert.equal(page.pageActive(ui('contracts')), false, 'les écrans de liste gardent le volet');
-  assert.equal(page.pageActive(ui('inventory', 'mini')), false, 'petite fenêtre : pas de page');
+  // v10.17 (A) : sur PC, plus aucune page plein écran (colonne de combat à gauche, fenêtre à droite) ; sur téléphone,
+  // tout est en page. Le contrat PAGE_TABS / PAGE_WHEN reste pour les fenêtres étroites.
+  assert.equal(page.PC_SIDE_ONLY, true);
+  for (const t of ['inventory', 'forge', 'upgrades', 'contracts']) assert.equal(page.pageActive(ui(t)), false, `PC : ${t} dans la fenêtre de droite`);
+  const phone = (tab, layout = 'tall') => ({ tab, layout, view: {}, root: { clientWidth: 412 } });
+  assert.equal(page.pageActive(phone('inventory')), true);
+  assert.equal(page.pageActive(phone('inventory', 'mini')), false, 'petite fenêtre : pas de page');
   assert.equal(page.pageActive(ui('inventory', 'strip')), false);
   assert.equal(page.pageActive(ui(null)), false);
-  page.PAGE_WHEN.test1040 = (u) => Boolean(u.view.sheet);
-  try {
-    assert.equal(page.pageActive(ui('test1040', 'tall', { sheet: false })), false);
-    assert.equal(page.pageActive(ui('test1040', 'tall', { sheet: true })), true, 'condition par panneau');
-  } finally { delete page.PAGE_WHEN.test1040; }
-  page.PAGE_TABS.add('test1040b');
-  try { assert.equal(page.pageActive(ui('test1040b')), true); } finally { page.PAGE_TABS.delete('test1040b'); }
 });
 
 test('socle : mode d\'emploi en tête de page.js, feuille liée dans index.html, gabarit .pg complet', () => {

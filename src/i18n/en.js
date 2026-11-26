@@ -2144,3 +2144,6 @@ PATTERNS.unshift(...patterns1016Menus());
 // v10.16 : compétences des 7 Titans du jour (./en-1016-titans.js).
 import { EXACT_1016_TITANS } from './en-1016-titans.js';
 for (const [k, v] of Object.entries(EXACT_1016_TITANS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.17 (B) : touches d'attaque — « ✓ en attente » (./en-1017.js).
+import { EXACT_1017 } from './en-1017.js';
+for (const [k, v] of Object.entries(EXACT_1017)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

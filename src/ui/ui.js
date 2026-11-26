@@ -11,7 +11,7 @@ import { updateBastionTower } from './bastion-tower.js'; // v10.4 (6) : la tour 
 import { GLOSSARY, GLOSSARY_TERMS, RESOURCES } from '../data/glossary.js'; // v9.7.1 (lot 5)
 import { rageFree } from '../core/combat.js'; // v9.7.1 (lot 3)
 import { isUnlocked } from '../core/unlock-quests.js'; // v9.7.1 (lot 3)
-import { COMBO_STEP_PCT, interactiveCooldown } from '../core/combat.js'; // v9.7.1 (lot 2)
+import { COMBO_STEP_PCT, interactiveCooldown, skillQueued } from '../core/combat.js'; // v9.7.1 (lot 2)
 import { activeSkills } from '../core/skills.js'; // v9.7.1 (lot 2)
 import { LootBag } from './loot-bag.js'; // v9.7.1
 import { worldOpensAt } from '../core/seals.js'; // v9.6.5
@@ -2289,6 +2289,23 @@ export class UI {
 
   // Compétences sur la scène : elles se lancent TOUTES SEULES ; le cadran montre leur recharge, un clic ouvre leur
   // écran. v9.1.0 : seulement celles apprises, et la barre n'apparaît qu'après le premier mini-boss.
+  // v10.17 (B) : retour visible à chaque appui sur une touche d'attaque : elle s'enfonce (80 ms), vibration courte sur
+  // téléphone (sauf « Réduire les animations »). Écouteur posé une fois sur la barre (les touches restent les mêmes).
+  bindSkillPress(bar) {
+    if (bar.dataset.press) return;
+    bar.dataset.press = '1';
+    bar.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest?.('.skill-btn, .ult-btn, .guard-btn');
+      if (!btn) return;
+      btn.classList.remove('pressed');
+      void btn.offsetWidth;
+      btn.classList.add('pressed');
+      clearTimeout(btn.pressT);
+      btn.pressT = setTimeout(() => btn.classList.remove('pressed'), 80);
+      if (this.phone && !reduceMotion()) { try { navigator.vibrate?.(12); } catch { /* sans vibreur */ } }
+    });
+  }
+
   updateSkillBar(state, world) {
     const now = performance.now();
     if (now - (this.lastHud.skillTime ?? 0) < 100) return;
@@ -2303,21 +2320,43 @@ export class UI {
     const show = list.length > 0 || ready.size > 0;
     bar.classList.toggle('hidden', !show);
     if (!show) return;
-    const key = `${list.map((sk) => sk.id).join()}|${[...ready].join()}|${world.guard ? 1 : 0}`;
-    if (bar.dataset.key !== key) {
-      bar.dataset.key = key;
-      bar.innerHTML = list.map((sk, i) => `<button class="skill-btn big" style="--sc:${skillColor(sk)}" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}</button>`).join('')
-        // v9.8 (E5) : un seul bouton Ultime (portraits empilés, compteur) ; un appui lance la première prête.
-        + (() => { const r = team.filter((c) => ready.has(c.id)); if (!r.length) return '';
-          return `<button class="ult-btn" data-action="cast-ult" data-value="${r[0].id}" title="Ultime : ${escapeHtml(r.map((c) => c.name).join(', '))}" aria-label="Ultime de ${escapeHtml(r[0].name)}"><span class="ult-stack">${r.slice(0, 3).map((c) => img(c.sprite)).join('')}</span><b>Ultime${r.length > 1 ? ` ×${r.length}` : ''}</b></button>`; })()
-        + (world.guard ? `<button class="guard-btn" data-action="guard" aria-label="Parer">🛡 Parer${this.phone ? '' : ' <kbd>D</kbd>'}</button>` : '');
+    // v10.17 (B) : la barre n'est plus reconstruite en entier (innerHTML) quand un Ultime est prêt ou que « Parer » apparaît :
+    // un appui pendant la reconstruction était perdu. Les touches d'attaque restent les mêmes éléments ; seuls les boutons
+    // Ultime et Parer sont ajoutés ou retirés.
+    const skillKey = list.map((sk) => sk.id).join();
+    if (bar.dataset.skills !== skillKey) {
+      bar.dataset.skills = skillKey;
+      for (const old of bar.querySelectorAll('.skill-btn')) old.remove();
+      bar.insertAdjacentHTML('afterbegin', list.map((sk, i) => `<button class="skill-btn big" style="--sc:${skillColor(sk)}" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}<b class="sk-queued" aria-hidden="true">✓ en attente</b></button>`).join(''));
+      this.bindSkillPress?.(bar);
     }
+    // v9.8 (E5) : un seul bouton Ultime (portraits empilés, compteur) ; un appui lance la première prête.
+    const r = team.filter((c) => ready.has(c.id));
+    const ultKey = r.map((c) => c.id).join();
+    let ult = bar.querySelector('.ult-btn');
+    if ((ult?.dataset.key ?? '') !== ultKey) {
+      if (!r.length) ult?.remove();
+      else {
+        const html = `<span class="ult-stack">${r.slice(0, 3).map((c) => img(c.sprite)).join('')}</span><b>Ultime${r.length > 1 ? ` ×${r.length}` : ''}</b>`;
+        if (!ult) { ult = document.createElement('button'); ult.className = 'ult-btn'; ult.dataset.action = 'cast-ult'; bar.querySelector('.guard-btn') ? bar.insertBefore(ult, bar.querySelector('.guard-btn')) : bar.appendChild(ult); }
+        ult.dataset.key = ultKey;
+        ult.dataset.value = r[0].id;
+        ult.title = `Ultime : ${r.map((c) => c.name).join(', ')}`;
+        ult.setAttribute('aria-label', `Ultime de ${r[0].name}`);
+        ult.innerHTML = html;
+      }
+    }
+    const guard = bar.querySelector('.guard-btn');
+    if (world.guard && !guard) bar.insertAdjacentHTML('beforeend', `<button class="guard-btn" data-action="guard" aria-label="Parer">🛡 Parer${this.phone ? '' : ' <kbd>D</kbd>'}</button>`);
+    else if (!world.guard && guard) guard.remove();
     const bonus = (world.heroStats ?? computeHeroStats(state)).bonus;
     for (const btn of bar.querySelectorAll('.skill-btn')) {
       const sk = SKILLS.find((x) => x.id === btn.dataset.skill);
       const left = Math.max(0, world.skillTimers?.[sk.id] ?? 0);
       btn.style.setProperty('--cd', Math.min(1, left / interactiveCooldown(sk, bonus)));
       btn.classList.toggle('ready', left <= 0.05);
+      // v10.17 (B) : appui gardé (recharge, ou pas d'ennemi à portée) → « ✓ en attente » ; il part dès que possible.
+      btn.classList.toggle('queued', skillQueued(world, sk.id));
       // v9.11 (1) : un sort de ralliement montre sa durée restante sur l'icône (le bonus reste visible).
       const buff = sk.type === 'buff' ? Math.ceil(world.buffs?.cry ?? 0) : 0;
       let tag = btn.querySelector('.buff-left');
