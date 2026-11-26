@@ -36,12 +36,18 @@ export const EXACT_1016_MENUS = {
   'Une bannière et une salle commune.': '깃발과 공동 홀.',
   'Impossible de charger.': '불러올 수 없습니다.',
   'Réessayer': '다시 시도',
+  'Achats pas encore ouverts': '아직 구매할 수 없습니다',
+  "Pas assez pour l'acheter": '구매하기에 부족합니다',
+  "Rien à récupérer pour l'instant": '아직 받을 것이 없습니다',
+  "Pas assez de points pour l'instant": '아직 포인트가 부족합니다',
+  "Pas disponible pour l'instant": '아직 사용할 수 없습니다',
 };
 const UNIT = { tickets: '티켓', ticket: '티켓', gemmes: '보석', gemme: '보석', 'éclats': '파편', 'éclat': '파편', "pièces d'or": '골드', "pièce d'or": '골드' };
 const d = (s) => String(s).replace(/(\d),(\d)/g, '$1.$2');
 export const patterns1016Menus = () => [
   [/^Il te manque (\S+(?: \S+)?) (tickets?|gemmes?|éclats?|pièces? d'or)( pour ×(\d+))?$/, (m) => `${m[3] ? `×${m[4]}에 ` : ''}${UNIT[m[2]]} ${d(m[1])}개가 부족합니다`],
   [/^Tout récupérer \((\d+)\)$/, (m) => `모두 받기 (${m[1]})`],
+  [/^Coffre du jour : encore (\d+) tâches?$/, (m) => `오늘의 상자: 할 일 ${m[1]}개 남음`],
   [/^Chemin du héros · Ch\. (\d+)$/, (m) => `영웅의 길 · ${m[1]}장`],
   [/^Tu joues en invité \((.*)\)\.$/, (m) => `게스트로 플레이 중입니다 (${m[1]}).`],
 ];

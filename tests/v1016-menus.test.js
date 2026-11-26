@@ -179,3 +179,13 @@ test('Traductions v10.16 : anglais et coréen pour chaque nouveau texte', () => 
   assert.match(ko('Il te manque 23 éclats'), /파편 23/);
   assert.equal(en('Tout récupérer (22)'), 'Claim all (22)');
 });
+
+test('B5 : filet commun — raison déduite pour un bouton grisé oublié', async () => {
+  const { disabledReason } = await import('../src/ui/why-off.js');
+  assert.equal(disabledReason({ why: 'Il te manque 3 clés' }), 'Il te manque 3 clés');
+  assert.equal(disabledReason({ title: 'Bientôt' }), 'Bientôt');
+  assert.equal(disabledReason({ text: '4,99 €' }), 'Achats pas encore ouverts');
+  assert.equal(disabledReason({ text: '8,5×10²²³', cls: 'm-buy ko' }), "Pas assez pour l'acheter");
+  assert.equal(disabledReason({ text: 'Tout récupérer' }), "Rien à récupérer pour l'instant");
+  assert.equal(disabledReason({ text: 'Repartir' }), "Pas disponible pour l'instant");
+});

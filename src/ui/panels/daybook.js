@@ -82,7 +82,7 @@ function phoneView(ui, state, { tasks, doneN, all, book }, goldFree = true) {
   const chestBtn = book.chest ? '<span class="mp-ok" role="img" aria-label="Coffre ouvert">✓</span>'
     : (chestReady && goldFree ? mBtnGold : mBtn)(chestReady ? 'Ouvrir' : 'Coffre', { action: 'daybook-chest', disabled: !all, cls: 'auto', icon: 'icon_chest' });
   const head = `<div class="m-card mp-head"><span class="mp-ico big">${img('icon_chest')}</span>
-    <div class="mp-main"><div class="mp-head-line"><b class="num">${doneN}/${tasks.length}</b><small>${book.chest ? 'Coffre ouvert · à demain !' : all ? 'Journée accomplie !' : 'Coffre du jour'}</small></div>
+    <div class="mp-main"><div class="mp-head-line"><b class="num">${doneN}/${tasks.length}</b><small role="note">${book.chest ? 'Coffre ouvert · à demain !' : all ? 'Journée accomplie !' : `Coffre du jour : encore ${tasks.length - doneN} tâche${tasks.length - doneN > 1 ? 's' : ''}`}</small></div>
       ${mBar(doneN / Math.max(1, tasks.length))}<div class="mp-head-rw">${rewardIcons(DAYBOOK_CHEST)}</div></div>${chestBtn}</div>`;
   const d = dormantResources(state, daybookOpen(ui));
   // v10.14.2 (B8) : liste verticale, une ligne par ressource qui dort (icône + texte + ›), plus de bulles coupées dans une rangée qui défile.

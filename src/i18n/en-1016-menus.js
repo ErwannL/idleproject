@@ -36,11 +36,17 @@ export const EXACT_1016_MENUS = {
   'Une bannière et une salle commune.': 'A banner and a common hall.',
   'Impossible de charger.': "Couldn't load.",
   'Réessayer': 'Retry',
+  'Achats pas encore ouverts': 'Purchases not open yet',
+  "Pas assez pour l'acheter": 'Not enough to buy it',
+  "Rien à récupérer pour l'instant": 'Nothing to claim yet',
+  "Pas assez de points pour l'instant": 'Not enough points yet',
+  "Pas disponible pour l'instant": 'Not available yet',
 };
 const UNIT = { tickets: 'tickets', ticket: 'ticket', gemmes: 'gems', gemme: 'gem', 'éclats': 'shards', 'éclat': 'shard', "pièces d'or": 'gold coins', "pièce d'or": 'gold coin' };
 const d = (s) => String(s).replace(/(\d),(\d)/g, '$1.$2'); // virgule décimale → point
 export const patterns1016Menus = () => [
   [/^Il te manque (\S+(?: \S+)?) (tickets?|gemmes?|éclats?|pièces? d'or)( pour ×(\d+))?$/, (m) => `You need ${d(m[1])} more ${UNIT[m[2]]}${m[3] ? ` for ×${m[4]}` : ''}`],
   [/^Tout récupérer \((\d+)\)$/, (m) => `Claim all (${m[1]})`],
+  [/^Coffre du jour : encore (\d+) tâches?$/, (m) => `Daily chest: ${m[1]} task${m[1] === '1' ? '' : 's'} to go`],
   [/^Tu joues en invité \((.*)\)\.$/, (m) => `You're playing as a guest (${m[1]}).`],
 ];

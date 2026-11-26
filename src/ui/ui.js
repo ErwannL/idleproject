@@ -180,6 +180,7 @@ import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
 import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath, hostMenu, badgeText } from './nav.js';
+import { explainDisabled } from './why-off.js'; // v10.16 (B5)
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 import { syncPage } from './page.js'; // v10.4 (partie 1) : pages plein écran
 
@@ -3120,6 +3121,7 @@ export class UI {
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;
+    try { explainDisabled(body); explainDisabled(this.$('panel')?.querySelector('.m-sheet')); } catch { /* jamais bloquant */ } // v10.16 (B5) : raison sous chaque bouton grisé
     this.syncSheets(); // v10.12 : fiches du kit mobile (déplacées dans #panel, ou retirées si le rendu n'en a plus)
     if (body.querySelector('canvas[data-vfx]') || this.$('panel')?.querySelector('.m-sheet canvas[data-vfx]')) startVignettes(); // v10.1 (P2) : vignettes animées (v10.12 : aussi dans une fiche déplacée)
     for (const [id, value] of Object.entries(this.typed)) {

@@ -31,3 +31,5 @@
 #boost-chip.tip-dot { position: relative; }
 #boost-chip.tip-dot::after { content: '!'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
   background: #e8463a; color: #fff; font: 800 12px/18px system-ui, sans-serif; text-align: center; box-shadow: 0 0 0 2px #2a1a0c; pointer-events: none; }
+#app.m-phone #panel-subtabs .subtab.use-short .sub-short { font-size: 11px; letter-spacing: -0.03em; } /* B3 : mot entier, plus petit, plutôt que « Amélio. » */
+#app .why-off.why-auto { flex-basis: 100%; }
