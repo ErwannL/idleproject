@@ -9,7 +9,9 @@ import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
 import { bastionDaybookLine } from '../../core/bastion.js'; // v10.3 (10.6)
 import { mBar, mBtn, mBtnGold, mChip } from '../mobile-kit.js'; // v10.12
-import { esc, mpFrame, mpRow } from './profile-m.js';
+import { esc, mpFrame, mpRow, mpSec } from './profile-m.js';
+import { objectivesParts } from './contracts.js'; // v10.16 (B1)
+import { heroPathQuest } from '../hud-quests.js'; // v10.16 (B1)
 const isMPhone = () => true; // v10.13 : le PC emploie le même kit que le téléphone (desk-activities.css)
 
 // v9.8 (H5) : carnet des 7 premiers jours, en tête du Carnet du jour ; le gros lot (Épique au choix) visible dès le jour 1.
@@ -74,11 +76,11 @@ function phoneTask(t) {
   return mpRow({ icon: img(t.icon), title: esc(t.title), bar: pct, n: `${t.n}/${t.target}`, right: go, cls: `${t.done ? 'done' : ''}${t.dormant ? ' dormant' : ''}`, attrs: `data-db="${esc(t.id)}" title="${esc(t.text)}"` });
 }
 
-function phoneView(ui, state, { tasks, doneN, all, book }) {
+function phoneView(ui, state, { tasks, doneN, all, book }, goldFree = true) {
   const chestReady = all && !book.chest;
-  const fw = phoneFirstWeek(ui, state, !chestReady);
+  const fw = phoneFirstWeek(ui, state, goldFree && !chestReady);
   const chestBtn = book.chest ? '<span class="mp-ok" role="img" aria-label="Coffre ouvert">✓</span>'
-    : (chestReady ? mBtnGold : mBtn)(chestReady ? 'Ouvrir' : 'Coffre', { action: 'daybook-chest', disabled: !all, cls: 'auto', icon: 'icon_chest' });
+    : (chestReady && goldFree ? mBtnGold : mBtn)(chestReady ? 'Ouvrir' : 'Coffre', { action: 'daybook-chest', disabled: !all, cls: 'auto', icon: 'icon_chest' });
   const head = `<div class="m-card mp-head"><span class="mp-ico big">${img('icon_chest')}</span>
     <div class="mp-main"><div class="mp-head-line"><b class="num">${doneN}/${tasks.length}</b><small>${book.chest ? 'Coffre ouvert · à demain !' : all ? 'Journée accomplie !' : 'Coffre du jour'}</small></div>
       ${mBar(doneN / Math.max(1, tasks.length))}<div class="mp-head-rw">${rewardIcons(DAYBOOK_CHEST)}</div></div>${chestBtn}</div>`;
@@ -88,7 +90,36 @@ function phoneView(ui, state, { tasks, doneN, all, book }) {
   const dormant = d.length ? `<div class="mp-sleep"><small>Ça dort</small><div class="mp-sleep-list">${d.map((x) => `<button type="button" class="mp-sleep-row" data-action="open-tab" data-value="${esc(x.tab)}"><span class="mp-sleep-ico">${img(SLEEP_ICON[x.id] ?? 'icon_star')}</span><span class="mp-sleep-t">${esc(x.text)}</span><span class="mp-sleep-go" aria-hidden="true">›</span></button>`).join('')}</div></div>` : '';
   const line = bastionDaybookLine(state);
   const bastion = line ? `<div class="m-card mp-row mp-bastion"><span class="mp-ico"><img class="px" src="assets/ui/art104/bastion_forge_lv1.png" alt=""></span><div class="mp-main"><b class="mp-name">${esc(line)}</b></div>${mBtn('Bastion', { action: 'bastion-open', cls: 'auto' })}</div>` : '';
-  return mpFrame('icon_book', 'Carnet du jour', `${head}${fw.html}${dormant}${bastion}<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`);
+  return `${head}${fw.html}${dormant}${bastion}<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`; // v10.16 (B1) : le cadre est posé par l'écran Objectifs
+}
+
+// v10.16 (B1) : « Maintenant » — une seule consigne, celle du Chemin du héros (sinon le conseil du moment).
+function nowCard(ui, state) {
+  const q = heroPathQuest(state);
+  if (q) {
+    const go = q.ready ? mBtn('Récupérer', { action: 'chronicle-claim', cls: 'auto ready' }) : mBtn('Y aller', { action: 'open-tab', value: 'campaign', cls: 'auto' });
+    return mpRow({ icon: `<img class="px" src="assets/ui/art106/hud_quest_chapter_${q.chapter}.png" alt="">`, title: esc(q.title),
+      sub: `<small class="obj-kicker">Chemin du héros · Ch. ${q.chapter}</small><div class="mp-rw">${rewardIcons(q.reward)}</div>`, bar: q.progress, right: go, cls: `obj-now${q.ready ? ' ready' : ''}` });
+  }
+  const n = ui.next;
+  return mpRow({ icon: img('icon_star'), title: esc(n?.label ?? n?.text ?? 'Avance sur la Carte : bats le prochain boss.'), cls: 'obj-now',
+    right: mBtn('Y aller', { action: 'open-tab', value: n?.tab ?? 'campaign', cls: 'auto' }) });
+}
+
+// Écran Objectifs : Maintenant (1 consigne), Aujourd'hui (Carnet du jour + missions du jour), Plus tard (Chroniques, Semaine,
+// Mois, Hauts faits). Un seul bouton doré : « Tout récupérer » s'il y a quelque chose, sinon le coffre du jour.
+export function objectivesHtml(ui, state, day) {
+  const parts = objectivesParts(ui, state);
+  const claim = parts.claimN ? `<div class="mp-claimbar">${mBtnGold(`Tout récupérer (${parts.claimN})`, { action: 'claim-everything', icon: 'icon_chest' })}${mBtn('Voir', { action: 'open-claims', icon: 'icon_mail', cls: 'auto' })}</div>` : '';
+  const focus = ui.view.objFocus;
+  if (focus && typeof document !== 'undefined') {
+    ui.view.objFocus = null;
+    setTimeout(() => document.querySelector(`#panel-body [data-obj="${focus}"]`)?.scrollIntoView({ block: 'start' }), 80);
+  }
+  return mpFrame('icon_trophy', 'Objectifs', `${claim}
+    <section class="obj-sec" data-obj="now">${mpSec('Maintenant')}${nowCard(ui, state)}</section>
+    <section class="obj-sec" data-obj="today">${mpSec('Aujourd\'hui')}${phoneView(ui, state, day, !parts.claimN)}<div class="mp-list">${parts.today}</div></section>
+    <section class="obj-sec" data-obj="later">${mpSec('Plus tard')}${parts.later}</section>`);
 }
 
 export function daybookOpen(ui) {
@@ -109,7 +140,7 @@ function card(t, fresh) {
 
 export default {
   id: 'daybook',
-  title: 'Carnet du jour',
+  title: 'Objectifs', // v10.16 (B1) : Chemin du héros, Carnet du jour et Missions réunis
   icon: 'icon_trophy',
   render(ui, state) {
     const open = daybookOpen(ui);
@@ -120,7 +151,7 @@ export default {
     const doneN = tasks.filter((t) => t.done).length;
     const all = daybookComplete(state, open);
     const book = daybookOf(state);
-    if (isMPhone(ui)) return phoneView(ui, state, { tasks, doneN, all, book });
+    if (isMPhone(ui)) return objectivesHtml(ui, state, { tasks, doneN, all, book });
     const chest = book.chest ? '<div class="db-chest opened">' + img('icon_chest') + '<small>Coffre ouvert · à demain !</small></div>'
       : `<button class="db-chest${all ? ' ready' : ''}" data-action="daybook-chest" ${all ? '' : 'disabled'}>${img('icon_chest')}
           <small>${all ? 'Ouvre le coffre !' : `Coffre du jour : ${doneN}/${tasks.length}`}</small>${rewardIcons(DAYBOOK_CHEST, 'named')}</button>`;

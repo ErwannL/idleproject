@@ -3,7 +3,7 @@
 import { BALANCE } from '../../data/balance.js';
 import { formatDuration } from '../../core/format.js';
 import { escapeHtml, fold, formatNumber, img } from '../common.js';
-import { isPhone } from '../prefs.js';
+import { isPhone, pref } from '../prefs.js';
 import { mBtn, mBtnGold, mChip, mModes, mStat } from '../mobile-kit.js'; // v10.12
 import { isMPhone, kitify, mpBtns, mpChips, mpField, mpFold, mpFrame, mpSec, mpSwitch } from './profile-m.js';
 import { availableLangs, getLang } from '../../i18n/i18n.js';
@@ -261,6 +261,10 @@ function devOfflineCard() {
       </div>`;
 }
 
+// v10.16 (B4) : un seul format de nombre partout ; le joueur peut tout passer en lettres ou en puissances de 10.
+const NUM_CHOICES = [['auto', 'Lettres puis ×10ⁿ'], ['letters', 'Tout en lettres'], ['sci', 'Tout en ×10ⁿ']];
+const NUM_HINT = { auto: '1,2 Qi, puis 5,4×10⁸⁹ au-delà de 10³³', letters: '1,2 Qi, puis aa, ab… après Dc (10³³)', sci: '1,2×10¹⁸, 5,4×10⁸⁹' };
+
 // v9.1.3 (doc1 « Paramètres ») : Interface allégée — thème et notifications repliés, touches clavier masquées sur
 // téléphone (aucun clavier).
 function interfaceTab(ui, state) {
@@ -276,6 +280,8 @@ function interfaceTab(ui, state) {
         ${selectOr(ui, 'combat-assist', [['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']], state.ui.combatAssist ?? 'mixed')}</div>
       <div class="card row-between"><b>Taille des personnages</b>
         ${selectOr(ui, 'char-size', [['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']], state.ui.charSize ?? 'auto')}</div>
+      <div class="card row-between"><span><b>Grands nombres</b> <span class="muted">${NUM_HINT[pref('numFormat')] ?? NUM_HINT.auto}</span></span>
+        ${selectOr(ui, 'num-format', NUM_CHOICES, pref('numFormat') ?? 'auto')}</div>
       ${ui.interfaceExtra?.(state) ?? ''}
       ${fold(ui, 'opt-notify', 'Notifications', () => `
         <label class="toggle"><input type="checkbox" data-action="notify" data-key="boss" ${state.ui.notify?.boss !== false ? 'checked' : ''}> Bannières d'arrivée des boss</label>
@@ -387,6 +393,7 @@ function interfacePhone(ui, state, phone = true) {
     ${sw('Mode simple', 'simple-mode', state.ui.simple === true, '', 'Cache les systèmes avancés')}
     ${mpField('Aide au combat', mpChips('combat-assist', [['full', 'Complet'], ['mixed', 'Mixte'], ['manual', 'Manuel']], assist), { full: 'Tout se joue seul', mixed: 'Tes actions comptent plus', manual: 'Rien sans toi' }[assist])}
     ${mpField('Taille des personnages', mpChips('char-size', [['auto', 'Auto'], ['small', 'Petit'], ['medium', 'Moyen'], ['large', 'Grand']], state.ui.charSize ?? 'auto'))}
+    ${mpField('Grands nombres', mpChips('num-format', NUM_CHOICES, pref('numFormat') ?? 'auto'), NUM_HINT[pref('numFormat')] ?? NUM_HINT.auto)}
     ${ui.interfaceExtra?.(state) ?? ''}
     ${mpSec('Notifications et effets')}
     ${sw('Bannières des boss', 'notify', state.ui.notify?.boss !== false, 'boss')}${sw('Messages d\'événements', 'notify', state.ui.notify?.events !== false, 'events', 'Coffres, marchands…')}

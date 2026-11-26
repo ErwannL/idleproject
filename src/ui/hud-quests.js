@@ -54,6 +54,11 @@ export function chapterOf(state) {
   return Math.max(1, Math.min(12, Number(String(stageLabel(best)).split('-')[0]) || 1));
 }
 
+// v10.16 (B1) : la carte d'objectif montrée sur la scène (une seule) : 'bounty', 'path', 'carnet' ou null.
+export function oneObjective({ bounty = false, path = false, carnet = false } = {}) {
+  return bounty ? 'bounty' : path ? 'path' : carnet ? 'carnet' : null;
+}
+
 // Quête du « Chemin du héros » : l'étape en cours des Chroniques.
 export function heroPathQuest(state) {
   const ch = chronicleNow(state);
@@ -316,6 +321,12 @@ export class HudQuests {
       if (fresh) { this.bounty.classList.remove('hb-arrive'); void this.bounty.offsetWidth; this.bounty.classList.add('hb-arrive'); }
     }
     this.bounty.classList.toggle('hidden', !showPoster);
+    // v10.16 (B1) : une seule carte d'objectif à la fois sur la scène — la Prime du Héraut pendant qu'elle s'affiche, sinon le
+    // Chemin du héros, sinon le Carnet du jour. Le reste est dans Plus › Objectifs.
+    const one = oneObjective({ bounty: showPoster, path: Boolean(q), carnet: Boolean(ch) });
+    this.path.classList.toggle('hidden', one !== 'path');
+    this.carnet.classList.toggle('hidden', one !== 'carnet');
+    this.objective = one;
     // 3. Colonne d'événements
     const room = this.placeRow();
     const eh = columnHtml(eventColumn(ui, state, t), room, this.expanded);

@@ -478,3 +478,7 @@ PATTERNS.unshift(...patterns1014_2());
 // v10.15.1 : 거인 8체 (./ko-1015.js).
 import { EXACT_1015 } from './ko-1015.js';
 for (const [k, v] of Object.entries(EXACT_1015)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.16 (partie B) : Menus et ergonomie (./ko-1016-menus.js).
+import { EXACT_1016_MENUS, patterns1016Menus } from './ko-1016-menus.js';
+for (const [k, v] of Object.entries(EXACT_1016_MENUS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1016Menus());

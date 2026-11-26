@@ -1,5 +1,6 @@
 // v9.3.2 : Objectifs › Guilde. Chargé à l'ouverture (ui.guild = { data, list, ranking, mode, error, busy }).
 // Sans compte : explication (les guildes demandent un compte créé). Données serveur : server/guilds.mjs.
+import { accountGate, isMember, loadFailed, loadState } from '../account-gate.js'; // v10.16 (B6)
 import { escapeHtml, formatNumber, img } from '../common.js';
 
 import { mBar, mBtn, mBtnGold, mChip, mEmpty, mModes } from '../mobile-kit.js'; // v10.12
@@ -108,12 +109,13 @@ function mNoGuild(ui, g) {
 
 function guildPhone(ui, phone = true) {
   const g = ui.guild ?? {};
-  const empty = (txt) => `${guildBanner(phone)}${mEmpty(txt, { icon: phone ? '' : 'icon_crown', button: `${perks(phone)}${mBtnGold('Créer mon compte', { action: 'open-account' })}` })}`;
   let body;
-  if (g.needAccount) body = empty('Rejoins une guilde : bannière, salle commune et boss partagés.');
+  // v10.16 (B6) : sans compte, l'explication tout de suite (ce qu'on y gagne, 3 lignes) puis « Créer mon compte ».
+  if (g.needAccount || (ui.cloud && !isMember(ui.cloud))) body = `${guildBanner(phone)}${accountGate('guild', ui.cloud)}`;
   else {
     const msg = g.error ? `<div class="state-error mp-reset">${escapeHtml(g.error)}</div>` : g.message ? `<div class="good mp-reset">${escapeHtml(g.message)}</div>` : '';
-    if (!g.data) body = `${msg}${guildBanner(phone)}${mEmpty(g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment : voici ce qui t\'attend.', { icon: phone ? '' : 'icon_crown', button: perks(phone) })}`;
+    if (!g.data && !g.error && loadState({ since: ui.loadSince?.guild ?? Date.now() }) === 'failed') body = `${msg}${guildBanner(phone)}${loadFailed('guild')}`; // v10.16 (B6) : 5 s au plus
+    else if (!g.data) body = `${msg}${guildBanner(phone)}${mEmpty(g.busy ? 'Chargement…' : 'Connexion au serveur impossible pour le moment : voici ce qui t\'attend.', { icon: phone ? '' : 'icon_crown', button: perks(phone) })}`;
     else body = `${msg}${g.data.guild ? mMyGuild(ui, g.data) : mNoGuild(ui, g)}<div class="mp-sub">Classement des guildes</div>${mRanking(g)}`;
   }
   return mpFrame('icon_crown', 'Guilde', body);

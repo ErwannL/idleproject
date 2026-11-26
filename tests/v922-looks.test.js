@@ -21,8 +21,8 @@ const { translate: ko } = await import('../src/i18n/ko.js');
 const ui = (view = {}) => ({ view: { open: new Set(), closed: new Set(), ...view }, tabVisible: {} });
 
 test('Profil › Apparences : onglet du Profil (v9.3.5), état et bouton Équiper sur chaque carte', () => {
-  assert.ok(MENUS.find((m) => m.id === 'profile').tabs.includes('looks'));
-  assert.equal(navPath('looks'), 'Profil › Apparences');
+  assert.ok(MENUS.find((m) => m.id === 'goals').tabs.includes('looks')); // v10.16 (B2) : le Profil est fondu dans « Plus »
+  assert.equal(navPath('looks'), 'Plus › Apparences');
   const s = createNewState(Date.now());
   s.heroes.owned.fairy = { stars: 1 };
   const html = looks.render(ui(), s);

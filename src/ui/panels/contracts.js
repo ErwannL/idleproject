@@ -291,6 +291,22 @@ function missionsPhone(ui, state, { parts, ready, tab, period, nOf }) {
   return mpFrame('icon_trophy', 'Missions', `${modes}${bar}<div class="mp-list">${body}</div>`);
 }
 
+// v10.16 (B1) : écran Objectifs (panneau Carnet, daybook.js) — les Missions y sont fondues. « Aujourd'hui » reçoit les
+// missions du jour, les contrats et les trouvailles ; « Plus tard » : Chroniques, Semaine, Mois, Hauts faits.
+export const LATER_PARTS = [['chronicles', 'Chroniques', 'icon_scroll'], ['weekly', 'Semaine', 'icon_chest'], ['week', 'Mois', 'icon_map'], ['achievements', 'Hauts faits', 'icon_star']];
+export function objectivesParts(ui, state) {
+  const mine = ui.claims.filter((c) => c.tab === 'contracts');
+  const count = (ids) => mine.filter((c) => ids.includes(c.period ?? c.kind)).length;
+  const nOf = (k) => mine.filter((c) => (c.period ?? c.kind) === k && !c.blocked).length;
+  const period = (id) => MISSION_PERIODS.find((p) => p.id === id);
+  const heraldN = HERALD_TASKS.filter((t) => (heraldState(state).progress[t.id] ?? 0) >= heraldTask(state, t).target).length + (chronicleNow(state)?.ready ? 1 : 0);
+  const ready = { chronicles: heraldN, weekly: count(['weekly']), week: count(['track']), achievements: count(['achievement']) };
+  const tab = LATER_PARTS.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'chronicles';
+  const modes = mModes(LATER_PARTS.map(([id, label, ic]) => ({ id, label, icon: ic, action: 'mission-tab', value: id, badge: ready[id] ? String(ready[id]) : false })), tab);
+  const body = tab === 'achievements' ? mAchievements(state) : tab === 'weekly' ? mPeriod(state, period('weekly')) : tab === 'week' ? mTrack(state) : mChronicle(state);
+  return { today: mToday(ui, state, period, nOf), later: `${modes}<div class="mp-list">${body}</div>`, claimN: mine.filter((c) => !c.blocked).length };
+}
+
 // v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Piste du mois (v9.1.3 : hebdomadaires et
 // mensuelles fondues), Hauts faits. « Tout récupérer » est dans l'en-tête du panneau (toujours visible).
 export default {

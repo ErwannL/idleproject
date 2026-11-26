@@ -26,7 +26,7 @@ import { envLine, envChipText } from '../core/environment.js'; // v9.2.1
 import { bossTierForStage, currentEncounter, currentEnvironment, difficultyForStage, isBossStage, stageLabel, zoneForStage, zoneIndexForStage } from '../core/combat.js';
 import { eventLabel } from '../core/events.js';
 import { SUMMON_POOLS, normalizePool } from '../core/gacha.js';
-import { formatDecimal, formatDuration, formatNumber } from '../core/format.js';
+import { formatDecimal, formatDuration, formatNumber, setNumberFormat } from '../core/format.js';
 import { xpForLevel } from '../core/level.js';
 import { rarityById } from '../core/loot.js';
 import { maxCharges, powerById } from '../core/powers.js';
@@ -179,7 +179,7 @@ import { availableForExpedition, readyExpeditions } from '../core/expeditions.js
 import { CHALLENGE, bossEvery, challengeUnlocked } from '../core/challenge.js';
 import { ZONES } from '../data/zones.js';
 import { CURRENCIES, currencyAmount } from '../data/currencies.js';
-import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath } from './nav.js';
+import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath, hostMenu, badgeText } from './nav.js';
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 import { syncPage } from './page.js'; // v10.4 (partie 1) : pages plein écran
 
@@ -218,7 +218,7 @@ const BULK_CONFIRM_MS = 4000;
 // v9.3.5 : nom court sous l'icône des boosts ; touches affichées seulement avec souris et clavier.
 const RUSH_SHORT = { rage: 'Rage', frenzy: 'Frénésie', midas: 'Midas', hunter: 'Chasseur', phantom: 'Fantôme' };
 const hasKeyboard = () => typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
-const LIVE_PANELS = new Set(['camp', 'inventory', 'forge', 'daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
+const LIVE_PANELS = new Set(['guild', 'camp', 'inventory', 'forge', 'daybook', 'arena', 'world', 'contracts', 'dungeons', 'tower', 'skills', 'boss', 'hero', 'looks', 'upgrades', 'companions', 'expeditions', 'encyclopedia', 'inbox', 'ranking', 'stats']);
 
 // Renaissance : choix du seul pouvoir ancestral conservé.
 function powerChoice(state) {
@@ -263,9 +263,9 @@ function boostDuration(sec) {
   return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
 }
 
-// Très grands multiplicateurs en notation 1e60 (codes de la version dev).
+// Très grands multiplicateurs (codes de la version dev) : v10.16 (B4) le format commun, plus de « 1e60 » à part.
 function formatMult(n) {
-  return n >= 1e15 ? n.toExponential(1).replace('e+', 'e').replace('.', ',') : n >= 1000 ? formatNumber(n) : n.toFixed(1).replace('.', ',');
+  return n >= 1000 ? formatNumber(n) : n.toFixed(1).replace('.', ',');
 }
 
 function boostText(b) {
@@ -519,6 +519,7 @@ export class UI {
   applyPrefs() {
     const root = document.documentElement;
     this.compact = pref('compact') === true;
+    setNumberFormat(pref('numFormat')); // v10.16 (B4) : un seul format de nombre partout
     this.phone = isPhone();
     this.syncMPhone();
     this.root.classList.toggle('compact', this.compact);
@@ -765,13 +766,13 @@ export class UI {
 
   // v9.9 (K6) : tiroir ☰ — tout ce qui n'est pas dans les 5 onglets du bas.
   openDrawer() {
-    const E = [['daybook', 'icon_trophy', 'Carnet du jour'], ['contracts', 'tab_missions', 'Missions et hauts faits'], ['encyclopedia', 'tab_collections', 'Collections'],
+    const E = [['daybook', 'icon_trophy', 'Objectifs'], ['encyclopedia', 'tab_collections', 'Collections'],
       ['forge', 'tab_forge', 'Forge'], ['boss', 'tab_boss', 'Pouvoirs des boss'], ['camp', 'tab_expeditions', 'Bastion'], ['looks', 'top_profile', 'Apparences'],
       ['ranking', 'tab_ranking', 'Classement'], ['guild', 'tab_guild', 'Guilde'], ['stats', 'tab_stats', 'Statistiques']];
     const row = ([tab, ic, label]) => {
       const open = this.tabVisible[tab] !== false;
       const n = this.tabBadges?.[tab] ?? 0;
-      return `<button class="drawer-row${open ? '' : ' locked'}" data-action="${open ? 'open-tab' : 'locked-tab'}" data-value="${tab}">${img(ic)}<b>${label}</b>${open ? (n ? `<i class="drawer-badge">${n}</i>` : '') : `<small>🔒 ${escapeHtml(this.lockReason(tab))}</small>`}</button>`;
+      return `<button class="drawer-row${open ? '' : ' locked'}" data-action="${open ? 'open-tab' : 'locked-tab'}" data-value="${tab}">${img(ic)}<b>${label}</b>${open ? (n ? `<i class="drawer-badge">${badgeText(n)}</i>` : '') : `<small>🔒 ${escapeHtml(this.lockReason(tab))}</small>`}</button>`;
     };
     this.openModal(`<div class="drawer"><button class="btn small drawer-close" data-action="close-modal" aria-label="Fermer">✕</button><h2 id="modal-title">Menu</h2>
       <div class="drawer-list">${E.map(row).join('')}
@@ -875,6 +876,8 @@ export class UI {
     // v10.3 (audit 2.1) : l'Arène est un vrai onglet de Combat (Carte, Donjons, Arène, Défis, Événement). Avant, le
     // bouton « Arène » renvoyait à Défis › Arène (titre « Défis », onglet Défis allumé). L'ancien chemin y mène encore.
     if (tab === 'tower' && view?.defiTab === 'arena') { tab = 'arena'; view = { ...view, defiTab: null }; }
+    // v10.16 (B1) : Missions, Chroniques et hauts faits sont la partie « Plus tard » de l'écran Objectifs.
+    if (tab === 'contracts') { view = { ...(view ?? {}), objFocus: view?.missionTab === 'today' ? 'today' : 'later' }; tab = 'daybook'; }
     if (!PANELS[tab] || this.tabVisible[tab] === false) return;
     if (this.view.themePreview && tab !== 'shop') this.actions.previewTheme(null); // v9.2.8 : fin de l'aperçu du thème
     this.sidePanel(true);
@@ -889,6 +892,7 @@ export class UI {
       if (this.tab) this.scrollMem[this.tab] = this.$('panel-body').scrollTop;
       this.pendingScroll = view ? 0 : this.scrollMem[tab] ?? 0;
     }
+    if (tab === 'ranking' || tab === 'guild') (this.loadSince ??= {})[tab] = Date.now(); // v10.16 (B6) : « Impossible de charger » au bout de 5 s
     if (tab === 'ranking') this.actions.loadRanking?.();
     if (tab === 'guild') this.actions.loadGuild?.(); // v9.3.2
     if (tab === 'arena') this.actions.loadGlobalBoss?.(); // v9.3.5 (v10.3 : onglet Arène)
@@ -905,9 +909,10 @@ export class UI {
     const menu = menuOf(tab);
     if (menu) this.lastSub[menu.id] = tab;
     this.lastOpened = tab;
+    const host = hostMenu(tab); // v10.16 (B2) : l'onglet du bas de l'écran s'allume, même pour la fiche du héros ou les Paramètres
     this.root.querySelectorAll('#tabs button').forEach((b) => {
-      b.classList.toggle('active', b.dataset.menu === menu?.id);
-      if (b.dataset.menu === menu?.id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      b.classList.toggle('active', b.dataset.menu === host?.id);
+      if (b.dataset.menu === host?.id) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     this.renderSubtabs();
     this.root.querySelectorAll('[data-open]').forEach((b) => b.classList.toggle('active', b.dataset.open === tab));
@@ -1127,6 +1132,7 @@ export class UI {
       case 'distribute-skills': a.distributeSkills(); break; // v9.3.8 (3a)
       case 'offline-double': if (this.lastOffline && this.canDoubleOffline(this.lastOffline)) { a.doubleOffline(this.lastOffline); this.lastOffline = null; this.closeModal(); } break; // v9.3.8 (4)
       case 'arena-edit': local(() => { v.arenaEdit = true; }); break; // v9.3.5
+      case 'load-retry': (this.loadSince ??= {})[value] = Date.now(); if (value === 'guild') this.actions.loadGuild?.(); else this.actions.loadRanking?.(); this.invalidate(); break; // v10.16 (B6)
       case 'open-tab': if (el.closest('#modal')) this.closeModal(); this.openTab(value, el.dataset.view ? JSON.parse(el.dataset.view) : null); break; // v10.3 (9) : data-view = vue à montrer
       case 'session-goals': this.openModal(`${sessionGoalsHtml(this.state)}<div class="detail-actions"><button class="btn btn-primary" data-action="close-modal">OK</button></div>`); break; // v9.8 (C1)
       case 'cast-skill': a.castSkillNow?.(el.dataset.skill); break; // v9.7.1 (lot 2)
@@ -1607,6 +1613,7 @@ export class UI {
     if (action === 'vigil-auto') { if (['never', 'phone', 'always'].includes(el.value)) this.state.ui.vigil = el.value; } // v9.10 (1)
     if (action === 'gain-feed') { if (el.checked) delete this.state.ui.feed; else this.state.ui.feed = false; } // v9.9 (K11)
     if (action === 'char-size') this.actions.setCharSize(el.value); // v9.7.1
+    if (action === 'num-format') { this.setDevicePref('numFormat', el.value); this.lastHud = {}; this.invalidate?.(); } // v10.16 (B4)
     if (action === 'big-auras') this.actions.setBigAuras(el.checked); // v9.5.3
     if (action === 'metrics-opt-in') this.actions.setMetricsOptIn(el.checked); // v9.6.5
     if (action === 'bind-build') this.actions.bindBuild(Number(el.dataset.value), el.value); // v9.6.1
@@ -1955,7 +1962,7 @@ export class UI {
     this.lootBag?.update(state);
     // v9.8 (C1) : objectifs de session en pastille au bord de la scène.
     const pill = this.$('goals-pill');
-    if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('hidden', !h); pill.classList.toggle('ready', sessionDone(state)); } }
+    if (pill) { const h = sessionGoalsPill(state); if (pill.dataset.h !== h) { pill.dataset.h = h; pill.innerHTML = h; pill.classList.toggle('ready', sessionDone(state)); } pill.classList.toggle('hidden', !h || Boolean(this.hudQuests?.objective && !this.hudQuests.root.classList.contains('hidden'))); } // v10.16 (B1) : une seule carte d'objectif
     // v10.6 (partie 2) : Chemin du héros, Carnet en 3 lignes, colonne d'événements et Prime du Héraut. Ils prennent la
     // place du bandeau de quête, de la puce « Faille du jour » et de la tour du Bastion posée sur la scène.
     this.hudQuests?.update(state);
@@ -2049,7 +2056,8 @@ export class UI {
   liveKey(state) {
     switch (this.tab) {
       case 'camp': return bastionLiveKey(this, state); // v10.3
-      case 'contracts': return state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
+      case 'daybook': case 'contracts': return JSON.stringify(state.chronicles ?? null) + JSON.stringify(state.daybook ?? null) + // v10.16 (B1) : Objectifs = Carnet + Missions
+         state.contracts.map((c) => `${c.id}:${c.progress}`).join() + JSON.stringify(state.missions);
       // v9.1.3 (doc4 lot 6) : temps restant et ennemis vaincus pendant un essai dans un monde.
       case 'world': return `${state.worldRun ? `${state.worldRun.kills}|${Math.ceil(state.worldRun.deadline - (state.playSeconds ?? 0))}` : ''}|${JSON.stringify(state.worlds)}|${state.companions.equipped.join()}`;
       case 'dungeons': return `${JSON.stringify(state.dungeon)}|${JSON.stringify(state.challenge)}|${state.challengeWeek?.best}`;
@@ -2070,7 +2078,8 @@ export class UI {
       case 'hero': return `${state.level}|${Math.floor(state.xp / 5)}|${state.heroes.active}|${Object.keys(state.heroes.owned).length}`;
       case 'encyclopedia': return String(encyclopediaProgress(state).found);
       case 'stats': return String(Math.floor(Date.now() / 5000));
-      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.world}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}`;
+      case 'ranking': return `${JSON.stringify(this.friends ?? null)}|${this.cloud?.guest}|${this.cloud?.loggedIn}|${this.ranking?.scope}|${this.ranking?.sort}|${this.ranking?.world}|${this.ranking?.players?.length ?? -1}|${this.ranking?.error ?? ''}|${this.ranking?.players?.[0]?.updatedAt ?? ''}|${Date.now() - (this.loadSince?.ranking ?? 0) >= 5000}`;
+      case 'guild': return `${Boolean(this.guild?.data)}|${this.guild?.needAccount}|${this.cloud?.loggedIn}|${this.cloud?.guest}|${Date.now() - (this.loadSince?.guild ?? 0) >= 5000}`; // v10.16 (B6)
       default: return '';
     }
   }
@@ -2423,6 +2432,7 @@ export class UI {
     if (this.claimsOpen && claimsKey !== this.claimsKey && !this.$('modal').classList.contains('hidden')) this.openClaims(state);
     this.claimsKey = claimsKey;
     const byTab = claimablesByTab(this.claims);
+    if (byTab.contracts) { byTab.daybook = (byTab.daybook ?? 0) + byTab.contracts; delete byTab.contracts; } // v10.16 (B1) : Missions dans Objectifs
     this.tabBadges = byTab;
     this.offerAutoRecycle(state); // v9.3.4
     if (this.tabVisible.forge !== false && canForgeSomething(state)) this.tabBadges = { ...byTab, forge: 1 }; // v9.3.4 : de quoi forger
@@ -2453,10 +2463,14 @@ export class UI {
         el.classList.toggle('hidden', !red);
         el.classList.toggle('count', n > 0 && main);
         el.classList.toggle('star', red && !main);
-        el.textContent = n > 0 && main ? String(Math.min(n, 99)) : '';
+        el.textContent = n > 0 && main ? badgeText(n) : ''; // v10.16 (B2) : « 9+ » au plus
         el.setAttribute('aria-label', red ? `${n} à récupérer` : '');
       }
     }
+    // v10.16 (B2) : la pastille du ☰ ne compte que ce qui est vraiment à récupérer (récompenses non bloquées), « 9+ » au plus.
+    const drawerN = this.claims.filter((c) => !c.blocked).length;
+    const dEl = this.$('badge-drawer');
+    if (dEl) { dEl.classList.toggle('hidden', !drawerN); dEl.classList.add('count'); dEl.textContent = badgeText(drawerN); dEl.setAttribute('aria-label', drawerN ? `${drawerN} à récupérer` : ''); }
     // v9.2.9 : bouton Boutique de la barre du haut : pastille si une offre gratuite ou quotidienne attend.
     this.$('badge-shop')?.classList.toggle('hidden', !shopFreeAvailable(state));
     // Objets neufs : trouvés depuis la dernière ouverture d'Équipement (et encore dans le sac).

@@ -29,7 +29,7 @@ export const TUTO_STEPS = [
   { id: 'tuto-recycle', finger: true, text: 'Sac plein : recycle en éclats',
     when: (s, full) => full,
     targets: ['[data-action="recycle-useless"]:not([disabled])', '[data-sub="forge"]', MENU('hero')] },
-  { id: 'tip-boost', finger: false, text: 'Bonus du moment : plus d\'or et d\'expérience. Touche pour le détail.',
+  { id: 'tip-boost', finger: false, dot: true, text: 'Bonus du moment : plus d\'or et d\'expérience. Touche pour le détail.',
     when: () => true, targets: ['#boost-chip'] },
   { id: 'tip-claim', finger: false, text: 'Récupère d\'un coup toutes les récompenses prêtes.',
     when: () => true, targets: ['[data-action="claim-everything"]'] },
@@ -37,6 +37,8 @@ export const TUTO_STEPS = [
 
 // v10.13 (9) : l'écran que chaque étape du doigt fait ouvrir. Le doigt ne s'affiche que s'il mène au même écran que le Sceau
 // (une seule prochaine action conseillée : plus d'allers-retours entre deux onglets).
+// v10.16 (B8) : durée d'une bulle d'information (sans doigt) avant qu'elle se ferme seule.
+export const TIP_AUTO_CLOSE_MS = 6000;
 export const STEP_SCREEN = { 'tuto-item': 'inventory', 'tuto-damage': 'upgrades', 'tuto-skill': 'skills', 'tuto-summon': 'summon', 'tuto-companion': 'companions', 'tuto-recycle': 'inventory' };
 export function stepAgrees(step, advice) {
   const screen = adviceScreen(advice);
@@ -106,7 +108,22 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     layer.querySelector('.tuto-ok').addEventListener('click', (e) => { e.stopPropagation(); markDone(latest, layer.dataset.step); layer.remove(); });
   }
   const { step, el } = pick;
+  // v10.16 (B8) : « Bonus du moment » n'est plus une bulle posée sur la scène : une pastille sur l'icône du bonus (le texte
+  // en infobulle), retirée au premier appui. L'astuce est notée comme vue tout de suite (elle ne bloque pas les suivantes).
+  if (step.dot) {
+    layer.remove();
+    el.classList.add('tip-dot');
+    el.setAttribute('title', translate(step.text));
+    el.addEventListener('click', () => el.classList.remove('tip-dot'), { once: true });
+    markDone(state, step.id);
+    return;
+  }
   layer.target = el; // cible actuelle (tests de bout en bout)
+  // v10.16 (B8) : une bulle d'information (sans doigt) se ferme seule au bout de 6 s.
+  if (!step.finger && layer.dataset.step !== step.id) {
+    const id = step.id;
+    setTimeout(() => { const l = document.getElementById('tuto-layer'); if (l?.dataset.step === id) { markDone(latest, id); l.remove(); } }, TIP_AUTO_CLOSE_MS);
+  }
   if (layer.dataset.step !== step.id) {
     layer.dataset.step = step.id;
     layer.querySelector('.tuto-text').textContent = translate(step.text);

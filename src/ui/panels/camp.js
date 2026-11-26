@@ -104,14 +104,14 @@ function shortReason(reason) {
 
 // v10.12 (carte du Bastion, téléphone) : noms courts sous les bâtiments (le nom entier reste dans le titre et la fiche),
 // durées sans espaces (« 1 h 20 min » → « 1h20 », « 11 min 57 s » → « 11m57 »).
-const SHORT_NAME = { forge: 'Forge', library: 'Biblio.', mine: 'Mine', training: 'Camp', trade: 'Marché', expeditions: 'Expéd.',
-  enchant: 'Enchant.', menagerie: 'Ménag.', observatory: 'Observ.', runes: 'Runes', ascension: 'Ascens.', wonder: 'Merveille' };
+const SHORT_NAME = { forge: 'Forge', library: 'Bibliothèque', mine: 'Mine', training: 'Camp', trade: 'Marché', expeditions: 'Expéditions', // v10.16 (B3) : mots entiers, jamais de point d'abréviation
+  enchant: 'Enchantement', menagerie: 'Ménagerie', observatory: 'Observatoire', runes: 'Runes', ascension: 'Ascension', wonder: 'Merveille' };
 const shortName = (def) => SHORT_NAME[def.id] ?? def.name;
 function shortTime(txt) {
   return String(txt).replace(/(\d+) h (\d+)( min)?/, '$1h$2').replace(/(\d+) min (\d+)( s)?/, '$1m$2').replace(/(\d+) min\b/, '$1m').replace(/(\d+) j (\d+) h/, '$1j$2h').replace(/(\d+) s\b/, '$1s');
 }
 function phoneReason(reason) {
-  const r = shortReason(reason).replace(/^Âge (\S+) : .*$/, 'Âge $1').replace(/^Bastion niv\. (\d+)$/, 'Niv. $1').replace(/^5 compagnons$/, '5 compag.');
+  const r = shortReason(reason).replace(/^Âge (\S+) : .*$/, 'Âge $1').replace(/^Bastion niv\. (\d+)$/, 'Niv. $1').replace(/^5 compagnons$/, '5 compagnons');
   const m = r.match(/^Après : (.+)$/);
   const dep = m ? BUILDINGS.find((d) => d.name === m[1]) : null;
   return dep ? `Après ${shortName(dep)}` : r;

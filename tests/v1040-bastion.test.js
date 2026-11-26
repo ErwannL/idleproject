@@ -30,7 +30,7 @@ function player(stage = 186, allies = MANY) {
 test('navigation : le Bastion est sous Équipe (Compagnons · Bastion · Expéditions), plus dans Profil', () => {
   const team = MENUS.find((m) => m.id === 'team');
   assert.deepEqual(team.tabs, ['companions', 'camp', 'expeditions']);
-  assert.equal(MENUS.find((m) => m.id === 'profile').tabs.includes('camp'), false);
+  assert.equal(MENUS.find((m) => m.id === 'goals').tabs.includes('camp'), false); // v10.16 (B2) : Profil fondu dans « Plus »
   assert.equal(MENUS.filter((m) => m.tabs.includes('camp')).length, 1);
   assert.equal(SUB_LABELS.camp, 'Bastion');
   assert.equal(navPath('camp'), 'Équipe › Bastion');

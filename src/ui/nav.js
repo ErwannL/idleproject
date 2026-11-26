@@ -12,13 +12,25 @@ export const MENUS = [
   { id: 'adventure', label: 'Combat', tabs: ['campaign', 'dungeons', 'arena', 'tower', 'event'] }, // v10.2 (2.1) : l'Arène en tête de Combat
   { id: 'summon', label: 'Invocation', tabs: ['summon'] },
   { id: 'shop', label: 'Boutique', tabs: ['shop'] },
-  { id: 'goals', label: 'Quêtes', tabs: ['daybook', 'contracts', 'encyclopedia'], top: true },
-  { id: 'profile', label: 'Profil', tabs: ['looks', 'boss', 'ranking', 'guild', 'stats'], top: true },
+  // v10.16 (B1, B2) : 6e onglet du bas « Plus » (identifiant 'goals' gardé) : Objectifs (Chemin du héros, Carnet du jour et
+  // Missions réunis), Collections, Boss, Apparences, Classement, Guilde, Statistiques. Plus aucun écran n'est seulement
+  // dans le tiroir ☰ ; l'ancien menu « Profil » y est fondu. « Missions » (contracts) s'ouvre dans Objectifs › Plus tard.
+  { id: 'goals', label: 'Plus', tabs: ['daybook', 'encyclopedia', 'boss', 'looks', 'ranking', 'guild', 'stats'] },
 ];
+// v10.16 (B2) : écrans hors des sous-onglets, rattachés à l'onglet du bas qui s'allume quand on y est.
+export const MENU_HOST = { hero: 'hero', options: 'goals', inbox: 'goals', world: 'adventure', contracts: 'goals' };
+export function hostMenu(tab) {
+  return MENUS.find((m) => m.tabs.includes(tab)) ?? MENUS.find((m) => m.id === MENU_HOST[tab]) ?? null;
+}
+// v10.16 (B2) : texte d'une pastille à chiffre : rien sous 1, « 9+ » au-delà de 9.
+export function badgeText(n) {
+  const k = Math.floor(Number(n) || 0);
+  return k <= 0 ? '' : k > 9 ? '9+' : String(k);
+}
 export const SUB_LABELS = {
   camp: 'Bastion', upgrades: 'Améliorations', skills: 'Compétences', tree: 'Talents', hero: 'Fiche', inventory: 'Équipement', forge: 'Forge', looks: 'Apparences',
   companions: 'Compagnons', expeditions: 'Expéditions', summon: 'Invocation', shop: 'Boutique', event: 'Événement', campaign: 'Carte', dungeons: 'Donjons', tower: 'Défis', arena: 'Arène',
-  boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', daybook: 'Carnet', inbox: 'À récupérer', ranking: 'Classement', guild: 'Guilde', stats: 'Statistiques', options: 'Paramètres',
+  boss: 'Boss', world: 'Monde', encyclopedia: 'Collections', contracts: 'Missions', daybook: 'Objectifs', inbox: 'À récupérer', ranking: 'Classement', guild: 'Guilde', stats: 'Statistiques', options: 'Paramètres',
 };
 // v10.1 (P1 §2.4) : une phrase sous le titre de chaque onglet — ce que fait l'écran.
 export const TAB_LEAD = {
@@ -39,7 +51,7 @@ export const TAB_LEAD = {
   boss: 'Les boss vaincus te donnent des pouvoirs à placer.',
   encyclopedia: 'Tout ce que tu as découvert : monstres, objets, compagnons.',
   contracts: 'Missions du jour, de la semaine, Chroniques et hauts faits : des récompenses à récupérer.',
-  daybook: 'Ta liste du jour : quelques gestes, un coffre à la fin.',
+  daybook: 'Maintenant, aujourd\'hui, plus tard : tout ce qui t\'attend, au même endroit.', // v10.16 (B1)
   camp: 'Tes compagnons libres construisent et cherchent pour toi, même jeu fermé.', // v10.4 (6)
   looks: 'Change l\'apparence de ton héros (aucun effet sur la puissance).',
   ranking: 'Compare ton record à celui des autres joueurs.',
@@ -48,11 +60,12 @@ export const TAB_LEAD = {
   hero: 'La fiche de ton héros : puissance, classe et records.',
 };
 // v9.7.1 : libellés courts des onglets sur téléphone (une ligne, plus de « Équipe-ment »).
-export const SUB_SHORT = { upgrades: 'Amélio.', skills: 'Compét.', inventory: 'Équip.', companions: 'Compag.', expeditions: 'Expéd.', encyclopedia: 'Collec.', statistics: 'Stats', stats: 'Stats', options: 'Réglages', inbox: 'Reçus', ranking: 'Classement', summon: 'Invoc.', looks: 'Apparences' }; // v9.10 (8) : mots entiers (2 lignes au besoin)
+// v10.16 (B3) : plus jamais de point d'abréviation (« Amélio. », « Compét. », « Équip. ») : le mot entier, sur 2 lignes au besoin.
+export const SUB_SHORT = { statistics: 'Stats', stats: 'Stats', options: 'Réglages', inbox: 'Reçus', ranking: 'Classement', looks: 'Apparences' };
 // Chemin écrit d'un écran (« Héros › Équipement »), construit depuis MENUS : jamais écrit en dur.
 // La fiche du héros et les Paramètres sont hors menu : on dit comment les ouvrir (portrait, engrenage).
 export function navPath(tab, ...rest) {
-  const menu = MENUS.find((m) => m.tabs.includes(tab));
-  const head = tab === 'hero' ? ['Portrait du héros'] : tab === 'options' ? ['Paramètres ⚙'] : [menu?.label, SUB_LABELS[tab]];
+  const menu = hostMenu(tab);
+  const head = tab === 'hero' ? ['Portrait du héros'] : tab === 'options' ? ['Paramètres ⚙'] : [menu?.label, SUB_LABELS[tab === 'contracts' ? 'daybook' : tab]]; // v10.16 : Missions dans Objectifs
   return [...head, ...rest].filter(Boolean).join(' › ');
 }

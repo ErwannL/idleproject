@@ -3,6 +3,8 @@
 // des Étoiles qui achètent des bonus qui changent les règles (ennemis qui grandissent moins vite, Renaissance
 // plus forte…). Elle s'ouvre après le monde 11 en difficulté ×3.
 
+import { formatMult } from '../core/format.js';
+
 export const TRANSCEND = {
   minStage: 691, // étape 690 = dernier méga boss du Trône de l'Abysse en difficulté ×3 (v9.2.0, monde marin : 631 avant, cycle de 230 étapes)
   starsScale: 2, // Étoiles = floor(2 × (niveau de l'étape max / 210)^1,3) — v9.2.0 (monde marin) : 210 niveaux par cycle
@@ -31,6 +33,5 @@ export const TRANSCEND_PERKS = [
   { id: 'heritage', name: 'Héritage stellaire', icon: 'icon_trophy', max: 10, base: 4, step: 2, text: (lv) => `${TRANSCEND.keepRebirthsPct + lv * 5} % des Renaissances conservées à la Transcendance` },
 ];
 
-function fmt(n) {
-  return n >= 1e6 ? n.toExponential(1).replace('e+', 'e').replace('.', ',') : String(Math.round(n * 100) / 100).replace('.', ',');
-}
+// v10.16 (B4) : le format commun des nombres (plus de « 1,2e8 » à part).
+const fmt = (n) => formatMult(n);
