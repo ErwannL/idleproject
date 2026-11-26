@@ -1,8 +1,31 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.15.2 — Google Play
+## Ascendrya v10.16.0 — Un vrai combat de boss
+
+**Combat contre un boss**
+- **On voit enfin le boss** : il ne devient plus une silhouette blanche à chaque coup. Le flash blanc est réservé aux coups critiques (au plus 4 par seconde, très court) ; les autres coups le teintent légèrement de la couleur de l'élément et le font trembler.
+- **Plus de croissants** : chaque compagnon a son propre impact (coup de bouclier de l'Écuyer, coup lourd du Mercenaire, flèche plantée du Rôdeur, morsure ou griffe du familier). Les compétences tranchantes deviennent un estoc, une entaille verticale ou une onde au sol.
+- **Combo du héros** : contre un boss, les coups s'enchaînent en 4 temps (taille haute, taille basse, estoc, puis coup final sauté avec arrêt sur image et gros chiffre). Les archers et les mages ont le leur : double flèche, flèche chargée, salve, gros sort.
+- **Le combat monte en tension** quand le boss résiste : compteur « Combo ×N », « Garde brisée ! » toutes les 10 s (le boss titube, l'équipe frappe ensemble, un seul gros chiffre), aura et musique plus intenses sous 20 % de vie, ralenti sur le coup fatal.
+- **Chiffres de dégâts** en éventail, au lieu de s'empiler au même endroit.
+- **Grands boss** : les compagnons ne cachent plus le héros. Le bandeau « DANGER » passe en haut de la scène. Sur téléphone, la scène du World Boss prend plus de hauteur.
+- Uniquement de l'affichage : les dégâts et l'équilibrage ne changent pas.
+
+**Menus**
+- **Objectifs** : Chemin du héros, Carnet du jour et Missions sont réunis dans un seul écran (Maintenant, Aujourd'hui, Plus tard). Sur l'écran de combat, une seule carte d'objectif à la fois.
+- **Nouvel onglet « Plus »** : Objectifs, Collections, Boss, Apparences, Classement, Guilde et Statistiques. La pastille du menu ne compte que ce qui est à récupérer (« 9+ » au plus).
+- **Libellés complets** : « Améliorations », « Compétences », « Équipement »…
+- **Grands nombres** : un réglage dans Paramètres › Interface (lettres puis ×10ⁿ, tout en lettres, ou tout en ×10ⁿ).
+- **Boutons grisés** : ils disent ce qui manque (« Il te manque 9 tickets », « Rien à recycler ») et où en trouver.
+- **Classement et Guilde sans compte** : ce qu'on y gagne, tout de suite ; plus de chargement sans fin (« Réessayer » après 5 s).
+- **Panthéon** : les boss vaincus avant sa création sont maintenant comptés.
+- **« Bonus du moment »** : une pastille sur l'icône, plus une bulle sur la scène.
+
+<details><summary>Ascendrya v10.15.2 — Google Play</summary>
 
 - **Android** : l'application cible maintenant Android 16 (API 36), comme l'exige Google Play. Rien ne change en jeu.
+
+</details>
 
 <details><summary>Ascendrya v10.15.1 — Les Géants</summary>
 
