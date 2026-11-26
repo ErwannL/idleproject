@@ -221,7 +221,8 @@ export class WorldBossScene {
     r.later(delay, () => {
       r.hero.hurt = 0.3;
       r.teamHurt = r.time + 0.3; // v9.11 (2) : l'équipe tremble
-      vfx(r, 'hit_blunt', heroX + 8, r.groundY - 20, { size: 1.3, flip: true });
+      // v10.16 : sur téléphone, choc plus petit et posé devant le héros (il ne le cache plus).
+      vfx(r, 'hit_blunt', heroX + (r.tall ? 16 : 8), r.groundY - 20, { size: r.tall ? 0.8 : 1.3, flip: true, alpha: r.tall ? 0.75 : 1 });
       r.addText(formatNumber(Math.round(ev.damage)), heroX - 4, r.groundY - 54, '#ff5a5a', '#ffd0d0', true);
       r.shake = Math.max(r.shake, shake);
     });
@@ -352,8 +353,10 @@ export class WorldBossScene {
     at.burn -= dt;
     if (at.puff <= 0) {
       at.puff = 0.1;
-      vfx(r, 'wb_beam_flash', tx, ty - 4, { size: 1.1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
-      r.burst(tx, ty - 3, c1, 5, 55);
+      // v10.16 : le nuage blanc d'impact du souffle ne passe plus sur le héros (il cachait le héros sur téléphone) :
+      // aucun nuage à moins de 22 px de lui, plus petit et plus léger sur téléphone.
+      if (Math.abs(tx - heroX) > 22) vfx(r, 'wb_beam_flash', tx, ty - 4, { size: r.tall ? 0.7 : 1.1, alpha: r.tall ? 0.7 : 1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
+      r.burst(tx, ty - 3, c1, r.tall ? 3 : 5, 55);
     }
     if (at.burn <= 0) {
       at.burn = 0.14;

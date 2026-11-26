@@ -125,3 +125,24 @@ export function fanOf(n) {
 export function shouldGroup(times, now) {
   return times.filter((t) => now - t < 1).length >= GROUP_RATE;
 }
+
+// --- Compléments v10.16 : taille des boss de campagne, de donjon et de la Tour (affichage seulement) ---
+// Hauteur minimale de la silhouette d'un boss, en multiple de celle du héros : étape X-5 (mini) 1,3 ; X-10 (moyen) 1,5 ;
+// X-15 (redoutable) 1,6 ; X-20 (méga), donjon et Tour 1,8.
+export const BOSS_HEIGHT_RATIO = { mini: 1.3, mid: 1.5, hard: 1.6, mega: 1.8, dungeon: 1.8, tower: 1.8 };
+export const BOSS_HERO_GAP = 24; // px d'écran au moins entre le héros et la silhouette du boss
+// Rang d'affichage d'un boss : `tier` du boss (mini/mid/hard/dungeon, absent = méga), la Tour et les donjons l'emportent.
+export function bossRank(tier, { tower = false, dungeon = false } = {}) {
+  if (tower) return 'tower';
+  if (dungeon) return 'dungeon';
+  return BOSS_HEIGHT_RATIO[tier] ? tier : 'mega';
+}
+export const bossHeightRatio = (tier, where = {}) => BOSS_HEIGHT_RATIO[bossRank(tier, where)];
+// Facteur d'agrandissement (≥ 1) pour qu'un boss de hauteur visible `bossH` atteigne `ratio` × `heroH`.
+export function bossBoost(bossH, heroH, ratio) {
+  if (!(bossH > 0) || !(heroH > 0)) return 1;
+  return Math.max(1, (ratio * heroH) / bossH);
+}
+// Position gauche minimale (px de jeu) de l'image du boss pour garder BOSS_HERO_GAP px d'écran entre le bord droit du
+// héros (`heroRight`) et le bord de la silhouette (`edgeOffset` px de jeu depuis le bord gauche de l'image).
+export const bossMinX = (heroRight, edgeOffset, screenScale = 1) => heroRight + Math.ceil(BOSS_HERO_GAP / (screenScale || 1)) - edgeOffset;

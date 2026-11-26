@@ -87,6 +87,8 @@ export function vfx(scene, name, x, y, opts = {}) {
     const column = e.h > e.w * 1.4 && e.h * e.scale > 50;
     const gap = slash ? 0.4 : 0.25;
     const key = slash ? 'slash' : n; // tous les arcs de taille partagent la même limite
+    // v10.16 : plus aucun arc de taille (croissant blanc) près du héros contre un grand boss.
+    if (slash) { if (scene.feelStats) scene.feelStats.arcSkipped = (scene.feelStats.arcSkipped ?? 0) + 1; return true; }
     if (now - (last[key] ?? -9) < gap) return true;
     last[key] = now;
     if (slash) { scene.slashFlip = !scene.slashFlip; opts = { ...opts, size: (opts.size ?? 1) * 0.8, flip: scene.slashFlip }; }

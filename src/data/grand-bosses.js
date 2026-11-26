@@ -187,7 +187,8 @@ const EYES_TREANT = [[83, 86, 93, 86], [85, 80, 96, 80], [88, 74, 98, 74], [86, 
 const EYES_TREANT3 = [[77, 93, 87, 93], [76, 92, 87, 92], [72, 86, 85, 86], [75, 87, 87, 87], [74, 88, 86, 88], [74, 88, 86, 88], [70, 90, 80, 90], [74, 88, 86, 88], [67, 91, 79, 91], [68, 93, 80, 93], [66, 94, 79, 94], [66, 96, 76, 96], [77, 93, 87, 93]];
 
 export const GIANTS = [
-  leviathan(giant({ id: 'leviathan', name: 'Léviathan des Abysses', title: 'Le Titan des Abysses', element: 'blue', zone: 'abyss', mapZone: 11, accent: '#2fb8ff', ready: true,
+  // v10.16 : décor du Royaume englouti (ocean), en combat comme sur la Carte de la fête.
+  leviathan(giant({ id: 'leviathan', name: 'Léviathan des Abysses', title: 'Le Titan des Abysses', element: 'blue', zone: 'ocean', mapZone: 10, accent: '#2fb8ff', ready: true,
     lore: 'Un serpent de mer aussi long qu\'une côte. Quand il remonte, la mer recule.',
     beam: ['#2fd8ff', '#8ff8ff'], projectile: { vfx: 'wb_boulder', tint: '#3fa8ff', tint3: '#8ff8ff', size: 2.4, spin: 4, dust: ['#2f6f9a', '#9fe8ff'] },
     phases: ['Lame de fond', 'Tourbillon', 'Colère des profondeurs'], abilities: ['Bulle des abysses', 'Jet abyssal'] })),

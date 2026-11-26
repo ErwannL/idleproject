@@ -33,6 +33,12 @@ test('8 géants, chacun complet et différent', () => {
   }
 });
 
+test('v10.16 : le Léviathan combat dans le Royaume englouti (ocean), sur sa Carte de la fête aussi', () => {
+  const lev = GIANTS.find((g) => g.id === 'leviathan');
+  assert.equal(lev.zone, 'ocean');
+  assert.equal(ZONES[lev.mapZone].id, 'ocean');
+});
+
 test('géant prêt : chaque planche existe, au bon format, et ses repères tombent dans l\'image', () => {
   for (const g of GIANTS.filter((x) => x.ready)) {
     const { frame } = g.art;

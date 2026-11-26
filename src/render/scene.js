@@ -98,7 +98,7 @@ const BOSS_AURAS = {
 };
 import { BEHAVIORS } from '../data/behaviors.js'; // v9.6.0
 const BIG_BOSS_GAP = 6; // v10.16 (A6) : px de jeu (≈ 18 px d'écran) entre un compagnon et le héros, contre un grand boss
-import { BossFeel, markHit, jitterOf, tintAlpha, impactOf, comboPose, fanOf, shouldGroup, KILL_SLOWMO, LOW_HP } from './boss-feel.js'; // v10.16
+import { BossFeel, markHit, jitterOf, tintAlpha, impactOf, comboPose, fanOf, shouldGroup, KILL_SLOWMO, LOW_HP, bossHeightRatio, bossBoost, bossMinX } from './boss-feel.js'; // v10.16
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 // v9.5.1 : couleur de la barre de vie des monstres selon leur élément (lisible sur le décor).
 const ELEMENT_BAR = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffd84a', dark: '#b07bff' };
@@ -860,8 +860,10 @@ export class SceneRenderer {
 
   critTrail(x, y, color = '#ffd23f') {
     if (this.focus || this.time - (this.trailAt ?? -9) < 0.4) return; // au plus une traînée toutes les 0,4 s
+    if (this.bigBoss || this.bossFight) return; // v10.16 : en combat de boss, plus de traînée courbe (le « croissant » près du héros)
     this.trailAt = this.time;
     this.effects = this.effects.filter((e) => e.kind !== 'wtrail');
+    if (this.feelStats) this.feelStats.slash++; // v10.16 : mesure (capture-boss-feel) : une traînée courbe compte comme un croissant
     this.effects.push({ kind: 'wtrail', x, y, color, life: 0.15, max: 0.15, flip: (this.trailFlip = !this.trailFlip) });
   }
 
@@ -1086,6 +1088,7 @@ export class SceneRenderer {
     // v9.0.8 : chacun dans sa case (chevalier | familier | compagnons) ; si l'équipe ne tient pas à gauche du
     // chevalier, tout le combat glisse vers la droite (en douceur) plutôt que de faire se chevaucher les personnages.
     this.layout = this.teamLayout(state);
+    this.bossWhere = { tower: Boolean(state.tower), dungeon: Boolean(state.dungeon) }; // v10.16 : rang d'affichage des boss
     // v10.0 (8) : sur téléphone (portrait), le décalage est plafonné : au moins un ennemi reste à l'écran devant le héros
     // (l'arrière de l'équipe peut sortir à gauche).
     const edge = this.tall ? 3 : Math.max(3, Math.ceil(40 / (this.scale || 1))); // v10.6 (7) : l'équipe commence à 40 px du bord au moins
@@ -1315,7 +1318,9 @@ export class SceneRenderer {
     const LIFE = 0.12;
     while (pts.length && now - pts[0].t > LIFE) pts.shift();
     if (pts.length > 12) pts.splice(0, pts.length - 12);
-    if (pts.length < 2) return;
+    if (pts.length < 2) { this.ribbonOn = false; return; }
+    if (!this.ribbonOn && this.feelStats) this.feelStats.slash++; // v10.16 : mesure : un ruban d'arme compte comme un croissant
+    this.ribbonOn = true;
     const color = TRAIL_COLORS[weapon?.rarity] ?? '#ffffff';
     const wf = weaponFx(weapon); // v9.3.2 : ruban plus large et plus vif selon la rareté
     for (let i = 1; i < pts.length; i++) {
@@ -1412,6 +1417,7 @@ export class SceneRenderer {
   }
 
   drawEnemies(ctx, world, dt) {
+    this.bossFight = world.enemies.some((e) => e.boss); // v10.16 : combat de boss (pas de ruban ni de traînée d'arme)
     const scrollPx = this.smoothScroll(world); // v9.2.2 : sol qui défile (trou, portail)
     for (let i = world.enemies.length - 1; i >= 0; i--) {
       const enemy = world.enemies[i];
@@ -1442,7 +1448,7 @@ export class SceneRenderer {
       const mPace = this.focus ? 1 : MUTATION_PACE[enemy.mutation] ?? 1;
       const { def, sprite, base, scale: lookScale, colors, heroLike, step } = this.enemyLook(enemy.type, enemy.boss, fx.lunge > 0, enemy.id * 0.37, moving,
         (enemy.rush && moving ? 2.2 : 1) * mPace);
-      const scale = lookScale * mutationSize(enemy);
+      let scale = lookScale * mutationSize(enemy);
       // v9.2.5 : quadrupèdes : pattes du fond posées sur le sol (enemy-anchor.js groundLegs), hors marche (le pas lève les pattes).
       const quad = LEG_GROUNDED.has(base);
       const ecv = (key, o) => (quad && !/__walk\d+$/.test(key) && !/_w\d$/.test(key) ? groundLegs(spriteCanvas(key, o), spriteCanvas(key, { colors })) : spriteCanvas(key, o));
@@ -1453,6 +1459,13 @@ export class SceneRenderer {
         ? heroComposite(fx.lunge > 0 ? 'attack' : moving ? ['walk1', 'walk2'][Math.floor(this.time * 6) % 2] : 'idle',
           { weapon: { baseId: 'fallen_blade', rarity: 'epic' } }, fx.hit > 0, 'b', colors, true)
         : mutLook(ecv(sprite, { colors, flash: fx.hit > 0 }));
+      // v10.16 : un boss de campagne, de donjon ou de la Tour domine le héros (1,3 à 1,8 fois sa hauteur, boss-feel.js).
+      // Mesuré sur l'image de base (stable d'une image à l'autre). Les grands boss (World Boss) ont leur propre scène.
+      if (enemy.boss && !this.bigBoss && this.layout?.heroH) {
+        const bb = heroLike ? boxOf(img) : boxOf(ecv(base, { colors }));
+        const bh = bb ? (bb.bottom - bb.top + 1) * scale : 0;
+        scale *= bossBoost(bh, this.layout.heroH, bossHeightRatio(BOSSES[enemy.type]?.tier, this.bossWhere));
+      }
       const w = img.width * scale;
       const h = img.height * scale;
       // Rebond synchronisé sur l'image de marche (1 px sur la 2e image), jamais pour les volants.
@@ -1552,7 +1565,9 @@ export class SceneRenderer {
       // v9.2.2 : ruée (équipe bien plus forte) : course rapide, poussière derrière.
       if (enemy.rush && moving && k > 0.3 && !this.focus && !def.flyHeight && !this.underwater && (this.frameNo + enemy.id) % 3 === 0) this.dust(ex + w / 2, 1);
       // Les grands sprites (boss, ogre…) restent devant le chevalier sans le chevaucher.
-      const x = this.snap(Math.max(exd - w / 2, HERO_X + (enemy.boss ? 20 : 12)) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx) + jitterOf(fx, this.frameNo ?? 0); // v10.16 (A1) : tremblement
+      let x = this.snap(Math.max(exd - w / 2, HERO_X + (enemy.boss ? 20 : 12)) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx) + jitterOf(fx, this.frameNo ?? 0); // v10.16 (A1) : tremblement
+      // v10.16 : boss (hors grands boss) : au moins 24 px d'écran entre le héros et le bord de sa silhouette, même en attaque.
+      if (enemy.boss && !this.bigBoss && this.layout?.heroRight !== undefined) x = Math.max(x, this.snap(bossMinX(this.layout.heroRight, bodyEdge(img) * scale, this.scale)));
       // v9.2.5 : pieds réels (bas opaque du sprite de base) sur le sol, et non le bas du cadre.
       // Images de pas (_w1/_w2) sans image dessinée : le pied au sol de chaque image reste sur la ligne du sol.
       const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(ecv(sprite, { colors })) : null;
@@ -1886,7 +1901,8 @@ export class SceneRenderer {
       const fi = anim ? anim.anim.frames.indexOf(anim.name) : -1, hitI = anim?.anim.hit ?? 99;
       // v10.16 (A2) : contre un boss, le ruban de l'arme (un arc à chaque coup) ne reste qu'au coup final du combo.
       const ribbon = !(this.hero.combo >= 0 && this.hero.combo !== 3);
-      this.weaponTrail(ctx, ribbon && kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);
+      // v10.16 : en combat de boss, pas de ruban d'arme (croissant blanc devant le héros).
+      this.weaponTrail(ctx, ribbon && !this.bigBoss && !this.bossFight && kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
     }
 
@@ -1921,7 +1937,7 @@ export class SceneRenderer {
     const front = world.enemies[0];
     // v10.0 (9.1) : contre un grand boss, la cible est le bord de sa silhouette (personne ne traverse le boss).
     const ffx = front ? this.enemyFx.get(front.id) : null;
-    const tx = front ? (this.bigBoss && ffx?.edge ? ffx.edge : this.wx(front.x) - 4) : heroX + 40;
+    const tx = front ? ((this.bigBoss || front.boss) && ffx?.edge ? ffx.edge : this.wx(front.x) - 4) : heroX + 40;
     // Ruée : 60 à 70 % de la distance jusqu'à la cible, au plus 70 px de jeu.
     const anim0 = this.allyAnims.get(companion.id);
     if (anim0) anim0.reach = Math.max(0, Math.min(70, (tx - ax) * 0.65));
@@ -2490,7 +2506,10 @@ export class SceneRenderer {
     };
     team.filter((c) => c.kind !== 'ally').forEach(place); // v10.3 (audit) : chaque familier a sa case (un seul en campagne)
     team.filter((c) => c.kind === 'ally').forEach(place);
-    return { slots, left: cursor + GAP, heroLeft: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l };
+    // v10.16 : bord droit et hauteur visible du héros (taille minimale et écart des boss de campagne, donjon, Tour).
+    const hb = boxOf(heroImg);
+    return { slots, left: cursor + GAP, heroLeft: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l, heroRight: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).r,
+      heroH: hb ? hb.bottom - hb.top + 1 : HERO_PX };
   }
 
   drawCompanions(ctx, state, world, dt) {
