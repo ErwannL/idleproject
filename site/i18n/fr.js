@@ -78,6 +78,7 @@ export default {
     heroes: ['HÉROS', 'Collectionnez et améliorez des héros légendaires.'],
     familiars: ['FAMILIERS', 'Invoquez des compagnons magiques.'],
     bosses: ['COMBATS DE BOSS', 'Affrontez des ennemis redoutables.'],
+    bossesShot: 'assets/worlds/colossus.webp',
   },
   form: {
     title: "REJOIGNEZ L'AVENTURE !",

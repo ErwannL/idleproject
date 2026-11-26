@@ -29,6 +29,9 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const URL_ = arg('--url', 'http://localhost:8799/play/');
 const PART = arg('--part', 'all');
+// Langue du jeu filmé (« fr », « en », « ko ») ; hors français, les images du site prennent le suffixe .<langue>.
+const LANG = arg('--lang', 'fr');
+const SUF = LANG === 'fr' ? '' : `.${LANG}`;
 const FRAMES = arg('--frames', `${tmpdir()}/trailer-frames`);
 const FPS = 60, PREROLL = 2.5, FADE = 15; // fondu : 15 images (0,25 s) en entrée et en sortie de plan
 const VIEW = { width: 1368, height: 825 }; // la toile du jeu fait alors 1280×720 (barre de navigation à gauche)
@@ -72,6 +75,7 @@ async function film(part) {
   const ctx = await browser.newContext({ viewport: VIEW, deviceScaleFactor: DPR });
   await ctx.addInitScript((sv) => {
     if (!sessionStorage.getItem('seeded')) { for (const [k, v] of Object.entries(sv)) localStorage.setItem(k, v); sessionStorage.setItem('seeded', '1'); }
+    if (sv.__lang) localStorage.setItem('idle-rpg.lang', sv.__lang);
     // Horloge virtuelle (activée par __virt) : 1 pas = 1/60 s pour tout ce qui anime la page.
     const real = performance.now.bind(performance), realDate = Date.now, raf = requestAnimationFrame.bind(window);
     const rst = setTimeout.bind(window), rsi = setInterval.bind(window), rct = clearTimeout.bind(window);
@@ -96,7 +100,7 @@ async function film(part) {
       }
       const c = q.splice(0); for (const f of c) f(vt);
     };
-  }, SAVE);
+  }, { ...SAVE, __lang: LANG });
 
   const page = await ctx.newPage();
   const errors = [];
@@ -284,7 +288,7 @@ async function encode() {
   // Images des mondes et du Colosse pour le site (640×360, WebP).
   mkdirSync(`${ROOT}site/assets/worlds`, { recursive: true });
   const stills = WORLD_IDS.map((w) => [`${FRAMES}/main/worlds/${w}.png`, `${ROOT}site/assets/worlds/${w}.webp`]);
-  if (parts.includes('wb')) stills.push([`${FRAMES}/wb/colossus.png`, `${ROOT}site/assets/worlds/colossus.webp`]);
+  if (parts.includes('wb')) stills.push([`${FRAMES}/wb/colossus.png`, `${ROOT}site/assets/worlds/colossus${SUF}.webp`]);
   for (const [src, out] of stills) if (existsSync(src)) await ffmpeg(['-y', '-loglevel', 'error', '-i', src, '-vf', 'scale=640:360:flags=area', '-quality', '80', out]);
   console.log('images des mondes : site/assets/worlds/');
 }

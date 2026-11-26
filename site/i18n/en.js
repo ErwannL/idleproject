@@ -79,6 +79,7 @@ export default {
     heroes: ['HEROES', 'Collect and upgrade legendary heroes.'],
     familiars: ['FAMILIARS', 'Summon magical companions.'],
     bosses: ['BOSS BATTLES', 'Challenge powerful enemies.'],
+    bossesShot: 'assets/worlds/colossus.en.webp',
   },
   form: {
     title: 'JOIN THE ADVENTURE!',
