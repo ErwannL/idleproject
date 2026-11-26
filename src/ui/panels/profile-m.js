@@ -12,7 +12,10 @@ export const isMPhone = (ui) => Boolean(ui?.root?.classList?.contains?.('m-phone
 // Cadre d'un écran : cartouche + contenu. La classe `mp-frame` sert aux règles du lot (en-tête du panneau, bannière).
 // `sheetOpen` : pose un repère dans le cadre tant qu'une fiche est ouverte ; en le retirant à la fermeture, le corps change et ui.js
 // (watchSheets) retire la fiche déjà déplacée dans #panel (sans cela, un redessin identique laissait la fiche affichée).
-export const mpFrame = (icon, label, inner, help = true, sheetOpen = false) => `<div class="m-frame mp-frame">${mTitle(icon, label, help)}${inner}${sheetOpen ? '<i class="mp-sheet-mark" hidden aria-hidden="true"></i>' : ''}</div>`;
+// v10.17 (D) : les écrans pauvres en image ont une bannière illustrée sous le cartouche, comme les autres onglets.
+const MP_BANNER = { Objectifs: 'art101/banner_daybook', Missions: 'art101/banner_missions', Paramètres: 'art98/camp_night', Classement: 'art101/banner_ranking', Statistiques: 'art101/banner_stats' };
+export const mpBanner = (label) => (MP_BANNER[label] ? `<div class="mp-banner"><img class="px" src="assets/ui/${MP_BANNER[label]}.png" alt="" aria-hidden="true"></div>` : '');
+export const mpFrame = (icon, label, inner, help = true, sheetOpen = false) => `<div class="m-frame mp-frame">${mTitle(icon, label, help)}${mpBanner(label)}${inner}${sheetOpen ? '<i class="mp-sheet-mark" hidden aria-hidden="true"></i>' : ''}</div>`;
 
 // Rangée de puces qui remplace un <select> : un appui = le même effet que le `change` du <select> (action `mp-pick`, data-for = son action).
 // items : [[valeur, libellé], …] ; `key` : data-key éventuel du <select>.

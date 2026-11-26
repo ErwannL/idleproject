@@ -151,7 +151,8 @@ function phoneView(ui, state, desk = false) {
       ${incomeBlock(state) ? `<div class="m-card">${incomeBlock(state)}</div>` : ''}
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="m-card">${spendBlock(state)}</div>` : ''}`;
   }
-  const note = paymentReady() ? '' : '<div class="m-soon">Achats bientôt disponibles</div>';
+  // v10.17 (D) : en clair au-dessus de la grille (des prix grisés sans explication faisaient croire à une panne).
+  const note = paymentReady() ? '' : '<div class="m-soon m-soon-big" role="note"><b>🔒 Achats bientôt disponibles</b><span>Aucun paiement n\'est encore possible : les prix sont affichés pour information. Tout le reste du jeu fonctionne.</span></div>';
   return `<div class="m-frame m-shop${desk ? ' d-shop' : ''}">${mTitle('icon_gem', 'Boutique', true)}${tabs}${preview}${note}${body}</div>`;
 }
 

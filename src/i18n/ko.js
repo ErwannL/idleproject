@@ -486,3 +486,7 @@ PATTERNS.unshift(...patterns1016());
 import { EXACT_1016_MENUS, patterns1016Menus } from './ko-1016-menus.js';
 for (const [k, v] of Object.entries(EXACT_1016_MENUS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1016Menus());
+// v10.17 (C, D, E) : tout le jeu propre et homogène (./ko-1017-ui.js).
+import { EXACT_1017_UI, patterns1017Ui } from './ko-1017-ui.js';
+for (const [k, v] of Object.entries(EXACT_1017_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1017Ui());

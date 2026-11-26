@@ -84,6 +84,7 @@ import { applyLoadout, bindContext, boundLoadout, renameLoadout, saveLoadout } f
 import { claimEncyclopedia, claimSection } from './core/encyclopedia.js';
 import { activeClass, canEquip, setHeroClass, weaponClass } from './core/classes.js';
 import { setLang, startAutoTranslate } from './i18n/i18n.js';
+import { initMarquee } from './ui/marquee.js'; // v10.17 (C)
 import { CloudError, createCloudClient, syncOnce } from './core/cloud-save.js';
 import { CLOUD_BASE } from './core/cloud-config.js';
 import { startLive } from './core/live.js'; // v9.3.0 : live-ops
@@ -1661,6 +1662,7 @@ const journals = () => (awayJournal ? [sessionJournal, awayJournal] : [sessionJo
 ui.sessionJournal = () => journalSummary(sessionJournal, state);
 // Langue (français / anglais) : la page entière est traduite à la volée.
 startAutoTranslate(document.body);
+initMarquee(); // v10.17 (C) : les textes trop longs défilent
 // v9.1.0 : « Mode concentration » et « Effets animés » deviennent « Réduire les animations » (réglage de l'appareil).
 if ((state.ui.focus || state.ui.themeFx === false) && !hasPref('motion')) setPref('motion', 'reduce');
 state.ui.focus = false;

@@ -265,8 +265,15 @@ function kickRibbon(ui) {
   if (!k) return '';
   const lines = k.placed.map((p) => `<span>${img(`file:${tradeArt(tradeOf(p.companionId))}`)}${escapeHtml(placedLine(p))}</span>`).join('');
   const gift = k.build ? `<span class="gift">${img(`file:${ART('bastion_site')}`)}Chantier offert : ${escapeHtml(buildingDef(k.build.building).name)}, ${formatDuration(k.build.ms / 1000)}</span>` : '';
-  return `<div class="bs-kick" role="status"><b>Ton Bastion se met au travail</b>${lines}${gift}<button class="btn small" data-action="bastion-kick-ok">OK</button></div>`;
+  // v10.17 (E) : une notification posée par-dessus (rien ne bouge dessous) qui se ferme seule au bout de 6 s.
+  if (kickTimer.k !== k) {
+    clearTimeout(kickTimer.id); kickTimer.k = k;
+    kickTimer.id = setTimeout(() => { if (ui.view.bastionKick === k) { ui.view.bastionKick = null; ui.invalidate(); } }, KICK_MS);
+  }
+  return `<div class="bs-kick bs-toast" role="status" aria-live="polite"><b>Ton Bastion se met au travail</b>${lines}${gift}<button class="bs-toast-x" data-action="bastion-kick-ok" aria-label="Fermer">×</button></div>`;
 }
+const KICK_MS = 6000;
+const kickTimer = { k: null, id: 0 };
 
 // v10.8 (partie 4) : la carte grandit à chaque âge ; un bandeau dit l'âge, ce que le Bastion apporte et le suivant ;
 // au passage d'un âge, un fondu et la bannière « La Citadelle » (une fois).
@@ -828,14 +835,7 @@ function renderCamp(state) {
 // ---------------------------------------------------------------- l'écran
 
 // ---------------------------------------------------------------- v10.12 : Bastion sur téléphone (kit mobile)
-// Une seule fenêtre à la fois : annonce de départ, puis annonce d'âge, puis la fiche d'un bâtiment / d'une recherche.
-function kickSheet(ui) {
-  const k = ui.view.bastionKick;
-  const lines = k.placed.map((p) => `<div class="mt-kline">${img(`file:${tradeArt(tradeOf(p.companionId))}`)}<span>${escapeHtml(placedLine(p))}</span></div>`).join('');
-  const gift = k.build ? `<div class="mt-kline gift">${img(`file:${ART('bastion_site')}`)}<span>Chantier offert : ${escapeHtml(buildingDef(k.build.building).name)}, ${formatDuration(k.build.ms / 1000)}</span></div>` : '';
-  return mSheet('Au travail', `<div class="m-card mt-announce"><b class="mt-ann-title">Ton Bastion se met au travail</b>${lines}${gift}</div>${mBtnGold('Continuer', { action: 'bastion-kick-ok' })}`,
-    { id: 'bs-announce', icon: 'tab_expeditions', back: 'bastion-kick-ok', close: 'bastion-kick-ok' });
-}
+// Une seule fenêtre à la fois : annonce d'âge, puis la fiche d'un bâtiment / d'une recherche (le départ est une notification, v10.17).
 function ageSheet(ui, state) {
   const age = Math.min(ui.view.bastionAgeNew, bastionAge(state));
   const a = ageDef(age), nx = nextAge(state);
@@ -885,15 +885,14 @@ function renderBastionPhone(ui, state, now) {
   const content = view === 'research' ? researchTree(ui, state, now) : view === 'workers' ? workersView(state) : villageMap(ui, state, now);
   // une seule fenêtre à la fois
   let sheet = '';
-  if (v.bastionKick) sheet = kickSheet(ui);
-  else if (v.bastionAgeNew) sheet = ageSheet(ui, state);
+  if (v.bastionAgeNew) sheet = ageSheet(ui, state);
   else if (view === 'research' ? v.bastionRes : v.bastionSel) {
     const body = view === 'research' ? researchSheet(ui, state, now) : buildingSheet(ui, state, now);
     const name = view === 'research' ? 'Recherche' : buildingDef(v.bastionSel)?.name; // v10.12 : le nom complet est dans la fiche (cartouche trop étroit)
     if (body) sheet = mSheet(name ?? 'Bastion', body, { id: 'bs-sheet', icon: 'tab_expeditions', back: 'bastion-close', close: 'bastion-close' });
   }
   return `<div class="m-frame mt-frame mt-bastion">${mTitle('tab_expeditions', 'Bastion', true)}${chips}${modes}
-      <div class="bs-pg mt-bs" data-view="${view}"><div class="bs-main">${content}</div></div></div>${sheet}`;
+      <div class="bs-pg mt-bs" data-view="${view}"><div class="bs-main">${content}</div></div></div>${sheet}${kickRibbon(ui)}`; // v10.17 (E) : notification qui se ferme seule
 }
 
 // ---------------------------------------------------------------- v10.13 : Bastion sur PC (Carte, Ouvriers) dans le cadre du kit

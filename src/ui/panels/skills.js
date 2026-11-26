@@ -290,7 +290,7 @@ function deskView(ui, state) {
   const activeIds = activeSkills(state).map((s) => s.id);
   const armed = Number.isInteger(ui.view.skillSlot) && ui.view.skillSlot < loadoutSize(state) ? ui.view.skillSlot : null;
   return `<div class="m-frame m-hero m-dsk">${mTitle('icon_bolt', 'Compétences', true)}
-    <span class="dsk-pts">✦ Points : <b class="num">${pts}</b> <small>(+1 par niveau du héros)</small></span>
+    ${ptsBanner(pts, 'dsk-pts')}
     <div class="d-cols3b">${deskLeft(ui, state, cells, activeIds, armed)}${deskCenter(ui, state, cells, activeIds, sel, mode)}${deskDetail(ui, state, sel, activeIds, armed)}</div></div>`;
 }
 
@@ -377,7 +377,7 @@ function phoneView(ui, state) {
   const armed = Number.isInteger(ui.view.skillSlot) && ui.view.skillSlot < loadoutSize(state) ? ui.view.skillSlot : null;
   const box = (id2, label, ic, action, on) => `<div class="m-skmode${mode === id2 ? ' on' : ''}">${mModes([{ id: id2, label, icon: ic, action: 'm-set', value: id2, attrs: 'data-key="mSkillMode"' }], mode)}${autoSwitch(action, on)}</div>`;
   const modes = `<div class="m-skmodes">${box('s', 'Attaques', 'skill_quick', 'skill-auto', state.skillAuto)}${box('r', 'Boosts', 'icon_bolt', 'rush-auto', state.rushes.auto)}</div>`;
-  return `<div class="m-frame m-hero m-sk">${mTitle('skill_quick', 'Compétences', true)}<span class="m-skpts" aria-label="${pts} point${pts > 1 ? 's' : ''} de compétence">✦ <b class="num">${pts}</b> pt</span>
+  return `<div class="m-frame m-hero m-sk">${mTitle('skill_quick', 'Compétences', true)}${ptsBanner(pts, 'm-skpts')}
     ${phoneBar(state, cells, activeIds, armed, mode)}${modes}<div class="m-skgrid">${inMode.map((c) => phoneCard(c, c === sel, activeIds)).join('')}</div>
     ${phoneDetail(state, sel, activeIds, armed)}${sheet ? phoneSheet(state, sheet) : ''}</div>`;
 }
@@ -410,6 +410,12 @@ function phoneSheet(state, c) {
       ${lock ? `<p class="m-sk-lock">${img('icon_lock')} ${escapeHtml(lock)}</p>` : ''}${why ? `<p class="m-sk-why">${escapeHtml(why)}</p>` : ''}</div>
     <div class="m-sk-actions">${main}${use}</div>`;
   return mSheet(c.name, body, { id: 'mSkillSheet', icon: c.icon, close: 'm-sheet-x', back: 'm-sheet-x' });
+}
+
+// v10.17 (E) : les points à dépenser en grand (un bandeau doré tant qu'il en reste), sinon la petite mention habituelle.
+function ptsBanner(pts, cls) {
+  if (pts <= 0) return `<span class="${cls}" aria-label="0 point de compétence">✦ Points : <b class="num">0</b></span>`;
+  return `<span class="${cls} sk-pts-big" role="status">✦ <b class="num">${pts}</b> ${pts > 1 ? 'points à dépenser' : 'point à dépenser'} <small>(+1 par niveau du héros)</small></span>`;
 }
 
 export default {

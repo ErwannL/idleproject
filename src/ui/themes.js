@@ -218,6 +218,7 @@ function styleRules(list, out = []) {
   return out;
 }
 
+const SHORTHANDS = ['background', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-color', 'outline'];
 function snapshot() {
   if (originals) return originals;
   originals = [];
@@ -231,6 +232,15 @@ function snapshot() {
         if (KEEP_VARS.has(prop)) continue;
         if (!HAS_COLOR.test(value) && !value.includes('/frames/')) continue;
         originals.push({ style, prop, value, priority: style.getPropertyPriority(prop), base: sheet.href ?? document.baseURI });
+      }
+      // v10.17 (D) : un raccourci qui contient var() (« background: radial-gradient(… var(--c) …, #0d1430) ») laisse ses
+      // propriétés détaillées vides : on reprend le raccourci lui-même, sinon ses couleurs en dur restaient « Chevalier ».
+      if (style.cssText.includes('var(')) {
+        for (const prop of SHORTHANDS) {
+          const value = style.getPropertyValue(prop);
+          if (!value || !value.includes('var(') || !HAS_COLOR.test(value)) continue;
+          originals.push({ style, prop, value, priority: style.getPropertyPriority(prop), base: sheet.href ?? document.baseURI });
+        }
       }
     }
   }

@@ -1,0 +1,10 @@
+/* v10.17 (C) : texte défilant (src/ui/marquee.js). Le texte qui ne tient pas défile ; il ne bouge pas s'il tient. */
+.mq-in { display: inline-block; white-space: nowrap; will-change: transform; max-width: none !important; overflow: visible !important; text-overflow: clip !important; }
+.mq-on { text-overflow: clip !important; overflow: hidden !important; }
+/* « Réduire les animations » : sur 2 lignes au lieu de défiler */
+.mq-wrap { white-space: normal !important; text-overflow: clip !important; overflow-wrap: anywhere; height: auto !important; max-height: none !important; }
+.mq-wrap > .mq-in { white-space: normal; display: inline; }
+.mq-box { display: block; min-width: 0; max-width: 100%; flex: 1 1 auto; overflow: hidden; white-space: nowrap; }
+/* plus fort que les règles à identifiants qui imposent display: block à tous les span d'un cadre (#app > #tabs button span) */
+.mq-in:not(#mq-a):not(#mq-b):not(#mq-c) { display: inline-block !important; width: auto !important; height: auto !important; }
+.mq-wrap > .mq-in:not(#mq-a):not(#mq-b):not(#mq-c) { display: inline !important; }
