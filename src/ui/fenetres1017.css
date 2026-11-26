@@ -24,3 +24,10 @@
 @container mframe (max-width: 760px) {
   #app#app:not(.m-phone) .d-forge .d-fg { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* v10.17 : Forge dans la fenêtre de droite, écran de 1200 px ou moins : icônes d'objets de 40 px (celles de 56 px
+   débordaient de 10 px à gauche de leur case). */
+@media (max-width: 1200px) {
+  #app#app#app:not(.m-phone) .d-forge .fg-it { width: 40px; height: 40px; }
+  #app#app#app:not(.m-phone) .d-forge .fg-it img { width: 32px; height: 32px; }
+}

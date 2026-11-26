@@ -27,7 +27,7 @@ let last = 0;
 
 // Sélecteurs des règles « une ligne + coupé » des feuilles de style chargées.
 function collectSelectors() {
-  const out = new Set(['.mq', '.mq-box', '#panel-subtabs .subtab > span', '#tabs button > span']); // nowrap et overflow posés par deux règles différentes
+  const out = new Set(['.mq', '.mq-box', '.hb-name', '#panel-subtabs .subtab > span', '#tabs button > span']); // nowrap et overflow posés par deux règles différentes
   const walk = (rules) => {
     for (const r of rules) {
       if (r.cssRules && !r.selectorText) { try { walk(r.cssRules); } catch { /* règle étrangère */ } continue; }

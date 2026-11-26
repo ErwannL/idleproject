@@ -1426,6 +1426,9 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .cinematic { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.6)); opacity: 0; transition: opacity 0.5s; }
 .cinematic.in { opacity: 1; }
+/* v10.17 : le « Moment fort » ne capte plus les appuis (touches d'attaque dessous) ; seul son texte se touche pour le fermer. */
+.cinematic { pointer-events: none; }
+.cinematic .cine-text { pointer-events: auto; }
 .cinematic.out { opacity: 0; }
 .cine-bar { position: absolute; left: 0; right: 0; height: 16%; background: #000; transition: transform 0.6s cubic-bezier(.2, .8, .2, 1); }
 .cine-bar.top { top: 0; transform: translateY(-100%); }
@@ -1434,7 +1437,7 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 .cinematic.out .cine-bar.top { transform: translateY(-100%); }
 .cinematic.out .cine-bar.bottom { transform: translateY(100%); }
 .cine-text { position: relative; text-align: center; color: #fff; text-shadow: 0 2px 0 #000, 0 0 12px rgba(0, 0, 0, 0.8); padding: 0 16px; max-width: 90%; }
-.cine-text small { display: block; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #ffd35a; opacity: 0; animation: cine-fade 0.6s 0.4s forwards; }
+.cine-text small { display: block; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: #ffd35a; opacity: 0; animation: cine-fade 0.6s 0.4s forwards; }
 .cine-text h1 { margin: 2px 0 4px; font-size: clamp(18px, 4.2vw, 40px); letter-spacing: 0.04em; min-height: 1.2em; color: #fff4d6; }
 .cine-text p { margin: 0; font-size: clamp(11px, 1.6vw, 15px); font-style: italic; color: #e6e9ff; opacity: 0; animation: cine-fade 0.8s 1.2s forwards; }
 @keyframes cine-fade { to { opacity: 1; } }

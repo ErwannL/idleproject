@@ -1,12 +1,27 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.16.1 — Les Titans se réveillent
+## Ascendrya v10.17.0 — Tout le jeu propre, sur PC et téléphone
+
+- **Ouvrir une fenêtre ne bouge plus le combat** : le zoom et le cadrage restent les mêmes quand on ouvre ou ferme un onglet, et les compétences en cours restent sur leur cible (plus d'effets « dans le ciel » ou « en arrière »). Sur PC, tous les onglets s'ouvrent de la même façon : le combat dans une colonne à gauche, la fenêtre à droite.
+- **Les touches d'attaque répondent à chaque appui** : sur téléphone, le bouton « Boosts » ne vole plus les appuis. Un appui entre deux vagues est gardé (« ✓ en attente ») et part dès qu'un ennemi arrive. La touche s'enfonce et vibre légèrement à chaque appui.
+- **Plus aucun texte coupé** : un texte trop long défile doucement au lieu d'être coupé (Chemin du héros, Carnet, nom de zone, fil d'infos, Bastion, objets, compagnons…). La carte du Chemin du héros est plus large sur PC. Avec « Réduire les animations », le texte passe sur 2 lignes.
+- **Un seul style de bouton** : 4 styles au lieu de 41, mêmes arrondis et mêmes tailles partout.
+- **Les thèmes s'appliquent partout** : avec Sakura, Givre ou Forge naine, toutes les fenêtres changent de couleur, pas seulement le combat.
+- **Boutique** : « Achats bientôt disponibles » est écrit en clair au-dessus des articles.
+- **Compétences** : les points à dépenser s'affichent en grand, et en pastille sur le bouton Héros.
+- **Talents** : « Il manque 1 fragment › Où en trouver ».
+- **Bastion** : « Ton Bastion se met au travail » devient une notification qui se ferme seule ; le bandeau d'âge tient sur 2 lignes.
+- **Expéditions** : texte lisible sur l'image. **Objectifs, Paramètres, Classement, Statistiques** : une bannière illustrée en haut.
+
+<details><summary>Ascendrya v10.16.1 — Les Titans se réveillent</summary>
 
 - **Chaque Titan du jour a ses propres compétences** : 3 attaques et 2 phases chacun, qui changent la scène jusqu'à la fin du combat. Soleil (Lance solaire, Couronne de rayons, Éblouissement, Éclat solaire, Midi ardent), Lune (Disque d'argent, Regard d'argent, Reflets, Marée lunaire, Nuit sans fin), Braises (Bombe de magma, Geysers, Souffle de cendres, Pluie de cendres, Cœur de lave), Marées (Sphère d'eau, Siphon, Jet de pression, Lame de fond, Abysse), Ronces (Graine d'épines, Spores, Étreinte, Ronces, Forêt vivante), Orage (Javelot de foudre, Chaîne d'éclairs, Tonnerre, nuages d'orage, Colère du ciel), Néant (Orbe du vide, Pas du néant, Faille, fissures, Éclipse). Chacun a aussi un signe distinctif (couronne de rayons, halo de lune, cœur de lave…). La fiche avant le combat liste « Ses attaques ». Les dégâts et les PV ne changent pas.
 - **Boss de campagne, de donjon et de la Tour plus grands** : 1,3 à 1,8 fois la taille du héros selon l'étape, et jamais collés à lui.
 - **Une seule annonce à la fois** : portail, « DANGER » et « Moment fort » passent l'un après l'autre, sans noircir l'écran, et jamais par-dessus une fenêtre ouverte.
 - **Grands boss** : plus de croissant blanc près du héros (Dieu de l'Orage, Hydre…) ; sur téléphone, le souffle des géants ne cache plus le héros.
 - **Léviathan** : il se bat maintenant dans le Royaume englouti.
+
+</details>
 
 <details><summary>Ascendrya v10.16.0 — Un vrai combat de boss</summary>
 
