@@ -213,13 +213,16 @@ export function drawDamageText(scene, ctx, fx) {
     dy = age < 0.12 ? -9 * Math.sin((age / 0.12) * Math.PI / 2) : age < 0.24 ? -9 + 3 * Math.sin(((age - 0.12) / 0.12) * Math.PI / 2) : -6 - (age - 0.24) * 14;
     s = age < 0.06 ? 1.7 : 1.2; // v9.3.9 : plus gros, petit saut
   }
+  if (!scene.focus) dy *= fx.rise ?? 1; // v10.16 (A5) : montée variable (éventail)
   if (scene.focus) { s = 1; dy = -age * 14; }
+  s *= fx.scale ?? 1; // v10.16 : coup final, garde brisée : chiffre plus gros
   s *= 0.6; // v9.8 (E1) : chiffres 40 % plus petits (police énorme, empilements illisibles)
   const t = fx.life / fx.max;
   ctx.globalAlpha = Math.min(1, t * 2.5);
   const w = c.width * s;
   const h = c.height * s;
-  ctx.drawImage(c, Math.round((fx.cx - w / 2) * 2) / 2, Math.round((fx.y0 + dy - h / 2) * 2) / 2, w, h);
+  const cx = fx.cx + (scene.focus ? 0 : (fx.drift ?? 0) * age); // v10.16 (A5) : dérive latérale
+  ctx.drawImage(c, Math.round((cx - w / 2) * 2) / 2, Math.round((fx.y0 + dy - h / 2) * 2) / 2, w, h);
   ctx.globalAlpha = 1;
   return true;
 }

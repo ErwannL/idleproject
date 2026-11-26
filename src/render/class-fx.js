@@ -16,6 +16,24 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
       const crit = event.crit;
       const react = (x, y, color, opts = {}) => { this.hitReact(id, x, { crit, boss: event.boss, damage: event.damage, color, y, ...opts }); this.weaponImpact?.(x, y ?? G - 14, this.weaponEq, crit); }; // v9.3.2 : impact selon la rareté
       const splash = (color, delay = 0) => others.forEach((t, i) => this.later(delay + i * 0.03, () => this.hitReact(t.id, t.x, { color })));
+      // v10.16 (A3) : combo contre un boss (event.combo 0..3). Tir : flèche, flèche, double flèche, flèche chargée ;
+      // sort : sort, sort, salve, gros sort. Effets seulement (les dégâts restent ceux du coup).
+      const step = event.combo ?? -1;
+      if (step >= 2 && !this.focus) {
+        const shot = event.kind === 'arrow' || event.kind === 'bolt';
+        if (shot && step === 2) {
+          const t2 = Math.max(0.1, (tx - hx) / 380);
+          this.projectile(['fx_arrow'], hx, hy - 3, tx, G - 16, t2, { delay: 0.07, arc: 7, trail: ['#e8e0c8'], trailVy: 0, onHit: (x, y) => this.sprite(['fx_spark'], x, y, 0.12) });
+        } else if (shot) {
+          this.effects.push({ kind: 'halo', x: hx, y: hy, color: '#ffd23f', life: 0.25, max: 0.25 });
+          this.later(Math.max(0.1, (tx - hx) / 380), () => { this.burst(tx, G - 14, '#ffd23f', 12, 60); this.dust(tx, 3); });
+        } else if (step === 2) {
+          for (let i = 0; i < 2; i++) this.projectile(['fx_spark'], hx + 2, hy - 8 - i * 5, tx, G - 14 - i * 4, 0.22, { delay: 0.06 + i * 0.07, arc: 6 + i * 4, trail: ['#ffffff'] });
+        } else {
+          this.effects.push({ kind: 'halo', x: hx, y: hy - 6, color: '#bfe8ff', life: 0.3, max: 0.3 });
+          this.later(0.25, () => { this.sprite(['fx_burst'], tx, G + 2, 0.45); this.burst(tx, G - 16, '#ffffff', 14, 70); this.shake = Math.max(this.shake, this.focus ? 0 : 2); });
+        }
+      }
       switch (event.kind) {
         case 'arrow': {
           this.hero.shoot = ATTACK_TIME;
@@ -132,9 +150,9 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.hero.dashTo = tx;
           this.dust(HERO_X - 4, 4);
           const sx = this.dashReach(tx);
-          this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 3, 0.22, { delay: 0.07, tint: '#ff4a3a' });
-          if (crit) this.sprite(['fx_slash_crit'], HERO_X + 18 + sx, G + 4, 0.22, { delay: 0.1, tint: '#ff7a3a' });
-          for (const t of others) this.sprite(['fx_slash2', 'fx_slash3'], t.x - 4, G + 1, 0.16, { delay: 0.12, tint: '#ff4a3a' });
+          // v10.16 (A2) : plus de croissant : onde au sol rouge qui balaie la file, entaille sur la cible.
+          this.effects.push({ kind: 'gwave', x0: HERO_X + 14 + sx, x1: (others.length ? Math.max(...others.map((t) => t.x)) : tx) + 4, y: G, h: crit ? 9 : 6, color: '#ff4a3a', life: 0.29, max: 0.22 });
+          this.effects.push({ kind: 'cut', x: tx - 4, y: G - 16, h: crit ? 26 : 20, lean: 4, color: crit ? '#ff7a3a' : '#ff4a3a', life: 0.3, max: 0.2 });
           this.later(0.1, () => { react(tx, null, '#ff7a5a'); splash('#ff7a5a'); /* v9.8 (B1) */ });
           break;
         }
@@ -143,7 +161,7 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.hero.dashTo = tx;
           this.dust(HERO_X - 4, 3);
           const sx = this.dashReach(tx);
-          this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14 + sx, G + 1, 0.2, { delay: 0.07, tint: '#ffe27a' });
+          this.effects.push({ kind: 'cut', x: tx - 4, y: G - 18, h: 24, lean: 0, color: '#ffe27a', life: 0.27, max: 0.2 }); // v10.16 (A2)
           this.later(0.1, () => {
             this.effects.push({ kind: 'beam', x: Math.round(tx), color: '#fff2a8', life: 0.35, max: 0.35, wide: false });
             react(tx, null, '#ffe27a');
@@ -157,14 +175,15 @@ export function installClassFx(proto, { HERO_X, ATTACK_TIME, CAST_TIME }) {
           this.hero.dashTo = tx;
           this.hero.shadow = ATTACK_TIME;
           const sx = this.dashReach(tx);
-          this.sprite(['fx_slash2', 'fx_slash3'], HERO_X + 16 + sx, G + 1, 0.12, { delay: 0.04, tint: '#b07bff' });
-          this.sprite(['fx_slash1', 'fx_slash3'], HERO_X + 18 + sx, G - 2, 0.12, { delay: 0.12, tint: crit ? '#ffd23f' : '#d8b8ff' });
+          // v10.16 (A2) : deux entailles croisées (plus de croissant).
+          this.effects.push({ kind: 'cut', x: tx - 6, y: G - 16, h: 18, lean: 5, color: '#b07bff', life: 0.16, max: 0.12 });
+          this.effects.push({ kind: 'cut', x: tx - 2, y: G - 16, h: 18, lean: -5, color: crit ? '#ffd23f' : '#d8b8ff', life: 0.24, max: 0.12 });
           this.later(0.06, () => this.hitReact(id, tx, { crit: false, color: '#c8a0ff' }));
           this.later(0.14, () => react(tx, null, '#c8a0ff'));
           break;
         }
         default:
-          this.sprite(['fx_slash1', 'fx_slash2', 'fx_slash3'], HERO_X + 14, G + 1, 0.18, { delay: 0.07 });
+          this.effects.push({ kind: 'streak', x0: HERO_X + 14, x1: tx - 2, y: G - 16, color: '#ffffff', life: 0.2, max: 0.12 }); // v10.16 (A2) : estoc
           this.later(0.09, () => react(tx, null, '#ffffff'));
       }
     },

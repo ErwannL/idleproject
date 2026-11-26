@@ -23,6 +23,7 @@ export function createGameAudio() {
   let scene = '';
   let stepTimer = 0;
   let underwater = false; let bubbleTimer = 2; // v9.2.0 (monde marin)
+  let intensity = 0; // v10.16 (A4)
 
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch { /* stockage indisponible */ }
@@ -77,6 +78,10 @@ export function createGameAudio() {
         bubbleTimer -= dt;
         if (bubbleTimer <= 0) { bubbleTimer = 0.8 + Math.random() * 2.6; audio.play('bubble', { volume: 0.35 + Math.random() * 0.4 }); }
       }
+      // v10.16 (A4) : boss qui résiste sous 20 % de PV : la musique s'intensifie (affichage et son seulement).
+      const boss = world.enemies.find((e) => e.boss);
+      const low = boss && boss.maxHp > 0 && boss.hp / boss.maxHp < 0.2 ? 1 : 0;
+      if (low !== intensity) { intensity = low; audio.setIntensity?.(low); }
       const key = `${theme}|${mode}`;
       if (key !== scene) {
         scene = key;

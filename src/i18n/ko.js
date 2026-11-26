@@ -478,3 +478,7 @@ PATTERNS.unshift(...patterns1014_2());
 // v10.15.1 : 거인 8체 (./ko-1015.js).
 import { EXACT_1015 } from './ko-1015.js';
 for (const [k, v] of Object.entries(EXACT_1015)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.16 : combat de boss — « Garde brisée ! », compteur de combo (./ko-1016.js).
+import { EXACT_1016, patterns1016 } from './ko-1016.js';
+for (const [k, v] of Object.entries(EXACT_1016)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1016());

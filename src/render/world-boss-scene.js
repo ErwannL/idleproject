@@ -124,6 +124,7 @@ export class WorldBossScene {
   get scale() { return (1.15 + 0.06 * this.fight.phase) * (this.art.scale ?? 1); } // v10.15 : `art.scale` réduit un géant très large
 
   drawColossus(ctx, boss, dt) {
+    if (this.r.feelStats) this.r.feelStats.frames++; // v10.16 : mesure (le grand boss n'a pas de flash blanc par coup)
     const r = this.r;
     this.appear = Math.min(1, this.appear + dt * 1.5);
     const phase3 = this.fight.phase >= 3;

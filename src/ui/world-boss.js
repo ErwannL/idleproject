@@ -102,12 +102,13 @@ export function openWorldBoss(state, actions) {
       // v10.15.1 : 410 px logiques (au lieu de 300) : le Colosse, les Titans et les géants (phase 3 : × 1,33) tiennent entiers
       // à côté de l'équipe, sans sortir à droite (la scène est réduite d'autant : 412 px d'écran pour 1230 px de scène).
       const vw = 1230;
-      const vh = Math.min(1150, Math.round((h * 0.55 * vw) / w));
+      // v10.16 (A7) : la scène prend au moins 45 % de la hauteur de l'écran (60 % visés), sans bandes vides.
+      const vh = Math.min(1500, Math.round((h * 0.6 * vw) / w));
       scene.resize(vw, vh);
       const k = w / vw;
       canvas.classList.add('wb-portrait');
       canvas.style.transform = `scale(${k})`;
-      const top = Math.max(96, Math.round(Math.min((h - vh * k) / 2 + 30, h * 0.12 + 40)));
+      const top = Math.max(96, Math.round(Math.min((h - vh * k) / 2, h * 0.12)));
       canvas.style.top = `${top}px`;
       // Téléphone : sous la scène, le bilan en direct (dégâts par membre de l'équipe, paliers).
       const live = q('.wb-live');

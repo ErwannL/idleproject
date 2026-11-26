@@ -818,6 +818,12 @@ function buildEngine(ctx, { seed = 1, crackle = true } = {}) {
     setMusicEnabled(on) { seq.enabled = !!on; },
     // v9.2.0 (monde marin) : sous l'eau, la musique passe derrière un passe-bas (son étouffé), en fondu.
     setUnderwater(on) { lofi.frequency.setTargetAtTime(on ? 650 : 3000, ctx.currentTime, 0.6); },
+    // v10.16 (A4) : boss sous 20 % de PV : percussions et basse plus présentes (k de 0 à 1), en fondu.
+    setIntensity(k) {
+      const v = Math.max(0, Math.min(1, k));
+      drumBus.gain.setTargetAtTime(0.9 * (1 + 0.45 * v), ctx.currentTime, 0.4);
+      bassBus.gain.setTargetAtTime(1 + 0.35 * v, ctx.currentTime, 0.4);
+    },
   };
 }
 
@@ -916,6 +922,7 @@ export function createAudio({ seed = (Date.now() & 0xffff) + 1, crackle = true }
     setMuted(on) { muted = !!on; refreshRunState(); },
     setCrackle(on) { crackleOn = !!on; engine?.setCrackle(crackleOn); },
     setUnderwater(on) { underwater = !!on; try { engine?.setUnderwater(underwater); } catch { /* ignoré */ } }, // v9.2.0
+    setIntensity(k) { try { engine?.setIntensity?.(k); } catch { /* ignoré */ } }, // v10.16 (A4)
     suspend() { hidden = true; refreshRunState(); },
     resume() { hidden = false; refreshRunState(); },
   };

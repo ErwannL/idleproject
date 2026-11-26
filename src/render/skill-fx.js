@@ -194,15 +194,37 @@ function ring(ctx, x, y, rx, ry, color, step = 1) {
   }
 }
 
-// Arc tranchant (croissant) : centre, rayon, angle de départ et d'arrivée, épaisseur.
-function crescent(ctx, x, y, r, a0, a1, thick, color, core = '#ffffff') {
-  const n = Math.max(10, R(r * Math.abs(a1 - a0)));
-  for (let i = 0; i <= n; i++) {
-    const t = i / n;
-    const a = a0 + (a1 - a0) * t;
-    const th = Math.max(1, R(thick * Math.sin(t * Math.PI)));
-    for (let j = 0; j < th; j++) dot(ctx, x + Math.cos(a) * (r - j), y + Math.sin(a) * (r - j), j === 0 ? core : color);
+// v10.16 (A2) : plus aucun croissant tranchant. Trois formes à la place :
+// estoc droit (trait horizontal effilé), entaille verticale (trait du haut vers le bas) et onde au sol.
+// Estoc : pointe en x, longueur len vers la gauche, épaisseur au talon thick.
+function thrust(ctx, x, y, len, thick, color, core = '#ffffff') {
+  for (let i = 0; i <= len; i++) {
+    const th = Math.max(1, R(thick * (i / Math.max(1, len))));
+    for (let j = 0; j < th; j++) dot(ctx, x - i, y - (th >> 1) + j, j === th >> 1 ? core : color);
   }
+}
+// Entaille verticale : de (x, y - h/2) à (x + lean, y + h/2), k = avancée du trait (0..1).
+function vslash(ctx, x, y, h, k, color, core = '#ffffff', lean = 3) {
+  const n = Math.max(1, R(h * Math.min(1, k)));
+  for (let i = 0; i < n; i++) {
+    const t = i / Math.max(1, h);
+    const xx = x + lean * t;
+    dot(ctx, xx, y - h / 2 + i, color); dot(ctx, xx + 1, y - h / 2 + i, i > n - 4 ? core : color);
+  }
+}
+// Onde au sol : bourrelet qui court le long du sol de x0 à x1 (k = avancée), hauteur h.
+function groundWave(ctx, x0, x1, g, k, h, color, core = '#ffffff') {
+  const x = x0 + (x1 - x0) * k;
+  for (let i = 0; i < 10; i++) {
+    const hh = Math.max(1, R(h * Math.sin((i / 10) * Math.PI)));
+    ctx.fillStyle = color; ctx.fillRect(R(x - i), R(g - hh), 1, hh);
+    if (i === 4 || i === 5) { ctx.fillStyle = core; ctx.fillRect(R(x - i), R(g - hh), 1, 1); }
+  }
+}
+// Arc de vent / d'ailes en pointillés (pas une lame) : tourbillon, ailes de flammes, onde du cri.
+function airArc(ctx, x, y, r, a0, a1, color) {
+  const n = Math.max(8, R(r * Math.abs(a1 - a0) / 2));
+  for (let i = 0; i <= n; i += 2) { const a = a0 + (a1 - a0) * (i / n); dot(ctx, x + Math.cos(a) * r, y + Math.sin(a) * r, color); }
 }
 
 // Colonne de lumière du ciel au sol, qui s'estompe vers le haut.
@@ -570,25 +592,26 @@ const FX = {
       ctx.globalAlpha = a; disc(ctx, ex, ey, 14, '#a855ff'); disc(ctx, ex, ey, 12, '#08040e');
       for (let i = 0; i < 12; i++) { const an = i / 12 * Math.PI * 2 + k; dot(ctx, ex + Math.cos(an) * 17, ey + Math.sin(an) * 17, '#d8b8ff'); }
     });
-    add(s, c.release + 0.8, 0.3, (ctx, k) => crescent(ctx, ex - 6, G - 18, 18, -2.4, 0.6 + k * 0.3, 4, '#a855ff', '#ffffff'));
+    add(s, c.release + 0.8, 0.3, (ctx, k) => { ctx.globalAlpha = 1 - k * 0.5; vslash(ctx, ex - 4, G - 22, 34, k * 2.5, '#a855ff', '#ffffff', 2); }); // v10.16 : entaille verticale
     later(s, c.release + 0.85, () => { strike(s, c, '#a855ff', false); shake(s, 3); });
     teamAura(s, c.release + 1, c, '#a855ff');
   },
 
-  // Lame du néant / tailles : croissant tranchant sur la cible.
+  // Lame du néant / tailles : v10.16 (A2) entaille verticale qui tombe sur la cible (plus de croissant).
   heavy_cut(s, c, { color = '#ff5a4a', size = 14 } = {}) {
     const G = s.groundY;
-    add(s, c.release, 0.22, (ctx, k) => { ctx.globalAlpha = 1 - k * 0.6; crescent(ctx, c.front - 8, G - 14, size, -2.2, -2.2 + k * 2.8, 4, color); });
+    add(s, c.release, 0.22, (ctx, k) => { ctx.globalAlpha = 1 - k * 0.6; vslash(ctx, c.front - 6, G - 16, size * 1.6, k * 3, color); });
     later(s, c.release + 0.08, () => { strike(s, c, color, false); shake(s, 1); });
   },
   valiant_cut(s, c) {
     // Onde tranchante bleue qui file du compagnon à la cible.
     const G = s.groundY;
-    fly(s, c.release, 0.22, c.src.x + 8, G - 16, c.front - 6, G - 16, (ctx, x, y) => crescent(ctx, x - 6, y, 8, -1.2, 1.2, 3, '#5aa8ff'), ['#5aa8ff'], () => strike(s, c, '#5aa8ff', false));
+    fly(s, c.release, 0.22, c.src.x + 8, G - 16, c.front - 6, G - 16, (ctx, x, y) => thrust(ctx, x, y, 12, 3, '#5aa8ff'), ['#5aa8ff'], () => strike(s, c, '#5aa8ff', false));
   },
   void_blade(s, c) {
     FX.heavy_cut(s, c, { color: '#a855ff', size: 18 });
-    add(s, c.release + 0.1, 0.35, (ctx, k) => { ctx.globalAlpha = 1 - k; ctx.fillStyle = '#2a0a4a'; ctx.fillRect(R(c.front - 14), s.groundY - 14, R(28 * (1 - k)), 2); });
+    // v10.16 (A2) : onde au sol violette qui court jusqu'à la cible.
+    add(s, c.release - 0.05, 0.25, (ctx, k) => { ctx.globalAlpha = 1 - k * 0.4; groundWave(ctx, c.src.x + 8, c.front, s.groundY, k, 7, '#a855ff', '#e8d0ff'); });
   },
 
   // Coup de bouclier : onde de choc frontale en demi-lune et éclats.
@@ -684,7 +707,7 @@ const FX = {
       for (const f of c.foes) for (let i = 0; i < 4; i++) {
         const a = k * 14 + (i / 4) * Math.PI * 2;
         ctx.globalAlpha = Math.sin(k * Math.PI);
-        crescent(ctx, f.x, G - 14, 10, a, a + 0.9, 2, color);
+        vslash(ctx, f.x + Math.cos(a) * 8, G - 14 + Math.sin(a) * 3, 10, 1, color, '#ffffff', R(Math.cos(a) * 3));
       }
     });
     later(s, c.release + 0.25, () => strike(s, c, color));
@@ -706,7 +729,7 @@ const FX = {
   },
   twin_blades(s, c) {
     const G = s.groundY;
-    for (const [d, a0] of [[0, -2.4], [0.1, 2.4]]) add(s, c.release + d, 0.18, (ctx, k) => { ctx.globalAlpha = 1 - k; crescent(ctx, c.front - 4, G - 14, 11, a0, a0 + (a0 < 0 ? 2.4 : -2.4) * k, 3, '#b46bff'); });
+    for (const [d, a0] of [[0, -2.4], [0.1, 2.4]]) add(s, c.release + d, 0.18, (ctx, k) => { ctx.globalAlpha = 1 - k; vslash(ctx, c.front - 4 + d * 40, G - 14, 20, k * 3, '#b46bff', '#ffffff', a0 < 0 ? 3 : -3); });
     later(s, c.release + 0.12, () => strike(s, c, '#b46bff', false));
   },
   flash_strike(s, c) {
@@ -747,7 +770,7 @@ const FX = {
         const kk = (k * 1.5 - i * 0.25);
         if (kk <= 0 || kk >= 1) continue;
         ctx.globalAlpha = 1 - kk;
-        crescent(ctx, c.src.x + 6, c.src.y - 6, 6 + kk * 30, -0.9, 0.9, 2, color, '#ffb0a0');
+        airArc(ctx, c.src.x + 6, c.src.y - 6, 6 + kk * 30, -0.9, 0.9, color);
       }
     });
     shake(s, 1.5);
@@ -907,7 +930,7 @@ const FX = {
   // Renaissance : ailes de flammes déployées, anneau de feu qui balaie la file, pluie d'étincelles qui soigne.
   rebirth(s, c) {
     const G = s.groundY;
-    add(s, c.release - 0.1, 0.6, (ctx, k) => { ctx.globalAlpha = 1 - k; crescent(ctx, c.src.x, c.src.y ?? G - 24, 14 + k * 8, Math.PI, Math.PI * 2, 3, '#ffb03a', '#fff2a8'); });
+    add(s, c.release - 0.1, 0.6, (ctx, k) => { ctx.globalAlpha = 1 - k; airArc(ctx, c.src.x, c.src.y ?? G - 24, 14 + k * 8, Math.PI, Math.PI * 2, '#ffb03a'); airArc(ctx, c.src.x, c.src.y ?? G - 24, 12 + k * 8, Math.PI, Math.PI * 2, '#fff2a8'); });
     add(s, c.release + 0.1, 0.5, (ctx, k) => { ctx.globalAlpha = 1 - k; ring(ctx, c.src.x, G - 6, 20 + k * 140, 4 + k * 6, '#ff7a2a'); });
     later(s, c.release + 0.3, () => strike(s, c, '#ff7a2a'));
     particles(s, c.release + 0.2, 1.2, c.team.flatMap((x) => spray(5, x, G - 40, ['#ffd23f', '#ff8a3a'], 10, -10)), { gravity: 60, size: 2 });
@@ -918,7 +941,7 @@ const FX = {
   // Frappe rapide : paume poussée, onde d'énergie bleue qui file et éclate sur la cible.
   ki_wave(s, c) {
     const G = s.groundY;
-    fly(s, c.release * 0.8, 0.22, c.src.x + 14, G - 18, c.front - 4, G - 16, (ctx, x, y) => { crescent(ctx, x - 8, y, 9, -1.1, 1.1, 3, '#7fd6ff'); }, ['#7fd6ff', '#ffffff'], () => {
+    fly(s, c.release * 0.8, 0.22, c.src.x + 14, G - 18, c.front - 4, G - 16, (ctx, x, y) => { thrust(ctx, x, y, 10, 4, '#7fd6ff'); }, ['#7fd6ff', '#ffffff'], () => {
       strike(s, c, '#7fd6ff', false); s.burst?.(c.front, G - 16, '#7fd6ff', 8, 40);
     });
   },
@@ -929,7 +952,7 @@ const FX = {
       for (let i = 0; i < 5; i++) {
         const y = G - 4 - i * 6, rx = 10 + i * 3 + k * 6;
         ctx.globalAlpha = Math.sin(k * Math.PI) * 0.9;
-        crescent(ctx, c.src.x, y, rx, k * 20 + i, k * 20 + i + 2.2, 1, '#e8f4ff', '#ffffff');
+        airArc(ctx, c.src.x, y, rx, k * 20 + i, k * 20 + i + 2.2, '#e8f4ff');
       }
     });
     add(s, c.release + 0.2, 0.45, (ctx, k) => { ctx.globalAlpha = 1 - k; ring(ctx, c.src.x, G - 6, 20 + k * 120, 4 + k * 6, '#e8f4ff'); });
