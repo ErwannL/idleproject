@@ -4032,6 +4032,7 @@ html.reduce-motion .best-card { animation: none; }
 .rift-boss { width: 128px; height: 128px; transform: scale(1.35); transform-origin: bottom; background-repeat: no-repeat; background-position: 0 0; image-rendering: pixelated; }
 .rift-name { display: block; font-size: 20px; color: #ffe27a; } .rift-meta { display: flex; justify-content: center; gap: 14px; margin: 6px 0; font-weight: 700; }
 .rift-reward .rw img { width: 40px; height: 40px; } .rift-reward .rw { font-size: 18px; }
+.rift-skills { text-align: left; font-size: 12px; line-height: 1.35; margin: 6px 0; max-height: 9.5em; overflow-y: auto; } .rift-skills i { opacity: 0.8; } /* v10.16 : compétences du Titan */
 #rift-chip { position: absolute; right: 8px; top: 120px; z-index: 5; border-color: #c9a6ff !important; color: #e8d8ff; }
 .layout-strip #rift-chip, #app.panel-tall #rift-chip { display: none !important; }
 /* v9.9 (K11) : frise des vagues */

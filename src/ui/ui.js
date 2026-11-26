@@ -3509,7 +3509,7 @@ export class UI {
     this.openModal(`<div class="rift-card"><div class="rift-sky"><div class="rift-boss" style="background-image:url('assets/world-boss/colossus_idle.png');filter:${t.art.filter ?? 'none'}"></div></div>
       <h2 id="modal-title">Faille du jour</h2><b class="rift-name">${escapeHtml(t.name)}</b>
       <div class="rift-meta">${el ? `<span>${el.icon} ${escapeHtml(el.name)}</span>` : ''}<span>⏳ ${formatDuration(left)}</span><span>${titanTriesLeft(st)} essai${titanTriesLeft(st) > 1 ? 's' : ''}</span></div>
-      <div class="rift-reward">${rewardIcons(top, 'named')}</div>${teamChips(st, { save: false })}
+      <div class="rift-skills"><small>Ses attaques :</small> ${[...(t.fight.abilities ?? []), ...(t.fight.phases ?? [])].filter((x) => x.text).map((x) => `<span title="${escapeHtml(x.text)}"><b>${escapeHtml(x.name)}</b> <i>${escapeHtml(x.text)}</i></span>`).join('<br>')}</div><div class="rift-reward">${rewardIcons(top, 'named')}</div>${teamChips(st, { save: false })}
       <div class="detail-actions"><button class="btn" data-action="close-modal">Plus tard</button><button class="btn btn-gold primary-action" data-action="titan-start-modal">⚔ Combattre</button></div></div>`);
   }
 
