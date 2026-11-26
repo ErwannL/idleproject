@@ -18,3 +18,9 @@
 #skill-bar .skill-btn .sk-queued { display: none; position: absolute; left: 50%; bottom: -2px; transform: translate(-50%, 50%); z-index: 3; padding: 1px 5px; border-radius: 6px; background: #0b1124f0; border: 1px solid #7fe07a; color: #b8ffb0; font-size: 12px; font-weight: 900; line-height: 1.2; white-space: nowrap; pointer-events: none; }
 #skill-bar .skill-btn.queued .sk-queued { display: block; }
 #skill-bar .skill-btn.queued:not(.ready) { box-shadow: 0 0 0 2px #7fe07a inset; }
+
+/* v10.17 (A) : la fenêtre de droite est plus étroite qu'une page plein écran : la Forge passe en une colonne quand elle manque
+   de place (avant, la grille à deux colonnes des fenêtres basses coupait les noms des places). */
+@container mframe (max-width: 760px) {
+  #app#app:not(.m-phone) .d-forge .d-fg { grid-template-columns: minmax(0, 1fr); }
+}
