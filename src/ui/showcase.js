@@ -56,7 +56,10 @@ function fit() {
   if (!block || !scene) return;
   const w = Math.round(block.querySelector('.sc-stage').clientWidth);
   if (!w) return;
-  const h = key?.startsWith('unit:') ? Math.max(180, Math.min(300, Math.round(w * 0.62))) : Math.max(128, Math.min(210, Math.round(w * 0.46))); // v9.10 (6)
+  let h = key?.startsWith('unit:') ? Math.max(180, Math.min(300, Math.round(w * 0.62))) : Math.max(128, Math.min(210, Math.round(w * 0.46))); // v9.10 (6)
+  // v10.17.1 (5) : fiche Apparences sur téléphone : l'aperçu prend la hauteur que la fiche lui laisse (plus de grand vide dessous).
+  const stage = block.querySelector('.sc-stage');
+  if (block.closest('.sc-fill') && stage.clientHeight > h) h = Math.min(stage.clientHeight - 2, Math.round(w * 1.1));
   if (scene.css.w === w && scene.css.h === h) return;
   scene.resize(w, h);
   if (reduceMotion() && !playOnce && scene.state) scene.still(scene.index);

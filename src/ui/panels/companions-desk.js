@@ -151,6 +151,8 @@ function sheet(ui, state, sel, ctx) {
 }
 
 // ctx : { sel, tab ('ally'|'pet'), list, tips (fn → HTML des conseils), tipsExtra, adv (conseil d'équipe), selOwned }
+const ICON_FILTER = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>';
+
 export function deskCompanions(ui, state, ctx) {
   const { sel, tab, list, tips, tipsExtra, adv } = ctx;
   const owned = state.companions.owned[sel.id];
@@ -167,9 +169,15 @@ export function deskCompanions(ui, state, ctx) {
   const nAllies = Object.keys(state.companions.owned).filter((id) => ctx.allies.some((c) => c.id === id)).length;
   const nPets = Object.keys(state.companions.owned).filter((id) => ctx.pets.some((c) => c.id === id)).length;
   const elChip = ([k, x]) => mChip(x.icon, { action: 'comp-filter', value: `el|${k}`, on: ui.view.compEl === k, attrs: `aria-label="${e(x.name)}" title="${e(x.name)}"` });
+  // v10.17.1 (3) : les 2 rangées de filtres (Rareté, Élément) deviennent un bouton « Filtrer » qui ouvre un petit menu ; le filtre
+  // actif est rappelé sur le bouton, la liste remonte d'autant.
+  const actF = [ui.view.compRar ? rarityLabel(ui.view.compRar) : '', ui.view.compEl ? (ELEMENTS[ui.view.compEl]?.name ?? '') : ''].filter(Boolean);
+  const fBtn = `<button type="button" class="m-btn dc-fbtn${ui.view.compFMenu ? ' open' : ''}" data-action="comp-fmenu" aria-expanded="${Boolean(ui.view.compFMenu)}">${ICON_FILTER} <span>Filtrer</span>${actF.length ? ` <b class="dc-fact">· ${actF.map((x) => `<span>${e(x)}</span>`).join(' · ')}</b>` : ''}</button>`;
+  const fMenu = ui.view.compFMenu ? `<div class="dc-fmenu" role="group" aria-label="Filtrer">
+    <div class="m-chips"><span class="dc-flbl">Rareté</span>${mChip('Toutes', { action: 'comp-filter', value: 'rar|all', on: !ui.view.compRar })}${['rare', 'epic', 'legendary'].map((r) => mChip(rarityLabel(r), { action: 'comp-filter', value: `rar|${r}`, on: ui.view.compRar === r })).join('')}</div>
+    <div class="m-chips"><span class="dc-flbl">Élément</span>${mChip('Tous', { action: 'comp-filter', value: 'el|all', on: !ui.view.compEl })}${Object.entries(ELEMENTS).map(elChip).join('')}</div></div>` : '';
   const modes = `<div class="m-chips dc-filters">${mChip(`Compagnons ${nAllies}`, { action: 'comp-tab', value: 'ally', on: tab === 'ally' })}${mChip(`Familiers ${nPets}`, { action: 'comp-tab', value: 'pet', on: tab === 'pet' })}
-    <span class="dc-sep"></span><span class="dc-flbl">Rareté</span>${mChip('Toutes', { action: 'comp-filter', value: 'rar|all', on: !ui.view.compRar })}${['rare', 'epic', 'legendary'].map((r) => mChip(rarityLabel(r), { action: 'comp-filter', value: `rar|${r}`, on: ui.view.compRar === r })).join('')}
-    <span class="dc-sep"></span><span class="dc-flbl">Élément</span>${mChip('Tous', { action: 'comp-filter', value: 'el|all', on: !ui.view.compEl })}${Object.entries(ELEMENTS).map(elChip).join('')}</div>`;
+    <span class="dc-sep"></span>${fBtn}</div>${fMenu}`;
   const shown = list.filter((c) => (!ui.view.compRar || c.rarity === ui.view.compRar) && (!ui.view.compEl || unitElement(c.id) === ui.view.compEl));
   const grid = shown.length ? `<div class="dc-grid">${shown.map((c) => card(state, c, sel)).join('')}</div>` : '<p class="dc-note">Aucun compagnon ne correspond à ces filtres.</p>';
   const main = `${banner(ui, state, sel)}

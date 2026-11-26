@@ -226,7 +226,10 @@ function bagCard(ui, state, ctx) {
   const active = [slotF !== 'all' ? mChip(`${PLURAL[slotF] ?? HERO_SLOTS[slotF] ?? slotF} ✕`, { action: 'filter', value: 'all', on: true }) : '',
     rarF !== 'all' ? mChip(`${RARITIES.find((r) => r.id === rarF)?.label ?? rarF} ✕`, { action: 'rarity-set', value: 'all', on: true }) : ''].filter(Boolean).join('');
   const full = state.inventory.length >= BALANCE.loot.inventorySize ? '<p class="em-full" role="alert">Sac plein : recycle ou range dans la Réserve.</p>' : '';
-  const empty = list.length ? '' : mEmpty(slotF === 'all' && rarF === 'all' ? 'Ton sac est vide.' : 'Aucun objet avec ce filtre.', { icon: 'icon_chest' });
+  // v10.17.1 (1) : sac vide : une petite ligne « Sac vide › Aller combattre » (ferme la fenêtre) au lieu du grand coffre
+  const empty = list.length ? '' : slotF === 'all' && rarF === 'all'
+    ? `<p class="eq-bag-empty"><span>Sac vide</span> <button type="button" class="btn-link eq-go-fight" data-action="close-panel">› Aller combattre</button></p>`
+    : mEmpty('Aucun objet avec ce filtre.', { icon: 'icon_chest' });
   return `<div class="m-card em-bag">${head}${sortRow}${active ? `<div class="m-chips em-active" role="group" aria-label="Filtres actifs">${active}</div>` : ''}${list.length ? mGrid(tiles, 5) : empty}${full}</div>`;
 }
 

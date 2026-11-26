@@ -35,10 +35,10 @@ test('10.17 (C) : marquee chargé (CSS et JS), désactivé par « Réduire les a
   assert.match(src('src/ui/marquee.css'), /\.mq-wrap \{[^}]*white-space: normal/);
 });
 
-test('10.17 (D) : 4 styles de bouton en variables, un arrondi, 3 tailles de texte, hauteurs 44/36 et 48/44', () => {
+test('10.17 (D) : 4 styles de bouton en variables, un arrondi, 3 tailles de texte, hauteurs 44/36 et 48/40', () => {
   const c = src('src/ui/ui1017.css');
   assert.match(c, /--btn-r: 10px; --btn-h: 44px; --btn-h2: 36px; --btn-fs-s: 13px; --btn-fs: 15px; --btn-fs-l: 18px;/);
-  assert.match(c, /#app\.m-phone \{ --btn-h: 48px; --btn-h2: 44px; \}/);
+  assert.match(c, /#app\.m-phone \{ --btn-h: 48px; --btn-h2: 40px; \}/); // v10.17.1 (8) : secondaires 40 px
   for (const v of ['--btn-gold-bg', '--btn-bg', '--btn-link-ink', '--btn-danger-bg']) assert.ok(c.includes(`var(${v})`), v);
   assert.equal(MAX_BTN_STYLES, 4);
   assert.match(BTN_EXCLUDE, /\[role="tab"\]/);

@@ -9,7 +9,8 @@
 // #combat-console) visible par-dessus un panneau qui n'est pas une page (Arène) · 14 #panel-subtabs sans .m-many : aucun onglet dont le texte
 // dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. v10.17 : 18 au plus 4 styles de
 // bouton sur l'ensemble des écrans (tools/audit-1017.mjs) · 19 textes les plus longs injectés : ils défilent s'ils ne tiennent pas
-// (tools/text-fit-audit.mjs ; --no-fit pour sauter). Code de sortie 1 au moindre défaut.
+// (tools/text-fit-audit.mjs ; --no-fit pour sauter). v10.17.1 : 20 le bouton doré principal visible est dans le dernier quart du cadre, ou épinglé en bas (tools/audit-1017.mjs).
+// Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
@@ -21,7 +22,7 @@ import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -74,20 +75,25 @@ function inPage(isCombat) {
       const b = buttons[j].getBoundingClientRect();
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
       const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (Boolean(buttons[i].closest('.gold-dock')) !== Boolean(buttons[j].closest('.gold-dock'))) continue; // v10.17.1 (6) : pied doré épinglé par-dessus la liste qui défile
       if (ox > 2 && oy > 2) add(2, `${name(buttons[i])} et ${name(buttons[j])} (${Math.round(ox)}×${Math.round(oy)} px)`);
     }
   }
-  // 3. hauteur minimale (les .m-chip ont une zone tactile de 44 px par ::after ; les cases .m-tile font 44 px au moins)
+  // 3. hauteur minimale (les .m-chip ont une zone tactile de 44 px par ::after ; les cases .m-tile font 44 px au moins).
+  //    v10.17.1 (8) : 44 px pour le bouton doré principal, 40 px au moins pour tout autre bouton (boutons secondaires de 40 px).
   for (const el of buttons) {
     if (el.classList.contains('m-chip') || el.tagName === 'INPUT') continue;
     const h = el.getBoundingClientRect().height;
-    if (h < 43.5) add(3, `${name(el)} : ${Math.round(h)} px`);
+    const main = el.matches('.m-btn-gold, .btn-gold');
+    if (h < (main ? 43.5 : 39.5)) add(3, `${name(el)} : ${Math.round(h)} px (minimum ${main ? 44 : 40} px${main ? ', bouton principal' : ''})`);
   }
   // 4. cartouche + un seul bouton doré
   const titles = [...document.querySelectorAll('#panel .m-title, #modal:not(.hidden) .m-title')].filter(visible);
   if (!isCombat && !titles.length && !document.querySelector('#modal:not(.hidden)')) add(4, 'aucun .m-title visible');
   const golds = [...document.querySelectorAll('#panel .m-btn-gold, #modal .m-btn-gold')].filter(visible);
   if (golds.length > 1) add(4, `${golds.length} .m-btn-gold visibles : ${golds.map(name).join(' | ')}`);
+  // 20. v10.17.1 (6) : le bouton doré principal est en bas du cadre (tools/audit-1017.mjs)
+  if (!isCombat) for (const m of window.__goldLow?.(golds, { top: areaTop, bottom: areaBottom }) ?? []) add(20, m);
   // 5. <select>
   for (const el of document.querySelectorAll('#panel select, #modal select')) if (visible(el)) add(5, `${name(el)} visible`);
   // 7. mots coupés : un libellé court d'un seul mot qui passe sur 2 lignes, ou qui déborde de sa boîte
@@ -219,8 +225,10 @@ function inPage(isCombat) {
       spans.push([Math.max(r.top, lo), Math.min(r.bottom, hi)]);
     }
     spans.sort((a, b) => a[0] - b[0]);
+    // v10.17.1 (6) : la place laissée au-dessus du pied doré (.gold-dock, bouton principal posé en bas du cadre) est voulue
+    const dockTop = box.querySelector(':scope > .gold-dock')?.getBoundingClientRect().top ?? -1e9;
     let cur = lo, best = 0, at = lo;
-    for (const [a, b] of spans) { if (a - cur > best) { best = a - cur; at = cur; } cur = Math.max(cur, b); }
+    for (const [a, b] of spans) { if (a - cur > best && Math.abs(a - dockTop) > 16) { best = a - cur; at = cur; } cur = Math.max(cur, b); }
     if (hi - cur > best) { best = hi - cur; at = cur; }
     if (best > 120) add(15, `${name(box)} : zone vide de ${Math.round(best)} px (à ${Math.round(at)} px du haut de l'écran)`);
   }

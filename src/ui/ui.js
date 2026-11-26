@@ -185,6 +185,7 @@ import { MENUS, SUB_LABELS, SUB_SHORT, TAB_LEAD, navPath, hostMenu, badgeText } 
 import { explainDisabled } from './why-off.js'; // v10.16 (B5)
 import { ELEMENTS, zoneElement } from '../core/elements.js'; // v9.3.1 : types
 import { syncPage } from './page.js'; // v10.4 (partie 1) : pages plein écran
+import { dockGold, fillDock } from './gold-dock.js'; // v10.17.1 (6) : bouton doré principal en bas du cadre
 
 export { MENUS };
 
@@ -1120,6 +1121,7 @@ export class UI {
       case 'companion-sel': local(() => { v.companionSel = value; v.sheetOpen = 'companion'; v.skillPop = null; v.unitTab = 'skills'; v.unitShow = null; }); break;
       // v9.3.4 : popup de détail d'un compagnon.
       case 'comp-tab': local(() => { v.compTab = value; }); break;
+      case 'comp-fmenu': local(() => { v.compFMenu = !v.compFMenu; }); break; // v10.17.1 (3) : menu « Filtrer » des Compagnons
       case 'comp-filter': local(() => { const [k, x] = String(value).split('|'); if (k === 'rar') v.compRar = x === 'all' ? null : x; else if (k === 'el') v.compEl = x === 'all' ? null : x; }); break; // v10.13 (lot 6) : filtres Rareté / Élément en puces
       case 'gear-for': this.openGearFor(value); break; // v10.13 (lot 6) : « Objets portés › » (fiche d'un compagnon) → Héros › Équipement, ce compagnon choisi
       case 'skill-pop': local(() => { v.skillPop = value || null; }); break;
@@ -3203,7 +3205,7 @@ export class UI {
         : BANNER[this.tab] ? `assets/ui/art98/${BANNER[this.tab]}.png` : BANNER101[this.tab] ? `assets/ui/art101/${BANNER101[this.tab]}.png` : null);
     const lead = TAB_LEAD[this.tab] ? `<p class="tab-lead">${escapeHtml(TAB_LEAD[this.tab])}</p>` : '';
     const banner = pageOn ? '' : src ? `<div class="art-banner-wrap"><img class="px art-banner" src="${src}" loading="lazy" alt="" aria-hidden="true">${lead}</div>` : lead;
-    const html = lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)); // v9.7.1 (lot 5) : lexique
+    const html = dockGold(lexify(help + banner + this.introCard(this.tab, state) + panel.render(this, state)), Boolean(this.root?.classList.contains('m-phone'))); // v9.7.1 (lot 5) : lexique ; v10.17.1 (6) : bouton doré en bas du cadre
     if (this.morphTab === this.tab && body.firstChild) morph(body, html);
     else body.innerHTML = html;
     this.morphTab = this.tab;
@@ -3215,6 +3217,7 @@ export class UI {
       const field = body.querySelector(`#${CSS.escape(id)}`);
       if (field && field.value !== value) field.value = value;
     }
+    try { fillDock(body); } catch { /* jamais bloquant */ } // v10.17.1 (6) : le pied doré en bas de la fenêtre
     body.scrollTop = this.pendingScroll ?? scroll;
     this.pendingScroll = null;
     // v10.12 (lot Boutique) : une rangée .m-tabs qui défile garde l'onglet choisi visible (centré une fois par changement d'onglet).

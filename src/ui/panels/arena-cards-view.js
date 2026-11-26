@@ -38,7 +38,7 @@ export function cardTowerHtml(ui, state, phone = false) { // phone : faux, ou le
   const c = cardArena(state);
   // Bulle de première ouverture (une seule fois).
   if (fresh || !(state.ui.hints ?? []).includes('arena-formation')) { (state.ui.hints ??= []).push('arena-formation'); ui.view.arenaTip = true; }
-  const tip = ui.view.arenaTip ? ('<div class="card ct-tip">✨ <b>Formation prête</b> · touche une case pour la changer</div>') : '';
+  const tip = ui.view.arenaTip ? ('<div class="card ct-tip"><b class="ct-ready">✓ Formation prête</b> <span>touche une case pour la changer</span></div>') /* v10.17.1 (4) : badge vert */ : '';
   const next = Math.min(c.best + 1, 100000);
   const f = Math.max(1, Math.min(next, Number(ui.view.cardFloor) || next));
   const setup = floorCards(f, arenaCal(state));

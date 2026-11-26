@@ -46,7 +46,7 @@
   --btn-link-ink: #f3d27a;
   --btn-danger-bg: #3a1119; --btn-danger-line: #c0394a; --btn-danger-ink: #ffd6dc;
 }
-#app.m-phone { --btn-h: 48px; --btn-h2: 44px; } /* 40 px demandé, 44 px gardé : taille de doigt minimale du contrôle mobile (contrôle 3) */
+#app.m-phone { --btn-h: 48px; --btn-h2: 40px; } /* v10.17.1 (8) : secondaires 40 px, principal 48 px (contrôle mobile 3 : 40 px au moins, 44 pour le principal) */
 /* secondaire */
 #app#app :is(#panel, #modal) :is(button.btn, a.btn, button.m-btn, a.m-btn, .fg-btn, .dc-preset, .btn-outline-gold, .eq-do, .fg-order, .btn-buy, .btn-rebirth, .dgm-enter, .btn-primary, .btn-purple, .btn-gray, .m-btn.ready, .m-buy, .m-sortbtn, .mp-sleep-row):not(.m-btn-gold, .btn-gold, .mp-danger, .btn-danger, .danger, .m-chip, .m-mode, [role="tab"], .why-go, .eq-where, .fold-head, .dc-play, .dc-rank) {
   background: var(--btn-bg) !important; border: 2px solid var(--btn-line) !important; border-image: none !important; border-radius: var(--btn-r) !important;

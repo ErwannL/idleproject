@@ -1,5 +1,5 @@
 // v10.17 (parties C, D, E « tout le jeu propre et homogène ») : anglais des nouveaux textes — points de compétence à dépenser,
-// « Où en trouver » des fragments, Boutique (achats bientôt disponibles), notification du Bastion. Branché à la fin de ./en.js,
+// « Où en trouver » des fragments, Boutique (achats bientôt disponibles), notification du Bastion. v10.17.1 : « Sac vide › Aller combattre », « Filtrer », « Formation prête ». Branché à la fin de ./en.js,
 // sans écraser l'existant.
 export const EXACT_1017_UI = {
   // E : Compétences
@@ -15,6 +15,13 @@ export const EXACT_1017_UI = {
   // E : Bastion
   'Ton Bastion se met au travail': 'Your Bastion gets to work',
   'Fermer': 'Close',
+  // v10.17.1 : finitions (Équipement, Compagnons, Arène)
+  'Sac vide': 'Bag empty',
+  '› Aller combattre': '› Go fight',
+  'Filtrer': 'Filter',
+  '✓ Formation prête': '✓ Formation ready',
+  'touche une case pour la changer': 'tap a slot to change it',
+  'Aucun objet avec ce filtre.': 'No item matches this filter.',
 };
 
 export const patterns1017Ui = () => [
