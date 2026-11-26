@@ -70,6 +70,9 @@ export function preloadColossus(art = GRAND_BOSSES.colossus.art) { for (const [k
 // Couleurs de l'aura selon la phase (0 = avant la première phase).
 export const PHASE_COLORS = ['#ffb347', '#ff8a3d', '#ff5a3d', '#ff2a4a'];
 
+// v10.16 (1.6 bis) : taille du héros face aux grands boss (affichage seulement).
+export const HERO_SCALE_VS_GIANT = 1.4;
+
 export class WorldBossScene {
   constructor(canvas, fight, { calm = false } = {}) {
     this.canvas = canvas;
@@ -77,6 +80,7 @@ export class WorldBossScene {
     this.r = new SceneRenderer(canvas);
     this.r.calm = calm;
     this.r.bigBoss = true;
+    this.r.heroScale = HERO_SCALE_VS_GIANT; // v10.16 (1.6 bis) : l'équipe se place d'après le héros grandi
     this.r.groundLift = 0.8; // v9.11 (2) : boss et équipe plus bas, l'écran est rempli // v9.11 (2) : effets limités (render/vfx.js)
     this.allyBeat = 0.6;
     this.pebbleAt = 1;
@@ -107,7 +111,15 @@ export class WorldBossScene {
     // v10.16 : poussée (jet d'eau, faille) et tour sur lui-même (siphon) appliqués au dessin du héros et de l'équipe.
     for (const [m, hero] of [['drawHero', true], ['drawCompanions', false], ['drawPet', false]]) {
       const f = this.r[m].bind(this.r);
-      this.r[m] = (ctx, ...rest) => { const on = teamTransform(this, ctx, hero); f(ctx, ...rest); if (on) ctx.restore(); };
+      this.r[m] = (ctx, ...rest) => {
+        const on = teamTransform(this, ctx, hero);
+        // v10.16 (1.6 bis) : face à un grand boss, le héros est grandi ×1,4 (ancré à ses pieds) pour rester visible.
+        const big = hero && HERO_SCALE_VS_GIANT !== 1;
+        if (big) { const x = this.heroX(), y = this.r.groundY; ctx.save(); ctx.translate(x, y); ctx.scale(HERO_SCALE_VS_GIANT, HERO_SCALE_VS_GIANT); ctx.translate(-x, -y); }
+        f(ctx, ...rest);
+        if (big) ctx.restore();
+        if (on) ctx.restore();
+      };
     }
     // v9.3.0 : rocher en vol et faisceau des yeux dessinés par-dessus les personnages, dans le calque des effets.
     this.attacks = []; // { kind: 'boulder' | 'beam', ... }
@@ -363,7 +375,7 @@ export class WorldBossScene {
       at.puff = 0.1;
       // v10.16 : le nuage blanc d'impact du souffle ne passe plus sur le héros (il cachait le héros sur téléphone) :
       // aucun nuage à moins de 22 px de lui, plus petit et plus léger sur téléphone.
-      if (Math.abs(tx - heroX) > 22) vfx(r, 'wb_beam_flash', tx, ty - 4, { size: r.tall ? 0.7 : 1.1, alpha: r.tall ? 0.7 : 1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
+      if (Math.abs(tx - heroX) > 22) vfx(r, 'wb_beam_flash', tx, ty - 4, { size: r.tall ? 0.7 : 1.1, alpha: r.tall ? 0.4 : 1, tint: at.name === 'beam3' ? '#ff7a2a' : null });
       r.burst(tx, ty - 3, c1, r.tall ? 3 : 5, 55);
     }
     if (at.burn <= 0) {

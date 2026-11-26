@@ -1919,8 +1919,7 @@ export class SceneRenderer {
       this.weaponAura(ctx, held, state.equipment.weapon); // v9.3.2
       // v9.2.7 : traînée seulement pendant la frappe (de l'image qui précède le coup jusqu'au coup), pas pendant l'élan.
       const fi = anim ? anim.anim.frames.indexOf(anim.name) : -1, hitI = anim?.anim.hit ?? 99;
-      // v10.16 (A2) : contre un boss, le ruban de l'arme (un arc à chaque coup) ne reste qu'au coup final du combo.
-      const ribbon = !(this.hero.combo >= 0 && this.hero.combo !== 3);
+      const ribbon = !(this.hero.combo >= 0) && !this.bigBoss; // v10.16 : plus de ruban d'arme (un arc) en combat de boss, coup final compris
       // v10.16 : en combat de boss, pas de ruban d'arme (croissant blanc devant le héros).
       this.weaponTrail(ctx, ribbon && !this.bigBoss && !this.bossFight && kind === 'attack' && this.hero.attack > 0 && fi >= hitI - 2 && fi <= hitI + 1 ? held : null, state.equipment.weapon);
       this.travFeet('hero', HERO_X - 2, hero.walking, 0);
@@ -2493,7 +2492,10 @@ export class SceneRenderer {
     const GAP = this.bigBoss ? 8 : 3; // v10.0 (4) : grands boss — au moins 24 px d'écran entre deux cases
     const team = equippedCompanions(state);
     const heroImg = heroComposite('idle', state.equipment, false, 'a', activeHero(state).palette);
-    let cursor = HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l - GAP;
+    // v10.16 (1.6 bis) : héros grandi face à un grand boss (heroScale, ancré à ses pieds) : l'équipe recule d'autant.
+    const hs = opaqueSpan(heroImg);
+    const grow = this.heroScale > 1 ? Math.ceil((HERO_ANCHOR.x - hs.l) * (this.heroScale - 1)) : 0;
+    let cursor = HERO_X - HERO_ANCHOR.x + hs.l - GAP - grow;
     // v9.2.1 : sous l'eau, les corps sont couchés : chaque case prend la largeur de la pose de nage réellement
     // dessinée (nageur agrandi, compagnons penchés, familier), 4 px d'écart pour l'élan des brasses.
     const wet = this.underwater;
@@ -2528,7 +2530,7 @@ export class SceneRenderer {
     team.filter((c) => c.kind === 'ally').forEach(place);
     // v10.16 : bord droit et hauteur visible du héros (taille minimale et écart des boss de campagne, donjon, Tour).
     const hb = boxOf(heroImg);
-    return { slots, left: cursor + GAP, heroLeft: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).l, heroRight: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).r,
+    return { slots, left: cursor + GAP, heroLeft: HERO_X - HERO_ANCHOR.x + hs.l - grow, heroRight: HERO_X - HERO_ANCHOR.x + opaqueSpan(heroImg).r,
       heroH: hb ? hb.bottom - hb.top + 1 : HERO_PX };
   }
 

@@ -90,3 +90,15 @@ test('plus de croissant en combat de boss : ni traînée courbe, ni ruban d\'arm
   const vfx = readFileSync(new URL('../src/render/vfx.js', import.meta.url), 'utf8');
   assert.match(vfx, /if \(slash\) \{[^}]*return true; \}/);
 });
+
+test('1.6 bis : face à un grand boss, héros ×1,4 et nuage du souffle à 40 % au plus sur téléphone ; plus de ruban d\'arme', async () => {
+  const { readFileSync } = await import('node:fs');
+  const wb = readFileSync(new URL('../src/render/world-boss-scene.js', import.meta.url), 'utf8');
+  const { HERO_SCALE_VS_GIANT } = await import('../src/render/world-boss-scene.js');
+  assert.equal(HERO_SCALE_VS_GIANT, 1.4);
+  assert.match(wb, /this\.r\.heroScale = HERO_SCALE_VS_GIANT/);
+  assert.match(wb, /alpha: r\.tall \? 0\.4 : 1/);
+  const sc = readFileSync(new URL('../src/render/scene.js', import.meta.url), 'utf8');
+  assert.match(sc, /const ribbon = !\(this\.hero\.combo >= 0\) && !this\.bigBoss/);
+  assert.match(sc, /heroLeft: HERO_X - HERO_ANCHOR\.x \+ hs\.l - grow/, 'l\'équipe recule d\'autant que le héros grandit');
+});
