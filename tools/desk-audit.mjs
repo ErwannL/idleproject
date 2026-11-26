@@ -21,6 +21,7 @@ import { pathToFileURL } from 'node:url';
 import { ALL_TABS, PC_SIZES, makeOpt, parseSizes, parseList, startApp, openGame, openTab, listModes, clickMode, closeAll, slug } from './lib-1013.mjs';
 
 export const CHECKS = {
+  11: 'libellé terminé par un point d\'abréviation', 12: 'bouton désactivé sans explication', // v10.16 (B9) : tools/audit-1016.mjs
   1: 'défilement horizontal / contenu décentré', 2: 'chevauchement', 3: 'image d\'événement hors de son cadre', 4: 'cartouche / bouton doré',
   5: 'image manquante', 6: '« Remettre au niveau » / sharpen', 7: '« Équiper toute l\'équipe » dans Compagnons', 8: '<select> visible', 9: 'texte sous 12 px', 10: 'texte tronqué (ellipsis / débordement)',
 };
@@ -168,6 +169,9 @@ export function inPage(kind) {
     if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') continue;
     if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) { const m = `${name(el)} : ${el.scrollWidth} > ${el.clientWidth}`; if (!cut.has(m)) { cut.add(m); add(10, m); } }
   }
+  // 11 et 12 (v10.16, B9) : libellés sans point d'abréviation ; chaque bouton désactivé a un texte d'explication.
+  const extra = window.__audit1016?.(kind === 'tab' ? [panel, modal, document.querySelector('#tabs')].filter(Boolean) : [document.querySelector('#play') ?? document.body, document.querySelector('#tabs')].filter(Boolean), shown) ?? [];
+  for (const x of extra) add(x.check === 'abbr' ? 11 : 12, x.msg);
   return issues;
 }
 

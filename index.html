@@ -50,6 +50,7 @@
   <link rel="stylesheet" href="src/ui/desk-equip.css"> <!-- v10.13 (lot 3) : Héros › Équipement et fiche d'objet (PC) -->
   <link rel="stylesheet" href="src/ui/desk-activities.css"> <!-- v10.13 : Missions, Carnet, Carte, Donjons, Défis, Arène, Événement, Expéditions (PC) -->
   <link rel="stylesheet" href="src/ui/fest1014.css"> <!-- v10.14 : Fêtes du mois (page Événement) -->
+  <link rel="stylesheet" href="src/ui/menus1016.css"> <!-- v10.16 (B) : Objectifs, boutons grisés expliqués, Classement et Guilde sans compte -->
 </head>
 <body>
   <!-- v9.2.6 : écran de chargement (cercle de runes PixelLab), effacé par src/ui/ui-vfx.js bootDone() -->
@@ -62,11 +63,12 @@
       <button data-menu="adventure" class="menu-center"><img class="px" data-icon="menu_adventure" alt=""><span>Combat</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
       <button data-menu="summon"><img class="px" data-icon="tab_summon" alt=""><span>Invocation</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-summon"></i></button>
       <button data-menu="shop"><img class="px" data-icon="top_shop" alt=""><span>Boutique</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-shop-tab"></i></button>
+      <button data-menu="goals"><img class="px" data-icon="tab_missions" alt=""><span>Plus</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-goals"></i></button> <!-- v10.16 (B2) : Objectifs, Collections, Boss, Apparences, Classement, Guilde, Statistiques -->
     </nav>
     <div id="content">
     <div id="main-col">
       <header id="topbar">
-        <button class="icon-btn drawer-btn" id="drawer-btn" data-action="drawer" aria-label="Menu">☰<i class="badge hidden" id="badge-goals"></i></button>
+        <button class="icon-btn drawer-btn" id="drawer-btn" data-action="drawer" aria-label="Menu">☰<i class="badge hidden" id="badge-drawer"></i></button>
         <button class="brand top-level" id="portrait" data-open="hero" title="Fiche du héros"><img class="px" data-icon="icon_hero" alt=""><b id="top-level">Niv. 1</b>
           <span class="top-xp" aria-hidden="true"><i id="top-xp"></i></span></button>
         <button class="chip chip-gold" data-currency="gold" title="Or"><img class="px" data-icon="coin" alt="Or"><span id="gold">0</span></button>

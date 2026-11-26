@@ -10,7 +10,7 @@ import { walletAmount } from '../../core/wallet.js';
 import { COMPANION_ROLES, ROLES } from '../../data/synergies.js';
 import { currentFest, festRecord, festSummonSteps } from '../../core/fest.js'; // v10.14.1 : jalons de la grande fête
 import { animCanvas } from '../animator.js';
-import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, stars } from '../common.js';
+import { escapeHtml, fold, formatDecimal, formatNumber, gem, hdArt, hdArtUrl, icon, img, lackText, stars, whyOff } from '../common.js';
 import { mBar, mGrid, mModes, mTabs, mTile, mTitle } from '../mobile-kit.js';
 import { walletIcon } from './shop.js';
 
@@ -35,7 +35,7 @@ function payButtons(state, pool, currency) {
     return `<button class="btn btn-gold" data-action="summon" data-value="${n}" data-currency="${currency}" data-pool="${pool}" ${ok ? '' : 'disabled'}
       aria-label="${escapeHtml(`×${n} : ${cost(n)} ${name}`)}"><span class="vt-x">×${n}</span> ${ico} ${formatNumber(cost(n))}</button>`;
   };
-  return `<div class="summon-buttons">${b(1)}${b(10)}</div>`;
+  return `<div class="summon-buttons">${b(1)}${b(10)}</div>${payWhy(state, pool, currency)}`;
 }
 
 // Compteur et règles en une ligne (toujours visibles).
@@ -214,7 +214,18 @@ function mPay(state, pool, currency, gold) {
     return `<button type="button" class="${big ? 'm-btn-gold' : 'm-btn'} m-sum" data-action="summon" data-value="${n}" data-currency="${currency}" data-pool="${pool}" ${ok ? '' : 'disabled'}
       aria-label="${escapeHtml(`×${n} : ${cost(n)} ${name}`)}"><b class="m-sum-x">×${n}</b>${ico}<span class="m-sum-n">${formatNumber(cost(n))}</span></button>`;
   };
-  return `<div class="m-sum-row${gold ? ' main' : ''}">${one(1)}${one(10)}</div>`;
+  return `<div class="m-sum-row${gold ? ' main' : ''}">${one(1)}${one(10)}</div>${payWhy(state, pool, currency)}`;
+}
+
+// v10.16 (B5) : sous les boutons ×1 / ×10, pourquoi celui qui est grisé l'est (« Il te manque 9 tickets ») et où en trouver.
+export function payWhy(state, pool, currency) {
+  const n = [1, 10].find((k) => !canPay(state, pool, k, currency));
+  if (!n) return '';
+  const have = currency === 'gems' ? state.gems : walletAmount(state, currency);
+  const lack = summonCost(n, currency, BALANCE) - have;
+  if (lack <= 0) return ''; // monnaie refusée par cette bannière : rien à dire ici
+  const [one, many] = currency === 'gems' ? ['gemme', 'gemmes'] : ['ticket', 'tickets'];
+  return whyOff(`${lackText(lack, one, many)} pour ×${n}`, { tab: 'shop' });
 }
 
 function mFace(c) {

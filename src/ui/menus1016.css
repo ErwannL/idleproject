@@ -1,0 +1,36 @@
+/* v10.16 (partie B « Menus et ergonomie ») : écran Objectifs, raison des boutons grisés, Classement/Guilde sans compte,
+   pastille du bonus, onglets en mots entiers (2 lignes au besoin). */
+
+/* B1 : Objectifs — 3 sections (Maintenant, Aujourd'hui, Plus tard). */
+#app .obj-sec { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; scroll-margin-top: 8px; }
+#app .obj-sec > .mp-sub { font-size: 15px; font-weight: 800; color: var(--gold, #ffd36a); letter-spacing: 0.02em; margin: 6px 2px 0; }
+#app .obj-now .obj-kicker { display: block; font-size: 12px; opacity: 0.8; }
+
+/* B3 : noms d'onglets entiers, sur 2 lignes s'il le faut (jamais coupés, jamais de point d'abréviation). */
+#app.m-phone #panel-subtabs .subtab .sub-long,
+#app.m-phone #panel-subtabs .subtab .sub-short { white-space: normal; overflow-wrap: normal; word-break: keep-all; hyphens: none; line-height: 1.05; text-align: center; }
+#app.m-phone #panel-subtabs .subtab.use-short .sub-long { display: none; }
+#app #tabs button span { text-overflow: clip; }
+
+/* B5 : la raison d'un bouton désactivé, juste dessous. */
+#app .why-off { display: block; margin: 4px 2px 0; font-size: 12.5px; line-height: 1.3; color: var(--muted-2, #c9b98f); text-align: center; }
+#app .why-off .why-go { display: inline-flex; align-items: center; min-height: 28px; margin-left: 4px; padding: 2px 8px; border-radius: 8px;
+  border: 1px solid rgba(255, 211, 106, 0.45); background: rgba(255, 211, 106, 0.08); color: #ffd36a; font: inherit; font-weight: 700; cursor: pointer; }
+#app.m-phone .why-off .why-go { min-height: 44px; }
+#app .why-off .why-go:hover { background: rgba(255, 211, 106, 0.18); }
+
+/* B6 : Classement et Guilde sans compte. */
+#app .ag-card { display: flex; flex-direction: column; gap: 10px; }
+#app .ag-card .ag-head { display: flex; align-items: center; gap: 10px; font-size: 17px; }
+#app .ag-card .ag-head img { width: 32px; height: 32px; }
+#app .ag-card .ag-lines { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+#app .ag-card .ag-who { font-size: 13px; opacity: 0.85; }
+#app .ag-failed { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* B8 : astuce « Bonus du moment » en pastille sur l'icône (plus de bulle par-dessus la scène). */
+#boost-chip.tip-dot { position: relative; }
+#boost-chip.tip-dot::after { content: '!'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
+  background: #e8463a; color: #fff; font: 800 12px/18px system-ui, sans-serif; text-align: center; box-shadow: 0 0 0 2px #2a1a0c; pointer-events: none; }
+#app.m-phone #panel #panel-subtabs .subtab.use-short .sub-short { font-size: 11px !important; letter-spacing: -0.06em !important; } /* B3 : mot entier, plus petit, plutôt que « Amélio. » */
+#app .why-off.why-auto { flex-basis: 100%; }
+#app.m-phone #panel #panel-subtabs:not(.m-many) .subtab { flex: 1 1 auto !important; width: auto !important; min-width: 0 !important; padding-left: 2px !important; padding-right: 2px !important; } /* B3 : les noms longs prennent la place des courts */

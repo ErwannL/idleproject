@@ -13,6 +13,7 @@ const DEFAULTS = {
   bossFocus: true, // v9.1.3 (essai) : mode boss réduit (boutons autour de la scène estompés pendant un boss)
   panelFold: false, // v9.1.3 (essai) : panneau à deux hauteurs (▼), défaut = bande actuelle
   panelLow: {}, // v9.1.3 : écrans dont le panneau est rétracté { tab: true }
+  numFormat: 'auto', // v10.16 (B4) : 'auto' (lettres puis ×10ⁿ) | 'letters' (tout en lettres) | 'sci' (tout en ×10ⁿ)
   keys: {}, // raccourcis modifiés : { action: code }
   nav: {}, // mémoire de navigation : { lastSub, view, scroll }
 };

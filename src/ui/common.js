@@ -226,3 +226,15 @@ export function rewardIcons(reward, cls = '') {
   }
   return `<span class="rw-icons ${cls}" title="${escapeHtml(text)}" role="img" aria-label="${escapeHtml(text)}">${parts.join('')}</span>`;
 }
+
+// v10.16 (B5) : un bouton désactivé dit pourquoi juste dessous (« Il te manque 9 tickets », « Rien à recycler ») et
+// propose « Où en trouver › » quand c'est possible (where = { tab, view? }). Le texte est toujours visible (pas d'infobulle).
+export function whyOff(text, where = null) {
+  const go = where ? ` <button type="button" class="why-go" data-action="open-tab" data-value="${escapeHtml(where.tab)}"${where.view ? ` data-view='${escapeHtml(JSON.stringify(where.view))}'` : ''}>Où en trouver ›</button>` : '';
+  return `<small class="why-off" role="note">${escapeHtml(text)}${go}</small>`;
+}
+// « Il te manque 9 tickets » / « Il te manque 1 éclat » (nombre au format commun).
+export function lackText(n, one, many) {
+  const k = Math.max(0, Math.ceil(n));
+  return `Il te manque ${formatNumber(k)} ${k > 1 ? many : one}`;
+}

@@ -1,6 +1,7 @@
 // Objectifs > Classement (v9.1.5, amis et statistiques en v9.1.6). Chargé à l'ouverture de l'onglet et à chaque
 // changement de tri ou de portée ; `ui.ranking` = { sort, scope, players, me, error } et `ui.friends` =
 // { friends, incoming, outgoing, message, error }. Un invité (joueurXXXXXX) est invité à créer son compte.
+import { accountGate, loadFailed, loadState } from '../account-gate.js'; // v10.16 (B6)
 import { ZONES } from '../../data/zones.js';
 import { escapeHtml, formatNumber } from '../common.js';
 import { mBtn, mBtnGold, mChip, mEmpty, mModes, mSheet } from '../mobile-kit.js'; // v10.12
@@ -92,6 +93,8 @@ function rankingPhone(ui, phone = true) {
   const scope = r.scope ?? 'all';
   const c = ui.cloud ?? {};
   const member = c.loggedIn && !c.guest;
+  // v10.16 (B6) : sans compte, l'explication tout de suite (3 lignes) puis « Créer mon compte » ; rien ne « se charge ».
+  if (!member) return mpFrame('icon_trophy', 'Classement', accountGate('ranking', c));
   const modes = mModes([{ id: 'all', label: 'Tout le monde', icon: 'icon_crown', action: 'ranking-scope', value: 'all' },
     { id: 'friends', label: 'Mes amis', icon: 'icon_heart', action: 'ranking-scope', value: 'friends', attrs: member ? '' : 'disabled' }], scope);
   const world = r.world ?? 2;
@@ -104,7 +107,7 @@ function rankingPhone(ui, phone = true) {
     { icon: 'icon_trophy', button: mBtnGold('Créer mon compte', { action: 'open-account' }) });
   let body;
   if (r.error) body = `<div class="m-card"><div class="bad">${escapeHtml(r.error)}</div>${mBtn('Réessayer', { action: 'ranking-sort', value: sort })}</div>`;
-  else if (!r.players) body = mEmpty('Le classement se charge…', { icon: 'icon_trophy' });
+  else if (!r.players) body = loadState({ since: ui.loadSince?.ranking ?? Date.now() }) === 'failed' ? loadFailed('ranking') : mEmpty('Le classement se charge…', { icon: 'icon_trophy' }); // v10.16 (B6) : 5 s au plus
   else if (!r.players.length) body = `<div class="m-card mp-reset">${scope === 'friends' ? 'Ajoute des amis pour te comparer à eux.' : 'Personne au classement pour l\'instant.'}</div>`;
   else {
     const mine = r.me ? `<div class="mp-rk-gap">…</div>${mRankRow(sort, { ...r.me, me: true })}` : '';

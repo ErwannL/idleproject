@@ -13,10 +13,11 @@ import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { startServer } from './serve.mjs';
+import { audit1016Init } from './audit-1016.mjs'; // v10.16 (B9) : contrôles 16 et 17
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -215,6 +216,16 @@ function inPage(isCombat) {
     if (hi - cur > best) { best = hi - cur; at = cur; }
     if (best > 120) add(15, `${name(box)} : zone vide de ${Math.round(best)} px (à ${Math.round(at)} px du haut de l'écran)`);
   }
+  // 16 et 17 (v10.16, B9) : libellés sans point d'abréviation ; chaque bouton désactivé a un texte d'explication (tools/audit-1016.mjs).
+  const shownLoose = (el) => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1 || r.bottom <= areaTop || r.top >= window.innerHeight || r.right <= 0 || r.left >= vw) return false;
+    for (let n = el; n && n !== document.documentElement; n = n.parentElement) { const cs = getComputedStyle(n); if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false; }
+    return true;
+  };
+  const panelOpen = panel && !panel.classList.contains('hidden');
+  const roots = [isCombat || !panelOpen ? document.querySelector('#play') : panel, document.querySelector('#modal:not(.hidden)'), tabsBar].filter(Boolean);
+  for (const x of window.__audit1016?.(roots, shownLoose) ?? []) add(x.check === 'abbr' ? 16 : 17, x.msg);
   return issues;
 }
 
@@ -262,6 +273,7 @@ for (const game of games) {
   for (const [width, height] of sizes) {
     const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
+    await page.addInitScript(audit1016Init); // v10.16 (B9)
     const jsErrors = [];
     page.on('pageerror', (e) => jsErrors.push(e.message));
     if (game === 'endgame') {

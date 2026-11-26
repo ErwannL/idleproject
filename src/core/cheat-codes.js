@@ -4,6 +4,7 @@ import { towerWeek } from './tower.js';
 import { BALANCE } from '../data/balance.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { BUILD } from './build-info.js';
+import { formatNumber } from './format.js';
 import { MAX_TIMES, MULT_CAP, cheatMultiplier, cheatTimes } from './cheats.js';
 
 // kind : boost (or, XP, événements) · damage · hp · godmode (dégâts et PV) · loot (chaque ennemi lâche un
@@ -39,7 +40,7 @@ const GIFTS = {
 };
 
 function fmt(n) {
-  return n >= 1e6 ? n.toExponential(2).replace('e+', 'e').replace('.', ',') : n.toLocaleString('fr-FR');
+  return n >= 1e6 ? formatNumber(n) : n.toLocaleString('fr-FR'); // v10.16 (B4) : format commun
 }
 
 function unlockSpeed(state, speed) {
@@ -47,7 +48,7 @@ function unlockSpeed(state, speed) {
 }
 
 function formatMult(n) {
-  return n >= 1e6 ? n.toExponential(1).replace('e+', 'e') : n.toLocaleString('fr-FR');
+  return n >= 1e6 ? formatNumber(n) : n.toLocaleString('fr-FR'); // v10.16 (B4) : format commun
 }
 
 // Applique un code `times` fois ; renvoie le message de succès, ou null si le code est inconnu.

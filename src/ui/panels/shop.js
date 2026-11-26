@@ -180,6 +180,6 @@ export default {
       ${incomeBlock(state) ? `<div class="card">${incomeBlock(state)}</div>` : ''}
       ${(state.economy?.store?.spentCents ?? 0) > 0 ? `<div class="card">${spendBlock(state)}</div>` : ''}
       ${note ? note.replace('class="shop-note"', 'class="shop-note small-note"') : ''}
-      <div class="muted shop-foot">Cosmétiques : aucun bonus de puissance, achetés une fois pour toutes, équipables et retirables dans Profil › Apparences et Paramètres › Thème.</div>`;
+      <div class="muted shop-foot">Cosmétiques : aucun bonus de puissance, achetés une fois pour toutes, équipables et retirables dans Plus › Apparences et Paramètres › Thème.</div>`;
   },
 };

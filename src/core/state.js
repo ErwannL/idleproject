@@ -213,6 +213,27 @@ const num = (v, fallback, min = 0) => (Number.isFinite(v) && v >= min ? v : fall
 const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
 const powerIds = (bossId) => new Set(BOSS_POWERS[bossId].map((p) => p.id));
 
+// v10.16 (B7) : Panthéon — une sauvegarde qui a des boss vaincus (records.bossesDefeated) et a dépassé l'étape d'un boss de
+// campagne (meilleure étape, Renaissances comprises) sans l'avoir dans `powers` (pouvoirs vides : sauvegarde importée,
+// ancien format) le voit compté : il a forcément été battu pour passer. Victoire 1, aucune gemme ni charge donnée.
+// Boss de campagne dépassés et boss de donjon dont le donjon a été fini ; jamais les boss de palier (hors Panthéon).
+export function migratePantheon(state, raw = {}) {
+  const kills = num(raw.records?.bossesDefeated, 0);
+  if (kills <= 0) return 0;
+  const best = Math.max(int(state.maxStage, 1), int(raw.maxStage, 1), int(raw.records?.bestStage, 1));
+  const rng = new Rng((state.rngSeed ?? 1) ^ 0x5a17e0b5);
+  let added = 0;
+  for (const bossId of Object.keys(BOSSES)) {
+    if (state.powers[bossId] || BOSSES[bossId].tier) continue;
+    const dg = bossDungeon(bossId);
+    if (dg) { if (!(int(raw.dungeonsCleared?.[dg.id], 0) > 0)) continue; } // boss de donjon : donjon déjà fini
+    else { const stage = bossFirstStage(bossId); if (stage === null || stage >= best) continue; }
+    state.powers[bossId] = { current: rollPower(bossId, rng), pending: null, victories: 1, rerolls: 0, sinceHigh: 0, charges: 0, masteryClaimed: 0 };
+    added += 1;
+  }
+  return added;
+}
+
 function cleanPowers(state, raw) {
   if (raw.powers && typeof raw.powers === 'object') {
     const beforeV4 = int(raw.version, 1) < 4;
@@ -242,6 +263,7 @@ function cleanPowers(state, raw) {
       }
     }
   }
+  migratePantheon(state, raw);
   const wanted = Array.isArray(raw.equippedPowers) ? raw.equippedPowers : Object.keys(state.powers);
   state.equippedPowers = [...new Set(wanted)].filter((id) => state.powers[id]).slice(0, powerSlots(state));
 }

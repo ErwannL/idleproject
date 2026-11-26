@@ -13,7 +13,7 @@ import { recycleGoldOf, uselessItems } from '../../core/inventory.js';
 import { recycleMaterials } from '../../core/loot.js';
 import { setById } from '../../core/sets.js';
 import { slotIconName } from '../../render/pixel.js';
-import { coin, escapeHtml, formatDecimal, formatNumber, img, rarityLabel, shard } from '../common.js';
+import { coin, escapeHtml, formatDecimal, formatNumber, img, lackText, rarityLabel, shard, whyOff } from '../common.js';
 import { costLines, helpQ, itemTile, pctText, reinforceSection, statGainText } from './equip-sheet.js';
 import { mBar, mBtn, mBtnGold, mChip, mCost, mEmpty, mGrid, mModes, mStat, mTile, mTitle } from '../mobile-kit.js'; // v10.12 (lot 4) : vue téléphone
 
@@ -30,7 +30,7 @@ export function canForgeSomething(state) {
 export function recycleButton(state, cls = '') {
   const p = uselessPreview(state);
   return `<button class="btn btn-outline-gold recycle-useless ${cls}" data-action="recycle-useless" ${p.list.length ? '' : 'disabled'}>
-    ♻ Recycler les objets inutiles (${p.list.length})${p.list.length ? ` · +${formatNumber(p.gold)} ${coin()} +${p.shards} ${shard()}` : ''}</button>`;
+    ♻ Recycler les objets inutiles (${p.list.length})${p.list.length ? ` · +${formatNumber(p.gold)} ${coin()} +${p.shards} ${shard()}` : ''}</button>${p.list.length ? '' : whyOff('Rien à recycler : tes objets sont protégés ou utiles')}`; // v10.16 (B5)
 }
 // Nombre de fusions sûres possibles (pastille de l'atelier 3).
 export function fusionCount(state) {
@@ -166,7 +166,7 @@ function craftBody(ui, state) {
     return `<div class="fg-tier ${t}"><h4>${t === 'epic' ? 'Épique ou mieux' : 'Rare ou mieux'}</h4>
       <div class="fg-odds">${craftOdds(t).map((o) => `<span class="r-${o.rarity}"><b class="num rarity-text">${formatDecimal(o.pct, o.pct < 10 ? 1 : 0)} %</b> ${rarityLabel(o.rarity)}</span>`).join('')}</div>
       ${costLines(state, cost)}
-      <button class="btn ${t === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${t}" ${short || full ? 'disabled' : ''}>Fabriquer ${t === 'epic' ? 'Épique+' : 'Rare+'}</button></div>`;
+      <button class="btn ${t === 'epic' ? 'btn-gold' : 'btn-primary'}" data-action="craft" data-value="${slot}" data-tier="${t}" ${short || full ? 'disabled' : ''}>Fabriquer ${t === 'epic' ? 'Épique+' : 'Rare+'}</button>${short || full ? craftWhy(state, cost, full) : ''}</div>`;
   };
   return `<div class="card fg-body fg-craft"><h4>1. Choisis la place</h4><div class="fg-slots" role="group" aria-label="Place à fabriquer">${slots}</div>
     <h4>2. Choisis la rareté</h4><p class="fg-level">Tu reçois : <b>${escapeHtml(SLOTS[slot])}</b>, niveau <b class="num">${lvl}</b>, ton étape max${lvl === state.maxStage ? '' : ` (étape ${state.maxStage})`}.</p>
@@ -256,6 +256,15 @@ function phoneFuse(ui, state, groups) {
     ${ui.view.fuseMsg ? `<p class="m-note bad" role="status">${escapeHtml(ui.view.fuseMsg)}</p>` : ''}${all}${lower}${main}`;
 }
 
+// v10.16 (B5) : pourquoi « Fabriquer » est grisé, juste dessous (sac plein, éclats ou or qui manquent) et où en trouver.
+function craftWhy(state, cost, full) {
+  if (full) return whyOff('Sac plein : recycle d\'abord', { tab: 'forge', view: { forgeSeg: 'recycle' } });
+  const shards = cost.shards - state.materials.shards, gold = cost.gold - state.gold;
+  if (shards > 0) return whyOff(lackText(shards, 'éclat', 'éclats'), { tab: 'forge', view: { forgeSeg: 'recycle' } });
+  if (gold > 0) return whyOff(`${lackText(gold, 'pièce d\'or', 'pièces d\'or')}`, { tab: 'campaign' });
+  return '';
+}
+
 function phoneCraft(ui, state) {
   const slot = SLOTS[ui.view.craftSlot] ? ui.view.craftSlot : 'weapon';
   const full = state.inventory.length >= BALANCE.loot.inventorySize;
@@ -267,10 +276,10 @@ function phoneCraft(ui, state) {
     const btn = (t === 'epic' ? mBtnGold : mBtn)(`Fabriquer ${t === 'epic' ? 'Épique+' : 'Rare+'}`, { action: 'craft', value: slot, attrs: `data-tier="${t}"`, disabled: short || full });
     return `<div class="m-card m-fg-tier"><div class="m-fg-tier-t"><b>${t === 'epic' ? 'Épique ou mieux' : 'Rare ou mieux'}</b></div>
       <div class="m-fg-odds">${craftOdds(t).map((o) => `<span class="r-${o.rarity}"><b class="num rarity-text">${formatDecimal(o.pct, o.pct < 10 ? 1 : 0)} %</b> ${rarityLabel(o.rarity)}</span>`).join('')}</div>
-      <div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: formatNumber })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: formatNumber })}</div>${btn}</div>`;
+      <div class="m-costs">${mCost('coin', state.gold, cost.gold, { fmt: formatNumber })}${mCost('icon_shard', state.materials.shards, cost.shards, { fmt: formatNumber })}</div>${btn}${short || full ? craftWhy(state, cost, full) : ''}</div>`;
   };
   return `${fgArt('craft')}<p class="m-fg-phrase">De l'or et des éclats : un objet neuf, niveau ${lvl} (ton étape max), pour la place choisie.</p>${slots}
-    ${tier('rare')}${tier('epic')}${full ? '<p class="m-note bad">Sac plein : recycle d\'abord.</p>' : ''}
+    ${tier('rare')}${tier('epic')}
     ${bastionOpen(state) ? mBtn('Commander au forgeron (moins cher, 1 h à 8 h)', { action: 'bastion-open', value: 'forge' }) : ''}`;
 }
 
@@ -306,7 +315,7 @@ export default {
     const steps = [
       step('recycle', 1, 'Recycler', `${it(sword, 'common')}${it(helm, 'rare')}<i>→</i>${img('icon_shard')}${img('coin')}`,
         'Les objets inutiles deviennent des éclats et de l\'or.', now.recycle,
-        `<button class="btn fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>`),
+        `<button class="btn fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>${n ? '' : whyOff('Rien à recycler')}`), // v10.16 (B5)
       step('upgrade', 2, 'Renforcer', `${it(sword, 'epic')}<b>+</b>${img('icon_shard')}<i>→</i>${it(sword, 'epic', '<em>+1</em>')}`,
         `Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.`, now.upgrade,
         '<button class="btn fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
