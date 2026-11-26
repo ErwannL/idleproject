@@ -52,6 +52,8 @@
   <link rel="stylesheet" href="src/ui/fest1014.css"> <!-- v10.14 : Fêtes du mois (page Événement) -->
   <link rel="stylesheet" href="src/ui/menus1016.css"> <!-- v10.16 (B) : Objectifs, boutons grisés expliqués, Classement et Guilde sans compte -->
   <link rel="stylesheet" href="src/ui/fenetres1017.css"> <!-- v10.17 (A) : colonne de combat de largeur fixe, fenêtre à droite (PC) ; touches d'attaque (B) -->
+  <link rel="stylesheet" href="src/ui/marquee.css"> <!-- v10.17 (C) : texte qui défile au lieu d'être coupé -->
+  <link rel="stylesheet" href="src/ui/ui1017.css"> <!-- v10.17 (C, D, E) : boutons, thèmes, bannières, onglets -->
 </head>
 <body>
   <!-- v9.2.6 : écran de chargement (cercle de runes PixelLab), effacé par src/ui/ui-vfx.js bootDone() -->
@@ -59,7 +61,7 @@
   <div id="app" class="layout-mini">
     <!-- v9.1.0 : 4 menus (onglets dans le panneau), barre verticale (en bas sur écran étroit). Chiffre fixe par menu. -->
     <nav id="tabs" aria-label="Menus">
-      <button data-menu="hero"><img class="px" data-icon="menu_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b><i class="badge-better hidden" id="better-hero" title="Un objet meilleur t'attend">▲</i></button>
+      <button data-menu="hero"><img class="px" data-icon="menu_hero" alt=""><span>Héros</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-hero"></i><b class="badge-count hidden" id="count-hero"></b><b class="nav-pts hidden" id="pts-hero"></b><i class="badge-better hidden" id="better-hero" title="Un objet meilleur t'attend">▲</i></button>
       <button data-menu="team"><img class="px" data-icon="menu_team" alt=""><span>Équipe</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-team"></i></button>
       <button data-menu="adventure" class="menu-center"><img class="px" data-icon="menu_adventure" alt=""><span>Combat</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-adventure"></i></button>
       <button data-menu="summon"><img class="px" data-icon="tab_summon" alt=""><span>Invocation</span><i class="badge badge-new hidden"></i><i class="badge hidden" id="badge-summon"></i></button>
@@ -106,7 +108,7 @@
           <div id="scene-bottom">
             <span id="level-badge">Niv. 1</span>
             <div id="xp-bar"><div id="xp-fill"></div></div>
-            <span id="hp-chip"><i id="hp-fill" aria-hidden="true"></i><img class="px" data-icon="icon_heart" alt="PV"><span id="hp">0</span></span>
+            <span id="hp-chip"><i id="hp-fill" aria-hidden="true"></i><img class="px" data-icon="icon_heart" alt="PV"><span id="hp"><b id="hp-cur">0</b><span id="hp-max"></span></span></span>
           </div>
           <div id="banner" class="hidden"></div>
           <!-- v9.9 (K2) : Sceau d'action — le gros bouton qui change de texte (une seule consigne à la fois) -->
@@ -114,7 +116,7 @@
         </div>
         <div id="hud">
           <div id="progress"><div id="progress-fill"></div><i id="boss-timer" class="hidden"></i><span id="progress-text"></span></div>
-          <div id="news" class="empty" title="Dernier événement"><span id="news-text">—</span></div>
+          <div id="news" class="empty" title="Dernier événement"><span id="news-text" class="mq">—</span></div>
           <button id="advance-btn" class="btn btn-primary small hidden" data-action="advance" title="Reprendre la progression">Avancer ▶</button>
           <button id="leave-mode" class="btn btn-danger small hidden" data-action="leave-mode" title="Revenir à la campagne"></button>
         </div>

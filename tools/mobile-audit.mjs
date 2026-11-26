@@ -7,17 +7,21 @@
 // 10 aucun texte sous 11 px · 11 aucun texte tronqué (scrollWidth > clientWidth avec ellipsis / overflow caché) ·
 // 12 un seul bouton VISUELLEMENT doré (fond or, pas seulement .m-btn-gold) · 13 aucun élément du HUD de combat (#hud106, #zone-card,
 // #combat-console) visible par-dessus un panneau qui n'est pas une page (Arène) · 14 #panel-subtabs sans .m-many : aucun onglet dont le texte
-// dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. Code de sortie 1 au moindre défaut.
+// dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. v10.17 : 18 au plus 4 styles de
+// bouton sur l'ensemble des écrans (tools/audit-1017.mjs) · 19 textes les plus longs injectés : ils défilent s'ils ne tiennent pas
+// (tools/text-fit-audit.mjs ; --no-fit pour sauter). Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
 import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { startServer } from './serve.mjs';
 import { audit1016Init } from './audit-1016.mjs'; // v10.16 (B9) : contrôles 16 et 17
+import { audit1017Init, BTN_EXCLUDE, MAX_BTN_STYLES } from './audit-1017.mjs'; // v10.17 (D) : contrôle 18
+import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5) : contrôle 19
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton de moins de 44 px', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -168,6 +172,10 @@ function inPage(isCombat) {
     if ((hidX || cs.textOverflow === 'ellipsis') && el.scrollWidth > el.clientWidth + 1) add(11, `${name(el)} tronqué en largeur (${el.scrollWidth} > ${el.clientWidth})`);
     else if (hidY && el.scrollHeight > el.clientHeight + 2 && el.clientHeight > 0) add(11, `${name(el)} tronqué en hauteur (${el.scrollHeight} > ${el.clientHeight})`);
   }
+  for (const el of (root ?? document).querySelectorAll('.mq-in')) { // v10.17 (C) : un texte enveloppé par src/ui/marquee.js qui dépasse doit défiler
+    const box = el.parentElement; if (!box || !visible(box) || box.classList.contains('mq-on') || box.classList.contains('mq-wrap')) continue;
+    if (box.scrollWidth > box.clientWidth + 1) add(11, `${name(box)} ne défile pas (${box.scrollWidth} > ${box.clientWidth})`);
+  }
   // 12. un seul bouton d'action visuellement doré (fond or), qu'il porte .m-btn-gold ou non (puces, modes et cases sélectionnés = états, exclus)
   const goldish = (cs) => [...(cs.backgroundImage + ' ' + cs.backgroundColor).matchAll(/rgba?\((\d+), (\d+), (\d+)/g)].some((x) => +x[1] > 200 && +x[2] > 140 && +x[3] < 130);
   const vGold = [...document.querySelectorAll('#panel button, #panel [data-action], #modal:not(.hidden) button')].filter((b) => !b.disabled && !b.classList.contains('disabled') && !b.matches('.m-chip, .m-mode, .map-dot, .m-tile, .m-node, .m-tnode, .subtab') && !b.closest('#panel-subtabs') && visible(b) && goldish(getComputedStyle(b)));
@@ -269,11 +277,13 @@ const fixture = JSON.parse(await readFile('tests/fixtures/endgame.json', 'utf8')
 await mkdir(out, { recursive: true });
 
 const report = []; // { game, size, tab, issues[], skipped }
+const btnStyles = new Map(); // v10.17 (D) : style → premier exemple
 for (const game of games) {
   for (const [width, height] of sizes) {
     const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
     await page.addInitScript(audit1016Init); // v10.16 (B9)
+    await page.addInitScript(audit1017Init); // v10.17 (D)
     const jsErrors = [];
     page.on('pageerror', (e) => jsErrors.push(e.message));
     if (game === 'endgame') {
@@ -308,6 +318,8 @@ for (const game of games) {
       else {
         rec.issues.push(...await page.evaluate(inPage, false));
         rec.issues.push(...await stability(page));
+        const st = await page.evaluate((ex) => window.__btnStyles?.([document.querySelector('#panel'), document.querySelector('#modal:not(.hidden)')].filter(Boolean), (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden', ex) ?? {}, BTN_EXCLUDE);
+        for (const [k, v] of Object.entries(st)) if (!btnStyles.has(k)) btnStyles.set(k, `${rec.size} ${tab} : ${v}`);
       }
       }
       const file = join(out, `${width}x${height}-${game === 'fresh' ? 'neuve-' : ''}${tab}.jpg`);
@@ -316,12 +328,25 @@ for (const game of games) {
       // on referme la fiche éventuellement laissée ouverte avant l'onglet suivant
       await page.evaluate(() => document.querySelectorAll('#panel .m-sheet .m-close').forEach((b) => b.click()));
     }
+    if (game === 'endgame' && !process.argv.includes('--no-fit')) { // v10.17 (C5) : textes les plus longs injectés dans chaque cadre
+      const L = await textFitLists(page);
+      for (const v of ['combat', 'inventory', 'companions', 'skills', 'camp', 'encyclopedia', 'daybook', 'event']) {
+        if (v === 'combat') { await page.evaluate(() => { try { __idle.ui.closePanel(); } catch { /* rien */ } }); await page.waitForTimeout(800); await closeAll(); } else {
+          await page.evaluate((t) => { try { __idle.ui.openTab(t); } catch { /* rien */ } }, v); await page.waitForTimeout(1300); await closeAll();
+          if (!await page.evaluate((t) => __idle.ui.tab === t, v)) continue;
+        }
+        const found = await textFitAudit(page, v, L);
+        report.push({ game, size: `${width}x${height}`, tab: `${v} (textes longs)`, issues: found.map((x) => ({ check: 19, msg: `[${x.lang}] ${x.msg}` })), skipped: null });
+      }
+    }
     if (jsErrors.length) report.push({ game, size: `${width}x${height}`, tab: '(page)', issues: jsErrors.map((m) => ({ check: 0, msg: `erreur JS : ${m}` })) });
     await ctx.close();
   }
 }
 await browser.close();
 server.close();
+if (btnStyles.size > MAX_BTN_STYLES) report.push({ game: '*', size: '*', tab: '(boutons)', skipped: null, issues: [...btnStyles].map(([k, v]) => ({ check: 18, msg: `${k} — ${v}` })) });
+console.log(`Styles de bouton : ${btnStyles.size} (au plus ${MAX_BTN_STYLES})`);
 
 // --- Résumé ---------------------------------------------------------------------------------------------------------
 const perCheck = Object.fromEntries(Object.keys(CHECKS).map((k) => [k, 0]));

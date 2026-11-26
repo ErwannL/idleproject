@@ -157,7 +157,7 @@ function phoneBranch(state, b, rec) {
     : '<p class="m-bnext done"><b class="good">Branche terminée ✓</b></p>';
   const attrs = next ? `data-cost="${next.cost}" data-currency="fragments"` : '';
   const foot = next
-    ? `<div class="m-bfoot"><span class="m-bcost ${afford ? 'ok' : 'ko'}" title="${afford ? '' : escapeHtml(missing(next.cost - state.fragments))}">${fragment()}<b>${formatNumber(next.cost)}</b></span>${(rec ? mBtnGold : mBtn)('Apprendre', { action: 'talent-branch', value: b.id, attrs, disabled: !afford })}</div>`
+    ? `<div class="m-bfoot"><span class="m-bcost ${afford ? 'ok' : 'ko'}" title="${afford ? '' : escapeHtml(missing(next.cost - state.fragments))}">${fragment()}<b>${formatNumber(next.cost)}</b></span>${(rec ? mBtnGold : mBtn)('Apprendre', { action: 'talent-branch', value: b.id, attrs, disabled: !afford })}</div>${afford ? '' : `<small class="cost-missing m-bmiss">${missingGo(next.cost - state.fragments)}</small>`}`
     : '';
   return `<div class="m-bcard${rec ? ' rec' : ''}" style="--c:${color};--branch:${color}">
     <button type="button" class="m-bart" data-action="m-set" ${nodeAttrs(b.id)} aria-label="${escapeHtml(`${meta.name} : détails`)}"><img class="px" src="${regionImg(b.id).replace('file:', '')}" alt="" width="56" height="56"></button>
@@ -341,6 +341,8 @@ const DESK_MAIN = ['combat', 'resources', 'survival']; // ordre de la maquette :
 const DESK_COLOR = { combat: '#ff5a5a', resources: '#ffc040', survival: '#4ddc7a' };
 const DESK_ICON = { simple: 'icon_star', tree: 'icon_tree', rebirth: 'icon_rebirth' };
 const missing = (n) => `Il manque ${formatNumber(n)} fragment${n > 1 ? 's' : ''}`;
+// v10.17 (E) : « Il manque 1 fragment › Où en trouver » : les fragments viennent de la Renaissance (Héros › Améliorations).
+const missingGo = (n) => `${missing(n)} <button type="button" class="why-go" data-action="open-tab" data-value="upgrades">Où en trouver ›</button>`;
 const pct1 = (v) => `+${(Math.round(v * 10) / 10).toString().replace('.', ',')} %`;
 
 function branchTier(state, id) {
@@ -374,7 +376,7 @@ function deskBranch(state, b, rec) {
   const attrs = next ? `data-cost="${next.cost}" data-currency="fragments"` : '';
   const foot = next
     ? `<div class="d-foot"><span class="d-fcost ${afford ? 'ok' : 'ko'}" title="Coût : ${formatNumber(next.cost)} fragment${next.cost > 1 ? 's' : ''}">${fragment()}<b>${formatNumber(next.cost)}</b></span>${(rec ? mBtnGold : mBtn)('Apprendre', { action: 'talent-branch', value: b.id, attrs, disabled: !afford, icon: `file:assets/ui/art106/talent_region_${b.id}.png` })}</div>
-      <small class="cost-missing d-miss">${afford ? '' : missing(next.cost - state.fragments)}</small>`
+      <small class="cost-missing d-miss">${afford ? '' : missingGo(next.cost - state.fragments)}</small>`
     : '';
   return `<div class="tb-row d-bc${rec ? ' rec' : ''}${big ? ' tb-big' : ''}" style="--c:${color};--branch:${color}">
     <div class="d-art"><span class="d-art-t">${escapeHtml(meta.name)}</span><span class="d-art-p">Palier ${tier}/${TIERS}</span><img class="px" src="assets/ui/art106/talent_region_${b.id}.png" alt="${escapeHtml(meta.name)}"></div>
@@ -413,7 +415,7 @@ function deskSimple(state) {
   return `${rankBar}<div class="d-br">${main.map((b) => deskBranch(state, b, b.id === rec)).join('')}</div>
     <div class="d-gains m-card"><div class="d-sec">Ce que tes talents te donnent déjà</div><div class="d-gain-grid">${talentGains(state)}</div></div>
     <details class="tb-others d-others"><summary>Autres branches (${others.length})</summary><div class="d-br d-br-others">${others.map((b) => deskBranch(state, b, false)).join('')}</div></details>
-    <div class="d-pair"><div>${adv}</div><div>${best}${miss ? `<small class="d-miss">${missing(miss)}</small>` : ''}</div></div>`;
+    <div class="d-pair"><div>${adv}</div><div>${best}${miss ? `<small class="d-miss">${missingGo(miss)}</small>` : ''}</div></div>`;
 }
 
 // ---------- Arbre avancé ----------

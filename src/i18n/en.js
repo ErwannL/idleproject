@@ -2147,3 +2147,7 @@ for (const [k, v] of Object.entries(EXACT_1016_TITANS)) if (!Object.hasOwn(EXACT
 // v10.17 (B) : touches d'attaque — « ✓ en attente » (./en-1017.js).
 import { EXACT_1017 } from './en-1017.js';
 for (const [k, v] of Object.entries(EXACT_1017)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.17 (C, D, E) : tout le jeu propre et homogène — points de compétence, fragments, Boutique, Bastion (./en-1017-ui.js).
+import { EXACT_1017_UI, patterns1017Ui } from './en-1017-ui.js';
+for (const [k, v] of Object.entries(EXACT_1017_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1017Ui());

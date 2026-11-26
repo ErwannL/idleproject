@@ -12,15 +12,20 @@
 //   7 aucun bouton « Équiper toute l'équipe » dans Compagnons
 //   8 aucun <select> visible
 //   9 aucun texte sous 12 px
-//  10 aucun texte tronqué (ellipsis ou débordement masqué)
+//  10 aucun texte tronqué (ellipsis ou débordement masqué) ; un texte enveloppé par src/ui/marquee.js qui dépasse défile
+//  13 (v10.17) au plus 4 styles de bouton sur l'ensemble des écrans (tools/audit-1017.mjs)
+//  14 (v10.17) les textes les plus longs (fr, en, ko) injectés dans chaque cadre défilent s'ils ne tiennent pas (tools/text-fit-audit.mjs ; --no-fit pour sauter)
 // Il est NORMAL qu'il trouve des défauts tant que les écrans n'ont pas été refaits : il rapporte le nombre par contrôle et par onglet.
 // Code de sortie 1 au moindre défaut. Captures JPEG : <taille>-<partie>-<vue>.jpg (partie neuve : « neuve »), dans le dossier --out.
 import { mkdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { BTN_EXCLUDE, MAX_BTN_STYLES } from './audit-1017.mjs'; // v10.17 (D)
+import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5)
 import { ALL_TABS, PC_SIZES, makeOpt, parseSizes, parseList, startApp, openGame, openTab, listModes, clickMode, closeAll, slug } from './lib-1013.mjs';
 
 export const CHECKS = {
+  13: 'plus de 4 styles de bouton (tous écrans confondus)', 14: 'texte long coupé sans défiler (textes injectés)', // v10.17 : tools/audit-1017.mjs, tools/text-fit-audit.mjs
   11: 'libellé terminé par un point d\'abréviation', 12: 'bouton désactivé sans explication', // v10.16 (B9) : tools/audit-1016.mjs
   1: 'défilement horizontal / contenu décentré', 2: 'chevauchement', 3: 'image d\'événement hors de son cadre', 4: 'cartouche / bouton doré',
   5: 'image manquante', 6: '« Remettre au niveau » / sharpen', 7: '« Équiper toute l\'équipe » dans Compagnons', 8: '<select> visible', 9: 'texte sous 12 px', 10: 'texte tronqué (ellipsis / débordement)',
@@ -95,7 +100,7 @@ export function inPage(kind) {
   } else {
     boxes = [...document.querySelectorAll('#zone-card, #hq-events .hq-ev, #hq-left > *, #skill-bar, #hud, #loot-bag, #next-action, #boost-group, #hq-bounty, #goals-pill')].filter(shown);
   }
-  boxes = [...new Set(boxes)];
+  boxes = [...new Set(boxes)].filter((el) => !el.closest('.bs-toast')); // v10.17 (E) : notification posée par-dessus, qui se ferme seule
   const seen = new Set();
   for (let i = 0; i < boxes.length; i++) {
     const a = rectOf(boxes[i]);
@@ -169,6 +174,11 @@ export function inPage(kind) {
     if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') continue;
     if (el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0) { const m = `${name(el)} : ${el.scrollWidth} > ${el.clientWidth}`; if (!cut.has(m)) { cut.add(m); add(10, m); } }
   }
+  // 10 (v10.17, C) : un texte enveloppé par src/ui/marquee.js qui dépasse doit défiler (.mq-on)
+  for (const el of (kind === 'tab' ? [panel, modal].filter(Boolean) : [document.querySelector('#play') ?? document.body]).flatMap((r) => [...r.querySelectorAll('.mq-in')])) {
+    const box = el.parentElement; if (!box || !shown(box) || box.classList.contains('mq-on') || box.classList.contains('mq-wrap')) continue;
+    if (box.scrollWidth > box.clientWidth + 1) add(10, `${name(box)} : ne défile pas (${box.scrollWidth} > ${box.clientWidth})`);
+  }
   // 11 et 12 (v10.16, B9) : libellés sans point d'abréviation ; chaque bouton désactivé a un texte d'explication.
   const extra = window.__audit1016?.(kind === 'tab' ? [panel, modal, document.querySelector('#tabs')].filter(Boolean) : [document.querySelector('#play') ?? document.body, document.querySelector('#tabs')].filter(Boolean), shown) ?? [];
   for (const x of extra) add(x.check === 'abbr' ? 11 : 12, x.msg);
@@ -220,6 +230,8 @@ export async function runAudit(argv) {
   if (shots) await mkdir(out, { recursive: true });
   const app = await startApp();
   const report = []; // { game, size, view, tab, issues[], skipped }
+  const btnStyles = new Map(); // v10.17 (D) : style → premier exemple
+  const fit = !argv.includes('--no-fit');
   const record = async (g, game, w, h, tab, view, kind, shotName) => {
     // Une fenêtre (récompense du jour, retour hors ligne…) peut s'ouvrir après le dernier closeAll : elle devient la « racine » du contrôle
     // et le cartouche du panneau semble absent. On la referme juste avant de mesurer.
@@ -227,6 +239,10 @@ export async function runAudit(argv) {
     if (kind === 'tab') await g.page.waitForFunction(() => { const f = document.querySelector('#panel-body .m-frame'); return !f || Number(getComputedStyle(f).opacity) > 0.99; }, null, { timeout: 4000 }).catch(() => { /* fondu du panneau trop long : le contrôle le dira */ });
     await g.page.waitForFunction(() => [...document.images].every((i) => i.complete || i.loading === 'lazy' || !i.getClientRects().length), null, { timeout: 4000 }).catch(() => { /* image vraiment manquante : le contrôle 5 la signalera */ });
     const rec = { game, size: `${w}x${h}`, tab, view, issues: await g.page.evaluate(inPage, kind), skipped: null };
+    if (kind === 'tab') { // v10.17 (D) : styles de bouton, additionnés sur tous les écrans
+      const st = await g.page.evaluate((ex) => window.__btnStyles?.([document.querySelector('#panel'), document.querySelector('#modal:not(.hidden)')].filter(Boolean), (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden', ex) ?? {}, BTN_EXCLUDE);
+      for (const [k, v] of Object.entries(st)) if (!btnStyles.has(k)) btnStyles.set(k, `${rec.size} ${view} : ${v}`);
+    }
     report.push(rec);
     if (shots) await g.page.screenshot({ path: join(out, `${w}x${h}-${game === 'fresh' ? 'neuve-' : ''}${shotName}.jpg`), type: 'jpeg', quality: 70 });
   };
@@ -262,13 +278,23 @@ export async function runAudit(argv) {
       await g.page.evaluate(() => { try { __idle.ui.closePanel(); } catch { /* rien */ } });
       await g.page.waitForTimeout(1500); await closeAll(g.page);
       await record(g, game, w, h, 'combat', 'combat', 'combat', 'combat');
+      if (fit && game === 'endgame') { // v10.17 (C5) : textes les plus longs injectés dans chaque cadre
+        const L = await textFitLists(g.page);
+        for (const v of ['combat', 'inventory', 'companions', 'skills', 'camp', 'encyclopedia', 'daybook', 'event']) {
+          if (v === 'combat') { await g.page.evaluate(() => { try { __idle.ui.closePanel(); } catch { /* rien */ } }); await g.page.waitForTimeout(800); await closeAll(g.page); } else if (!await openTab(g.page, v)) continue;
+          const found = await textFitAudit(g.page, v, L);
+          report.push({ game, size: `${w}x${h}`, tab: v, view: `${v} (textes longs)`, issues: found.map((x) => ({ check: 14, msg: `[${x.lang}] ${x.msg}` })), skipped: null });
+        }
+      }
       if (g.jsErrors.length) report.push({ game, size: `${w}x${h}`, tab: '(page)', view: '(page)', issues: [...new Set(g.jsErrors)].map((m) => ({ check: 0, msg: `erreur JS : ${m}` })), skipped: null });
       await g.ctx.close();
       if (!quiet) console.log(`${game} ${w}x${h} : fait`);
     }
   }
   await app.close();
-  return { report, out, shots };
+  if (btnStyles.size > MAX_BTN_STYLES) report.push({ game: '*', size: '*', tab: '(boutons)', view: '(boutons)', skipped: null, issues: [...btnStyles].map(([k, v]) => ({ check: 13, msg: `${k} — ${v}` })) });
+  if (!quiet) console.log(`Styles de bouton : ${btnStyles.size} (au plus ${MAX_BTN_STYLES})`);
+  return { report, out, shots, btnStyles: btnStyles.size };
 }
 
 export function summarize(report, { quiet = false } = {}) {

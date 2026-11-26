@@ -36,7 +36,7 @@ import { REBIRTH, TALENT_BRANCHES } from '../data/rebirth.js';
 import { keptRebirthShare, transcendReward } from '../core/transcend.js';
 import { TRANSCEND } from '../data/transcend.js';
 import { rewardText } from '../core/rewards.js';
-import { skillCooldown } from '../core/skills.js';
+import { skillCooldown, skillPointsAvailable } from '../core/skills.js'; // v10.17 (E) : points à dépenser sur « Héros »
 import { computeHeroStats } from '../core/stats.js';
 import { KEY_LABELS, boostKeys, cycleSub, focusables, installShortcuts, keyConflict, keyLabel, setCustomKeys, setMenuCount, shortcutsHtml } from './shortcuts.js';
 import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
@@ -1978,7 +1978,17 @@ export class UI {
     this.setText('strip-gold', formatNumber(state.gold));
     if (this.layout === 'strip') this.setText('strip-info', `Niv. ${state.level} · Étape ${state.stage}`); // v9.7.1 : ligne compacte
     this.setText('gems', formatNumber(state.gems));
-    this.setText('hp', `${formatNumber(Math.max(0, world.hero.hp))} / ${formatNumber(stats.maxHp)}`);
+    // v10.17 (C) : PV actuels et maximum dans deux morceaux (la colonne de combat étroite n'affiche que les PV actuels)
+    this.setText('hp-cur', formatNumber(Math.max(0, world.hero.hp)));
+    this.setText('hp-max', ` / ${formatNumber(stats.maxHp)}`);
+    { // PV qui ne tiennent pas dans leur barre : les PV actuels seuls (mesuré au plus une fois par seconde)
+      const t = performance.now();
+      if (t - (this._hpFitAt ?? 0) > 1000) {
+        this._hpFitAt = t;
+        const chip = this.$('hp-chip');
+        if (chip?.isConnected && chip.clientWidth) { chip.classList.remove('hp-short'); if (chip.scrollWidth > chip.clientWidth + 1) chip.classList.add('hp-short'); }
+      }
+    }
     { const hf = this.$('hp-fill'); if (hf) { const w = `${Math.round(Math.max(0, Math.min(1, world.hero.hp / Math.max(1, stats.maxHp))) * 1000) / 10}%`; if (hf.style.width !== w) hf.style.width = w; } } // v10.13 : barre de PV de la console
     this.setText('level-badge', `Niv. ${state.level}`);
     const xpRatio = state.xp / xpForLevel(state.level);
@@ -2554,6 +2564,15 @@ export class UI {
     // v10.9 (7 ter) : pastille verte « ▲ » quand un objet meilleur attend dans le sac (le joueur équipe lui-même).
     const better = this.$('better-hero');
     if (better) { const k = (this._betterAt ?? 0) < performance.now() - 2000 ? (this._better = betterItems(state).length, this._betterAt = performance.now(), this._better) : this._better; better.classList.toggle('hidden', !k); }
+    // v10.17 (E) : points de compétence à dépenser : pastille « ✦ 152 » sur le bouton Héros du bas.
+    const ptsEl = this.$('pts-hero');
+    if (ptsEl) {
+      const p = this.tabVisible.skills !== false && this.tab !== 'skills' ? skillPointsAvailable(state) : 0;
+      ptsEl.classList.toggle('hidden', p <= 0);
+      ptsEl.textContent = p > 0 ? `✦ ${p > 999 ? '999+' : p}` : '';
+      ptsEl.title = p > 0 ? `${p} point${p > 1 ? 's' : ''} de compétence à dépenser` : '';
+      ptsEl.setAttribute('aria-label', ptsEl.title);
+    }
     if (this.tab) this.renderSubtabs();
   }
 
