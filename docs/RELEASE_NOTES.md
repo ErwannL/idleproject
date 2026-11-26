@@ -1,6 +1,14 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.16.0 — Un vrai combat de boss
+## Ascendrya v10.16.1 — Les Titans se réveillent
+
+- **Chaque Titan du jour a ses propres compétences** : 3 attaques et 2 phases chacun, qui changent la scène jusqu'à la fin du combat. Soleil (Lance solaire, Couronne de rayons, Éblouissement, Éclat solaire, Midi ardent), Lune (Disque d'argent, Regard d'argent, Reflets, Marée lunaire, Nuit sans fin), Braises (Bombe de magma, Geysers, Souffle de cendres, Pluie de cendres, Cœur de lave), Marées (Sphère d'eau, Siphon, Jet de pression, Lame de fond, Abysse), Ronces (Graine d'épines, Spores, Étreinte, Ronces, Forêt vivante), Orage (Javelot de foudre, Chaîne d'éclairs, Tonnerre, nuages d'orage, Colère du ciel), Néant (Orbe du vide, Pas du néant, Faille, fissures, Éclipse). Chacun a aussi un signe distinctif (couronne de rayons, halo de lune, cœur de lave…). La fiche avant le combat liste « Ses attaques ». Les dégâts et les PV ne changent pas.
+- **Boss de campagne, de donjon et de la Tour plus grands** : 1,3 à 1,8 fois la taille du héros selon l'étape, et jamais collés à lui.
+- **Une seule annonce à la fois** : portail, « DANGER » et « Moment fort » passent l'un après l'autre, sans noircir l'écran, et jamais par-dessus une fenêtre ouverte.
+- **Grands boss** : plus de croissant blanc près du héros (Dieu de l'Orage, Hydre…) ; sur téléphone, le souffle des géants ne cache plus le héros.
+- **Léviathan** : il se bat maintenant dans le Royaume englouti.
+
+<details><summary>Ascendrya v10.16.0 — Un vrai combat de boss</summary>
 
 **Combat contre un boss**
 - **On voit enfin le boss** : il ne devient plus une silhouette blanche à chaque coup. Le flash blanc est réservé aux coups critiques (au plus 4 par seconde, très court) ; les autres coups le teintent légèrement de la couleur de l'élément et le font trembler.
@@ -20,6 +28,8 @@
 - **Classement et Guilde sans compte** : ce qu'on y gagne, tout de suite ; plus de chargement sans fin (« Réessayer » après 5 s).
 - **Panthéon** : les boss vaincus avant sa création sont maintenant comptés.
 - **« Bonus du moment »** : une pastille sur l'icône, plus une bulle sur la scène.
+
+</details>
 
 <details><summary>Ascendrya v10.15.2 — Google Play</summary>
 
