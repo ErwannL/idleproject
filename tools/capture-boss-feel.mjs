@@ -4,7 +4,8 @@
 // Enregistre une vidéo (.webm) et une planche de 16 images par combat, puis un rapport (rapport.md et rapport.json) :
 // part du temps où le boss est blanc, nombre de croissants (effets fx_slash*), coups du héros par seconde.
 // Les compteurs viennent de la scène (globalThis.__feelStats, voir src/render/scene.js).
-import { mkdir, rename, writeFile } from 'node:fs/promises';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { makeOpt, parseSizes, startApp, closeAll } from './lib-1013.mjs';
 
@@ -42,8 +43,12 @@ async function measure(page, name, sec) {
     shots.push(await page.screenshot());
   }
   const st = (await page.evaluate(() => globalThis.__feelStats)) ?? {};
-  await writeFile(join(out, `${name}-planche.json`), JSON.stringify({ n: shots.length }));
+  // Planche de 16 images (4 × 4, à mi-taille) : ffmpeg (FFMPEG=…) ; sans ffmpeg, les 16 images restent dans frames/.
   for (let i = 0; i < shots.length; i++) await writeFile(join(out, 'frames', `${name}-${String(i).padStart(2, '0')}.png`), shots[i]);
+  try {
+    execFileSync(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-i', join(out, 'frames', `${name}-%02d.png`), '-vf', 'scale=iw/2:-1,tile=4x4', '-frames:v', '1', join(out, `${name}-16-images.png`)]);
+    for (let i = 0; i < shots.length; i++) await rm(join(out, 'frames', `${name}-${String(i).padStart(2, '0')}.png`));
+  } catch { /* pas de ffmpeg : images gardées */ }
   // Version sans compteurs (avant la v10.16) : mesures vides, seules les images et la vidéo comptent.
   return { name, seconds: sec, bossFrames: st.frames ?? null, whitePct: st.frames ? Math.round((st.white / st.frames) * 1000) / 10 : null,
     crescents: st.slash ?? null, strikesPerSec: st.strikes != null ? Math.round((st.strikes / sec) * 10) / 10 : null };
@@ -101,6 +106,8 @@ for (const [w, h] of sizes) {
   console.log(tag, 'ok');
 }
 await app.close();
+await rm(join(out, 'video-tmp'), { recursive: true, force: true });
+await rm(join(out, 'frames'), { recursive: true, force: true }).catch(() => {});
 
 const md = ['# v10.16 — mesures du combat de boss', '', `${SECONDS} s filmées par combat (tools/capture-boss-feel.mjs).`, '',
   '| Taille | Combat | Boss blanc | Croissants | Coups du héros / s | Erreurs JS |', '|---|---|---|---|---|---|',

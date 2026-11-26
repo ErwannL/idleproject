@@ -1,0 +1,48 @@
+[
+  {
+    "size": "1366x768",
+    "fight": "boss de campagne",
+    "stage": 520,
+    "name": "boss-campagne-1366x768",
+    "seconds": 10,
+    "bossFrames": 336,
+    "whitePct": 58.3,
+    "crescents": 23,
+    "strikesPerSec": 7.2,
+    "jsErrors": []
+  },
+  {
+    "size": "1366x768",
+    "fight": "géant frost_giant",
+    "name": "geant-frost_giant-1366x768",
+    "seconds": 10,
+    "bossFrames": 0,
+    "whitePct": null,
+    "crescents": 60,
+    "strikesPerSec": 11,
+    "jsErrors": []
+  },
+  {
+    "size": "412x915",
+    "fight": "boss de campagne",
+    "stage": 520,
+    "name": "boss-campagne-412x915",
+    "seconds": 10,
+    "bossFrames": 536,
+    "whitePct": 54.5,
+    "crescents": 26,
+    "strikesPerSec": 6,
+    "jsErrors": []
+  },
+  {
+    "size": "412x915",
+    "fight": "géant frost_giant",
+    "name": "geant-frost_giant-412x915",
+    "seconds": 10,
+    "bossFrames": 0,
+    "whitePct": null,
+    "crescents": 50,
+    "strikesPerSec": 10.5,
+    "jsErrors": []
+  }
+]
