@@ -43,7 +43,8 @@ export function showBossWarning(plan, host = document.getElementById('stage-area
   el.className = `boss-warning tier-${plan.tier}${plan.short ? ' short' : ''}${plan.calm ? ' calm' : ''}`;
   el.setAttribute('aria-hidden', 'true'); // l'annonce vocale passe par ui.announce()
   el.style.setProperty('--bw-ms', `${plan.ms}ms`);
-  el.innerHTML = `<div class="bw-shade"></div><div class="bw-band"><b class="bw-head">${plan.head}</b>
+  // v10.16 : plus d'assombrissement de la scène (bandeau seul) ; l'alerte passe par la file d'annonces (announce-queue.js).
+  el.innerHTML = `<div class="bw-band"><b class="bw-head">${plan.head}</b>
     <span class="bw-sub">${plan.sub}</span><span class="bw-name"></span></div>`;
   el.querySelector('.bw-name').textContent = plan.name;
   host.appendChild(el);

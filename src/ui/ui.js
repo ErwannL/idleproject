@@ -43,6 +43,8 @@ import { installHoldToRepeat, selectorFor, holdFiredRecently } from './hold.js';
 import { installTips } from './tip.js';
 import { playSummonReveal } from './summon-fx.js';
 import { bossWarningPlan, showBossWarning } from './boss-warning.js'; // v9.1.9
+import { AnnounceQueue, PORTAL_MS, MOMENT_MS } from './announce-queue.js'; // v10.16
+import { playCinematic, stopCinematic } from './cinematic.js'; // v10.16 : « Moment fort » par la file d'annonces
 import { queueSkinReveals } from './skin-reveal.js'; // v9.1.9
 import { waveCount, waveIndex, waveMode } from '../core/combat.js'; // v9.3.8
 import { nextMilestone } from '../core/unlocks.js';
@@ -1696,15 +1698,12 @@ export class UI {
         this.bossMemory ??= {};
         const plan = bossWarningPlan(this.bossMemory, { tier, kind: event.kind, enemyId: event.enemyId, name: BOSSES[event.kind].name,
           mode: state.dungeon ? 'dungeon' : state.tower ? 'tower' : 'stage', now: Date.now(), calm: reduceMotion(), fast: (this.speed ?? 1) >= 100 });
-        if (plan) showBossWarning(plan);
+        // v10.16 : arrivée du boss (portail), puis alerte : l'une après l'autre, jamais avec un « Moment fort ».
+        this.queueAnnounce({ kind: 'portal', ms: PORTAL_MS });
+        if (plan) this.queueAnnounce({ kind: 'danger', ms: plan.ms, plan });
         if (trait) this.news(`${BOSSES[event.kind].name} — ${trait.name} : ${trait.short}`, trait.color, 2);
         if (tier === 'mega' || tier === 'hard') this.announce(`${label} : ${BOSSES[event.kind].name}`);
-        if ((tier === 'mega' || tier === 'hard') && !this.calm) {
-          const flash = this.$('boss-flash');
-          flash.className = `tier-${tier}`;
-          void flash.offsetWidth;
-          flash.classList.add('on');
-        }
+        // v10.16 : plus d'assombrissement rouge de la scène (#boss-flash) à l'arrivée d'un boss.
       }
         break;
       case 'worldClosed': { // v9.6.5 (10.3)
@@ -2404,11 +2403,39 @@ export class UI {
   }
 
   // v9.3.8 (4) : grand moment fêté en plein écran, 2 s, une seule fois (mémorisé dans state.ui.hints).
+  // v10.16 : file d'annonces (announce-queue.js) : portail d'arrivée, « DANGER » et « Moment fort » l'un après l'autre ;
+  // un moment fort attend qu'aucune fenêtre (onglet, modale) ne soit ouverte.
+  queueAnnounce(item) {
+    (this.announcer ??= new AnnounceQueue()).push(item);
+    this.pumpAnnounce();
+    if (!this.announceTimer) this.announceTimer = setInterval(() => this.pumpAnnounce(), 150);
+  }
+  pumpAnnounce() {
+    const q = this.announcer;
+    if (!q) return;
+    const modal = typeof document !== 'undefined' && document.getElementById('modal');
+    const panelOpen = Boolean(this.tab) || Boolean(modal && !modal.classList.contains('hidden'));
+    const { stop, start } = q.tick(Date.now(), { panelOpen });
+    if (stop?.cine) stopCinematic();
+    if (stop?.box) stop.box.remove();
+    if (start?.kind === 'danger') showBossWarning(start.plan);
+    else if (start?.kind === 'moment') {
+      if (start.cine) playCinematic({ ...start.cine, light: true, duration: start.ms });
+      else if (start.render) q.current.box = start.box = start.render();
+    }
+    if (!q.busy && !q.size) { clearInterval(this.announceTimer); this.announceTimer = null; }
+  }
+  // « Moment fort » (cinématique légère) mis en file.
+  moment(cine) { this.queueAnnounce({ kind: 'moment', ms: cine.duration ?? MOMENT_MS, cine }); }
+
   celebrate(id, title, sub = '') {
     const st = this.state;
     if (!st?.ui || (st.ui.hints ?? []).includes(`cele-${id}`) || typeof document === 'undefined') return;
     st.ui.hints = [...(st.ui.hints ?? []), `cele-${id}`].slice(-150);
     if (navigator.webdriver) return; // vérifications automatiques : pas de rideau par-dessus le jeu
+    this.queueAnnounce({ kind: 'moment', ms: 2100, render: () => this.celebrateNow(title, sub) }); // v10.16 : par la file
+  }
+  celebrateNow(title, sub) {
     const el = document.createElement('div');
     el.className = 'celebrate';
     el.innerHTML = `<div class="cele-box"><b>${escapeHtml(title)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}</div>`;
@@ -2416,6 +2443,7 @@ export class UI {
     document.body.appendChild(el);
     setTimeout(() => el.classList.add('out'), 1700);
     setTimeout(() => el.remove(), 2100);
+    return el;
   }
 
   updateBadges(state) {

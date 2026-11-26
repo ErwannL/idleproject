@@ -1816,7 +1816,8 @@ function highlight(id, title, line) {
   if (seen.includes(`hl-${id}`)) return;
   state.ui.hints = [...seen, `hl-${id}`].slice(-150);
   state.gems += 25;
-  playCinematic({ kicker: 'Moment fort', title, line });
+  if (ui.moment) ui.moment({ kicker: 'Moment fort', title, line }); // v10.16 : file d'annonces (jamais par-dessus une fenêtre)
+  else playCinematic({ kicker: 'Moment fort', title, line });
   setTimeout(() => ui.toast(`${title} +25 gemmes`, '#ffd23f'), 2400);
   save();
 }

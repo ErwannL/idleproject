@@ -4,14 +4,16 @@ import { ZONE_INTRO } from '../data/lore.js';
 
 let current = null;
 
-export function playCinematic({ kicker = '', title, line = '', zone = null, duration = 4200 }) {
+// v10.16 : `light` : sans bandes noires ni assombrissement (« Moment fort », passé par la file d'annonces).
+export function playCinematic({ kicker = '', title, line = '', zone = null, duration = 4200, light = false }) {
   const host = document.getElementById('stage-area');
   if (!host || document.querySelector('#app.layout-strip')) return;
   current?.remove();
   const el = document.createElement('div');
   el.className = `cinematic${zone ? ` zone-${zone}` : ''}`;
-  el.innerHTML = `<i class="cine-bar top"></i><i class="cine-bar bottom"></i>
+  el.innerHTML = `${light ? '' : '<i class="cine-bar top"></i><i class="cine-bar bottom"></i>'}
     <div class="cine-text">${kicker ? `<small>${kicker}</small>` : ''}<h1></h1><p>${line}</p></div>`;
+  if (light) el.style.background = 'none';
   host.appendChild(el);
   current = el;
   const h1 = el.querySelector('h1');
@@ -31,6 +33,15 @@ export function playCinematic({ kicker = '', title, line = '', zone = null, dura
   const timer = setTimeout(end, duration);
   el.addEventListener('click', () => { clearTimeout(timer); end(); });
   requestAnimationFrame(() => el.classList.add('in'));
+}
+
+// v10.16 : arrête la cinématique en cours (une annonce urgente passe devant, une fenêtre s'ouvre).
+export function stopCinematic() {
+  const el = current;
+  if (!el) return;
+  current = null;
+  el.classList.add('out');
+  setTimeout(() => el.remove(), 600);
 }
 
 // v8.9 : transition entre deux lieux (monde, donjon, tour, défi…) : des nuages arrivent de la gauche et de la
