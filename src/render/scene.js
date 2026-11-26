@@ -1050,7 +1050,7 @@ export class SceneRenderer {
     } else if (this.slowmo > 0) { this.slowmo -= dt; dt *= 0.3; } // v10.16 (A4) : ralenti du coup fatal
     this.time += dt;
     this.frameNo = (this.frameNo ?? 0) + 1;
-    this.feelStats = globalThis.__feelStats ?? null; // v10.16 : mesure (capture-boss-feel)
+    this.feelStats = globalThis.__wbScene && !this.bigBoss ? null : globalThis.__feelStats ?? null; // grand boss ouvert : seule sa scène compte // v10.16 : mesure (capture-boss-feel)
     const ctx = this.ctx;
     // Réduire les animations (v9.1.0, réglage de l'appareil ou préférence du système ; ancien « mode concentration ») :
     // pas de secousses ni de particules d'ambiance, effets allégés.
@@ -1464,7 +1464,9 @@ export class SceneRenderer {
       if (enemy.boss && !this.bigBoss && this.layout?.heroH) {
         const bb = heroLike ? boxOf(img) : boxOf(ecv(base, { colors }));
         const bh = bb ? (bb.bottom - bb.top + 1) * scale : 0;
-        scale *= bossBoost(bh, this.layout.heroH, bossHeightRatio(BOSSES[enemy.type]?.tier, this.bossWhere));
+        const boost = bossBoost(bh, this.layout.heroH, bossHeightRatio(BOSSES[enemy.type]?.tier, this.bossWhere));
+        scale *= boost;
+        if (this.feelStats) this.feelStats.ratio = Math.round(((bh * boost) / this.layout.heroH) * 100) / 100; // mesure (capture-boss-feel)
       }
       const w = img.width * scale;
       const h = img.height * scale;
@@ -1568,6 +1570,10 @@ export class SceneRenderer {
       let x = this.snap(Math.max(exd - w / 2, HERO_X + (enemy.boss ? 20 : 12)) - lunge + (fx.knock > 0.5 ? fx.knock : 0) + pose.dx) + jitterOf(fx, this.frameNo ?? 0); // v10.16 (A1) : tremblement
       // v10.16 : boss (hors grands boss) : au moins 24 px d'écran entre le héros et le bord de sa silhouette, même en attaque.
       if (enemy.boss && !this.bigBoss && this.layout?.heroRight !== undefined) x = Math.max(x, this.snap(bossMinX(this.layout.heroRight, bodyEdge(img) * scale, this.scale)));
+      if (enemy.boss && this.feelStats && this.layout?.heroRight !== undefined && k >= 1) {
+        const gap = Math.round((x + bodyEdge(img) * scale - this.layout.heroRight) * (this.scale || 1));
+        this.feelStats.gap = Math.min(this.feelStats.gap ?? 1e9, gap); // mesure : plus petit écart à l'écran (px)
+      }
       // v9.2.5 : pieds réels (bas opaque du sprite de base) sur le sol, et non le bas du cadre.
       // Images de pas (_w1/_w2) sans image dessinée : le pied au sol de chaque image reste sur la ligne du sol.
       const stepBox = !drawn && !heroLike && !flying && sprite !== base ? boxOf(ecv(sprite, { colors })) : null;
