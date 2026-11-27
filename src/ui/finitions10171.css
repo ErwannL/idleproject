@@ -1,0 +1,85 @@
+/* v10.17.1 : finitions (Équipement, Forge, Compagnons, Arène, Apparences, bouton principal en bas, colonne de combat, boutons
+   secondaires de 40 px sur téléphone). Chargé après ui1017.css. */
+
+/* ---------- 7. PC, fenêtre ouverte : la colonne d'événements sous la carte de zone (src/ui/hud-quests.js, classe ev-under) ---------- */
+#app#app.ev-under:not(.m-phone) #hud106 #hq-events { top: var(--ev-top, 90px) !important; left: var(--ev-left, 6px) !important; right: auto !important;
+  width: var(--ev-w, 270px) !important; max-width: var(--ev-w, 270px) !important; height: auto !important; flex-wrap: wrap !important; justify-content: flex-start;
+  overflow: visible !important; row-gap: 8px; }
+#app#app.ev-under:not(.m-phone) #hud106 #hq-left { top: var(--ev-bottom, 200px) !important; }
+#app#app#app.ev-under.hud-narrow #stage-area { --ph-top: 6px !important; }
+#app#app#app.ev-under:not(.hud-narrow):not(.m-phone) #play.band109 #boost-group,
+#app#app#app.ev-under:not(.hud-narrow):not(.m-phone) #play.band109 #auto-toggle { top: 8px !important; }
+/* 1920 (zoom 125 %) avec fenêtre : la colonne « Vague et héros » de la console gardait 76 px (« Vague », « Premi… » coupés) :
+   elle garde au moins 210 px, « Tout récupérer » cède la place. */
+#app#app.ev-under:not(.m-phone):not(.hud-narrow) #combat-console .cc-wave { flex: 0 1 220px; min-width: 210px; }
+#app#app.ev-under:not(.m-phone):not(.hud-narrow) #combat-console .cc-right { flex: 1 1 0; min-width: 0; }
+#app#app.ev-under:not(.m-phone):not(.hud-narrow) #combat-console #next-action #next-action-text { white-space: normal; overflow-wrap: anywhere; font-size: 18px; line-height: 1.1; text-overflow: clip; }
+#app#app.ev-under:not(.m-phone):not(.hud-narrow) #combat-console #next-action #next-action-why { display: none; }
+
+/* ---------- 1. Équipement : sac vide en une ligne ; page large de 1366 : 2 colonnes (personnage | sac puis fiche) ---------- */
+#app #panel .eq-bag-empty { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; font-size: 14px; color: var(--m-text, #eef2ff); }
+#app #panel .eq-bag-empty .eq-go-fight { min-height: 40px; padding: 0 6px; }
+@container mframe (min-width: 940px) and (max-width: 1099px) {
+  #app:not(.m-phone) .de-cols { grid-template-columns: 340px minmax(0, 1fr); }
+  #app:not(.m-phone) .de-cols > .de-who { grid-column: 1; grid-row: 1 / span 2; }
+  #app:not(.m-phone) .de-cols > .de-bag { grid-column: 2; grid-row: 1; }
+  #app:not(.m-phone) .de-cols > .de-det { grid-column: 2; grid-row: 2; }
+  #app:not(.m-phone) .de-bag .m-grid { grid-template-columns: repeat(auto-fill, 64px); justify-content: space-between; }
+  #app:not(.m-phone) .de-bag .m-tile.s64 { --m-s: 64px; }
+}
+
+/* ---------- 2. Forge : colonne de droite lisible (14 px, couleur claire du thème, plus de gris pâle) ---------- */
+#app#app#app:not(.m-phone) .d-forge .fg-side :is(p, li, span, small, div, label, .muted, .hint, .fg-rule, .fg-now) { font-size: max(14px, 1em); }
+#app#app#app:not(.m-phone) .d-forge .fg-side :is(p, li, span, small, label, .muted, .hint, .fg-rule, .fg-now.muted, .sub, .note) { color: var(--m-text, #eef2ff); opacity: 1; }
+#app#app#app:not(.m-phone) .d-forge .fg-side :is(b, strong, h3, h4) { color: var(--m-gold-hi, #f3d27a); }
+
+/* ---------- 3. Compagnons : un bouton « Filtrer » (menu Rareté / Élément), filtre actif rappelé sur le bouton ---------- */
+#app #panel .dc-fbtn { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; white-space: nowrap; }
+#app #panel .dc-fbtn .dc-fact { color: var(--btn-link-ink, #f3d27a); font-weight: 900; }
+#app #panel .dc-fmenu { order: 4; display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 10px 12px; border-radius: var(--btn-r, 10px);
+  border: 2px solid var(--m-card-line, #3a4a80); background: var(--m-card, #141c38); }
+#app #panel .dc-fmenu .m-chips { align-items: center; gap: 8px; margin: 0; }
+#app #panel .dc-fmenu .dc-flbl { min-width: 64px; color: var(--m-text, #eef2ff); font: 800 14px/1 system-ui, sans-serif; }
+
+/* ---------- 4. Arène : cartes de mode plus grandes, « Formation prête » en badge vert ---------- */
+#app #panel .m-modes:has(> [data-action="arena-mode"]) > .m-mode { height: 104px !important; min-height: 104px; font-size: 18px; gap: 6px; }
+#app #panel .m-modes:has(> [data-action="arena-mode"]) > .m-mode img { width: 52px !important; height: 52px !important; }
+#app #panel .ct-tip { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; font-size: 14px; color: var(--m-text, #eef2ff); }
+#app #panel .ct-tip .ct-ready { display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px; background: #1f8a45;
+  border: 2px solid #7fe07a; color: #fff; font-size: 16px; font-weight: 900; box-shadow: 0 0 10px #5be37d88; }
+
+/* ---------- 5. Apparences (téléphone) : la fiche remplit la hauteur, l'aperçu du héros grandit (src/ui/showcase.js, .sc-fill),
+   le bouton d'action reste en bas ---------- */
+#app.m-phone #look-sheet > .m-sheet-body { display: flex; flex-direction: column; gap: 10px; }
+#app.m-phone #look-sheet .mp-look-show { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin: 0; }
+#app.m-phone #look-sheet .mp-look-show > .showcase-slot { flex: 1 1 0; min-height: 0; display: flex; }
+#app.m-phone #look-sheet .showcase-slot > .showcase { flex: 1 1 auto; min-height: 0; }
+#app.m-phone #look-sheet .showcase > .sc-stage { flex: 1 1 0; min-height: 200px; display: grid; place-items: center; }
+#app.m-phone #look-sheet > .m-sheet-body > :is(.m-btn, .btn, .muted) { flex: none; width: 100%; }
+/* la grille des Apparences remplit la hauteur quoi qu'il arrive (peu de cases) */
+#app.m-phone #panel .mp-frame:has(.mp-look-head) { min-height: calc(100% - 4px); box-sizing: border-box; display: flex; flex-direction: column; }
+#app.m-phone #panel .mp-frame:has(.mp-look-head) > .m-grid { flex: 1 1 auto; align-content: space-evenly; }
+
+/* ---------- 6. Bouton doré principal : en bas du cadre, épinglé pendant le défilement (src/ui/gold-dock.js) ---------- */
+#app #panel :is(.m-frame, .mp-frame):has(> .gold-dock) { display: flex; flex-direction: column; }
+#app #panel :is(.m-frame, .mp-frame):has(> .gold-dock) > * { flex: none; min-width: 0; }
+#app #panel :is(.m-frame, .mp-frame) > .gold-dock { position: sticky; bottom: 0; z-index: 6; margin-top: auto; display: flex; gap: 8px; align-items: stretch;
+  padding: 12px 0 6px; background: linear-gradient(transparent, var(--m-bg, #0d1430) 18px); }
+#app #panel .gold-dock > * { flex: 1 1 0; min-width: 0; margin: 0 !important; }
+#app #panel .gold-dock > :is(.m-btn-gold, .btn-gold) { flex: 2 1 0; }
+#app #panel .gold-dock > div { display: flex; gap: 8px; }
+#app #panel .gold-dock > div > * { flex: 1 1 0; min-width: 0; margin: 0 !important; }
+#app.m-phone #panel .gold-dock :is(.m-btn-gold, .btn-gold) { width: 100%; min-height: var(--btn-h, 48px); }
+/* un cadre en overflow: hidden empêcherait l'épinglage : clip rogne pareil sans créer de zone de défilement */
+#app #panel :is(.m-frame, .mp-frame):has(> .gold-dock) { overflow: clip; overflow-clip-margin: 0; }
+/* fiches (.m-sheet) : le bouton doré posé directement dans la fiche descend en bas de la fiche */
+#app #panel .m-sheet > .m-sheet-body:has(> :is(.m-btn-gold, .btn-gold)) { display: flex; flex-direction: column; }
+#app #panel .m-sheet > .m-sheet-body:has(> :is(.m-btn-gold, .btn-gold)) > * { flex: none; }
+#app #panel .m-sheet > .m-sheet-body > :is(.m-btn-gold, .btn-gold) { order: 99; margin-top: auto !important; }
+/* le cadre au pied doré descend jusqu'en bas de la fenêtre : hauteur minimale posée par src/ui/gold-dock.js (fillDock) */
+/* Compagnons (PC) : la rangée « Meilleure équipe » (bouton doré) passe au pied de la colonne principale (.dc-main est en
+   display: contents : ses enfants sont rangés par order dans la grille) */
+#app:not(.m-phone) #panel .dc-frame .dc-presets { order: 7; margin-top: 6px; }
+
+/* Prime du Héraut (scène) : nom long sur deux lignes plutôt que coupé (contrôle 14, textes en/ko) */
+#app#app #hq-bounty .hb-name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.1; }

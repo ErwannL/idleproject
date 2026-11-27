@@ -1,5 +1,5 @@
 // v10.17 (parties C, D, E « tout le jeu propre et homogène ») : coréen des nouveaux textes — points de compétence à dépenser,
-// « Où en trouver » des fragments, Boutique (achats bientôt disponibles), notification du Bastion. Branché à la fin de ./ko.js,
+// « Où en trouver » des fragments, Boutique (achats bientôt disponibles), notification du Bastion. v10.17.1 : « Sac vide › Aller combattre », « Filtrer », « Formation prête ». Branché à la fin de ./ko.js,
 // sans écraser l'existant.
 export const EXACT_1017_UI = {
   // E : Compétences
@@ -15,6 +15,13 @@ export const EXACT_1017_UI = {
   // E : Bastion
   'Ton Bastion se met au travail': '요새가 일을 시작해',
   'Fermer': '닫기',
+  // v10.17.1 : finitions (Équipement, Compagnons, Arène)
+  'Sac vide': '가방 비어 있음',
+  '› Aller combattre': '› 전투하러 가기',
+  'Filtrer': '필터',
+  '✓ Formation prête': '✓ 진형 준비 완료',
+  'touche une case pour la changer': '칸을 눌러 바꿔',
+  'Aucun objet avec ce filtre.': '이 필터에 맞는 아이템이 없어요.',
 };
 
 export const patterns1017Ui = () => [

@@ -249,6 +249,24 @@ export class HudQuests {
     const k = A.width / Math.max(1, area.clientWidth);
     const vis = (id) => { const e = document.getElementById(id); if (!e || e.classList.contains('hidden') || e.offsetParent === null) return null; const r0 = e.getBoundingClientRect(); const r = { left: (r0.left - A.left) / k + A.left, right: (r0.right - A.left) / k + A.left, top: (r0.top - A.top) / k + A.top, width: r0.width / k }; return r.width && r.top - A.top < 140 ? r : null; };
     const AW = area.clientWidth;
+    // v10.17.1 (7) : PC, fenêtre ouverte à droite : la colonne d'événements passe SOUS la carte de zone, à sa largeur, sur
+    // plusieurs rangées (plus de défilement en largeur, plus rien sous la fenêtre) ; le Chemin du héros descend d'autant.
+    const app = this.ui.root;
+    const under = !this.mphone && Boolean(app?.classList.contains('panel-open') && app.classList.contains('side-ui'));
+    if (app && app.classList.contains('ev-under') !== under) app.classList.toggle('ev-under', under);
+    if (under) {
+      const z = vis('zone-card');
+      const zl = z ? Math.round(z.left - A.left) : 6, zw = z ? Math.round(z.width) : 270;
+      const zone = document.getElementById('zone-card');
+      const pill = document.getElementById('goals-pill');
+      const bottomOf = (el) => (el && !el.classList.contains('hidden') && el.offsetParent ? el.offsetTop + el.offsetHeight : 0);
+      const zb = Math.round(Math.max(bottomOf(zone), bottomOf(pill), zone ? zone.offsetTop + (parseFloat(getComputedStyle(zone, '::before').height) || 0) : 80));
+      const st = this.root.style;
+      const set = (k, v) => { if (st.getPropertyValue(k) !== v) st.setProperty(k, v); };
+      set('--ev-left', `${zl}px`); set('--ev-w', `${Math.max(150, zw)}px`); set('--ev-top', `${zb + 8}px`);
+      set('--ev-bottom', `${zb + 8 + (this.events.classList.contains('hidden') ? -8 : this.events.offsetHeight) + 8}px`);
+      return 99;
+    }
     let left = 6, right = AW - 6;
     if (!this.phone) {
       const z = vis('zone-card'); if (z) left = z.right - A.left + 8;

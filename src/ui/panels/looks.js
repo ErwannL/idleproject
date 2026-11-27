@@ -32,7 +32,7 @@ function looksPhone(ui, state) {
     const status = active ? 'Équipée' : owned ? 'Possédée' : 'Verrouillée';
     const act = owned ? (active ? (sel.id === 'knight' ? '' : mBtn('Retirer', { action: 'unequip-look' })) : mBtnGold('Équiper', { action: 'set-hero', value: sel.id }))
       : (canShop ? mBtn('Voir en boutique', { action: 'open-shop-skins', icon: 'icon_gem' }) : '<div class="muted">Boutique › Skins</div>');
-    sheet = mSheet(sel.name, `<div class="m-card mp-detail mp-look-show"><div class="mp-look-meta"><span class="mp-pill2">${esc(sel.id === 'knight' ? 'Base' : SKIN_TIERS[skinTier(sel)].name)}</span><span class="mp-pill2 ${active ? 'on' : ''}">${status}</span></div>
+    sheet = mSheet(sel.name, `<div class="m-card mp-detail mp-look-show sc-fill"><div class="mp-look-meta"><span class="mp-pill2">${esc(sel.id === 'knight' ? 'Base' : SKIN_TIERS[skinTier(sel)].name)}</span><span class="mp-pill2 ${active ? 'on' : ''}">${status}</span></div>
         ${showcaseSlot('hero', sel.id)}
         <div class="good mp-look-fx">Bonus du héros (compte) : ${effectText(heroEffects(state))}</div></div>${act}`, { close: 'mp-shut', back: 'mp-shut', id: 'look-sheet' });
   }

@@ -140,7 +140,10 @@ function bagColumn(ui, state, ctx) {
   const rarRow = `<div class="de-rars" role="group" aria-label="Filtrer par rareté"><span class="de-rars-k">Rareté</span>${rb('all', 'Toutes les raretés', rarF === 'all', 'all')}${RARITIES.map((r) => rb(r.id, r.label, rarF === r.id, `r-${r.id}`)).join('')}</div>`;
   const sortRow = v.sortMenu ? `<div class="m-chips" role="group" aria-label="Trier par">${Object.entries(SORT_LABELS).map(([k, l]) => mChip(l, { action: 'sort-set', value: k, on: sortBy === k })).join('')}</div>` : '';
   const full = state.inventory.length >= size ? '<p class="em-full" role="alert">Sac plein : recycle ou range dans la Réserve.</p>' : '';
-  const empty = list.length ? '' : mEmpty(slotF === 'all' && rarF === 'all' ? 'Ton sac est vide.' : 'Aucun objet avec ce filtre.', { icon: 'icon_chest' });
+  // v10.17.1 (1) : sac vide : une petite ligne « Sac vide › Aller combattre » (ferme la fenêtre) au lieu du grand coffre
+  const empty = list.length ? '' : slotF === 'all' && rarF === 'all'
+    ? `<p class="eq-bag-empty"><span>Sac vide</span> <button type="button" class="btn-link eq-go-fight" data-action="close-panel">› Aller combattre</button></p>`
+    : mEmpty('Aucun objet avec ce filtre.', { icon: 'icon_chest' });
   const u = uselessPreview(state);
   return `<section class="m-card de-col de-bag" aria-label="Sac">${head}${slotRow}${rarRow}${sortRow}${list.length ? mGrid(tiles, 5) : empty}${full}
     ${mBtn(`Recycler les objets inutiles (${u.list.length})`, { action: 'recycle-useless', disabled: !u.list.length, icon: 'icon_shard', cls: 'de-recycle' })}</section>`;

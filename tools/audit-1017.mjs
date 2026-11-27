@@ -29,4 +29,25 @@ export function audit1017Init() {
     }
     return out;
   };
+  // v10.17.1 (6) : le bouton doré principal visible est en bas du cadre : son centre est dans le dernier quart de la zone visible
+  // du cadre (clip : rectangle visible de la fenêtre ; une fiche .m-sheet ou une modale compte comme cadre), ou il est épinglé en
+  // bas (position sticky ou fixed, sur lui ou un parent, et posé dans le dernier quart). Renvoie la liste des défauts (texte).
+  window.__goldLow = (golds, clip) => {
+    const out = [];
+    for (const g of golds) {
+      const host = g.closest('.m-sheet, #modal:not(.hidden) .modal-box, #modal:not(.hidden) [role="dialog"]');
+      const c = host ? host.getBoundingClientRect() : clip;
+      const top = Math.max(c.top, clip.top), bottom = Math.min(c.bottom, clip.bottom), h = bottom - top;
+      if (h < 80) continue;
+      const r = g.getBoundingClientRect();
+      const mid = (r.top + r.bottom) / 2;
+      let pinned = false;
+      for (let n = g; n && n !== document.body; n = n.parentElement) { const p = getComputedStyle(n).position; if (p === 'sticky' || p === 'fixed') { pinned = true; break; } }
+      if (pinned && r.bottom >= bottom - h * 0.25) continue;
+      if (mid >= top + h * 0.75 - 1) continue;
+      const t = (g.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 28);
+      out.push(`bouton doré « ${t} » au milieu du cadre (centre à ${Math.round(((mid - top) / h) * 100)} % de la hauteur visible, attendu ≥ 75 %)`);
+    }
+    return out;
+  };
 }

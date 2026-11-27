@@ -14,6 +14,7 @@
 //   9 aucun texte sous 12 px
 //  10 aucun texte tronqué (ellipsis ou débordement masqué) ; un texte enveloppé par src/ui/marquee.js qui dépasse défile
 //  13 (v10.17) au plus 4 styles de bouton sur l'ensemble des écrans (tools/audit-1017.mjs)
+//  15 (v10.17.1) le bouton doré principal visible est dans le dernier quart du cadre, ou épinglé en bas (tools/audit-1017.mjs)
 //  14 (v10.17) les textes les plus longs (fr, en, ko) injectés dans chaque cadre défilent s'ils ne tiennent pas (tools/text-fit-audit.mjs ; --no-fit pour sauter)
 // Il est NORMAL qu'il trouve des défauts tant que les écrans n'ont pas été refaits : il rapporte le nombre par contrôle et par onglet.
 // Code de sortie 1 au moindre défaut. Captures JPEG : <taille>-<partie>-<vue>.jpg (partie neuve : « neuve »), dans le dossier --out.
@@ -25,7 +26,7 @@ import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5
 import { ALL_TABS, PC_SIZES, makeOpt, parseSizes, parseList, startApp, openGame, openTab, listModes, clickMode, closeAll, slug } from './lib-1013.mjs';
 
 export const CHECKS = {
-  13: 'plus de 4 styles de bouton (tous écrans confondus)', 14: 'texte long coupé sans défiler (textes injectés)', // v10.17 : tools/audit-1017.mjs, tools/text-fit-audit.mjs
+  15: 'bouton doré principal pas en bas du cadre', 13: 'plus de 4 styles de bouton (tous écrans confondus)', 14: 'texte long coupé sans défiler (textes injectés)', // v10.17 : tools/audit-1017.mjs, tools/text-fit-audit.mjs
   11: 'libellé terminé par un point d\'abréviation', 12: 'bouton désactivé sans explication', // v10.16 (B9) : tools/audit-1016.mjs
   1: 'défilement horizontal / contenu décentré', 2: 'chevauchement', 3: 'image d\'événement hors de son cadre', 4: 'cartouche / bouton doré',
   5: 'image manquante', 6: '« Remettre au niveau » / sharpen', 7: '« Équiper toute l\'équipe » dans Compagnons', 8: '<select> visible', 9: 'texte sous 12 px', 10: 'texte tronqué (ellipsis / débordement)',
@@ -106,6 +107,7 @@ export function inPage(kind) {
     const a = rectOf(boxes[i]);
     for (let j = i + 1; j < boxes.length; j++) {
       if (boxes[i].contains(boxes[j]) || boxes[j].contains(boxes[i])) continue;
+      if (Boolean(boxes[i].closest('.gold-dock')) !== Boolean(boxes[j].closest('.gold-dock'))) continue; // v10.17.1 (6) : pied doré épinglé par-dessus ce qui défile
       const b = rectOf(boxes[j]);
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left), oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
       if (ox > 2 && oy > 2) { const m = `${name(boxes[i])} et ${name(boxes[j])} (${Math.round(ox)}x${Math.round(oy)} px)`; if (!seen.has(m)) { seen.add(m); add(2, m); } }
@@ -127,6 +129,7 @@ export function inPage(kind) {
   const GOLD = '.m-btn-gold, .btn-gold, .btn.gold, .gold-btn, button.primary-gold';
   const golds = [...(kind === 'tab' ? (root ? root.querySelectorAll(GOLD) : []) : document.querySelectorAll(`#play ${GOLD.split(',').join(', #play ')}`))].filter(shown);
   if (golds.length > 1) add(4, `${golds.length} boutons dorés visibles : ${golds.slice(0, 4).map(name).join(' | ')}`);
+  if (kind === 'tab') for (const m of window.__goldLow?.(golds, clip) ?? []) add(15, `${m} (onglet ${tabName})`); // v10.17.1 (6) : tools/audit-1017.mjs
 
   // 5. images : chargées ; chaque objet / compétence / branche / compagnon / recherche en a une
   if (root) {
