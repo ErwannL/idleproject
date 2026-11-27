@@ -151,3 +151,74 @@
   #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-modes.arrow .m-mode::after { display: none; }
 }
 
+/* @@PARTIE3 */
+/* ---------- 3. Améliorations : 3 familles côte à côte, lignes de 44 px ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.d-upg > .upg-page107 { display: flex; flex-direction: column; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > * { flex: none; margin: 0 !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top-gold { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .gold-dock { display: none; }
+@media (max-height: 1000px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > .d-topline { display: none; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top-gold { display: inline-flex; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .forecast, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .boss-forecast { display: none; }
+}
+/* Haut : « Meilleur achat » en une ligne de 64 px, puis la carte or · Dégâts/s · quantités · Tout acheter. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-toprow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 10px; align-items: start; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy { display: grid !important; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; height: 64px; min-height: 0; padding: 6px 10px; margin: 0; box-sizing: border-box; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-medal { width: 48px !important; height: 48px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-medal canvas { width: 48px !important; height: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-badge { width: 22px; height: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main { display: grid; gap: 0; line-height: 1.2; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main small { font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main b { font-size: 15px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main b img { width: 20px; height: 20px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-why { font-size: 12px; line-height: 1.15; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy > :last-child { grid-column: auto !important; width: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .cost-missing { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; padding: 5px 10px; min-height: 64px; box-sizing: border-box; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-dps { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0; min-width: 0; flex: 1 1 220px; line-height: 1.2; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-top-gold { flex: none; height: 36px; min-height: 0; padding: 0 10px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-dps > b { font-size: 20px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-surv { font-size: 13px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row { display: flex; align-items: center; gap: 6px; margin: 0 0 0 auto; flex-wrap: nowrap; justify-content: flex-end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .buy-amounts { margin: 0; gap: 4px; flex-wrap: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .chip-btn { min-height: 38px; height: 38px; padding: 0 8px; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .buy-all { position: static !important; width: auto; min-height: 40px; height: 40px; padding: 0 14px; font-size: 16px; margin: 0; white-space: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .upg-missing { font-size: 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .upg-missing img { width: 18px; height: 18px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-toprow:not(:has(> .upg-bestbuy)) { grid-template-columns: minmax(0, 1fr); }
+
+/* Les 3 familles : chaque colonne défile à l'intérieur. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > .upg-cols3 {
+  flex: 1 1 auto !important; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-template-areas: none !important; gap: 10px; align-items: stretch;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-cols3 > .upg-group { grid-area: auto !important; grid-column: auto !important; display: flex; flex-direction: column; min-height: 0; margin: 0; gap: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group-head { flex: none; height: 30px; min-height: 0; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group > .upg-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group > .upg-list > * { flex: none; margin: 0; }
+/* Une amélioration = une ligne de 44 px : icône, nom + niveau, « avant → après » en vert, bouton prix à droite. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card {
+  display: grid !important; grid-template-columns: 32px minmax(0, 1fr) auto !important; grid-template-rows: 44px !important; grid-template-areas: none !important; align-items: center; gap: 0 6px;
+  height: 44px; min-height: 0 !important; padding: 0 4px 0 4px !important; box-sizing: border-box; overflow: hidden;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card > * { grid-area: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon { width: 32px !important; height: 32px !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; grid-row: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon img { width: 28px !important; height: 28px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon { display: grid; place-items: center; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-main { min-width: 0; display: grid; gap: 0; line-height: 1.15; grid-column: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-name { font-size: 13px; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-level { display: inline !important; font-size: 12px; margin-left: 4px; color: var(--m-soft, #9fb0d8); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-name .tag,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-desc,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-gain,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-profit,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card > :not(.upg-icon, .upg-main, .upg-buy) { display: none !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-effect { font-size: 12px; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-main > * { margin: 0; display: block; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy { display: flex; align-items: center; margin: 0; grid-column: auto; grid-row: auto; justify-self: end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .cost-wrap { display: block; position: relative; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .btn { min-height: 34px !important; height: 34px !important; padding: 0 6px !important; font-size: 13px !important; min-width: 0 !important; width: auto !important; gap: 2px; white-space: nowrap; letter-spacing: -.2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .btn img { width: 16px !important; height: 16px !important; }
+/* « Il manque … or » : dans l'infobulle de la ligne (gardé pour les lecteurs d'écran, sans place à l'écran). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .cost-missing { position: absolute; right: 0; top: 100%; opacity: 0; pointer-events: none; white-space: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-list > .upg-rebirth, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-list > .fold { flex: none; }

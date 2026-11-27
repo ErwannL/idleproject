@@ -49,8 +49,10 @@ test('5.1 nom de zone PC : format court et défilement, sans toucher au téléph
   assert.match(read('src/ui/marquee.js'), /'#app:not\(\.m-phone\) #zone-name \.zn-t'/);
 });
 
-test('5.2 Améliorations PC : « Tout acheter » dans le pied doré en bas du cadre (contrôle 15 de desk-audit)', () => {
-  assert.match(read('src/ui/panels/upgrades.js'), /<div class="upg-buyall-row">\$\{buyAll\}<\/div>/);
+// v10.20 (3.2) : mis à jour — le pied doré collant recouvrait les lignes de la grande page ; « Tout acheter » retourne dans la carte
+// du haut, à côté de ×1 ×10 ×100 Max (data-nodock : gold-dock.js le laisse en place ; data-gold-top : voulu en haut pour le contrôle 15).
+test('5.2 → 10.20 (3.2) Améliorations PC : « Tout acheter » dans la carte du haut, pas dans le pied doré', () => {
+  assert.match(read('src/ui/panels/upgrades.js'), /<div class="upg-buyall-row" data-nodock data-gold-top>\$\{amounts\}\$\{buyAll\}<\/div>/);
 });
 
 test('5.3 Bastion PC : notification hors du cadre, en toast en bas, fermée après 6 s', () => {
