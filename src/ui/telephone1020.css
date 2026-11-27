@@ -1,0 +1,82 @@
+/* v10.20 (partie 6) : téléphone : plus de page qui défile pour rien. Tout est sous #app.m-phone : rien ne change sur PC. */
+
+/* 6.1 Le dernier cadre de la page n'a plus de marge du bas : le cadre au pied doré (src/ui/gold-dock.js, fillDock) descend
+   jusqu'en bas de la fenêtre, et sa marge de 8 px faisait défiler la page pour 3 à 6 px (Défis, Classement, Guilde, Arène). */
+#app#app.m-phone #panel-body > :is(.m-frame, .mp-frame):not(.em19):is(:last-child, :has(+ .phone-action:last-child)) { margin-bottom: 0; }
+/* (Équipement garde sa marge dans ses autres modes : la page y défile déjà franchement, et sa hauteur reste celle de la v10.19.) */
+/* Forge : le cadre prend la hauteur de la fenêtre moins sa marge du haut (au lieu de 100 % + marges : 12 px de trop) ;
+   l'illustration du bas (.page-fill) se tasse dans la place qui reste. */
+#app#app.m-phone #panel .m-frame.m-fg { min-height: calc(100% - 4px); }
+/* La barre d'action reprise en bas (ui.js phoneAction, v9.1.0) fait doublon quand le cadre a déjà son pied doré épinglé
+   (src/ui/gold-dock.js) : à 360 px, l'Arène montrait les deux et défilait pour 67 px. */
+#app#app.m-phone #panel-body > :is(.m-frame, .mp-frame):has(> .gold-dock) ~ .phone-action { display: none; }
+
+/* Équipement (mode Équipement) : la place de 72 px sous les stats ne sert qu'aux modes qui ont un pied doré épinglé. */
+#app#app.m-phone #panel .m-frame.em19:has(> .em-bag):not(:has(> .gold-dock)) { padding-bottom: 10px; }
+/* Grands téléphones (au moins 860 px de haut, 405×896, 412×915) : la page tient dans la fenêtre, le Sac défile dans sa carte
+   (en-tête « Sac / Réserve / filtre / tri » fixe) au lieu de faire défiler toute la page de quelques dizaines de pixels.
+   Plus bas (390×844, 360×800), la page reste une vraie liste qui défile. */
+@media (min-height: 860px) {
+  #app#app.m-phone #panel-body > .m-frame.em19:has(> .em-bag):not(:has(> .gold-dock)) { display: flex; flex-direction: column; height: calc(100% - 4px); box-sizing: border-box; overflow: hidden; margin-bottom: 0; }
+  #app#app.m-phone #panel-body > .m-frame.em19:has(> .em-bag):not(:has(> .gold-dock)) > * { flex: none; min-width: 0; }
+  #app#app.m-phone #panel-body > .m-frame.em19:has(> .em-bag):not(:has(> .gold-dock)) > .em-bag { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #app#app.m-phone #panel-body > .m-frame.em19 > .em-bag > * { flex: none; }
+  #app#app.m-phone #panel-body > .m-frame.em19 > .em-bag > .m-grid { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 8px; align-content: start; }
+  /* marges et hauteurs resserrées (mode Équipement seulement) : le Sac garde au moins une rangée visible */
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .m-title { margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .m-modes { margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .m-modes .m-mode { height: 46px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .m-modes .m-mode img { width: 20px; height: 20px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) .em-whos, #app#app.m-phone .m-frame.em19:has(> .em-bag) .em-whos-row { height: 46px; margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) .em-whos-row { padding: 2px 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) .em-who { width: 40px; height: 40px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) .em-who :is(canvas, img.still) { width: 34px; height: 34px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-line { height: 48px; grid-template-columns: 48px minmax(0, 1fr) auto; margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-line > .em-mini { width: 48px; height: 48px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-slots { margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-best { margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-best .m-btn-gold { min-height: 46px; height: 46px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-bag { padding-top: 6px; padding-bottom: 6px; margin-bottom: 4px; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .em-bag .em-bag-head { margin-bottom: 0; }
+  #app#app.m-phone .m-frame.em19:has(> .em-bag) > .m-stats2 { margin-top: 0; }
+}
+
+/* Expéditions et Boss : la liste (ou la grille) défile dans son cadre ; l'en-tête et le pied doré restent fixes. */
+#app#app.m-phone #panel-body > .m-frame.mt-exp { max-height: calc(100% - 4px); box-sizing: border-box; }
+#app#app.m-phone #panel-body > .m-frame.mt-exp > .mt-exp-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+#app#app.m-phone #panel-body > .mp-frame:has(> .mp-head + .m-grid) { display: flex; flex-direction: column; max-height: calc(100% - 4px); box-sizing: border-box; overflow: hidden; }
+#app#app.m-phone #panel-body > .mp-frame:has(> .mp-head + .m-grid) > * { flex: none; min-width: 0; }
+#app#app.m-phone #panel-body > .mp-frame:has(> .mp-head + .m-grid) > .m-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-top: 8px; }
+
+/* 6.2 Objectifs : sections repliables (daybook.js objectivesFold), pastille rouge = récompenses prêtes dans la section. */
+#app#app.m-phone .obj-fold { gap: 0; margin-bottom: 0; }
+#app#app.m-phone .obj-fold > .mp-fold { margin: 0 0 6px; }
+#app#app.m-phone .obj-fold > .mp-fold > .fold-head .fold-title { color: var(--gold, #ffd36a); font-size: 15px; }
+#app#app.m-phone .obj-fold > .mp-fold > .fold-body { display: flex; flex-direction: column; gap: 8px; }
+#app#app.m-phone .obj-fold .fold-extra .obj-pill { display: inline-block; min-width: 22px; padding: 0 6px; border-radius: 11px; background: #ff3b4e; color: #fff; font: 900 13px/22px system-ui, sans-serif; text-align: center; font-style: normal; }
+/* Les sections défilent dans le cadre (titre, illustration et pied doré « Tout récupérer » fixes) : la page ne défile plus. */
+#app#app.m-phone #panel-body > .mp-frame:has(> .obj-folds) { max-height: calc(100% - 4px); box-sizing: border-box; display: flex; flex-direction: column; }
+#app#app.m-phone #panel-body > .mp-frame:has(> .obj-folds) > * { flex: none; min-width: 0; }
+#app#app.m-phone #panel-body > .mp-frame > .obj-folds { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 4px; }
+
+/* 6.3 Compagnons et Événement : la grille défile dans son cadre ; en-tête (équipe, filtres / affiche) et pied doré fixes. */
+#app#app.m-phone #panel-body > .m-frame:is(.mt-comp:has(> .mt-scroll), .cb-frame:has(> .ev-scroll)) { display: flex; flex-direction: column; max-height: calc(100% - 4px); box-sizing: border-box; overflow: clip; }
+#app#app.m-phone #panel-body > .m-frame:is(.mt-comp:has(> .mt-scroll), .cb-frame:has(> .ev-scroll)) > * { flex: none; min-width: 0; }
+#app#app.m-phone #panel-body > .m-frame > :is(.mt-scroll, .ev-scroll) { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding: 6px 0 4px; }
+#app#app.m-phone #panel-body > .m-frame > :is(.mt-scroll, .ev-scroll) > * { flex: none; min-width: 0; margin-top: 0; margin-bottom: 0; }
+/* la hauteur minimale posée par fillDock (gold-dock.js) peut dépasser la fenêtre de quelques pixels : ces cadres-là ont la hauteur de la fenêtre */
+#app#app.m-phone #panel-body > .m-frame:is(.mt-comp:has(> .mt-scroll), .cb-frame:has(> .ev-scroll)),
+#app#app.m-phone #panel-body > .mp-frame:has(> .obj-folds),
+#app#app.m-phone #panel-body > .m-frame.mt-exp { height: calc(100% - 4px); min-height: 0 !important; }
+
+/* 6.4 Bastion : la notification « Ton Bastion se met au travail » (camp.js kickRibbon, se ferme seule au bout de 6 s) ne bloque
+   plus les touches : on touche à travers (onglets, « ? »), et sa croix de 36 px, trop petite, disparaît sur téléphone. Jusqu'ici
+   la fenêtre « Nouvel âge » s'ouvrait par-dessus à chaque visite et la cachait. */
+#app#app.m-phone .bs-kick.bs-toast { pointer-events: none; }
+#app#app.m-phone .bs-kick.bs-toast .bs-toast-x { display: none; }
+
+/* Téléphones plus bas (moins de 860 px) : Équipement reste une vraie liste qui défile. La carte du Sac garde la place d'une
+   rangée même vide, pour que la page ne défile jamais « pour 69 px » selon le nombre d'objets du moment. */
+@media (max-height: 859px) {
+  #app#app.m-phone #panel-body > .m-frame.em19 > .em-bag { min-height: 176px; box-sizing: border-box; }
+}

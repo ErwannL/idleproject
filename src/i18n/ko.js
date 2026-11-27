@@ -526,3 +526,6 @@ PATTERNS.push(...patterns1020(lookup));
 // v10.20 (parties 4 et 5) : Forge et Compagnons sur PC (./ko-1020-pc.js).
 import { EXACT_1020_PC } from './ko-1020-pc.js';
 for (const [k, v] of Object.entries(EXACT_1020_PC)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+// v10.20 (partie 6) : téléphone, sections repliables des Objectifs (./ko-1020-tel.js).
+import { EXACT_1020_TEL } from './ko-1020-tel.js';
+for (const [k, v] of Object.entries(EXACT_1020_TEL)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

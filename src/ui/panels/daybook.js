@@ -3,7 +3,7 @@
 // il est prêt. Il regroupe Missions du jour et objectifs de session (plus d'écran en plus). Rien ne bouge avec
 // « Réduire les animations » (on garde l'image finale).
 import { DAYBOOK_CHEST, dormantResources, daybookComplete, daybookOf, daybookTasks } from '../../core/daybook.js';
-import { escapeHtml, img, rewardIcons } from '../common.js';
+import { escapeHtml, fold, img, rewardIcons } from '../common.js';
 import { FIRST_WEEK_MILES, FIRST_WEEK_PRIZE, firstWeekActive, firstWeekDay, firstWeekDaysLeft, firstWeekDaysOpen, firstWeekPoints, prizeReady } from '../../core/first-week.js';
 import { companionById } from '../../core/companions.js';
 import { companionStill } from './expeditions.js';
@@ -12,6 +12,7 @@ import { mBar, mBtn, mBtnGold, mChip } from '../mobile-kit.js'; // v10.12
 import { esc, mpFrame, mpRow, mpSec } from './profile-m.js';
 import { objectivesParts } from './contracts.js'; // v10.16 (B1)
 import { heroPathQuest } from '../hud-quests.js'; // v10.16 (B1)
+import { pageNarrow } from '../page.js'; // v10.20 (6.2) : Objectifs repliables sur téléphone seulement
 const isMPhone = () => true; // v10.13 : le PC emploie le même kit que le téléphone (desk-activities.css)
 
 // v9.8 (H5) : carnet des 7 premiers jours, en tête du Carnet du jour ; le gros lot (Épique au choix) visible dès le jour 1.
@@ -66,7 +67,10 @@ function phoneFirstWeek(ui, state, goldFree) {
     ${prizeReady(state) ? '' : '<p class="fw-prize-t">Gros lot du jour 7 : un compagnon Épique au choix</p>'}
     <div class="fw-prize">${prize}</div>${prizeReady(state) ? '<p class="gold-text">Les 7 jours sont finis : choisis ton compagnon !</p>' : ''}
     ${mBtn('Tout récupérer', { action: 'fw-all' })}</div>`;
-  return { html, gold: useGold };
+  // v10.20 (6.2) : nombre de récompenses prêtes dans le Carnet de l'Apprenti (jours finis non récupérés, gros lot)
+  let ready = prizeReady(state) ? 1 : 0;
+  for (let d = 1; d <= open; d++) { const info = firstWeekDay(state, d); if (!info.claimed && info.steps.every((x) => x.done)) ready++; }
+  return { html, gold: useGold, ready };
 }
 
 function phoneTask(t) {
@@ -77,7 +81,13 @@ function phoneTask(t) {
   return mpRow({ icon: img(t.icon), title: esc(t.title), bar: pct, n: `${t.n}/${t.target}`, right: go, cls: `${t.done ? 'done' : ''}${t.dormant ? ' dormant' : ''}`, attrs: `data-db="${esc(t.id)}" title="${esc(t.text)}"` });
 }
 
-function phoneView(ui, state, { tasks, doneN, all, book }, goldFree = true) {
+function phoneView(ui, state, day, goldFree = true) {
+  const p = phoneParts(ui, state, day, goldFree);
+  return `${p.head}${p.fw}${p.dormant}${p.bastion}${p.tasks}`; // v10.16 (B1) : le cadre est posé par l'écran Objectifs
+}
+
+// v10.20 (6.2) : les morceaux du Carnet du jour, rangés à part dans les sections repliables du téléphone.
+function phoneParts(ui, state, { tasks, doneN, all, book }, goldFree = true) {
   const chestReady = all && !book.chest;
   const fw = phoneFirstWeek(ui, state, goldFree && !chestReady);
   const chestBtn = book.chest ? '<span class="mp-ok" role="img" aria-label="Coffre ouvert">✓</span>'
@@ -91,7 +101,7 @@ function phoneView(ui, state, { tasks, doneN, all, book }, goldFree = true) {
   const dormant = d.length ? `<div class="mp-sleep"><small>Ça dort</small><div class="mp-sleep-list">${d.map((x) => `<button type="button" class="mp-sleep-row" data-action="open-tab" data-value="${esc(x.tab)}"><span class="mp-sleep-ico">${img(SLEEP_ICON[x.id] ?? 'icon_star')}</span><span class="mp-sleep-t">${esc(x.text)}</span><span class="mp-sleep-go" aria-hidden="true">›</span></button>`).join('')}</div></div>` : '';
   const line = bastionDaybookLine(state);
   const bastion = line ? `<div class="m-card mp-row mp-bastion"><span class="mp-ico"><img class="px" src="assets/ui/art104/bastion_forge_lv1.png" alt=""></span><div class="mp-main"><b class="mp-name">${esc(line)}</b></div>${mBtn('Bastion', { action: 'bastion-open', cls: 'auto' })}</div>` : '';
-  return `${head}${fw.html}${dormant}${bastion}<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`; // v10.16 (B1) : le cadre est posé par l'écran Objectifs
+  return { head, fw: fw.html, fwReady: fw.ready ?? 0, dormant, dormantN: d.length, bastion, tasks: `<div class="mp-list">${tasks.map(phoneTask).join('')}</div>`, chestReady: chestReady && !book.chest ? 1 : 0 };
 }
 
 // v10.16 (B1) : « Maintenant » — une seule consigne, celle du Chemin du héros (sinon le conseil du moment).
@@ -117,11 +127,35 @@ export function objectivesHtml(ui, state, day) {
     ui.view.objFocus = null;
     setTimeout(() => document.querySelector(`#panel-body [data-obj="${focus}"]`)?.scrollIntoView({ block: 'start' }), 80);
   }
+  if (pageNarrow(ui)) return objectivesFold(ui, state, day, parts, claim, focus);
   return mpFrame('icon_trophy', 'Objectifs', `${claim}
     <section class="obj-sec" data-obj="now">${mpSec('Maintenant')}${nowCard(ui, state)}</section>
     <section class="obj-sec" data-obj="today">${mpSec('Aujourd\'hui')}${phoneView(ui, state, day, !parts.claimN)}<div class="mp-list">${parts.today}</div></section>
     <section class="obj-sec" data-obj="later">${mpSec('Plus tard')}${parts.later}</section>`);
 }
+
+// v10.20 (6.2) : Objectifs sur téléphone : six sections repliables (Maintenant, Aujourd'hui, Carnet, Missions, Journalières,
+// Ça dort). Seule la première est ouverte au départ ; chaque titre porte une pastille : le nombre de récompenses prêtes.
+// L'état ouvert / fermé est gardé dans ui.view (action « toggle-section », common.js fold).
+const OBJ_FOLDS = ['now', 'today', 'book', 'missions', 'daily', 'sleep'];
+function objectivesFold(ui, state, day, parts, claim, focus) {
+  if (focus) { // arrivée par « Missions » (ui.js) : la section visée s'ouvre
+    const id = `obj-${focus === 'later' ? 'missions' : focus === 'today' ? 'daily' : focus}`;
+    (ui.view.open ??= new Set()).add(id); ui.view.closed?.delete(id);
+  }
+  const p = phoneParts(ui, state, day, !parts.claimN);
+  const q = heroPathQuest(state);
+  const pill = (n) => (n ? `<i class="mp-pill obj-pill" aria-label="${n} à récupérer">${n}</i>` : '');
+  const sec = (id, title, n, body) => (body ? `<section class="obj-sec obj-fold" data-obj="${id}">${fold(ui, `obj-${id}`, esc(title), body, { open: id === 'now', cls: 'm-card mp-fold', extra: pill(n) })}</section>` : '');
+  return mpFrame('icon_trophy', 'Objectifs', `${claim}<div class="obj-folds">
+    ${sec('now', 'Maintenant', q?.ready ? 1 : 0, nowCard(ui, state))}
+    ${sec('today', 'Aujourd\'hui', p.chestReady, `${p.head}${p.bastion}${p.tasks}`)}
+    ${sec('book', 'Carnet', p.fwReady, p.fw)}
+    ${sec('missions', 'Missions', parts.laterN ?? 0, parts.later)}
+    ${sec('daily', 'Journalières', parts.todayN ?? 0, `<div class="mp-list">${parts.today}</div>`)}
+    ${sec('sleep', 'Ça dort', 0, p.dormant)}</div>`);
+}
+export { OBJ_FOLDS };
 
 export function daybookOpen(ui) {
   return (id) => ui.tabVisible?.[id] !== false;

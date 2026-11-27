@@ -30,7 +30,7 @@ import { frameCheck } from './frame-1018.mjs'; // v10.18 (1.5) : contrôle 25
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'bouton recouvert au point de contact', 22: 'texte « Pas disponible pour l\'instant »', 23: 'sous-onglet sous la croix ✕', 24: 'blocs de l\'écran de combat qui se chevauchent', 25: 'scène téléphone : cadrage du héros qui change (onglet ouvert/fermé)', 26: 'Équipement : haut du Sac pas visible sans défiler' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'bouton recouvert au point de contact', 22: 'texte « Pas disponible pour l\'instant »', 23: 'sous-onglet sous la croix ✕', 24: 'blocs de l\'écran de combat qui se chevauchent', 25: 'scène téléphone : cadrage du héros qui change (onglet ouvert/fermé)', 26: 'Équipement : haut du Sac pas visible sans défiler', 27: '#panel-body qui défile de moins de 80 px' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -51,6 +51,16 @@ function bagTop(page) {
     const r = head.getBoundingClientRect();
     body.scrollTop = keep;
     return r.bottom <= bottom + 0.5 ? [] : [{ check: 26, msg: `en-tête du Sac à ${Math.round(r.top)}–${Math.round(r.bottom)} px, barre du bas à ${Math.round(bottom)} px (il faut défiler)` }];
+  });
+}
+
+// v10.20 (6.5) : contrôle 27 : #panel-body (sans fiche ouverte) défile de 0 px ou d'au moins 80 px (la page tient, ou c'est une vraie liste).
+function shortScroll(page) {
+  return page.evaluate(() => {
+    const body = document.querySelector('#panel-body');
+    if (!body || document.querySelector('#panel .m-sheet') || !document.querySelector('#app.m-phone')) return [];
+    const over = body.scrollHeight - body.clientHeight;
+    return over > 1 && over < 80 ? [{ check: 27, msg: `#panel-body défile pour ${over} px seulement` }] : [];
   });
 }
 
@@ -360,6 +370,7 @@ for (const game of games) {
       if (!opened) rec.skipped = 'onglet fermé (pas encore débloqué ?)';
       else {
         rec.issues.push(...await page.evaluate(inPage, false));
+        rec.issues.push(...await shortScroll(page)); // v10.20 (6.5) : la page telle qu'elle s'ouvre (avant que le contrôle 6 change de mode)
         rec.issues.push(...await stability(page));
         if (tab === 'inventory') rec.issues.push(...await bagTop(page)); // v10.19 (3.7)
         const st = await page.evaluate((ex) => window.__btnStyles?.([document.querySelector('#panel'), document.querySelector('#modal:not(.hidden)')].filter(Boolean), (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden', ex) ?? {}, BTN_EXCLUDE);

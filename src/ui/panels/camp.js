@@ -281,6 +281,9 @@ const kickTimer = { k: null, id: 0 };
 function ageRibbon(ui, state) {
   const age = bastionAge(state), a = ageDef(age), nx = nextAge(state);
   const mult = bastionMult(state, 'damage');
+  // v10.20 (6.4) : téléphone : une partie qui n'a jamais retenu d'âge vu (sauvegarde d'avant la v10.8, ou Bastion jamais ouvert)
+  // retient l'âge actuel sans fenêtre : « Nouvel âge » ne s'ouvre que si le joueur vient de passer un âge, une seule fois par âge.
+  if (PHONE && !Number.isInteger(state.ui.ageSeen)) state.ui.ageSeen = age;
   const seen = (state.ui.ageSeen ??= 1);
   const fresh = age > seen;
   if (fresh) state.ui.ageSeen = age;

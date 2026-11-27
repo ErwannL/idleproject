@@ -304,7 +304,9 @@ export function objectivesParts(ui, state) {
   const tab = LATER_PARTS.some(([id]) => id === ui.view.missionTab) ? ui.view.missionTab : 'chronicles';
   const modes = mModes(LATER_PARTS.map(([id, label, ic]) => ({ id, label, icon: ic, action: 'mission-tab', value: id, badge: ready[id] ? String(ready[id]) : false })), tab);
   const body = tab === 'achievements' ? mAchievements(state) : tab === 'weekly' ? mPeriod(state, period('weekly')) : tab === 'week' ? mTrack(state) : mChronicle(state);
-  return { today: mToday(ui, state, period, nOf), later: `${modes}<div class="mp-list">${body}</div>`, claimN: mine.filter((c) => !c.blocked).length };
+  const laterN = Object.values(ready).reduce((a, b) => a + b, 0); // v10.20 (6.2) : pastilles des sections repliables
+  const todayN = mine.filter((c) => !c.blocked && !['weekly', 'track', 'achievement'].includes(c.period ?? c.kind)).length;
+  return { today: mToday(ui, state, period, nOf), later: `${modes}<div class="mp-list">${body}</div>`, claimN: mine.filter((c) => !c.blocked).length, laterN, todayN };
 }
 
 // v9.1.0 : trois parties — Aujourd'hui (journalières, connexion, prime, contrats), Piste du mois (v9.1.3 : hebdomadaires et
