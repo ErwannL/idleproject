@@ -99,7 +99,7 @@ const BOSS_AURAS = {
 };
 import { BEHAVIORS } from '../data/behaviors.js'; // v9.6.0
 const BIG_BOSS_GAP = 6; // v10.16 (A6) : px de jeu (≈ 18 px d'écran) entre un compagnon et le héros, contre un grand boss
-import { BossFeel, markHit, jitterOf, tintAlpha, impactOf, comboPose, fanOf, shouldGroup, KILL_SLOWMO, LOW_HP, bossHeightRatio, bossBoost, bossMinX } from './boss-feel.js'; // v10.16
+import { BossFeel, critTrailAllowed, markHit, jitterOf, tintAlpha, impactOf, comboPose, fanOf, shouldGroup, KILL_SLOWMO, LOW_HP, bossHeightRatio, bossBoost, bossMinX } from './boss-feel.js'; // v10.16
 const HERO_X = BALANCE.world.heroX * WORLD_SCALE;
 // v9.5.1 : couleur de la barre de vie des monstres selon leur élément (lisible sur le décor).
 const ELEMENT_BAR = { red: '#ff5a3c', blue: '#3ca8ff', green: '#4cd26a', light: '#ffd84a', dark: '#b07bff' };
@@ -873,8 +873,9 @@ export class SceneRenderer {
   }
 
   critTrail(x, y, color = '#ffd23f') {
-    if (this.focus || this.time - (this.trailAt ?? -9) < 0.4) return; // au plus une traînée toutes les 0,4 s
-    if (this.bigBoss || this.bossFight) return; // v10.16 : en combat de boss, plus de traînée courbe (le « croissant » près du héros)
+    // v10.16 : en combat de boss, plus de traînée courbe (le « croissant » près du héros) ; v10.18 (4.6) : ailleurs, au
+    // plus une toutes les 2 s (0,4 s avant).
+    if (!critTrailAllowed(this.time, this.trailAt, { focus: this.focus, boss: this.bigBoss || this.bossFight })) return;
     this.trailAt = this.time;
     this.effects = this.effects.filter((e) => e.kind !== 'wtrail');
     if (this.feelStats) this.feelStats.slash++; // v10.16 : mesure (capture-boss-feel) : une traînée courbe compte comme un croissant
@@ -1058,6 +1059,7 @@ export class SceneRenderer {
   render(state, world, dt) {
     this.lastState = state; this.lastWorld = world; // v10.13.1 : pour la mini-scène des onglets (renderMini)
     // Arrêt sur image (coup critique) : la scène ralentit fortement pendant un instant — le coup « pèse ».
+    this.realDt = dt; // v10.18 (4.1) : le flash blanc d'un boss s'efface en temps réel, pas au ralenti de l'arrêt sur image
     if (this.hitstop > 0) {
       this.hitstop -= dt;
       dt *= 0.12;
@@ -1439,10 +1441,14 @@ export class SceneRenderer {
       fx.appear = Math.min(1, fx.appear + dt * 5);
       // v9.2.5 : double de scissipare caché tant que sa moitié est en l'air (mutation-fx.js), visible d'un coup à l'atterrissage.
       if (fx.hold > 0) { fx.hold -= dt; fx.appear = fx.hold > 0 ? 0 : 1; }
-      fx.hit = Math.max(0, fx.hit - dt);
+      // v10.18 (4.1) : contre un boss, l'éclair (≈ 2 images) ne s'étire plus pendant l'arrêt sur image du critique.
+      fx.hit = Math.max(0, fx.hit - (enemy.boss ? Math.max(dt, this.realDt ?? dt) : dt));
       fx.tint = Math.max(0, (fx.tint ?? 0) - dt); fx.jit = Math.max(0, (fx.jit ?? 0) - dt); fx.boss = Boolean(enemy.boss); // v10.16 (A1)
       // v10.16 : mesure (tools/capture-boss-feel.mjs, globalThis.__feelStats) : part des images où le boss est blanc.
-      if (enemy.boss && this.feelStats) { this.feelStats.frames++; if (fx.hit > 0) this.feelStats.white++; }
+      if (enemy.boss && this.feelStats) {
+        const st = this.feelStats; st.frames++; if (fx.hit > 0) st.white++;
+        const rdt = this.realDt ?? dt; st.time = (st.time ?? 0) + rdt; st.whiteTime = (st.whiteTime ?? 0) + (fx.hit > 0 ? rdt : 0); // v10.18 : part du temps réel où le boss est blanc (la teinte ≤ 35 % n'est pas du blanc)
+      }
       fx.hurt = Math.max(0, (fx.hurt ?? 0) - dt);
       if (fx.stagger > 0) { fx.stagger -= dt; fx.hurt = HURT_TIME * 0.5; } // v10.16 (A4) : garde brisée, le boss titube 1 s
       fx.tele = Math.max(0, (fx.tele ?? 0) - dt); fx.skill = Math.max(0, (fx.skill ?? 0) - dt); // v9.7.1 (lot C)

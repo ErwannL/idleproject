@@ -119,3 +119,34 @@ test('admin : tous les grands boss jouables se programment (Titans du jour compr
   assert.ok(values.includes('titan_ember'));
   for (const g of GIANTS) assert.equal(values.includes(g.id), Boolean(g.ready));
 });
+
+// v10.18 (4.2) : le Colosse, l'Ombre et les 7 Titans (planche du Colosse) tiennent entiers sur téléphone, à 360, 390 et
+// 405 px, avec au moins 8 px de marge à droite. Silhouette lue dans la planche réelle (largeur d'une image = `frame`).
+test('v10.18 (4.2) : Colosse, Ombre et 7 Titans entiers dans le canvas à 360, 390 et 405 px (≥ 8 px à droite)', async () => {
+  const { fitGiant } = await import('../src/render/world-boss-scene.js');
+  const ids = ['colossus', 'shade', ...Object.keys(GRAND_BOSSES).filter((id) => id.startsWith('titan_'))];
+  assert.equal(ids.length, 9);
+  for (const id of ids) {
+    const art = GRAND_BOSSES[id].art;
+    const idle = `${art.dir}/${art.prefix}idle.png`;
+    const { w: sheetW, h } = pngSize(idle);
+    assert.equal(h, art.frame);
+    assert.equal(sheetW % art.frame, 0, `${idle} : images de ${art.frame} px`);
+    assert.ok(sheetW >= art.anims.idle.n * art.frame, `${idle} : planche réelle`);
+    const box = artLook(art).box;
+    assert.ok(box[0] >= 0 && box[0] + box[2] <= art.frame, `${id} : silhouette dans l'image`);
+    for (const screenW of [360, 390, 405]) {
+      const sceneW = 308, shift = 103, screen = screenW / sceneW; // scène d'un grand boss sur téléphone (mesurée en jeu)
+      for (const phase of [0, 3]) {
+        const k0 = (1.15 + 0.06 * phase) * (art.scale ?? 1);
+        const x0 = 150 - (art.frame * k0) / 2; // position d'avant : la moitié droite hors de l'écran
+        const { x, k } = fitGiant({ x: x0, k: k0, box, sceneRight: sceneW - shift, minLeft: 84 - 12, screen });
+        const left = (x + box[0] * k + shift) * screen;
+        const right = (x + (box[0] + box[2]) * k + shift) * screen;
+        assert.ok(left >= 0, `${id} ${screenW} px phase ${phase} : bord gauche ${left}`);
+        assert.ok(screenW - right >= 8, `${id} ${screenW} px phase ${phase} : marge droite ${screenW - right}`);
+        assert.ok(k >= k0 * 0.7 - 1e-9 && k <= k0, `${id} : zoom ${k}`);
+      }
+    }
+  }
+});

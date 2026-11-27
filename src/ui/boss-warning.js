@@ -6,6 +6,7 @@
 
 export const LOOP_WINDOW_MS = 90000; // même boss revu en moins de 90 s : boucle → version courte
 export const WARNING_MS = { full: 1800, short: 900 };
+export const PHONE_WARNING_MS = 2000; // v10.18 (4.3) : sur téléphone, 2 s, sous les cartes du haut de la scène
 
 const TIER_LABEL = { mini: 'Mini-boss', mid: 'Boss', hard: 'Boss redoutable', mega: 'MÉGA BOSS' };
 
@@ -29,7 +30,8 @@ export function bossWarningPlan(memory, ctx) {
     tier,
     short: loop,
     calm: Boolean(ctx.calm),
-    ms: loop ? WARNING_MS.short : WARNING_MS.full,
+    ms: ctx.phone ? PHONE_WARNING_MS : loop ? WARNING_MS.short : WARNING_MS.full,
+    phone: Boolean(ctx.phone),
     vibrate: !loop && !ctx.calm && danger,
   };
 }
@@ -48,9 +50,37 @@ export function showBossWarning(plan, host = document.getElementById('stage-area
     <span class="bw-sub">${plan.sub}</span><span class="bw-name"></span></div>`;
   el.querySelector('.bw-name').textContent = plan.name;
   host.appendChild(el);
+  if (plan.phone) placeBelowTopCards(el, host);
   if (!plan.calm && !plan.short) {
     host.classList.remove('bw-shake'); void host.offsetWidth; host.classList.add('bw-shake');
   }
   try { if (plan.vibrate) navigator.vibrate?.(60); } catch { /* sans vibreur */ }
   timer = setTimeout(() => { el.remove(); host.classList.remove('bw-shake'); }, plan.ms);
+}
+
+// v10.18 (4.3) : sur téléphone, la carte de zone, les icônes d'événements et la carte d'objectif couvrent le haut de la
+// scène : le bandeau se pose juste en dessous (dans la scène), au lieu de s'écrire par-dessus.
+export function topCardsBottom(hostRect, rects) {
+  let bottom = hostRect.top;
+  const limit = hostRect.top + hostRect.height * 0.45; // seulement les cartes du haut de la scène
+  for (const r of rects) {
+    if (!r || r.width < 24 || r.height < 12 || r.height > hostRect.height * 0.5) continue;
+    if (r.top < hostRect.top - 4 || r.top > limit || r.bottom <= hostRect.top) continue;
+    if (r.right <= hostRect.left || r.left >= hostRect.right) continue;
+    bottom = Math.max(bottom, r.bottom);
+  }
+  return Math.round(bottom - hostRect.top);
+}
+function placeBelowTopCards(el, host) {
+  const hr = host.getBoundingClientRect();
+  const rects = [];
+  for (const c of host.querySelectorAll('*')) {
+    if (c === el || el.contains(c) || c.tagName === 'CANVAS') continue;
+    const cs = getComputedStyle(c);
+    if (cs.position !== 'absolute' && cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+    if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) continue;
+    rects.push(c.getBoundingClientRect());
+  }
+  const top = topCardsBottom(hr, rects);
+  if (top > 0) { el.style.top = `${top + 2}px`; el.style.bottom = 'auto'; el.classList.add('below-cards'); }
 }

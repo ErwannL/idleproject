@@ -73,6 +73,23 @@ export const PHASE_COLORS = ['#ffb347', '#ff8a3d', '#ff5a3d', '#ff2a4a'];
 // v10.16 (1.6 bis) : taille du héros face aux grands boss (affichage seulement).
 export const HERO_SCALE_VS_GIANT = 1.4;
 
+// v10.18 (4.2) : cadrage d'un grand boss d'après la largeur réelle de sa silhouette (`box` : x, largeur, en px de
+// l'image) : le bord droit du corps reste à `margin` px d'écran au moins du bord du canvas ; si le boss, ramené à
+// gauche, passerait sur l'équipe (`minLeft`), il est un peu réduit (jamais sous 70 % du zoom prévu).
+// Unités : px de la scène ; `screen` = px d'écran par px de scène. Renvoie { x, k }.
+export const GIANT_RIGHT_MARGIN = 8;
+export function fitGiant({ x, k, box, sceneRight, minLeft = -Infinity, screen = 1, margin = GIANT_RIGHT_MARGIN }) {
+  const [bx, , bw] = box;
+  const right = sceneRight - Math.ceil(margin / (screen || 1));
+  let kk = k;
+  let xx = Math.min(x, Math.floor(right - (bx + bw) * kk));
+  if (xx + bx * kk < minLeft) {
+    kk = Math.max(k * 0.7, Math.min(k, (right - minLeft) / bw));
+    xx = Math.min(x, Math.floor(right - (bx + bw) * kk));
+  }
+  return { x: xx, k: kk };
+}
+
 export class WorldBossScene {
   constructor(canvas, fight, { calm = false } = {}) {
     this.canvas = canvas;
@@ -169,11 +186,20 @@ export class WorldBossScene {
     }
     const a = this.art.anims[name];
     const im = sheet(this.art, a.src ?? name);
-    const k = this.scale;
+    let k = this.scale;
+    let x = Math.round(r.wx(boss.x) + 14 + (this.titanDx ?? 0) - ((this.phone ? this.art.dxPhone : this.art.dx) ?? 0) * k - this.art.frame * k / 2); // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche (PC) ; sur téléphone, la scène est plus large (410 px logiques) : `dxPhone`, 0 par défaut
+    // v10.15 : un géant à grande planche ne dépasse jamais du cadre à droite. v10.18 (4.2) : tous les grands boss (le
+    // Colosse, l'Ombre et les 7 Titans aussi), d'après la largeur réelle du corps, avec 8 px d'écran de marge.
+    if (this.art.exactSheets) { const [bx, , bw] = this.look.box; const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0); x = Math.min(x, Math.floor(r.width - shift - 2 - (bx + bw) * k)); } // géants (bien cadrés) : inchangés
+    else {
+      const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0); // le calque est décalé de `shift`
+      const cw = r.ctx?.canvas?.getBoundingClientRect?.().width; // largeur affichée (le canvas peut être mis à l'échelle en CSS)
+      const screen = cw > 0 && r.width > 0 ? cw / r.width : 1;
+      // Le corps peut venir jusqu'au héros, comme les 8 géants (bien cadrés), mais pas au-delà de son centre moins 12 px.
+      const minLeft = this.heroX() - 12;
+      ({ x, k } = fitGiant({ x, k, box: this.look.box, sceneRight: r.width - shift, minLeft, screen }));
+    }
     const w = this.art.frame * k;
-    let x = Math.round(r.wx(boss.x) + 14 + (this.titanDx ?? 0) - ((this.phone ? this.art.dxPhone : this.art.dx) ?? 0) * k - w / 2); // v10.15 : `dx` (px de l'image) ramène un géant large vers la gauche (PC) ; sur téléphone, la scène est plus large (410 px logiques) : `dxPhone`, 0 par défaut
-    // v10.15 : un géant à grande planche (160/192 px) ne dépasse jamais du cadre à droite (phase 3 : × 1,33).
-    if (this.art.exactSheets) { const [bx, , bw] = this.look.box; const shift = Number.isFinite(r.fixedShift) ? Math.round(r.fixedShift) : Math.round(r.viewShift ?? 0); x = Math.min(x, Math.floor(r.width - shift - 2 - (bx + bw) * k)); } // le calque est décalé de `shift`
     const cx = x + w / 2;
     const y = Math.round(r.groundY + 1 - this.art.foot * k + breathe);
     // Ombre au sol, puis le Colosse (pieds sur la ligne du sol).

@@ -85,7 +85,7 @@ test('sans noircir la scène : plus d\'ombre sous l\'alerte DANGER ni de voile r
 
 test('plus de croissant en combat de boss : ni traînée courbe, ni ruban d\'arme, ni arc de taille contre un grand boss', () => {
   const scene = readFileSync(new URL('../src/render/scene.js', import.meta.url), 'utf8');
-  assert.match(scene, /if \(this\.bigBoss \|\| this\.bossFight\) return;/);
+  assert.match(scene, /boss: this\.bigBoss \|\| this\.bossFight \}\)\) return;/); // v10.18 (4.6) : critTrailAllowed (boss-feel.js)
   assert.match(scene, /ribbon && !this\.bigBoss && !this\.bossFight/);
   const vfx = readFileSync(new URL('../src/render/vfx.js', import.meta.url), 'utf8');
   assert.match(vfx, /if \(slash\) \{[^}]*return true; \}/);

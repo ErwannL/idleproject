@@ -284,6 +284,12 @@ const SIDE_PANEL_W = 440; // largeur du menu sur le côté (petite fenêtre)
 const SIDE_MIN_WIDTH = 760; // navigateur : menu sur le côté à partir de cette largeur (étape 3 : 900 → 760, la scène reste visible en 820×380)
 const RAIL_W = 80; // barre des menus verticale (petite fenêtre)
 const STRIP_MENU_HEIGHT = 400; // mode barre : hauteur de la fenêtre quand le menu est ouvert
+// v10.18 (4.4) : 2e ligne de la barre du boss sur téléphone : PV restants (format court) et compte à rebours de la rage.
+export function bossPhoneLine(hpShort, rageLeft) {
+  const rage = rageLeft === null || rageLeft === undefined ? '' : rageLeft > 0 ? ` · Rage dans ${Math.ceil(rageLeft)} s` : ' · EN RAGE';
+  return `${hpShort} PV${rage}`;
+}
+
 export class UI {
   constructor(root, actions) {
     this.root = root;
@@ -1699,7 +1705,8 @@ export class UI {
         // v9.1.9 : alerte « ⚠ BOSS / DANGER » sur la scène (une par arrivée, courte en boucle, sobre si animations réduites).
         this.bossMemory ??= {};
         const plan = bossWarningPlan(this.bossMemory, { tier, kind: event.kind, enemyId: event.enemyId, name: BOSSES[event.kind].name,
-          mode: state.dungeon ? 'dungeon' : state.tower ? 'tower' : 'stage', now: Date.now(), calm: reduceMotion(), fast: (this.speed ?? 1) >= 100 });
+          mode: state.dungeon ? 'dungeon' : state.tower ? 'tower' : 'stage', now: Date.now(), calm: reduceMotion(), fast: (this.speed ?? 1) >= 100,
+          phone: typeof document !== 'undefined' && Boolean(document.getElementById('app')?.classList.contains('m-phone')) }); // v10.18 (4.3)
         // v10.16 : arrivée du boss (portail), puis alerte : l'une après l'autre, jamais avec un « Moment fort ».
         this.queueAnnounce({ kind: 'portal', ms: PORTAL_MS });
         if (plan) this.queueAnnounce({ kind: 'danger', ms: plan.ms, plan });
@@ -2097,6 +2104,18 @@ export class UI {
   }
 
   // v9.1.0 : protégé — un élément retiré de la page n'est plus une erreur à chaque image.
+  // v10.18 (4.4) : barre du boss sur téléphone, sur 2 lignes (chaque ligne est un nœud texte : traduite à part).
+  setBossLines({ name, line }) {
+    const key = `${name}\n${line}`;
+    if (this.lastHud['progress-text'] === key) return;
+    const el = this.$('progress-text');
+    if (!el) return;
+    let n = el.querySelector(':scope > .pb-name'), l = el.querySelector(':scope > .pb-line');
+    if (!n || !l) { el.textContent = ''; n = document.createElement('span'); n.className = 'pb-name'; l = document.createElement('span'); l.className = 'pb-line'; el.append(n, l); }
+    if (n.textContent !== name) n.textContent = name;
+    l.textContent = line;
+    this.lastHud['progress-text'] = key;
+  }
   setText(id, text) {
     if (this.lastHud[id] === text) return;
     this.lastHud[id] = text;
@@ -2199,6 +2218,7 @@ export class UI {
     const progress = this.$('progress');
     let ratio;
     let text;
+    let phoneBoss = null; // v10.18 (4.4)
     // v9.1.3 (doc1 « Combat », essai) : mode boss réduit — pendant un boss, les boutons autour de la scène s'estompent
     // (opacité seulement : aucun saut de mise en page) ; effet complet au méga boss. Auto, vitesse, Boosts et sortie restent.
     const focusBoss = enc.boss && pref('bossFocus') !== false ? world.enemies.find((e) => e.boss) : null;
@@ -2218,6 +2238,8 @@ export class UI {
         if (left !== null) { timer.style.width = `${(left / BALANCE.stages.enrageSeconds) * 100}%`; timer.classList.toggle('enraged', left <= 0); }
       }
       if (left !== null) text += left > 0 ? ` · rage dans ${Math.ceil(left)} s` : ' · EN RAGE';
+      // v10.18 (4.4) : sur téléphone, 2 lignes : le nom, puis les PV en format court et « Rage dans 12 s ».
+      if (b && this.root.classList.contains('m-phone')) phoneBoss = { name: BOSSES[b.type].name, line: bossPhoneLine(formatNumber(Math.max(0, b.hp)), left) };
     } else {
       progress.classList.remove('boss');
       this.$('boss-timer')?.classList.add('hidden');
@@ -2249,7 +2271,9 @@ export class UI {
       this.$('progress-fill').style.width = `${Math.max(0, Math.min(1, ratio)) * 100}%`;
       this.lastHud.ratio = ratio;
     }
-    this.setText('progress-text', text);
+    this.$('progress')?.classList.toggle('boss2', Boolean(phoneBoss)); // v10.18 (4.4)
+    if (phoneBoss) this.setBossLines(phoneBoss);
+    else this.setText('progress-text', text);
   }
 
   // Boosts regroupés sur la scène (v9.1.0) : seulement ceux débloqués (un boost apparaît à son déblocage), avec leur

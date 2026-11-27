@@ -10,6 +10,8 @@
 // 2 exemples par taille. Rapport (rapport.md, rapport.json) : part des images où le boss est blanc, croissants (arcs
 // fx_slash, traînées et rubans d'arme), coups du héros par seconde, taille du boss / héros, plus petit écart à l'écran.
 // Les compteurs viennent de la scène (globalThis.__feelStats, voir src/render/scene.js).
+// v10.18 (4.1) : --video 0 (aucune vidéo) ; « boss blanc » en images et en temps réel, flashs comptés, images/s ;
+// code de sortie 1 si un combat dépasse 15 % de boss blanc (ou n'a pas pu être mesuré).
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { makeOpt, parseSizes, parseList, startApp, closeAll } from './lib-1013.mjs';
@@ -31,7 +33,7 @@ const FIGHTS = [
   { id: 'tour', kind: 'tour' },
   ...GRAND.map((id) => ({ id, kind: 'grand' })),
 ].filter((f) => !only || only.has(f.id));
-const VIDEO = new Set(['alpha_wolf', 'storm_god']); // 2 exemples filmés en vidéo par taille
+const VIDEO = opt('video', '1') === '0' ? new Set() : new Set(['alpha_wolf', 'storm_god']); // 2 exemples filmés en vidéo par taille ; --video 0 : aucune (v10.18)
 
 await mkdir(out, { recursive: true });
 const app = await startApp();
@@ -88,7 +90,8 @@ async function measure(page, name, sec, w, h) {
   const st = (await page.evaluate(() => globalThis.__feelStats)) ?? {};
   await sheet(shots, w, h, join(out, `${name}.jpg`));
   return { seconds: sec, bossFrames: st.frames ?? 0, whitePct: st.frames ? Math.round((st.white / st.frames) * 1000) / 10 : null,
-    crescents: st.slash ?? 0, arcsRemoved: st.arcSkipped ?? 0, strikesPerSec: Math.round(((st.strikes ?? 0) / sec) * 10) / 10,
+    whiteFramesPct: st.frames ? Math.round((st.white / st.frames) * 1000) / 10 : null, whiteTimePct: st.time ? Math.round((st.whiteTime / st.time) * 1000) / 10 : null,
+    fps: st.time ? Math.round(st.frames / st.time) : null, flashes: st.flashes ?? 0, crescents: st.slash ?? 0, arcsRemoved: st.arcSkipped ?? 0, strikesPerSec: Math.round(((st.strikes ?? 0) / sec) * 10) / 10,
     ratio: st.ratio ?? null, gapPx: st.gap ?? null };
 }
 
@@ -142,16 +145,23 @@ for (const [w, h] of sizes) {
     const v = video ? g.page.video() : null;
     await g.ctx.close();
     if (v) await rename(await v.path(), join(out, `${name}.webm`)).catch(() => {});
-    console.log(name, row.error ?? `blanc ${row.whitePct} % · croissants ${row.crescents} · ${row.strikesPerSec} coups/s · ×${row.ratio ?? '—'} · écart ${row.gapPx ?? '—'} px`);
+    console.log(name, row.error ?? `blanc ${row.whitePct} % (temps ${row.whiteTimePct} %, ${row.fps} i/s, ${row.flashes} flashs) · croissants ${row.crescents} · ${row.strikesPerSec} coups/s · ×${row.ratio ?? '—'} · écart ${row.gapPx ?? '—'} px`);
   }
 }
 await app.close();
 await rm(join(out, 'video-tmp'), { recursive: true, force: true });
 
-const md = ['# v10.16 — tous les boss : mesures du combat', '', `${SECONDS} s filmées par combat (tools/capture-boss-feel.mjs). Planche 4 × 4 par combat (JPEG) ; vidéos : ${[...VIDEO].join(', ')}.`, '',
-  '« Taille » : hauteur visible du boss / hauteur du héros (boss de campagne, donjon, Tour). « Écart » : plus petit écart à l\'écran entre le héros (au repos) et la silhouette du boss.', '',
-  '| Taille | Type | Boss | Boss blanc | Croissants | Arcs retirés | Coups du héros / s | Taille ×héros | Écart (px) | Erreurs |', '|---|---|---|---|---|---|---|---|---|---|',
-  ...report.map((r) => `| ${r.size} | ${r.kind} | ${r.id} | ${r.whitePct ?? '—'} % | ${r.crescents ?? '—'} | ${r.arcsRemoved ?? '—'} | ${r.strikesPerSec ?? '—'} | ${r.ratio ?? '—'} | ${r.gapPx ?? '—'} | ${r.error ? `échec : ${r.error}` : r.jsErrors.length} |`), ''];
+const md = ['# v10.18 — tous les boss : mesures du combat', '', `${SECONDS} s filmées par combat (tools/capture-boss-feel.mjs). Planche 4 × 4 par combat (JPEG) ; vidéos : ${[...VIDEO].join(', ')}.`, '',
+  '« Boss blanc » : part des images (et du temps réel) où le boss est dessiné en blanc (flash du critique, au plus toutes les 0,35 s) ; la teinte légère de l\'élément (≤ 35 %) n\'en fait pas partie. Échec au-delà de 15 %.', '', '« Taille » : hauteur visible du boss / hauteur du héros (boss de campagne, donjon, Tour). « Écart » : plus petit écart à l\'écran entre le héros (au repos) et la silhouette du boss.', '',
+  '| Taille | Type | Boss | Boss blanc (images) | Boss blanc (temps) | Flashs | Images/s | Croissants | Arcs retirés | Coups du héros / s | Taille ×héros | Écart (px) | Erreurs |', '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...report.map((r) => `| ${r.size} | ${r.kind} | ${r.id} | ${r.whitePct ?? '—'} % | ${r.whiteTimePct ?? '—'} % | ${r.flashes ?? '—'} | ${r.fps ?? '—'} | ${r.crescents ?? '—'} | ${r.arcsRemoved ?? '—'} | ${r.strikesPerSec ?? '—'} | ${r.ratio ?? '—'} | ${r.gapPx ?? '—'} | ${r.error ? `échec : ${r.error}` : r.jsErrors.length} |`), ''];
 await writeFile(join(out, 'rapport.md'), md.join('\n'));
 await writeFile(join(out, 'rapport.json'), JSON.stringify(report, null, 2));
 console.log(md.join('\n'));
+// v10.18 (4.1) : échec (code de sortie 1) si un boss est blanc plus de 15 % du temps, ou si un combat n'a pu être mesuré.
+const WHITE_MAX = 15;
+const bad = report.filter((r) => r.error || (r.whitePct ?? 0) > WHITE_MAX || (r.whiteTimePct ?? 0) > WHITE_MAX);
+if (bad.length) {
+  console.error(`ÉCHEC : ${bad.length} combat(s) au-delà de ${WHITE_MAX} % de boss blanc ou en erreur : ${bad.map((r) => `${r.id} ${r.size} (${r.error ?? `${r.whitePct} %`})`).join(', ')}`);
+  process.exitCode = 1;
+}
