@@ -1,7 +1,7 @@
 // v10.18 (1.5) : contrôle « même cadrage » sur téléphone. On ouvre puis on ferme chacun des 6 menus du bas, puis on bascule
 // Carte › Donjons › Arène › Défis. À chaque étape, le héros doit rester à 2 px près au même x à l'écran et garder la même
 // hauteur en pixels (scène ou bande du haut #page-mini, qui recopie la scène 1:1). Utilisé par tools/mobile-audit.mjs
-// (contrôle 21) et tools/e2e-1018-frame.mjs.
+// (contrôle 25) et tools/e2e-1018-frame.mjs.
 
 // Mesure dans la page : { state, x, h } — x = héros à l'écran, h = hauteur du héros en pixels d'écran.
 export function heroOnScreen() {
@@ -21,7 +21,7 @@ const MENUS6 = ['hero', 'team', 'adventure', 'summon', 'shop', 'goals'];
 const SWITCH = ['campaign', 'dungeons', 'arena', 'tower'];
 
 // Renvoie { issues: [{ check, msg }], rows: [...] }.
-export async function frameCheck(page, { check = 21, tol = 2, wait = 700 } = {}) {
+export async function frameCheck(page, { check = 25, tol = 2, wait = 700 } = {}) {
   const issues = [], rows = [];
   const closeAll = () => page.evaluate(() => {
     try { __idle.ui.closeModal(); } catch { /* rien */ }
