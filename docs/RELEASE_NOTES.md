@@ -1,6 +1,36 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.18.0 — Sur téléphone, tout rentre et rien ne bouge
+## Ascendrya v10.19.0 — Des ouvriers qui progressent, plus de morts éclair
+
+**Ouvriers du Bastion**
+- **Ce que fait le bonus d'un ouvrier** : un ouvrier fait travailler son bâtiment plus vite. Par exemple, « +33 % » dans la Forge veut dire que les commandes et les chantiers y avancent 33 % plus vite.
+- **Niveaux 1 à 10** : chaque ouvrier gagne de l'expérience en travaillant, même jeu fermé, et chaque niveau ajoute +2 %. Son niveau est gardé s'il part puis revient.
+- **Carte de l'ouvrier** : son niveau, sa barre d'expérience, le bonus en clair et son détail (métier, rareté, niveau).
+- **Départ signalé** : si tu mets un ouvrier dans ton équipe, le bâtiment le dit (« … est parti dans ton équipe ») avec un bouton « Remplacer ». Une option, activée par défaut, le remplace tout seul.
+
+**Combat : plus de mort « en un éclair »**
+- Un seul coup ne peut plus retirer plus de 25 % des PV (45 % pour un boss, 60 % pour un coup lourd non paré). Hors Tour et défis « rage ».
+- Les monstres d'une même vague ne frappent plus tous dans la même seconde.
+- **Second souffle** : une fois par vague ou par boss, un coup qui t'aurait tué alors que tu avais plus de la moitié de tes PV te laisse à 1 PV, avec un petit bouclier doré.
+- Monde 1 : boss de l'étape 15 un peu moins fort (−20 %), monstres des étapes 16 à 20 un peu moins dangereux (−10 % de dégâts).
+- La prévision « trop fort pour toi » n'apparaît plus qu'à l'approche du boss, et jamais pendant les 5 premières minutes.
+
+**Titans**
+- Plus de grande tache blanche : le flash prend la couleur du Titan. « Nuit sans fin » laisse voir l'équipe et le sol ; le ciel de l'Orage est sombre pour que les éclairs ressortent.
+- Les attaques de phase ont aussi leur bandeau ; deux noms en double sont renommés (« Ciel d'orage », « Fissures du vide »).
+- Les chiffres de dégâts restent dans l'écran. En combat normal aussi, plus de silhouette blanche quand on est touché.
+
+**Téléphone**
+- **Équipement** tient sur un écran : modes en haut, personnage sur une ligne, 6 places sur une rangée, « ⬆ Équiper le meilleur », puis le Sac sans défiler.
+- **Forge** : faire glisser la rangée des places ne change plus d'onglet (de même pour les autres rangées qui défilent) ; marge sous « Fabriquer ».
+- Les pièces d'or ne passent plus sur les fenêtres ; la bulle d'aide se place au-dessus de la barre du bas ; les textes défilants partent du début.
+
+**Début de partie**
+- Un bouton « Équiper » doré dans la fiche d'un objet meilleur que celui porté.
+- Les menus du bas s'ouvrent un par un, chacun avec sa bulle (Héros, Objectifs, Invocation, Aventure, Équipe, Boutique). Les parties en cours gardent tout ouvert.
+- Plus de conseil impossible à suivre ni de bulle qui reste ; pas d'« Objet dépassé » sur un objet tout neuf.
+
+<details><summary>Ascendrya v10.18.0 — Sur téléphone, tout rentre et rien ne bouge</summary>
 
 **Téléphone**
 - **La scène ne saute plus** : une seule bande de combat en haut de tous les onglets (Arène comprise), au même zoom que l'écran de combat. Le héros garde sa place et sa taille, fenêtre ouverte ou fermée. Le familier et les compagnons ne passent plus devant lui.
@@ -17,6 +47,8 @@
 
 **PC**
 - Nom de zone lisible ; Améliorations et Forge sans double illustration ; « Tout acheter » ne cache plus ×1 / ×10 / ×100 / Max ; notification du Bastion en bas, qui se ferme seule ; Fabriquer lisible à 1366 ; les textes défilants partent du début.
+
+</details>
 
 <details><summary>Ascendrya v10.17.1 — Finitions</summary>
 
