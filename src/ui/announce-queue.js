@@ -44,3 +44,10 @@ export class AnnounceQueue {
     return { stop, start };
   }
 }
+
+// v10.18 (4.5) : mondes terminés d'un coup (partie existante qui a déjà fini plusieurs mondes) : un seul « Moment fort »,
+// celui du dernier monde ; les autres sont marqués vus sans annonce (leur récompense reste donnée).
+export function worldMoments(worlds) {
+  const list = [...new Set(worlds)].sort((a, b) => a - b);
+  return { show: list.length ? list[list.length - 1] : null, quiet: list.slice(0, -1) };
+}

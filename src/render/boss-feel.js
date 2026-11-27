@@ -1,6 +1,6 @@
 // v10.16 : « un vrai combat de boss ». Règles d'affichage pures (sans canvas), utilisées par scene.js et testées sous
 // Node (tests/v1016-boss.test.js). Uniquement de l'affichage : le moteur et les dégâts ne changent pas.
-//   A1 : contre un boss, le flash blanc complet est rare (critique, au plus toutes les 0,25 s, très court) ; les autres
+//   A1 : contre un boss, le flash blanc complet est rare (critique, au plus toutes les 0,35 s depuis la v10.18, très court) ; les autres
 //        coups donnent une teinte légère (≤ 35 %) de la couleur de l'élément et un petit tremblement.
 //   A2 : impact propre à chaque compagnon (plus de croissant fx_slash).
 //   A3 : combo du héros contre un boss, en cycle de 4 (taille haute, taille basse, estoc, coup final).
@@ -8,7 +8,7 @@
 //   A5 : chiffres de dégâts en éventail, regroupés par source au-delà de 6 par seconde.
 
 // --- A1 : flash et teinte ---
-export const BOSS_FLASH_GAP = 0.25; // au plus un flash blanc complet toutes les 0,25 s
+export const BOSS_FLASH_GAP = 0.35; // v10.18 (4.1) : au plus un flash blanc complet toutes les 0,35 s (0,25 s en v10.16)
 export const BOSS_FLASH_TIME = 0.035; // ≈ 2 images : un éclair, pas une silhouette
 export const TINT_TIME = 0.1;
 export const TINT_ALPHA = 0.3; // ≤ 0,35
@@ -22,6 +22,7 @@ export function markHit(fx, time, { boss = false, crit = false, color = null } =
   if (!boss) { fx.hit = crit ? 0.13 : 0.08; return 'flash'; }
   if (crit && time - (fx.flashAt ?? -9) >= BOSS_FLASH_GAP) {
     fx.hit = BOSS_FLASH_TIME; fx.flashAt = time; fx.jit = JITTER_TIME;
+    if (globalThis.__feelStats) globalThis.__feelStats.flashes = (globalThis.__feelStats.flashes ?? 0) + 1; // v10.18 : mesure
     return 'flash';
   }
   fx.tint = TINT_TIME;
@@ -146,3 +147,10 @@ export function bossBoost(bossH, heroH, ratio) {
 // Position gauche minimale (px de jeu) de l'image du boss pour garder BOSS_HERO_GAP px d'écran entre le bord droit du
 // héros (`heroRight`) et le bord de la silhouette (`edgeOffset` px de jeu depuis le bord gauche de l'image).
 export const bossMinX = (heroRight, edgeOffset, screenScale = 1) => heroRight + Math.ceil(BOSS_HERO_GAP / (screenScale || 1)) - edgeOffset;
+
+// --- v10.18 (4.6) : traînée courbe du critique (« croissant », critTrail) hors combat de boss ---
+export const CRIT_TRAIL_GAP = 2; // au plus une traînée toutes les 2 s (0,4 s avant) ; jamais en combat de boss
+export function critTrailAllowed(time, lastAt, { focus = false, boss = false } = {}) {
+  if (focus || boss) return false;
+  return time - (lastAt ?? -99) >= CRIT_TRAIL_GAP;
+}

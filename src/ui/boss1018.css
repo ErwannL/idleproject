@@ -1,0 +1,12 @@
+/* v10.18 (partie 4) : combats de boss sur téléphone. */
+
+/* 4.4 : barre du boss sur 2 lignes (nom ; PV courts et « Rage dans 12 s »), plus rien de coupé. */
+#app.m-phone #combat-console #progress.boss2 { height: 36px; }
+#app.m-phone #combat-console #progress.boss2 #progress-text { display: flex; flex-direction: column; justify-content: center; align-items: center;
+  line-height: 15px; white-space: nowrap; overflow: hidden; padding: 0 6px; box-sizing: border-box; }
+#app.m-phone #combat-console #progress.boss2 .pb-name { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#app.m-phone #combat-console #progress.boss2 .pb-line { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; color: #ffd6dc; }
+
+/* 4.3 : bandeau « DANGER » posé sous les cartes du haut de la scène (top calculé par boss-warning.js), 2 s. */
+.boss-warning.below-cards { inset: auto 0 auto 0; height: auto; }
+.boss-warning.below-cards .bw-band { margin-top: 0; }

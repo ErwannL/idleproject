@@ -8,6 +8,7 @@ import { stagesPerCycle } from './core/combat.js'; // v9.8 (A)
 import { setLoadoutSlot, toggleLoadout } from './core/skills.js'; // v9.7.1 (lot 6)
 import { activeBonds } from './data/bonds.js'; // v9.7.1 (lot 6)
 import { updateStars, worldStars } from './core/world-stars.js'; // v9.7.1 (lot 4)
+import { worldMoments } from './ui/announce-queue.js'; // v10.18 (4.5)
 import { finishRevenge, startRevenge } from './core/revenge.js'; // v9.7.1 (lot 4)
 import { advanceUnlocks } from './core/unlock-quests.js'; // v9.7.1 (lot 3)
 import { playerCast, playerGuard, playerUltimate, playerWeakSpot } from './core/combat.js'; // v9.7.1 (lot 2)
@@ -1834,11 +1835,12 @@ if (state.migrationRefund) {
   setTimeout(() => ui.showRebalanceNotice(refund), 1500);
 }
 // v9.7.1 (lot 4) : moments forts — une courte scène (cinématique) et un écran de récompense, une seule fois chacun.
-function highlight(id, title, line) {
+function highlight(id, title, line, { quiet = false } = {}) {
   const seen = state.ui.hints ?? [];
   if (seen.includes(`hl-${id}`)) return;
   state.ui.hints = [...seen, `hl-${id}`].slice(-150);
   state.gems += 25;
+  if (quiet) return; // v10.18 (4.5) : marqué vu sans annonce (récompense inchangée)
   if (ui.moment) ui.moment({ kicker: 'Moment fort', title, line }); // v10.16 : file d'annonces (jamais par-dessus une fenêtre)
   else playCinematic({ kicker: 'Moment fort', title, line });
   setTimeout(() => ui.toast(`${title} +25 gemmes`, '#ffd23f'), 2400);
@@ -1885,7 +1887,10 @@ function vigilAllowed(st) {
 }
 setInterval(() => {
   // v9.7.1 (lot 4) : étoiles des mondes terminés, moments forts (premier monde, premier Légendaire, première Renaissance).
-  for (const w of updateStars(state)) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`);
+  // v10.18 (4.5) : plusieurs mondes terminés d'un coup : seul le dernier est fêté, une fois ; les autres sont marqués vus.
+  const wm = worldMoments(updateStars(state));
+  for (const w of wm.quiet) highlight(`world-${w}`, `Monde ${w + 1} terminé !`, '', { quiet: true });
+  if (wm.show !== null) { const w = wm.show; highlight(`world-${w}`, `Monde ${w + 1} terminé !`, `${worldStars(state, w).filter(Boolean).length} étoile(s) sur 3. Le Colosse t'attend pour un face-à-face.`); }
   if (state.records.rebirths > 0) highlight('first-rebirth', 'Première Renaissance !', 'Tu repars plus fort : tes compagnons, tes talents et tes ensembles restent.');
   for (const b of activeBonds(state)) highlightBond(b); // v9.7.1 (lot 6) : liens entre compagnons
   // v9.9 (K12) : Veillée automatique après 5 minutes sans toucher (réglable dans Paramètres).

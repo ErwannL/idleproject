@@ -496,3 +496,7 @@ for (const [k, v] of Object.entries(EXACT_1017)) if (!Object.hasOwn(EXACT, k)) E
 import { EXACT_1017_UI, patterns1017Ui } from './ko-1017-ui.js';
 for (const [k, v] of Object.entries(EXACT_1017_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1017Ui());
+// v10.18 (partie 4) : barre du boss sur téléphone (./ko-1018-boss.js).
+import { EXACT_1018_BOSS, patterns1018Boss } from './ko-1018-boss.js';
+for (const [k, v] of Object.entries(EXACT_1018_BOSS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1018Boss());
