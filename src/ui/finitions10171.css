@@ -77,3 +77,6 @@
 #app #panel .m-sheet > .m-sheet-body:has(> :is(.m-btn-gold, .btn-gold)) > * { flex: none; }
 #app #panel .m-sheet > .m-sheet-body > :is(.m-btn-gold, .btn-gold) { order: 99; margin-top: auto !important; }
 /* le cadre au pied doré descend jusqu'en bas de la fenêtre : hauteur minimale posée par src/ui/gold-dock.js (fillDock) */
+/* Compagnons (PC) : la rangée « Meilleure équipe » (bouton doré) passe au pied de la colonne principale (.dc-main est en
+   display: contents : ses enfants sont rangés par order dans la grille) */
+#app:not(.m-phone) #panel .dc-frame .dc-presets { order: 7; margin-top: 6px; }
