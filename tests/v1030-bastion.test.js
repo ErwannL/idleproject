@@ -119,11 +119,11 @@ test('ouvriers : métier +20 %, rareté +5 à +20 % ; sans ouvrier, production �
   for (const c of COMPANIONS.filter((x) => x.kind === 'ally')) assert.ok(c.trade, `${c.id} a un métier`);
   const s = opened(100);
   assert.equal(tradeOf('dwarf'), 'smith');
-  assert.deepEqual([workerBonus(s, 'dwarf', 'forge').totalPct, workerBonus(s, 'dwarf', 'library').totalPct], [WORKER_RULES.tradeBonusPct + 5, 5]);
-  assert.equal(workerBonus(s, 'witch', 'library').totalPct, 30);
+  assert.deepEqual([workerBonus(s, 'dwarf', 'forge').totalPct, workerBonus(s, 'dwarf', 'library').totalPct], [WORKER_RULES.tradeBonusPct + 5 + WORKER_RULES.levelPct, 5 + WORKER_RULES.levelPct]); // v10.19 : +2 % au niveau 1 d'ouvrier
+  assert.equal(workerBonus(s, 'witch', 'library').totalPct, 32);
   assert.equal(productionFactor(s, 'forge'), 0.5);
   assignWorker(s, 'forge', 'dwarf', T0);
-  assert.equal(productionFactor(s, 'forge'), 1.25);
+  assert.equal(productionFactor(s, 'forge'), 1.27);
   // Le chantier va plus vite avec le bon métier : 30 min de travail → 24 min.
   startBuild(s, 'forge', T0);
   assert.equal(Math.round(buildRemaining(s, 'forge') / 60000), 24);
@@ -136,6 +136,7 @@ test('ouvriers : métier +20 %, rareté +5 à +20 % ; sans ouvrier, production �
   startBuild(s, 'forge', T0 + HOUR);
   bastionTick(s, T0 + HOUR + 10 * 60_000);
   const left = s.bastion.buildings.forge.build.left;
+  s.bastion.autoReplace = false; // v10.19 : sans remplacement automatique, le chantier attend
   assert.equal(toggleCompanion(s, 'dwarf'), true);
   bastionTick(s, T0 + 9 * HOUR);
   assert.equal(s.bastion.buildings.forge.build.left, left);
@@ -170,7 +171,7 @@ test('un ouvrier ne peut pas être aussi dans l\'équipe ou en expédition ; le 
   assert.equal(assignWorker(s, 'forge', 'mercenary', T0), null);
   s.companions.equipped = ['mercenary'];
   bastionTick(s, T0 + 1000);
-  assert.equal(s.bastion.buildings.forge.worker, null);
+  assert.notEqual(s.bastion.buildings.forge.worker, 'mercenary'); // v10.19 : remplacé aussitôt (option par défaut)
 });
 
 test('la Forge du Bastion règle les chiffres de la Forge : chance de fusion, renforcement maximal, coûts, commandes', () => {

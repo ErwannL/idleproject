@@ -118,7 +118,7 @@ import { recycleUseless } from './core/inventory.js'; // v9.3.4
 import { sortLootBag } from './core/inventory.js'; // v9.7.1 : sac de butin
 // v10.3 (partie 10) : le Bastion.
 import { ackBastionNews, assignWorker, bastionSealShown, bastionTick, buildingDef, canBuild, canOrder, canResearch, collectOrder, collectStock, orderLabel, placeOrder,
-  autoAssignWorkers, removeWorker, workerBonus, researchDef, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
+  autoAssignWorkers, removeWorker, workerBonus, researchDef, autoReplaceOn, bestFreeWorker, setAutoReplace, startBuild, startResearch, takeNotices, trade, workerNoticeText } from './core/bastion.js';
 import { maybeBastionCard } from './ui/bastion-cards.js';
 import { collectAway, kickoffBastion, markTip, noteAway, placedLine } from './core/bastion-start.js'; // v10.4 (6)
 import { maybeBastionAway } from './ui/bastion-away.js'; // v10.4 (6)
@@ -322,6 +322,17 @@ const actions = {
         ui.view.bastionKick = { placed: placed.map((p) => ({ companionId: p.companionId, building: p.building, pct: workerBonus(state, p.companionId, p.building).totalPct })), build: null };
         sound.play('claim', { volume: 0.6 });
         return done(true, `${placed.length} ouvrier${placed.length > 1 ? 's' : ''} au travail`, '#7fe0a0');
+      }
+      case 'replace': { // v10.19 (1) : le meilleur ouvrier libre prend la place de celui qui est parti
+        const best = bestFreeWorker(state, x);
+        if (!best) return refuse('Aucun compagnon libre.');
+        const why = assignWorker(state, x, best.id, now);
+        if (!why) sound.play('claim', { volume: 0.5 });
+        return why ? refuse(why) : done(true, `${best.name} au travail : ${buildingDef(x)?.name ?? ''}`, '#7fe0a0');
+      }
+      case 'autoreplace': { // v10.19 (1) : option « Remplacer automatiquement si un ouvrier part »
+        setAutoReplace(state, !autoReplaceOn(state));
+        return done(true, autoReplaceOn(state) ? 'Remplacement automatique activé' : 'Remplacement automatique désactivé', '#9fe6ff');
       }
       case 'worker': {
         if (!y) return done(removeWorker(state, x, now), 'Ouvrier retiré : le bâtiment est à l\'arrêt', '#ffb36b');

@@ -283,3 +283,22 @@
 /* « Améliorer » toujours en vue : coût et bouton collés au bas de la fiche quand elle défile (fenêtre basse). */
 .bs-go { display: grid; gap: 6px; }
 #app#app.page-ui:not(.page-narrow) .bs-side .bs-go { position: sticky; bottom: -10px; z-index: 4; margin: 0 -12px -10px; padding: 8px 12px 10px; background: linear-gradient(rgba(13, 20, 38, .9), #0d1426 30%); border-top: 1px solid rgba(201, 150, 63, .45); }
+
+/* v10.19 (partie 1) : niveaux d'ouvrier, bonus en clair, départ signalé, remplacement automatique */
+.bs-wxp { display: block; height: 7px; border-radius: 4px; background: #1b2540; border: 1px solid #34436a; overflow: hidden; margin-top: 2px; }
+.bs-wxp i { display: block; height: 100%; background: linear-gradient(90deg, #6fd3ff, #9ff0c0); }
+.bs-wxpt { font-size: 12px; color: #cdd6ea; }
+.bs-wspeed { display: grid; gap: 1px; margin: 6px 0 2px; }
+.bs-wspeed b { font-size: 16px; line-height: 1.2; }
+.bs-wspeed small { font-size: 12px; color: #cdd6ea; }
+.bs-wparts { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-bottom: 6px; }
+.bs-wparts span { font-size: 12px; padding: 1px 7px; border-radius: 8px; background: #1b2540; border: 1px solid #34436a; color: #e6ecfa; }
+.bs-wcard .bs-wlv { font-size: 11px; line-height: 1; color: #cdd6ea; }
+.bs-wcard.off { opacity: .5; cursor: default; filter: grayscale(.7); }
+.bs-wcard.off:hover { border-color: #2f3a58; }
+.bs-wcard .bs-wtag { font-size: 10px; line-height: 1.1; color: #ffcf8a; text-align: center; }
+.bs-departed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; padding: 8px 10px; border-radius: 10px; border: 2px solid #6fa8ff; background: #14233f; color: #e6efff; font-size: 13px; }
+.bs-departed span { flex: 1 1 160px; font-weight: 700; }
+.bs-autorep { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 36px; margin-top: 8px; padding: 4px 6px; border: 0; background: none; color: #dfe6f6; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.bs-autorep i { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; border: 2px solid #8fa3d6; font-style: normal; font-weight: 900; color: #102010; }
+.bs-autorep.on i { background: var(--good, #63d98a); border-color: var(--good, #63d98a); }

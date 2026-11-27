@@ -2159,3 +2159,7 @@ PATTERNS.unshift(...patterns1018Boss());
 import { EXACT_1018, patterns1018 } from './en-1018.js';
 for (const [k, v] of Object.entries(EXACT_1018)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1018(lookup));
+// v10.19 (partie 1) : ouvriers du Bastion — niveaux, bonus en clair, départ signalé (./en-1019-bastion.js).
+import { EXACT_1019_BASTION, patterns1019Bastion } from './en-1019-bastion.js';
+for (const [k, v] of Object.entries(EXACT_1019_BASTION)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1019Bastion(lookup));

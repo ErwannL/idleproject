@@ -17,6 +17,7 @@ import {
   buildingDef, buildingLevel, canBuild, researchDef, canOrder, canResearch, forgePerks, orderChances, orderCost, orderLabel, orderRemaining, orderSlots, orderTierOpen,
   ordersReady, productionFactor, productionOf, researchCost, researchRemaining, researchSlots, researchStatus, stockOf, tradeLeft,
   tradeOf, tradeOffer, workerBonus, workerBuilding, workerOf, workerSlots, workersPlaced,
+  autoReplaceOn, bestFreeWorker, busyWorkers, departedFrom, workerProgress, workerSpeedText, // v10.19 (1) : niveaux d'ouvrier, départ signalé
 } from '../../core/bastion.js';
 import { placedLine, tipSeen } from '../../core/bastion-start.js';
 import { companionById } from '../../core/companions.js';
@@ -621,38 +622,67 @@ function duration(ms, factor) {
   return `<span class="bs-dur" title="${formatDuration(ms / 1000)} sans bonus">${img('icon_timer')} ${formatDuration(ms / factor / 1000)}</span>`;
 }
 
-// Portrait d'un ouvrier possible : un toucher le pose (ou le retire s'il est déjà là).
-function workerCard(state, c, buildingId, best = false) {
+// Portrait d'un ouvrier possible : un toucher le pose (ou le retire s'il est déjà là). v10.19 (1) : son niveau et son
+// bonus total dans ce bâtiment ; pris dans l'équipe ou en expédition (`busy`) : grisé, avec la raison, sans action.
+function workerCard(state, c, buildingId, best = false, busy = null) {
   const bonus = workerBonus(state, c.id, buildingId);
   const at = workerBuilding(state, c.id);
   const here = at === buildingId;
   const trade = tradeOf(c.id);
-  const title = `${c.name} · ${TRADES[trade]?.label ?? ''} · +${bonus.totalPct} %${at && !here ? ` (${buildingDef(at).name})` : ''}`;
+  const tag = busy ? (busy === 'expedition' ? 'en expédition' : 'en équipe') : '';
+  const title = `${c.name} · ${TRADES[trade]?.label ?? ''} · Niv. ${bonus.level} · +${bonus.totalPct} % de vitesse${at && !here ? ` (${buildingDef(at).name})` : ''}${tag ? ` · ${tag}` : ''}`;
+  const pic = `<span class="bs-wpic">${companionStill(c)}</span><img class="px bs-wtrade" src="${tradeArt(trade)}" alt="">${best ? '<i class="bs-wbest" title="Meilleur choix">★</i>' : ''}<small class="bs-wname">${escapeHtml(c.name.split(/\s+/)[0])}</small>`;
+  if (busy) return `<span class="bs-wcard off r-${c.rarity}" role="img" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">${pic}<small class="bs-wlv">Niv. ${bonus.level}</small><b class="bs-wtag">${tag}</b></span>`;
   return `<button class="bs-wcard r-${c.rarity}${here ? ' here' : ''}${bonus.match ? ' match' : ''}${at && !here ? ' busy' : ''}" data-action="bastion-worker" data-value="${buildingId}|${here ? '' : c.id}" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
-      <span class="bs-wpic">${companionStill(c)}</span><img class="px bs-wtrade" src="${tradeArt(trade)}" alt="">${best ? '<i class="bs-wbest" title="Meilleur choix">★</i>' : ''}<small class="bs-wname">${escapeHtml(c.name.split(/\s+/)[0])}</small><b class="bs-wbonus">+${bonus.totalPct} %</b></button>`;
+      ${pic}<small class="bs-wlv">Niv. ${bonus.level}</small><b class="bs-wbonus">+${bonus.totalPct} %</b></button>`;
 }
+
+// v10.19 (1) : la carte de l'ouvrier en place — métier et niveau, barre d'XP, ce que fait son bonus, puis le détail.
+function workerNow(state, c, def) {
+  const b = workerBonus(state, c.id, def.id);
+  const p = workerProgress(state, c.id);
+  const pct = p.max ? 100 : Math.max(0, Math.min(100, ((p.xp - p.from) / Math.max(1, p.to - p.from)) * 100));
+  const parts = [b.tradePct ? `Métier +${b.tradePct} %` : 'Métier +0 %', `Rareté +${b.rarityPct} %`, `Niveau ${b.level} +${b.levelPct} %`, ...(b.researchPct ? [`Recherche +${b.researchPct} %`] : [])];
+  return `<div class="bs-worker-now r-${c.rarity}"><span class="bs-wpic big">${companionStill(c)}</span>
+      <span class="grow"><b>${escapeHtml(c.name)}</b><span class="bs-wline"><img class="px bs-tradeico" src="${tradeArt(tradeOf(c.id))}" alt="">${escapeHtml(TRADES[tradeOf(c.id)]?.label ?? '')} · Niv. ${b.level}</span>
+      <span class="bs-wxp" role="progressbar" aria-label="Expérience d'ouvrier" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct)}"><i style="width:${pct.toFixed(1)}%"></i></span>
+      <small class="bs-wxpt num">${p.max ? `${p.xp} XP · niveau maximal` : `${p.xp} / ${p.to} XP`}</small></span></div>
+    <div class="bs-wspeed"><b class="good">+${b.totalPct} % vitesse de ${escapeHtml(def.the)}</b><small>(${escapeHtml(workerSpeedText(def.id))})</small></div>
+    <div class="bs-wparts">${parts.map((x) => `<span>${escapeHtml(x)}</span>`).join('')}</div>`;
+}
+
+// v10.19 (1) : bandeau « X est parti… » avec « Remplacer (Y) », et l'option de remplacement automatique.
+function departedBanner(state, def) {
+  const d = departedFrom(state, def.id);
+  if (!d) return '';
+  const c = companionById(d.companionId);
+  const where = d.why === 'expedition' ? 'est parti en expédition' : d.why === 'team' ? 'est parti dans ton équipe' : 'n\'est plus disponible';
+  const best = bestFreeWorker(state, def.id);
+  const room = workersPlaced(state) < workerSlots(state);
+  return `<div class="bs-departed" role="status"><span>${escapeHtml(c?.name ?? 'Ton ouvrier')} ${where}.</span>${best && room ? `<button class="btn btn-gold small" data-action="bastion-replace" data-value="${def.id}">Remplacer (${escapeHtml(best.name.split(/\s+/)[0])})</button>` : ''}</div>`;
+}
+const autoReplaceRow = (state) => `<button type="button" class="bs-autorep${autoReplaceOn(state) ? ' on' : ''}" data-action="bastion-autoreplace" role="switch" aria-checked="${autoReplaceOn(state)}"><i aria-hidden="true">${autoReplaceOn(state) ? '✓' : ''}</i>Remplacer automatiquement si un ouvrier part</button>`;
 
 function workerBlock(ui, state, def) {
   if (!workerOf(state, def.id)) { (state.ui.hints ??= []); if (!state.ui.hints.includes('bastion-worker')) setTimeout(() => state.ui.hints.push('bastion-worker'), 0); } // bulle une seule fois
   const w = workerOf(state, def.id);
   const c = w ? companionById(w) : null;
   const list = availableWorkers(state).sort((x, y) => workerBonus(state, y.id, def.id).totalPct - workerBonus(state, x.id, def.id).totalPct);
+  const busy = busyWorkers(state);
   const bestId = !workerOf(state, def.id) ? list.find((x) => !workerBuilding(state, x.id))?.id : null;
   const full = !c && workersPlaced(state) >= workerSlots(state);
   const more = ui.view.bastionMore === def.id;
   const room = typeof innerHeight === 'number' && innerHeight < 820 ? 4 : 9; // fenêtre basse : une rangée de portraits
-  const shown = more ? list : list.slice(0, list.length > room + 1 ? room : room + 1);
+  const all = [...list.map((x) => [x, null]), ...busy.map((x) => [x.c, x.why])];
+  const shown = more ? all : all.slice(0, all.length > room + 1 ? room : room + 1);
   const trade = Object.entries(TRADES).find(([, t]) => t.building === def.id)?.[0];
-  const head = c
-    ? (() => { const b = workerBonus(state, c.id, def.id); return `<div class="bs-worker-now r-${c.rarity}"><span class="bs-wpic big">${companionStill(c)}</span>
-        <span class="grow"><b>${escapeHtml(c.name)}</b><span class="bs-wline"><img class="px bs-tradeico" src="${tradeArt(tradeOf(c.id))}" alt="">${escapeHtml(TRADES[tradeOf(c.id)]?.label ?? '')}</span></span>
-        <b class="bs-wbonus good">+${b.totalPct} %</b></div>`; })()
-    : `<div class="bs-idle-box" role="status"><b>Ce bâtiment est à l'arrêt : choisis un ouvrier</b><span>Touche un portrait ci-dessous pour le poser ici ↓</span>${(state.ui.hints ?? []).includes('bastion-worker') ? '' : '<small class="bs-idle-tip">Pose un compagnon : sans ouvrier, rien n\'avance.</small>'}</div>`;
+  const head = c ? workerNow(state, c, def)
+    : `${departedBanner(state, def)}<div class="bs-idle-box" role="status"><b>Ce bâtiment est à l'arrêt : choisis un ouvrier</b><span>Touche un portrait ci-dessous pour le poser ici ↓</span>${(state.ui.hints ?? []).includes('bastion-worker') ? '' : '<small class="bs-idle-tip">Pose un compagnon : sans ouvrier, rien n\'avance.</small>'}</div>`;
   const grid = full && !list.some((x) => workerBuilding(state, x.id))
     ? `<p class="muted">Places prises (${workerSlots(state)})</p>`
-    : list.length ? `<div class="bs-wgrid">${shown.map((x) => workerCard(state, x, def.id, x.id === bestId)).join('')}${list.length > shown.length ? `<button class="bs-wmore" data-action="bastion-more" data-value="${def.id}">+${list.length - shown.length}</button>` : ''}</div>`
+    : all.length ? `<div class="bs-wgrid">${shown.map(([x, why]) => workerCard(state, x, def.id, x.id === bestId, why)).join('')}${all.length > shown.length ? `<button class="bs-wmore" data-action="bastion-more" data-value="${def.id}">+${all.length - shown.length}</button>` : ''}</div>`
       : '<p class="muted">Aucun compagnon libre</p>';
-  return `<div class="bs-block bs-wblock"><div class="bs-block-title">Ouvrier${trade ? ` <img class="px bs-tradeico" src="${tradeArt(trade)}" alt="" title="Métier conseillé : ${escapeHtml(TRADES[trade].label)} (+${WORKER_RULES.tradeBonusPct} %)">` : ''}</div>${head}${grid}</div>`;
+  return `<div class="bs-block bs-wblock"><div class="bs-block-title">Ouvrier${trade ? ` <img class="px bs-tradeico" src="${tradeArt(trade)}" alt="" title="Métier conseillé : ${escapeHtml(TRADES[trade].label)} (+${WORKER_RULES.tradeBonusPct} %)">` : ''}</div>${head}${grid}${autoReplaceRow(state)}</div>`;
 }
 
 function upgradeBlock(state, def, now) {
@@ -1019,6 +1049,8 @@ export function bastionAction(ui, action, value) {
     case 'bastion-autoplace': a.bastion('autoplace'); break; // v10.11 (3)
     case 'bastion-goto-workers': document.querySelector('.bs-wblock')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); break;
     case 'bastion-worker': { const [building, companion] = value.split('|'); a.bastion('worker', building, companion || null); break; }
+    case 'bastion-replace': a.bastion('replace', value); break; // v10.19 (1) : « Remplacer (…) » du bandeau de départ
+    case 'bastion-autoreplace': a.bastion('autoreplace'); break; // v10.19 (1) : option du Bastion
     case 'bastion-build': a.bastion('build', value); break;
     case 'bastion-res': v.bastionView = 'research'; v.bastionRes = value; redraw(); break;
     case 'bastion-research': a.bastion('research', value); break;

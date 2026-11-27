@@ -11,6 +11,7 @@ import {
   BASTION_MAX_LEVEL, BASTION_UNLOCK_STAGE, BUILDINGS, FORGE_PERKS, LIBRARY, MINE, ORDER_TIERS, RESEARCH, RESEARCH_BRANCHES,
   RESEARCH_STEPS, RESEARCH_UNLOCK_LEVEL, TRADES, TRADE_POST, TRAINING, WORKER_RULES, AGES, AGE_POWER, AGE_WORKER_SLOTS, RESEARCH_SLOTS_AT_AGE } from '../data/bastion.js';
 import { UNITS } from '../data/banners.js';
+import { BALANCE } from '../data/balance.js'; // v10.19 (1) : plafond hors ligne de l'XP des ouvriers
 import { RARITIES, SLOTS } from '../data/items.js';
 import { COMPANION_ROLES } from '../data/synergies.js';
 
@@ -63,6 +64,7 @@ export function emptyBastion(now = Date.now()) {
     stock: { mine: 0, training: 0, menagerie: 0 },
     trade: { day: '', used: 0 },
     news: [], notices: [], cards: [],
+    workers: {}, departed: {}, autoReplace: true, // v10.19 (1) : XP et niveau des ouvriers, départs signalés, remplacement auto
     kicked: 0, tips: [], away: null, // v10.4 (6) : démarrage fait, bulles vues, « Pendant ton absence » (core/bastion-start.js)
   };
 }
@@ -182,17 +184,65 @@ export function canWork(state, companionId) {
 export function availableWorkers(state) {
   return UNITS.filter((c) => canWork(state, c.id));
 }
+// v10.19 (1) : compagnons qui pourraient travailler mais sont pris ailleurs : [{ c, why: 'team' | 'expedition' }]
+// (montrés grisés dans le choix d'ouvrier).
+export function busyWorkers(state) {
+  return UNITS.filter((c) => c.kind === 'ally' && state.companions?.owned?.[c.id] && !state.companions.owned[c.id].trial && !canWork(state, c.id))
+    .map((c) => ({ c, why: away(state, c.id) ? 'expedition' : 'team' }));
+}
 
-// Bonus d'un ouvrier dans un bâtiment : rareté (+5 à +20 %), métier (+20 % au bon bâtiment), recherche « Ouvriers appliqués ».
+// ---------------------------------------------------------------- v10.19 (1) : niveaux d'ouvrier
+// Niveau atteint pour une XP totale (1 à 10).
+export function workerLevelFor(xp) {
+  let lv = 1;
+  for (const need of WORKER_RULES.levelXp) if (xp >= need) lv += 1;
+  return Math.min(WORKER_RULES.maxLevel, lv);
+}
+// Fiche d'ouvrier d'un compagnon : { workerXp, workerLevel } (niveau 1, 0 XP s'il n'a jamais travaillé). Gardée quand
+// il quitte son poste : il la retrouve en revenant.
+export function workerInfo(state, companionId) {
+  const w = state?.bastion?.workers?.[companionId];
+  const xp = Math.max(0, Number.isFinite(w?.workerXp) ? w.workerXp : 0);
+  return { workerXp: xp, workerLevel: workerLevelFor(xp) };
+}
+// Barre d'XP : { level, xp, to, max } — `to` : XP totale du niveau suivant (null au niveau maximal).
+export function workerProgress(state, companionId) {
+  const { workerXp, workerLevel } = workerInfo(state, companionId);
+  const max = workerLevel >= WORKER_RULES.maxLevel;
+  return { level: workerLevel, xp: Math.floor(workerXp), from: WORKER_RULES.levelXp[workerLevel - 2] ?? 0, to: max ? null : WORKER_RULES.levelXp[workerLevel - 1], max };
+}
+// Ajoute de l'XP d'ouvrier (minutes de travail). Renvoie le nouveau niveau s'il change, sinon null.
+export function addWorkerXp(state, companionId, xp) {
+  const b = bastionOf(state);
+  if (!b || !companionId || !(xp > 0)) return null;
+  b.workers ??= {};
+  const before = workerInfo(state, companionId);
+  const cap = WORKER_RULES.levelXp[WORKER_RULES.levelXp.length - 1];
+  const workerXp = Math.min(cap, before.workerXp + xp);
+  const workerLevel = workerLevelFor(workerXp);
+  b.workers[companionId] = { workerXp, workerLevel };
+  return workerLevel !== before.workerLevel ? workerLevel : null;
+}
+// Ce que la vitesse d'un bâtiment accélère, en clair (sous le bonus de la carte de l'ouvrier).
+const SPEED_TEXT = {
+  forge: 'commandes et chantiers plus rapides', library: 'recherches et chantiers plus rapides', mine: 'plus d\'éclats, chantiers plus rapides',
+  training: 'plus de grimoires, chantiers plus rapides', menagerie: 'plus d\'essences, chantiers plus rapides',
+};
+export const workerSpeedText = (buildingId) => SPEED_TEXT[buildingId] ?? 'chantiers plus rapides';
+
+// Bonus d'un ouvrier dans un bâtiment : rareté (+5 à +20 %), métier (+20 % au bon bâtiment), niveau (+2 % par niveau,
+// v10.19), recherche « Ouvriers appliqués ». S'applique à la vitesse de production du bâtiment (et de ses chantiers).
 export function workerBonus(state, companionId, buildingId) {
   const c = unit(companionId);
-  if (!c) return { rarityPct: 0, tradePct: 0, researchPct: 0, totalPct: 0, factor: 1, match: false };
+  if (!c) return { rarityPct: 0, tradePct: 0, levelPct: 0, level: 1, researchPct: 0, totalPct: 0, factor: 1, match: false };
   const rarityPct = WORKER_RULES.rarityBonusPct[c.rarity] ?? 0;
   const match = Boolean(buildingId) && buildingDef(buildingId)?.trade === tradeOf(companionId);
   const tradePct = match ? WORKER_RULES.tradeBonusPct : 0;
+  const level = workerInfo(state, companionId).workerLevel;
+  const levelPct = level * WORKER_RULES.levelPct;
   const researchPct = researchEffects(state).workerPct ?? 0;
-  const totalPct = rarityPct + tradePct + researchPct;
-  return { rarityPct, tradePct, researchPct, totalPct, factor: 1 + totalPct / 100, match };
+  const totalPct = rarityPct + tradePct + levelPct + researchPct;
+  return { rarityPct, tradePct, levelPct, level, researchPct, totalPct, factor: 1 + totalPct / 100, match };
 }
 
 // Vitesse de production d'un bâtiment : 50 % sans ouvrier, sinon 100 % + bonus de l'ouvrier.
@@ -220,6 +270,7 @@ export function assignWorker(state, buildingId, companionId, now = Date.now()) {
   if (!from && !slot.worker && workersPlaced(state) >= workerSlots(state)) return `Toutes les places d'ouvrier sont prises (${workerSlots(state)}).`;
   if (from) b.buildings[from].worker = null;
   slot.worker = companionId;
+  if (b.departed) delete b.departed[buildingId]; // v10.19 (1) : le bandeau « parti » s'efface
   return null;
 }
 
@@ -264,6 +315,9 @@ export function releaseWorker(state, companionId, why = 'team', now = null) {
 
 // Filet de sécurité (équipe changée par un Build, une équipe conseillée, une sauvegarde abîmée…) : aucun ouvrier
 // n'est aussi dans l'équipe ou en expédition.
+// v10.19 (1) : chaque départ (ici ou par releaseWorker) est ensuite traité une fois : avec l'option « Remplacer
+// automatiquement » (activée par défaut), autoAssignWorkers pose le meilleur ouvrier libre ; sinon le bâtiment garde un
+// bandeau « X est parti… » (bastion.departed) jusqu'à ce qu'un ouvrier y soit posé.
 export function reconcileWorkers(state, now = Date.now()) {
   const b = bastionOf(state);
   if (!b) return [];
@@ -275,7 +329,34 @@ export function reconcileWorkers(state, now = Date.now()) {
     const n = releaseWorker(state, slot.worker, why, now);
     if (n) out.push(n); else slot.worker = null;
   }
+  const fresh = (b.notices ?? []).filter((n) => !n.handled);
+  if (fresh.length) {
+    const placed = b.autoReplace !== false ? autoAssignWorkers(state, now) : [];
+    for (const n of fresh) {
+      n.handled = true;
+      const by = placed.find((p) => p.building === n.building);
+      if (by) n.replacedBy = by.companionId;
+      else if (!workerOf(state, n.building)) (b.departed ??= {})[n.building] = { companionId: n.companionId, why: n.why };
+    }
+  }
   return out;
+}
+// Option « Remplacer automatiquement si un ouvrier part » (vraie par défaut).
+export const autoReplaceOn = (state) => bastionOf(state)?.autoReplace !== false;
+export function setAutoReplace(state, on) {
+  const b = bastionOf(state);
+  if (b) b.autoReplace = Boolean(on);
+}
+// Bandeau d'un bâtiment dont l'ouvrier est parti : { companionId, why } ou null.
+export const departedFrom = (state, buildingId) => (workerOf(state, buildingId) ? null : bastionOf(state)?.departed?.[buildingId] ?? null);
+// Meilleur ouvrier libre (sans poste) pour un bâtiment, ou null.
+export function bestFreeWorker(state, buildingId) {
+  const free = availableWorkers(state).filter((c) => !workerBuilding(state, c.id));
+  return free.sort((x, y) => workerBonus(state, y.id, buildingId).totalPct - workerBonus(state, x.id, buildingId).totalPct)[0] ?? null;
+}
+export function dismissDeparted(state, buildingId) {
+  const b = bastionOf(state);
+  if (b?.departed) delete b.departed[buildingId];
 }
 
 // Texte de l'avertissement (toast) quand un ouvrier quitte son poste.
@@ -283,6 +364,7 @@ export function workerNoticeText(notice) {
   const c = unit(notice.companionId);
   const def = buildingDef(notice.building);
   const where = notice.why === 'expedition' ? 'part en expédition' : notice.why === 'team' ? 'rejoint l\'équipe' : 'n\'est plus disponible';
+  if (notice.replacedBy) return `${c?.name ?? 'Ton ouvrier'} ${where} et quitte ${def?.the ?? 'son bâtiment'} : ${unit(notice.replacedBy)?.name ?? 'un autre ouvrier'} le remplace`; // v10.19 (1)
   return `${c?.name ?? 'Ton ouvrier'} ${where} et quitte ${def?.the ?? 'son bâtiment'}${notice.paused ? ' : le chantier est en pause' : ' : production à 50 %'}`;
 }
 export function takeNotices(state) {
@@ -472,6 +554,10 @@ export function advance(state, now = Date.now(), { away: forcedAway = false } = 
     events.push({ type: kind, ref, text, away: wasAway });
     if (wasAway) pushNews(state, kind, ref, text, now);
   };
+  // v10.19 (1) : 1 XP par minute de travail pour chaque ouvrier en place (même plafond que la production hors ligne),
+  // compté à la fin : le niveau gagné ne rejoue pas sur le temps déjà passé.
+  const xpMinutes = Math.min(dt, (BALANCE.offline.capHours + (researchEffects(state).offlineHours ?? 0)) * HOUR) / MINUTE;
+  const workers = Object.values(b.buildings).map((s) => s.worker).filter(Boolean);
   // Production d'abord (au niveau d'avant les chantiers finis pendant l'absence).
   for (const id of Object.keys(PRODUCERS)) {
     const prod = productionOf(state, id);
@@ -501,6 +587,7 @@ export function advance(state, now = Date.now(), { away: forcedAway = false } = 
     order.left -= dt * forge;
     if (order.left <= 0) { order.left = 0; order.away = wasAway; }
   }
+  for (const id of workers) addWorkerXp(state, id, xpMinutes);
   return events;
 }
 
@@ -651,6 +738,17 @@ export function sanitizeBastion(raw, state, now = Date.now(), isItem = () => tru
   out.news = (Array.isArray(raw.news) ? raw.news : []).filter((n) => n && ['build', 'research', 'order'].includes(n.kind) && typeof n.text === 'string')
     .slice(-12).map((n) => ({ kind: n.kind, ref: n.ref ?? null, text: n.text.slice(0, 80), at: num(n.at, 0, now), seal: num(n.seal, 0), book: Boolean(n.book) }));
   out.cards = (Array.isArray(raw.cards) ? raw.cards : []).filter((id) => buildingDef(id)).slice(0, BUILDINGS.length);
+  // v10.19 (1) : XP d'ouvrier (migration : absente = niveau 1), départs signalés, remplacement automatique (oui par défaut).
+  const xpCap = WORKER_RULES.levelXp[WORKER_RULES.levelXp.length - 1];
+  for (const [id, w] of Object.entries(raw.workers && typeof raw.workers === 'object' ? raw.workers : {})) {
+    if (!unit(id) || !state.companions?.owned?.[id]) continue;
+    const workerXp = num(w?.workerXp, 0, xpCap);
+    if (workerXp > 0) out.workers[id] = { workerXp, workerLevel: workerLevelFor(workerXp) };
+  }
+  for (const [id, d] of Object.entries(raw.departed && typeof raw.departed === 'object' ? raw.departed : {})) {
+    if (buildingDef(id) && !out.buildings[id]?.worker && unit(d?.companionId)) out.departed[id] = { companionId: d.companionId, why: ['team', 'expedition', 'gone'].includes(d.why) ? d.why : 'gone' };
+  }
+  out.autoReplace = raw.autoReplace !== false;
   // v10.4 (6) : démarrage automatique fait (date), bulles vues, rapport « Pendant ton absence ».
   out.kicked = num(raw.kicked, 0, now);
   // v10.8 : Ménagerie, Marché noir, « Œil du destin »

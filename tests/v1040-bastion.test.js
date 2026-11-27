@@ -48,9 +48,9 @@ test('démarrage : les meilleurs ouvriers selon le métier et la rareté, puis l
   // Étape 186, Bastion niveau 1 : 2 places ; la Forge (construite) et la Bibliothèque (à construire) sont ouvertes.
   assert.deepEqual(k.placed.map((p) => p.building), ['forge', 'library']);
   const forge = k.placed.find((p) => p.building === 'forge');
-  assert.equal(forge.companionId, 'demon_queen', 'forgeronne légendaire : +40 %');
-  assert.equal(forge.pct, 40);
-  assert.equal(placedLine(forge), 'Reine démone, forgeronne : +40 %');
+  assert.equal(forge.companionId, 'demon_queen', 'forgeronne légendaire : +42 % (v10.19 : +2 % au niveau 1 d\'ouvrier)');
+  assert.equal(forge.pct, 42);
+  assert.equal(placedLine(forge), 'Reine démone, forgeronne : +42 %');
   assert.equal(k.placed.find((p) => p.building === 'library').companionId, 'archangel');
   // Aucun ouvrier possible ne ferait mieux que celui qui a été posé.
   for (const p of k.placed) {
@@ -79,7 +79,7 @@ test('démarrage : nouveau joueur à l\'étape 40 (Forge seule) — un ouvrier, 
   const k = kickoffBastion(s, T0);
   assert.equal(k.placed.length, 1);
   assert.equal(k.placed[0].companionId, 'dwarf');
-  assert.equal(placedLine(k.placed[0]), 'Nain guerrier, forgeron : +25 %');
+  assert.equal(placedLine(k.placed[0]), 'Nain guerrier, forgeron : +27 %');
   assert.equal(k.build.building, 'forge');
   assert.equal(k.build.ms, 15 * MIN);
 });

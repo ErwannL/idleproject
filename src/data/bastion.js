@@ -33,6 +33,11 @@ export const WORKER_RULES = {
   rarityBonusPct: { common: 5, rare: 5, epic: 10, legendary: 20 },
   idlePct: 50, // sans ouvrier : production à 50 %, aucun chantier
   slotsAt: [0, 0, 4, 8], // niveau du Bastion (somme des niveaux) qui ouvre la 1re, 2e, 3e et 4e place d'ouvrier
+  // v10.19 (1) : niveaux d'ouvrier — 1 XP par minute passée dans un bâtiment (hors ligne compris, même plafond que la
+  // production hors ligne) ; XP totale demandée pour les niveaux 2 à 10 ; +2 % de vitesse par niveau.
+  levelXp: [30, 60, 100, 150, 210, 280, 360, 450, 550],
+  levelPct: 2,
+  maxLevel: 10,
 };
 
 // Bâtiments, dans l'ordre d'arrivée (un seul à l'ouverture, puis un par un). `stage` : étape record demandée ;
