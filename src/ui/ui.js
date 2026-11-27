@@ -466,13 +466,27 @@ export class UI {
     this.$('panel-body').addEventListener('touchstart', (e) => {
       const t = e.touches[0];
       swipe = e.touches.length === 1 && !e.target.closest('.map-viewport, .tree-viewport, #panel-subtabs, input, select, textarea') ? { x: t.clientX, y: t.clientY } : null;
+      // v10.19 (2.1, 2.2) : un geste qui commence dans une rangée défilant à l'horizontale (places de la Forge, filtres…) la fait défiler
+      // sans changer d'onglet. On mémorise les scrollLeft des ancêtres pour ignorer aussi le geste si l'un d'eux a bougé.
+      if (swipe) {
+        const body = this.$('panel-body'); const scrollers = [];
+        for (let el = e.target instanceof Element ? e.target : null; el && el !== body.parentElement; el = el.parentElement) {
+          const ox = getComputedStyle(el).overflowX;
+          if (el.scrollWidth > el.clientWidth + 2 && (ox === 'auto' || ox === 'scroll')) { swipe = null; break; }
+          scrollers.push([el, el.scrollLeft]);
+          if (el === body) break;
+        }
+        if (swipe) swipe.scrollers = scrollers;
+      }
     }, { passive: true });
     this.$('panel-body').addEventListener('touchend', (e) => {
       if (!swipe) return;
       const t = e.changedTouches[0];
       const dx = t.clientX - swipe.x;
       const dy = t.clientY - swipe.y;
+      const moved = swipe.scrollers?.some(([el, left]) => el.scrollLeft !== left);
       swipe = null;
+      if (moved) return; // v10.19 (2.2) : un défilement horizontal a eu lieu pendant le contact
       if (holdFiredRecently()) return; // v9.1.3 : la fin d'un appui maintenu ne change pas d'onglet
       if (Math.abs(dx) > 60 && Math.abs(dy) < 40) cycleSub(this, dx < 0 ? 1 : -1);
     }, { passive: true });
