@@ -80,3 +80,6 @@
 /* Compagnons (PC) : la rangée « Meilleure équipe » (bouton doré) passe au pied de la colonne principale (.dc-main est en
    display: contents : ses enfants sont rangés par order dans la grille) */
 #app:not(.m-phone) #panel .dc-frame .dc-presets { order: 7; margin-top: 6px; }
+
+/* Prime du Héraut (scène) : nom long sur deux lignes plutôt que coupé (contrôle 14, textes en/ko) */
+#app#app #hq-bounty .hb-name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.1; }
