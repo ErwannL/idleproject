@@ -1,6 +1,24 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.17.1 — Finitions
+## Ascendrya v10.18.0 — Sur téléphone, tout rentre et rien ne bouge
+
+**Téléphone**
+- **La scène ne saute plus** : une seule bande de combat en haut de tous les onglets (Arène comprise), au même zoom que l'écran de combat. Le héros garde sa place et sa taille, fenêtre ouverte ou fermée. Le familier et les compagnons ne passent plus devant lui.
+- **Arène** : elle s'ouvre comme les autres onglets ; cartes de mode, formation puis étages, « Combattre » en bas, une seule croix.
+- **Écran de combat** : une coche ronde verte sur la touche en attente (au lieu d'une pastille qui débordait) ; le bouton de conseil ne déborde plus et ne cache plus la 3ᵉ touche ; « ⚡ Boosts » n'est plus coupé ; « Avance auto » devient une touche ▶ / ❚❚ visible ; le numéro d'étape ne se coupe plus.
+- **Fenêtres** : les sous-onglets ne passent plus sous la croix ✕ et défilent ; l'en-tête est opaque ; « Tout récupérer » tient dans son bouton ; le gros lot du Carnet de l'Apprenti est rangé en grille ; plus de « Pas disponible pour l'instant » sans explication ; pages vides illustrées (Tour, Forge, Bastion) ; Expéditions sans boutons inutiles.
+
+**Boss**
+- **Boss blanc** : 4 % du temps au plus (contre 19 %).
+- **Colosse, Ombre et Titans** entiers sur téléphone.
+- **« DANGER »** sous les cartes du haut, 2 s ; **barre du boss** sur 2 lignes sur téléphone.
+- **« Moment fort »** des mondes terminés : seulement le dernier, une fois.
+- Moins de traînées courbes hors combat de boss.
+
+**PC**
+- Nom de zone lisible ; Améliorations et Forge sans double illustration ; « Tout acheter » ne cache plus ×1 / ×10 / ×100 / Max ; notification du Bastion en bas, qui se ferme seule ; Fabriquer lisible à 1366 ; les textes défilants partent du début.
+
+<details><summary>Ascendrya v10.17.1 — Finitions</summary>
 
 - **Face aux géants et au World Boss**, le héros est plus grand (×1,4) et l'équipe se range derrière lui. Sur téléphone, le souffle des géants ne le cache plus, et plus aucun arc blanc ne part de son épée.
 - **Équipement** : le grand coffre « sac vide » laisse place à une ligne « Sac vide › Aller combattre ».
@@ -11,6 +29,8 @@
 - **Bouton principal doré** : toujours en bas du cadre (pleine largeur sur téléphone).
 - **PC, fenêtre ouverte** : les événements passent sous la carte de zone au lieu d'être cachés ; plus de texte coupé en bas de la colonne de combat.
 - **Téléphone** : boutons secondaires un peu plus compacts (40 px).
+
+</details>
 
 <details><summary>Ascendrya v10.17.0 — Tout le jeu propre, sur PC et téléphone</summary>
 
