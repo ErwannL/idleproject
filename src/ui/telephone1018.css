@@ -109,3 +109,6 @@
 #app#app.m-phone #panel .m-frame > .page-fill-tower { background-image: url(../../assets/ui/art104/scene_tower.png); background-size: contain; }
 #app#app.m-phone #panel .m-frame > .page-fill-forge { background-image: url(../../assets/ui/art104/forge_banner_wide.png); }
 #app:not(.m-phone) .page-fill { display: none; }
+
+/* 360 px : les titres de cadre longs (coréen : « Encyclopédie ») tiennent dans le ruban. */
+@media (max-width: 380px) { #app#app.m-phone .m-title b { font-size: 19px; } }
