@@ -2159,3 +2159,7 @@ PATTERNS.unshift(...patterns1018Boss());
 import { EXACT_1018, patterns1018 } from './en-1018.js';
 for (const [k, v] of Object.entries(EXACT_1018)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1018(lookup));
+// v10.19 (parties 2, 3 et 7) : Équipement sur téléphone (./en-1019-ui.js).
+import { EXACT_1019_UI, patterns1019Ui } from './en-1019-ui.js';
+for (const [k, v] of Object.entries(EXACT_1019_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1019Ui(lookup));

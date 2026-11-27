@@ -89,7 +89,9 @@ export function phoneView(ui, state, ctx) {
   let sheet = '';
   if (c.open) sheet = sheetFor(ui, state, c);
   if (v.bagMenu) sheet += filterSheet(ui, state, c);
-  return `<div class="m-frame em">${mTitle('icon_gear', 'Équipement', true)}${resourceChips(state, c)}${whoRow(state, c)}${characterBlock(state, c)}${slotTiles(state, c)}${statsBlock(state, c)}${modeBar}${content}</div>${sheet}`;
+  // v10.19 (3) : tout sur un écran : modes en haut, avatars de 44 px, une ligne pour le personnage, 6 places sur une rangée,
+  // « Équiper le meilleur (N) », puis le Sac (ou le mode choisi) et les stats en 2 colonnes. Le haut du Sac se voit sans défiler.
+  return `<div class="m-frame em em19">${mTitle('icon_gear', 'Équipement', true)}${modeBar}${resourceChips(state, c)}${whoRow(state, c)}${charLine(state, c)}${slotTiles(state, c)}${bestButton(state, c)}${content}${statsBlock(state, c)}</div>${sheet}`;
 }
 
 // Après le rendu : le personnage choisi se centre dans la rangée ; un glissé sur l'en-tête de la fiche passe à la place voisine.
@@ -175,7 +177,32 @@ export function characterBlock(state, ctx) {
       <div class="m-card em-pow">${img('icon_damage')}<span>Puissance</span><b class="m-power">${e(num(power))}</b></div></div></section>`;
 }
 
-// Places portées : 80 px (héros 2 × 3, compagnon 1 × 3).
+// v10.19 (3.3) : le personnage en une ligne : mini-portrait de 56 px, « Héros Chevalier · Niv. 153 », « Puissance … »,
+// et à droite « 4 objets meilleurs ▲ » en vert.
+const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+const bestCount = (state, ctx) => (ctx.unit ? bestGearFor(state, ctx.unit.id).length : ctx.plan.changes.length);
+function charLine(state, ctx) {
+  const { unit, st } = ctx;
+  const level = unit ? unitLevel(state, unit.id) : state.level;
+  const power = unit ? unitPower(state, unit) : st.combatPower;
+  const n = bestCount(state, ctx);
+  const name = unit ? unit.name : 'Héros';
+  const role = unit ? GEAR_CLASSES[gearClassOf(unit)].label : activeClass(state).name;
+  const art = unit ? companionStill(unit) : animCanvas('hero', 34, 34, 2);
+  const better = n ? `<span class="em-better" aria-label="${n} objet${n > 1 ? 's' : ''} meilleur${n > 1 ? 's' : ''}">${plural(n, 'objet meilleur', 'objets meilleurs')} ▲</span>`
+    : '<span class="em-better done">Le meilleur est porté ✓</span>';
+  return `<section class="em-line" aria-label="${e(name)}"><span class="em-mini r-${e(unit?.rarity ?? 'common')}">${art}</span>
+    <span class="em-line-id"><b class="em-cname">${e(name)} <small>${e(role)} · Niv. ${level}</small></b>
+      <span class="em-line-pow">${img('icon_damage')}Puissance <b class="m-power">${e(num(power))}</b></span></span>${better}</section>`;
+}
+
+// v10.19 (3.5) : gros bouton doré « ⬆ Équiper le meilleur (N) » (même action que l'équipement rapide).
+function bestButton(state, ctx) {
+  const n = bestCount(state, ctx);
+  return n ? `<div class="em-best" data-nodock>${mBtnGold(`⬆ Équiper le meilleur (${n})`, { action: 'eq-quick', value: ctx.who, attrs: 'data-gold-top="1"' })}</div>` : '';
+}
+
+// Places portées : 80 px (héros 2 × 3, compagnon 1 × 3) ; v10.19 (3.4) : une seule rangée de 6 (56 px au plus, nom dessous en 11 px).
 function slotTiles(state, ctx) {
   const { unit } = ctx;
   const worn = unit ? unitGear(state, unit.id) : state.equipment;
@@ -183,9 +210,9 @@ function slotTiles(state, ctx) {
     const item = worn[slot] ?? null;
     const up = unit ? ctx.unitSlots.has(slot) : Boolean(ctx.best[slot]);
     const sel = ctx.open && (item ? ctx.item?.id === item.id : ctx.slot === slot && !ctx.item);
-    return mTile(item, { size: 80, action: 'eq-slot', value: slot, id: item?.id, up, empty: !item, slot: SIL(slot), selected: sel, label: unit ? slotName(unit, slot) : HERO_SLOTS[slot] });
+    return mTile(item, { size: 56, action: 'eq-slot', value: slot, id: item?.id, up, empty: !item, slot: SIL(slot), selected: sel, label: unit ? slotName(unit, slot) : HERO_SLOTS[slot] });
   });
-  return `<div class="em-slots n${cells.length}">${mGrid(cells, 3)}</div>`;
+  return `<div class="em-slots n${cells.length}">${mGrid(cells, cells.length)}</div>`;
 }
 
 // Statistiques en 2 × 2.

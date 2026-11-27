@@ -135,7 +135,7 @@ test('téléphone inchangé : même fiche kit mobile, aucune classe PC', () => {
   const w = makeItem(s, 'dagger', 'epic', 130, BALANCE, new Rng(3));
   s.equipment.weapon = w;
   const html = inventoryPanel.render(phoneUi({ selectedItemId: w.id, sheetOpen: 'item', itemTab: 'reforge' }), s);
-  assert.ok(html.includes('class="m-frame em"') && !html.includes('de-cols') && !html.includes('de-rcard'));
+  assert.ok(html.includes('class="m-frame em em19"') && !html.includes('de-cols') && !html.includes('de-rcard'));
 });
 
 test('anglais : étiquettes de la fiche PC et « Objet dépassé » / « Trouver mieux »', async () => {
