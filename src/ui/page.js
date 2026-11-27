@@ -16,7 +16,7 @@ import { isPhone } from './prefs.js';
 export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); // v10.6 (5) : les Améliorations en page // v10.4 (6) : le Bastion
 // v10.11 (6) : onglets qui se jouent dans la scène (jamais en page sur téléphone).
 // v10.17 (A) : interrupteur (false = anciennes pages plein écran sur PC).
-export const PC_SIDE_ONLY = true;
+export const PC_SIDE_ONLY = false;
 // v10.18 (1) : l'Arène passe en page comme les autres (sa formation se joue dans la fenêtre, la bande du haut garde la scène).
 export const SCENE_TABS = new Set();
 // Conditions par panneau : (ui) => booléen.

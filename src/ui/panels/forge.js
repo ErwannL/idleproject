@@ -60,7 +60,7 @@ export function forgeNow(state) {
   const grp = (g) => `${g.usable} × ${SLOTS[g.slot]} ${rarityLabel(g.rarity)}`;
   return {
     preview: p, ranking, groups,
-    recycle: p.list.length ? { ok: true, text: `${plural(p.list.length, 'objet inutile', 'objets inutiles')} → +${p.shards} éclats, +${formatNumber(p.gold)} or` } : { ok: false, text: 'Rien à recycler : tout ce que tu as te sert.' },
+    recycle: p.list.length ? { ok: true, text: `${plural(p.list.length, 'objet inutile', 'objets inutiles')} → +${p.shards} éclats, +${formatNumber(p.gold)} or` } : { ok: false, text: 'Tout ce que tu as te sert.' },
     // v10.3.1 : un renfort sans effet sur la Puissance (effet spécial) nomme la statistique gagnée, pas « 0 % ».
     // v10.4 : `item` = l'objet proposé (choisi d'office dans l'atelier 2).
     upgrade: advice.kind === 'upgrade' ? { ok: true, item: advice.row.item, text: `${advice.row.item.name} +${advice.row.preview.level} → +${advice.row.preview.level + 1} : ${pctText(advice.row.gainPct)} de puissance` }
@@ -80,7 +80,7 @@ export function forgeNow(state) {
 function recycleBody(state, p) {
   return `<div class="card fg-body">${p.list.length
     ? `<h4>Ces objets ne te servent plus</h4><div class="fg-tiles">${p.list.slice(0, 14).map((i) => itemTile(i)).join('')}${p.list.length > 14 ? `<span class="muted">+${p.list.length - 14}</span>` : ''}</div>`
-    : '<p class="muted">Rien à recycler : tes objets sont protégés (verrouillés, meilleurs que l\'équipé ou utiles à un ensemble).</p>'}
+    : ''}
     ${recycleButton(state)}<p class="muted">Jamais recyclé : objet porté, protégé, Légendaire, ancestral, ou meilleur que ce que tu portes.</p></div>`;
 }
 
@@ -315,7 +315,7 @@ export default {
     const steps = [
       step('recycle', 1, 'Recycler', `${it(sword, 'common')}${it(helm, 'rare')}<i>→</i>${img('icon_shard')}${img('coin')}`,
         'Les objets inutiles deviennent des éclats et de l\'or.', now.recycle,
-        `<button class="btn fg-btn" data-action="recycle-useless" ${n ? '' : 'disabled'}>Recycler${n ? ` (${n})` : ''}</button>${n ? '' : whyOff('Rien à recycler')}`), // v10.16 (B5)
+        ''), // v10.20 (4.3) : un seul bouton Recycler, dans la zone de l'étape (le cadre sert à choisir l'étape)
       step('upgrade', 2, 'Renforcer', `${it(sword, 'epic')}<b>+</b>${img('icon_shard')}<i>→</i>${it(sword, 'epic', '<em>+1</em>')}`,
         `Un objet et des éclats : une de ses statistiques gagne ${BALANCE.forge.upgradeBoostPct} %.`, now.upgrade,
         '<button class="btn fg-btn" data-action="forge-seg" data-value="upgrade">Renforcer</button>'),
@@ -334,9 +334,10 @@ export default {
     // côté (la fusion détaillée se lit sans défiler).
     // v10.13 : la Forge garde son allure (4 ateliers illustrés + détail) mais vit dans le cadre du kit PC : cartouche de titre dedans,
     // un seul bouton doré (l'action du détail), texte d'au moins 12 px (desk-base.css).
-    return `<div class="m-frame d-forge">${mTitle('icon_anvil', 'Forge', true)}<div class="fg d-fg fg-on-${seg}"><div class="fg-top"><div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
-      <img class="px art-banner fg-top-art" src="assets/ui/art104/forge_banner_wide.png" loading="lazy" alt="" aria-hidden="true"></div>
-      <div class="fg-main"><div class="fg-loop">${steps}</div></div><div class="fg-side"><img class="px fg-side-art" src="assets/ui/art104/forge_step_${seg}.png" alt="" aria-hidden="true">${body}</div></div></div>`; // v10.6 (10) : l'atelier choisi en grand au-dessus de sa fiche
+    // v10.20 (partie 4) : les 4 étapes sur une ligne, la zone de l'étape choisie dessous sur toute la largeur ; plus de bandeau
+    // illustré en haut (.fg-top) ni d'illustration à droite (.fg-side-art). Les ressources passent dans le coin du cadre.
+    return `<div class="m-frame d-forge">${mTitle('icon_anvil', 'Forge', true)}<div class="eq-res fg-res" role="group" aria-label="Tes ressources">${chip('shards', 'icon_shard', state.materials.shards, 'Éclats')}${chip('gold', 'coin', state.gold, 'Or')}</div>
+      <div class="fg d-fg fg-row fg-on-${seg}"><div class="fg-main"><div class="fg-loop">${steps}</div></div><div class="fg-side">${body}</div></div></div>`;
   },
 };
 export const escape = escapeHtml;
