@@ -1429,6 +1429,8 @@ kbd { display: inline-block; min-width: 18px; padding: 1px 5px; border: 1px soli
 /* v10.17 : le « Moment fort » ne capte plus les appuis (touches d'attaque dessous) ; seul son texte se touche pour le fermer. */
 .cinematic { pointer-events: none; }
 .cinematic .cine-text { pointer-events: auto; }
+/* v10.18 (correctifs de fusion) : le « Moment fort » léger se pose sur la scène sans bloquer les boutons dessous (rages, Combattre, ×). */
+.cinematic.light .cine-text { pointer-events: none; }
 .cinematic.out { opacity: 0; }
 .cine-bar { position: absolute; left: 0; right: 0; height: 16%; background: #000; transition: transform 0.6s cubic-bezier(.2, .8, .2, 1); }
 .cine-bar.top { top: 0; transform: translateY(-100%); }

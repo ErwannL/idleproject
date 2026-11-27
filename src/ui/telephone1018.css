@@ -112,3 +112,18 @@
 
 /* 360 px : les titres de cadre longs (coréen : « Encyclopédie ») tiennent dans le ruban. */
 @media (max-width: 380px) { #app#app.m-phone .m-title b { font-size: 19px; } }
+
+/* Correctif de fusion v10.18 : Arène en page sur téléphone. Les cartes de formation font 86 px : le nom n'avait que 58 px à côté de
+   l'icône d'élément (« Merce-naire », « Dragonnet de… » coupé). L'icône passe dans le coin du portrait, le nom prend toute la largeur. */
+#app#app.m-phone .ar-frame .pcard .pc-top { position: relative; }
+#app#app.m-phone .ar-frame .pcard .pc-top > b { padding-right: 0; }
+#app#app.m-phone .ar-frame .pcard .pc-top > .pc-el { position: absolute; right: 0; top: calc(100% + 2px); z-index: 1; text-shadow: 0 1px 2px #000; }
+
+/* Correctif de fusion v10.18 : à 360 px, le ruban des cadres n'avait que 106 px pour le titre (« Équipement » 115 px, « Encyclopedia »
+   129 px) : il ne tenait qu'en défilant, et le contrôle des textes longs tombait parfois entre deux passes du défilement. Marges du
+   ruban réduites (la croix « ? » garde ses 48 px à droite) : ces titres tiennent sans défiler. */
+@media (max-width: 380px) {
+  #app#app.m-phone #panel-body > :is(.m-frame, .mp-frame) > .m-title { padding-left: 48px; padding-right: 48px; }
+  #app#app.m-phone #panel-body > :is(.m-frame, .mp-frame) > .m-title .m-title-in { padding: 0 12px; gap: 4px; min-width: 0; }
+  #app#app.m-phone #panel-body > :is(.m-frame, .mp-frame) > .m-title img { width: 24px; height: 24px; }
+}

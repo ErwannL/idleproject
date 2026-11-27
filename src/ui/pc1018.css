@@ -1,6 +1,6 @@
 /* v10.18 (partie 5) : finitions PC. Tout est sous #app:not(.m-phone) : le téléphone ne change pas. */
 
-/* 5.2 Améliorations : « Tout acheter » dans le flux, sous « ×1 ×10 ×100 Max » (plus de pied doré épinglé par-dessus). */
+/* 5.2 Améliorations : « ×1 ×10 ×100 Max » dans le flux ; « Tout acheter » dans le pied doré épinglé en bas (gold-dock.js). */
 #app:not(.m-phone) .d-upg .upg-buyall-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 #app:not(.m-phone) .d-upg .upg-buyall-row > .buy-all { flex: 1 1 100%; min-height: 48px; }
 
@@ -10,10 +10,9 @@
 .calm #app#app:not(.m-phone) .bs-kick.bs-toast, #app#app.calm:not(.m-phone) .bs-kick.bs-toast { animation: none; }
 @media (prefers-reduced-motion: reduce) { #app#app:not(.m-phone) .bs-kick.bs-toast { animation: none; } }
 
-/* 5.4 Forge et Améliorations : une seule bannière (l'illustration du haut de la fenêtre, avec sa phrase), puis le contenu.
-   Le ruban titre du cadre et la 2ᵉ illustration (déjà dits par l'en-tête et la bannière) disparaissent. */
-#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ :is(.d-upg, .d-forge) { padding-top: 22px; }
-#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ :is(.d-upg, .d-forge) > .m-title { display: none; }
+/* 5.4 Forge et Améliorations : une seule bannière, le ruban titre du cadre (cartouche du kit, comme les autres onglets PC :
+   desk-talents.css, desk-shop.css…), puis le contenu. L'illustration du haut de la fenêtre et la 2ᵉ illustration disparaissent. */
+#app#app:not(.m-phone) #panel-body:has(> :is(.d-upg, .d-forge)) > :is(.art-banner-wrap, .tab-lead) { display: none; }
 #app#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ .d-upg .d-topart,
 #app#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ .d-forge .fg-top > .fg-top-art { display: none; }
 
@@ -29,3 +28,12 @@
    dans le cadre de 1366 px. Un nom plus long (étape à 2 chiffres, donjon, Tour) défile (src/ui/marquee.js). */
 #app:not(.m-phone) #zone-name .zn-t { letter-spacing: -0.4px; }
 #app:not(.m-phone) #zone-name { column-gap: 4px; }
+
+/* Correctif de fusion v10.18 : le toast du Bastion (en bas à droite, 6 s) se pose sur la carte et la liste des chantiers. Il laisse
+   passer les clics vers les boutons dessous (contrôle 16 : aucun bouton recouvert au point de contact) ; seule sa croix reste cliquable. */
+#app#app:not(.m-phone) .bs-kick.bs-toast { pointer-events: none; }
+#app#app:not(.m-phone) .bs-kick.bs-toast .bs-toast-x { pointer-events: auto; }
+
+/* Correctif de fusion v10.18 : Forge › Fabriquer sur PC. Avec la fenêtre à 542 px (1366), 7 colonnes laissaient 55 px par case :
+   « Bracelet » et « Boucles d'oreilles » finissaient en « … ». Les cases gardent au moins 78 px et passent sur 2 rangées si besoin. */
+#app#app:not(.m-phone) .d-forge .fg-slots { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }

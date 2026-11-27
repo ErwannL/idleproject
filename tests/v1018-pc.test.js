@@ -49,8 +49,8 @@ test('5.1 nom de zone PC : format court et défilement, sans toucher au téléph
   assert.match(read('src/ui/marquee.js'), /'#app:not\(\.m-phone\) #zone-name \.zn-t'/);
 });
 
-test('5.2 Améliorations PC : « Tout acheter » reste dans le flux (pas de pied épinglé)', () => {
-  assert.match(read('src/ui/panels/upgrades.js'), /<div class="upg-buyall-row" data-nodock>\$\{buyAll\}<\/div>/);
+test('5.2 Améliorations PC : « Tout acheter » dans le pied doré en bas du cadre (contrôle 15 de desk-audit)', () => {
+  assert.match(read('src/ui/panels/upgrades.js'), /<div class="upg-buyall-row">\$\{buyAll\}<\/div>/);
 });
 
 test('5.3 Bastion PC : notification hors du cadre, en toast en bas, fermée après 6 s', () => {
@@ -61,7 +61,8 @@ test('5.3 Bastion PC : notification hors du cadre, en toast en bas, fermée apr�
 });
 
 test('5.4 Forge et Améliorations PC : une seule bannière', () => {
-  assert.match(css, /:is\(\.d-upg, \.d-forge\) > \.m-title \{ display: none; \}/);
+  assert.match(css, /:has\(> :is\(\.d-upg, \.d-forge\)\) > :is\(\.art-banner-wrap, \.tab-lead\) \{ display: none; \}/);
+  assert.doesNotMatch(css, /\.m-title \{ display: none; \}/, 'le cartouche du cadre reste (contrôle 4 de desk-audit)');
   assert.match(css, /\.d-upg \.d-topart/);
   assert.match(css, /\.fg-top > \.fg-top-art \{ display: none; \}/);
   for (const line of css.split('\n').filter((l) => /^[#.@]/.test(l) && !l.startsWith('@keyframes') && !l.startsWith('@media'))) {

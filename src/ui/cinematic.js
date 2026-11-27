@@ -10,7 +10,7 @@ export function playCinematic({ kicker = '', title, line = '', zone = null, dura
   if (!host || document.querySelector('#app.layout-strip')) return;
   current?.remove();
   const el = document.createElement('div');
-  el.className = `cinematic${zone ? ` zone-${zone}` : ''}`;
+  el.className = `cinematic${zone ? ` zone-${zone}` : ''}${light ? ' light' : ''}`;
   el.innerHTML = `${light ? '' : '<i class="cine-bar top"></i><i class="cine-bar bottom"></i>'}
     <div class="cine-text">${kicker ? `<small>${kicker}</small>` : ''}<h1></h1><p>${line}</p></div>`;
   if (light) el.style.background = 'none';
