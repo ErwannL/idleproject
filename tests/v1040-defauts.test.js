@@ -81,6 +81,7 @@ test('4 — « Nouveau : Clés de donjon » reste en attente jusqu\'à l\'ouvert
     const s = sanitizeState({});
     s.unlocks = { done: ['equipment', 'upgrades', 'skills', 'companion', 'forge'], base: {} };
     s.keys = 3;
+    s.maxStage = 2; // v10.19 (6.4) : aucune bulle de ressource avant la fin de la 1re vague (étape 1) : ce cas est après
     firstResourceBubble(ui, s);
     assert.ok(!made.some((e) => /Clés de donjon/.test(e.innerHTML)), 'pas de bulle avant les donjons');
     assert.ok(!(s.ui.seenRes ?? []).includes('keys'), 'la bulle n\'est pas consommée : elle attend');

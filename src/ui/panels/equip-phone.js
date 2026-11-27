@@ -19,7 +19,7 @@ import { elementBadge, unitElement } from '../../core/elements.js';
 import { formatStat } from '../../core/format.js';
 import { heroById } from '../../core/heroes.js';
 import { WEAK_GAIN_PCT, upgradeAllHeroWhy, canReforge, canRetype, canTargetReroll, fusableRarities, reforgeCost, retypeCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, upgradeRanking, weakLabel } from '../../core/forge.js';
-import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bulkRecycleCandidates, recycleRules, teamUpgradeFor } from '../../core/inventory.js';
+import { GEAR_PROFILES, KEEP_AFFIX_LABELS, RECYCLE_MODES, bulkRecycleCandidates, isUpgrade, recycleRules, teamUpgradeFor } from '../../core/inventory.js';
 import { BIND_MODES } from '../../core/loadouts.js';
 import { xpForLevel } from '../../core/level.js';
 import { itemBase, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
@@ -489,7 +489,7 @@ function itemSheet(ui, state, ctx) {
   const worn = heroWorn || Boolean(wearer);
   const wearUnit = wearer ? companionById(wearer) : null;
   const forHero = !wearer && canEquip(state, item);
-  const flags = { heroWorn, wearUnit, forHero };
+  const flags = { heroWorn, wearUnit, forHero, better: !worn && forHero && isUpgrade(state, item) }; // v10.19 (6.1)
   const mode = ['up', 'reforge', 'equip'].includes(v.itemTab) ? v.itemTab : worn ? 'up' : 'equip';
   const pv = wearer ? gearUpgradePreview(state, item, skillKillGold(state)) : upgradePreview(state, item);
   const ups = item.upgrades ?? 0;
@@ -509,7 +509,7 @@ function itemSheet(ui, state, ctx) {
   const head = `<div class="em-top em-swipe">${nav}<div class="em-head">${mTile(item, { size: 96, plus: ups ? `+${ups}` : '' })}
       <div class="em-hid"><b class="em-name">${e(item.name)}</b><div class="em-pills">${rarPill(item.rarity)}${pill('slot', wearUnit ? slotName(wearUnit, eqSlot(item)) : HERO_SLOTS[hslot] ?? '')}${base.signature ? pill('role', 'Ancestral') : ''}</div>
         ${pv.max ? `<span class="em-lvl">Renfort +${pv.level} <small>/ ${pv.max}</small></span>` : ''}</div>
-      <div class="em-hact">${lock}${more}</div></div>${menu}</div>${oldTag}`;
+      <div class="em-hact">${lock}${more}</div></div>${menu}</div>${oldTag}${betterEquipBtn(item, flags, mode)}`;
   // Statistiques : la principale en grand, puis les autres, les effets spéciaux et le grand effet.
   const entries = Object.entries(item.stats);
   const mainKey = item.stats.damage != null ? 'damage' : item.stats.maxHp != null ? 'maxHp' : entries[0]?.[0];
@@ -568,6 +568,10 @@ export function upPanel(state, item, wearer, p, opts = {}) {
   return `<div class="em-lvlup"><b>+${p.level}</b><i>»</i><b class="up">+${p.level + 1}</b></div>${rows}${power}${costs}${mBtnGold('Améliorer', upBtn)}`;
 }
 
+// v10.19 (6.1) : objet du Sac meilleur que celui porté : un bouton doré « Équiper » toujours dans la fiche (le doigt de la bulle le montre),
+// quel que soit le mode ouvert (Améliorer, Reforger) ; dans le mode Équiper, c'est le bouton doré du panneau qui porte la marque.
+export const betterEquipBtn = (item, f, mode) => (f.better && mode !== 'equip' ? `<div class="em-better" style="margin:8px 0">${mBtnGold('Équiper', { action: 'equip', id: item.id, cls: 'em-better-equip' })}</div>` : '');
+
 // Panneau « Équiper / Changer ».
 export function equipPanel(ui, state, ctx, item, f) {
   const { unit } = ctx;
@@ -580,7 +584,7 @@ export function equipPanel(ui, state, ctx, item, f) {
     const rows = cmp.map((r) => ba(r.label, r.a, r.b, r.up)).join('');
     const place = state.equipment[hslot] ? `<small class="em-note">à la place de ${e(state.equipment[hslot].name)}</small>` : '';
     const btn = target ? mBtnGold(`Équiper sur ${target.name}`, { action: 'gear-equip', value: `${target.id}|${item.id}` })
-      : forHero ? (worse ? mBtn('Équiper', { action: 'equip', id: item.id }) : mBtnGold('Équiper', { action: 'equip', id: item.id }))
+      : forHero ? (worse ? mBtn('Équiper', { action: 'equip', id: item.id }) : mBtnGold('Équiper', { action: 'equip', id: item.id, cls: f.better ? 'em-better-equip' : '' }))
         : mBtn(`Pour : ${item.cls ? classLabel(item.cls) : weaponClass(item.baseId)?.name ?? ''}`, { disabled: true });
     return `${rows ? `${place}${rows}` : '<p class="em-note">Rien ne change pour ton héros.</p>'}${btn}`;
   }

@@ -118,7 +118,15 @@ export function retypeItem(state, id, rng, balance = BALANCE) {
 
 // v10.13 (§ 2) : un objet de niveau inférieur à ton étape est « dépassé » :
 // l'écran le dit (étiquette) et propose « Trouver mieux » (sac filtré sur la place, sinon Forge › Fabriquer).
-export const outdatedLevel = (state, item) => (item && item.level < levelForStage(state.maxStage) ? levelForStage(state.maxStage) : 0);
+// v10.19 (6.5) : un objet tout neuf n'est jamais « dépassé » : il faut au moins OUTDATED_STAGES étapes de retard (l'objet est
+// d'un niveau inférieur à celui de l'étape record moins 3), et jamais pendant les 10 premières minutes de jeu.
+export const OUTDATED_STAGES = 3;
+export const OUTDATED_GRACE_S = 600;
+export function outdatedLevel(state, item) {
+  if (!item || (state.playSeconds ?? Infinity) < OUTDATED_GRACE_S) return 0;
+  const now = levelForStage(state.maxStage);
+  return item.level < levelForStage(Math.max(1, (state.maxStage ?? 1) - OUTDATED_STAGES + 1)) ? now : 0;
+}
 // L'étiquette d'un renfort « presque sans effet » (sous WEAK_GAIN_PCT) : le niveau d'objet en retard, sinon la phrase générale.
 export function weakLabel(state, item) {
   const lvl = outdatedLevel(state, item);

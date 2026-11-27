@@ -1868,7 +1868,7 @@ function highlightBond(b) {
 }
 // v9.7.1 (lot 3) : partie neuve → systèmes ouverts par mini-quêtes (une ancienne partie garde tout ce qui était ouvert).
 // Tests automatisés (navigateur piloté) : tout reste ouvert, comme le tutoriel qui ne s'y lance pas (sauf ?quests).
-if (loaded.source === 'new' && !state.unlocks && (!navigator.webdriver || location.search.includes('quests'))) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; } // v9.7.1 : mode simple par défaut
+if (loaded.source === 'new' && !state.unlocks && (!navigator.webdriver || location.search.includes('quests'))) { state.unlocks = { done: [], base: { ...state.records } }; state.ui.simple = true; state.ui.menusOpen = []; } // v9.7.1 : mode simple par défaut ; v10.19 (6.3) : menus du bas ouverts un par un
 document.documentElement.classList.toggle('simple', state.ui.simple === true);
 // v9.8 (A) : sécurité — un monstre ordinaire qui demanderait plus de 60 s : le héros redescend tout seul au dernier
 // endroit rentable (même étape au cycle précédent, sinon l'étape d'avant) et y reste ; bandeau clair.

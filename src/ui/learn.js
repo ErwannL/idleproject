@@ -6,6 +6,7 @@
 import { escapeHtml } from './common.js';
 import { RESOURCES } from '../data/glossary.js';
 import { isUnlocked } from '../core/unlock-quests.js';
+import { firstWaveDone, menuOpen, menusGated } from '../core/menu-gates.js'; // v10.19 (6.3, 6.4)
 
 export const HOWTO = [
   { art: 'assets/ui/art101/howto_fight.png', title: 'Ton héros combat seul', text: 'Il avance et frappe tout seul. Chaque monstre vaincu donne de l\'or.' },
@@ -95,10 +96,12 @@ export function resourceAmount(st, key) {
 // v10.4 (partie 7) : une bulle de ressource n'arrive jamais avant l'écran où elle sert (« Clés de donjon » attendait
 // l'ouverture des donjons). Ressource → système (id de mini-quête) qui s'ouvre sur cet écran ; l'or n'a pas de bulle.
 export const RESOURCE_SYSTEM = { gems: 'summon', tickets: 'summon', shards: 'forge', keys: 'dungeons', grimoire: 'companion', ascension: 'companion', mastery: 'companion', fragments: 'talents' };
-export const resourceScreenOpen = (st, key) => !RESOURCE_SYSTEM[key] || isUnlocked(st, RESOURCE_SYSTEM[key]);
+export const resourceScreenOpen = (st, key) => !RESOURCE_SYSTEM[key] || isUnlocked(st, RESOURCE_SYSTEM[key])
+  || (RESOURCE_SYSTEM[key] === 'summon' && menusGated(st) && menuOpen(st, 'summon')); // v10.19 (6.3) : l'Invocation s'ouvre à l'étape 7
 // Première fois qu'une ressource arrive (hors or, montré par le prologue) : une bulle, une seule fois par ressource.
 export function firstResourceBubble(ui, st) {
   if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, .learn-card, #prologue, .best-card, #tuto-layer .tuto-bubble')) return; // v10.2 (4.2) ; v10.11 (7) : jamais avec une bulle de tutoriel
+  if (!firstWaveDone(st)) return; // v10.19 (6.4) : « Nouveau : Gemmes » attend la fin de la 1re vague
   const seen = (st.ui.seenRes ??= []);
   for (const key of Object.keys(RESOURCES)) {
     if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0) || !resourceScreenOpen(st, key)) continue; // v10.4 : en attente tant que l'écran est fermé

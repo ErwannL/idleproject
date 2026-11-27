@@ -80,7 +80,9 @@ test('10.9 (7 ter) : rien n\'est équipé sans un appui du joueur', () => {
   const main = src('src/main.js');
   assert.match(main, /const equipped = state\.ui\.autoEquip === true \? equipBest\(state\) : 0;/);
   const ui = src('src/ui/ui.js');
-  assert.match(ui, /n\.action === 'equip-best'\) \{ this\.userAt = performance\.now\(\); this\.openBetterItem\(\); return; \}/);
+  // v10.19 (6.1) : le Sceau ouvre d'abord la fiche de l'objet ; touché une 2e fois sur cette fiche ouverte, il équipe (c'est un appui du joueur).
+  assert.match(ui, /n\.action === 'equip-best'\) \{[\s\S]{0,1500}?this\.openBetterItem\(\); return;/);
+  assert.match(ui, /this\.sealShownItem === best\.item\.id\)\) \{\s*this\.sealShownItem = null;\s*this\.actions\.equip\(best\.item\.id\)/, 'seulement l\'objet déjà montré par la fiche');
   assert.doesNotMatch(ui, /else if \(n\.action === 'equip-best'\) this\.actions\.equipBest\(\);/);
   assert.match(src('index.html'), /id="better-hero"/);
   assert.match(src('src/ui/panels/options.js'), /data-action="auto-equip"/);

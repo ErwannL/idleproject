@@ -12,6 +12,7 @@ import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, suggestedTalent
 import { COMPANIONS } from '../data/companions.js';
 import { currentEncounter } from './combat.js';
 import { formatNumber } from './format.js';
+import { canSummonNow } from './menu-gates.js'; // v10.19 (6.2)
 
 const BEATS = { red: 'green', green: 'blue', blue: 'red', light: 'dark', dark: 'light' };
 const beaterOf = (el) => Object.keys(BEATS).find((k) => BEATS[k] === el) ?? null;
@@ -23,7 +24,8 @@ export function mentorTips(state, { element = null, wall = false } = {}, balance
   const team = state.companions?.equipped ?? [];
   if (strong && !team.some((id) => unitElement(id) === strong)) {
     const owned = Object.keys(state.companions?.owned ?? {}).filter((id) => unitElement(id) === strong && COMPANIONS.find((c) => c.id === id)?.kind === 'ally');
-    out.push({ id: 'element', icon: 'tab_companions', title: `Ennemi de ${ELEMENTS[foe]?.name ?? foe}`,
+    // v10.19 (6.2) : « Un compagnon de Feu ferait… » seulement si le joueur peut invoquer maintenant (menu ouvert, de quoi payer).
+    if (owned.length || canSummonNow(state, balance)) out.push({ id: 'element', icon: 'tab_companions', title: `Ennemi de ${ELEMENTS[foe]?.name ?? foe}`,
       text: owned.length ? `Place un compagnon de ${ELEMENTS[strong].name} (+50 % de dégâts)` : `Un compagnon de ${ELEMENTS[strong].name} ferait +50 % de dégâts`,
       tab: owned.length ? 'companions' : 'summon', point: owned.length ? `[data-action="companion-sel"][data-value="${owned[0]}"]` : '[data-action="summon"]' });
   }
@@ -46,4 +48,25 @@ export function mentorTips(state, { element = null, wall = false } = {}, balance
   }
   if (!out.length) out.push({ id: 'level', icon: 'icon_star', title: 'Continue de t\'entraîner', text: 'Les monstres d\'avant rapportent de l\'or et de l\'expérience', tab: 'upgrades' });
   return out.slice(0, 3);
+}
+
+// v10.19 (6.2) : le conseil « invoque un compagnon de l'élément X » est au hasard (une invocation ne le garantit pas) :
+// sur le Sceau, il se montre au plus une fois toutes les 10 minutes, pendant SUMMON_TIP_SHOW_MS au plus ; après 2 affichages
+// sans effet (aucun nouveau compagnon), il laisse la place au conseil suivant pour de bon (jusqu'au prochain compagnon).
+// memo : objet gardé par l'appelant (state.ui.mentorSummon) ; now : horloge réelle (ms).
+export const SUMMON_TIP_EVERY_MS = 600000;
+export const SUMMON_TIP_SHOW_MS = 30000;
+export const SUMMON_TIP_MAX = 2;
+export function mentorTipAllowed(state, tip, memo, now = Date.now()) {
+  if (!tip || tip.id !== 'element' || tip.tab !== 'summon' || !memo) return Boolean(tip);
+  const owned = Object.keys(state.companions?.owned ?? {}).length;
+  if (memo.owned !== owned) { memo.owned = owned; memo.n = 0; memo.at = -Infinity; } // un nouveau compagnon : le conseil a servi
+  if (now - (memo.at ?? -Infinity) < SUMMON_TIP_SHOW_MS) return true; // affichage en cours
+  if ((memo.n ?? 0) >= SUMMON_TIP_MAX || now - (memo.at ?? -Infinity) < SUMMON_TIP_EVERY_MS) return false;
+  memo.n = (memo.n ?? 0) + 1; memo.at = now; // nouvel affichage
+  return true;
+}
+// Le premier conseil du mentor que le Sceau peut montrer maintenant (le suivant si le premier attend son tour).
+export function sealMentorTip(state, memo, now = Date.now(), balance = BALANCE) {
+  return mentorTips(state, { wall: true }, balance).find((t) => mentorTipAllowed(state, t, memo, now)) ?? null;
 }

@@ -45,6 +45,7 @@ function lagging() {
   for (const it of [...s.inventory]) inv.equipItem(s, it.id);
   s.inventory = [];
   s.equipment.weapon = makeItem(s, 'dagger', 'common', 3, BALANCE, rng);
+  s.playSeconds = 3600; // v10.19 (6.5) : « Objet dépassé » jamais pendant les 10 premières minutes : la partie de ce cas a 1 h de jeu
   return s;
 }
 // Les « +x % » qu'un écran présenterait comme action : jamais 0 ni 0,0x.

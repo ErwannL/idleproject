@@ -512,3 +512,6 @@ PATTERNS.unshift(...patterns1019Bastion(lookup));
 import { EXACT_1019_SURVIE, patterns1019Survie } from './ko-1019-survie.js';
 for (const [k, v] of Object.entries(EXACT_1019_SURVIE)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1019Survie());
+// v10.19 (partie 6) : début de partie, bulles des menus ouverts un par un (./ko-1019-debut.js).
+import { EXACT_1019_DEBUT } from './ko-1019-debut.js';
+for (const [k, v] of Object.entries(EXACT_1019_DEBUT)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
