@@ -58,3 +58,96 @@
    descendent en bas du cadre (règle du bouton doré en bas). */
 #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv { display: flex; flex-direction: column; }
 #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv > .d-cols2 { order: 5; }
+/* @@PARTIE2 */
+/* ---------- 2. Équipement : 3 colonnes (personnage · Sac · Détails) ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de > .de-cols {
+  display: grid; grid-template-columns: minmax(270px, 330px) minmax(0, 1fr) minmax(290px, 1.15fr); gap: 12px; align-items: stretch;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de > .de-cols > * { grid-column: auto !important; grid-row: auto !important; min-height: 0; max-height: none; position: static; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de .de-col { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de .de-col.m-card { padding: 10px 12px; }
+
+/* Colonne personnage : rangée « qui », portrait, places, stats en 2×2, puis une seule ligne de boutons. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who { gap: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who > * { margin: 0 !important; flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-whos { gap: 6px; height: auto !important; min-height: 0 !important; padding: 0 !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .em-who { width: 46px; height: 46px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char { grid-template-columns: 96px minmax(0, 1fr); gap: 10px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-art { width: 96px; height: 104px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-id { gap: 4px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow { padding: 2px 8px; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow > span { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow img { width: 22px; height: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-lv { gap: 2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .m-power { font-size: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-grid { gap: 8px; justify-content: space-between; grid-template-columns: repeat(3, 60px); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-tile.s96 { --m-s: 60px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-tilewrap { gap: 2px; font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat { min-height: 0; height: 34px; padding: 2px 8px; display: flex; align-items: center; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat :is(.m-k) { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat img { width: 18px; height: 18px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat .m-v { font-size: 14px; margin-left: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat:nth-child(n + 5) { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow { display: flex; gap: 6px; margin-top: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn { flex: 1 1 0; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn.de-team { flex-grow: 1.6; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow > :is(.de-btns2, .de-btns2 > *) { display: contents; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn { min-height: 44px; height: auto; padding: 2px 6px; font-size: 12px; line-height: 1.1; white-space: normal; text-align: center; gap: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn img { display: none; }
+
+/* Colonne Sac : en-tête, filtres et « Recycler » fixes ; la grille défile dans son cadre. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > * { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > .m-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; margin: 6px 0 8px; grid-template-columns: repeat(auto-fill, 64px); justify-content: space-between; gap: 12px 6px; padding: 2px 4px 2px 2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > .de-recycle { margin-top: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag .de-rars { flex-wrap: wrap; }
+
+/* Colonne Détails : nom, puis les 3 modes juste dessous ; les statistiques et le panneau du mode défilent ; le bouton doré reste en bas. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det { gap: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-fixtop { flex: none; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-head .m-tile.s110 { --m-s: 72px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-mode { height: 48px; flex-direction: row; gap: 6px; font-size: 14px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-mode img { width: 24px; height: 24px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top.arrow { padding-bottom: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-dock { flex: none; max-height: none; min-height: 0; overflow: visible; }
+/* « à la place de … » : tableau court sur 2 colonnes (Dégâts/s, Vie, Vitesse, Critique). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px 10px; margin: 0; padding: 6px 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > * { margin: 0 !important; min-height: 0 !important; padding: 2px 4px !important; font-size: 13px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 0 4px; align-items: baseline; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba > .em-ba-k { grid-column: 1 / -1; font-size: 12px; color: var(--m-soft); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba > :not(.em-ba-k) { font-size: 13px; overflow-wrap: anywhere; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel { display: flex; flex-flow: row wrap; align-items: center; gap: 8px; padding: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > * { flex: 1 1 100%; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > :is(.em-lvlup, .m-costs) { flex: 1 1 0; justify-content: center; order: -1; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > .em-lvlup { flex: 0 0 auto; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > .m-costs { flex-wrap: nowrap; justify-content: space-evenly; }
+
+/* Panneau du mode (Améliorer, Équiper) : compact, le bouton doré en bas de la colonne. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .em-lvlup { margin: 0; font-size: 18px; padding: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-costs { gap: 8px; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost { --m-cs: 44px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-btn-gold { min-height: 48px; height: 48px; font-size: 18px; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-dock { padding: 0; border: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost { height: auto; min-height: 0; padding: 2px; font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost > :first-child { width: 40px; height: 40px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost img { width: 26px; height: 26px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char { height: 128px; align-items: stretch; grid-template-rows: 128px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-id { height: 128px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-art { height: 128px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow { min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pills { margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-whos .em-who { width: 44px !important; height: 44px !important; min-height: 0; }
+
+/* Fenêtre basse (720 à 900 px) : la fiche se resserre (titre caché, cadenas en haut à droite, modes sans flèche). */
+@media (max-height: 900px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-det-top { position: absolute; top: 8px; right: 8px; z-index: 3; min-height: 0; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-det-title { display: none; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-col, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det { position: relative; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-old { padding: 2px 6px; font-size: 12px; min-height: 0; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-old .m-btn { min-height: 34px; height: 34px; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-modes { margin: 0; padding-bottom: 2px; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-modes.arrow .m-mode::after { display: none; }
+}
+
