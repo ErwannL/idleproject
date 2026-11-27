@@ -17,7 +17,8 @@ export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); //
 // v10.11 (6) : onglets qui se jouent dans la scène (jamais en page sur téléphone).
 // v10.17 (A) : interrupteur (false = anciennes pages plein écran sur PC).
 export const PC_SIDE_ONLY = true;
-export const SCENE_TABS = new Set(['arena']);
+// v10.18 (1) : l'Arène passe en page comme les autres (sa formation se joue dans la fenêtre, la bande du haut garde la scène).
+export const SCENE_TABS = new Set();
 // Conditions par panneau : (ui) => booléen.
 export const PAGE_WHEN = {};
 
@@ -26,7 +27,6 @@ export const PAGE_WHEN = {};
 export function pageActive(ui) {
   if (!ui?.tab || (ui.layout && ui.layout !== 'tall')) return false;
   // v10.11 (6) : téléphone — tous les onglets en plein écran (le contenu commence en haut, pas à mi-hauteur).
-  // (sauf l'Arène : sa carte se joue dans la scène, qu'une page cacherait).
   if ((ui?.root?.clientWidth ?? 9999) <= 600 && !SCENE_TABS.has(ui.tab)) return true;
   // v10.17 (A) : PC — une seule façon d'ouvrir une fenêtre : colonne de combat à gauche (largeur fixe), fenêtre à droite.
   // Héros, Équipe, Forge, Bastion… ne passent plus en plein écran avec vignette (le combat ne change plus de cadrage).
@@ -58,13 +58,11 @@ function copyFrame() {
     // v10.11 (6.1) : la bande du téléphone (pleine largeur, 120 px) a sa propre forme : le canvas suit sa boîte.
     const bw = Math.round(mini.clientWidth), bh = Math.round(mini.clientHeight);
     const r = document.getElementById('app')?.__ui?.renderer;
-    // v10.13.1 (téléphone) : vraie petite caméra sur le combat (décor sur toute la largeur, équipe entière, sans chiffres) : SceneRenderer.renderMini.
-    // Sur PC (pas de .m-phone), le cadrage ci-dessous ne change pas.
-    if (bw > 10 && bh > 10 && bw / bh > 2.4 && r?.renderMini && document.getElementById('app')?.classList.contains('m-phone')) {
-      const dpr = window.devicePixelRatio || 1, pw = Math.round(bw * dpr), ph = Math.round(bh * dpr);
-      if (mini.width !== pw || mini.height !== ph) { mini.width = pw; mini.height = ph; ctx2d = mini.getContext('2d', { alpha: false }); ctx2d.imageSmoothingEnabled = false; }
-      r.renderMini(ctx2d, mini, bw, bh, dpr);
-      frames += 1; mini.dataset.frames = String(frames);
+    // v10.18 (1) : téléphone (page étroite) — plus de seconde caméra : la bande recopie les pixels de la vraie scène, au même zoom
+    // et à la même place horizontale (la scène garde sa taille derrière la page), coupée au-dessus des têtes.
+    const app = document.getElementById('app');
+    if (bw > 10 && bh > 10 && app?.classList.contains('page-narrow') && r?.scale) {
+      copyBand(src, r, app, bw, bh);
       raf = requestAnimationFrame(copyFrame);
       return;
     }
@@ -85,6 +83,29 @@ function copyFrame() {
     mini.dataset.frames = String(frames);
   }
   raf = requestAnimationFrame(copyFrame);
+}
+
+// v10.18 (1) : hauteur de la bande du téléphone : sol + 90 px de jeu au zoom du combat (bornée 140–170 px d'écran : environ 150).
+export const BAND_GAME_PX = 90;
+export const bandHeight = (scale) => Math.max(140, Math.min(170, Math.round((BAND_GAME_PX + 8) * scale)));
+
+// v10.18 (1) : recopie 1:1 (même zoom, même x) de la scène dans la bande : le sol à 8 px de jeu du bas de la bande.
+function copyBand(src, r, app, bw, bh) {
+  const want = bandHeight(r.scale);
+  if (Math.abs(want - bh) > 1) app.style.setProperty('--pg-band-h', `${want}px`);
+  const sr = src.getBoundingClientRect(), mr = mini.getBoundingClientRect();
+  if (!sr.width || !sr.height) return;
+  const px = src.width / sr.width, py = src.height / sr.height; // pixels de la toile par pixel CSS
+  const pw = Math.round(bw * px), ph = Math.round(bh * py);
+  if (mini.width !== pw || mini.height !== ph) { mini.width = pw; mini.height = ph; ctx2d = mini.getContext('2d', { alpha: false }); ctx2d.imageSmoothingEnabled = false; }
+  const ox = mr.left - sr.left; // décalage CSS entre la bande et la scène (0 en principe)
+  const top = (r.groundY + 8) * r.scale - bh; // haut de la bande, en px CSS dans la scène
+  ctx2d.fillStyle = '#05070e'; ctx2d.fillRect(0, 0, pw, ph);
+  ctx2d.drawImage(src, Math.round(ox * px), Math.round(top * py), pw, ph, 0, 0, pw, ph);
+  frames += 1;
+  mini.dataset.frames = String(frames);
+  mini.dataset.ox = String(Math.round(sr.left - mr.left)); // héros dans la bande : mr.left + ox + heroScreenX
+  mini.dataset.oy = String(Math.round(-top)); // sol dans la bande : mr.top + oy + groundY × scale
 }
 
 function ensureMini(root) {
