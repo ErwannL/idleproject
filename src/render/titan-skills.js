@@ -144,12 +144,14 @@ function bolt(ctx, x0, y0, x1, y1, color, width = 2, jag = 6) {
 // v10.19 (5.1) : flash de coup de la couleur du Titan (jamais blanc), ≤ 35 % (scene.js, effet 'flash'), en 0,15 s.
 export const TITAN_FLASH_TIME = 0.15;
 export const TITAN_FLASH_ALPHA = 0.35;
+export const TITAN_SCREEN_FLASH = 0.2;
 function strike(scene, ev, delay, { shake = 7, stop = 0.06, flash = null, part = 1 } = {}) {
   const r = scene.r;
   scene.heroHurt(part === 1 ? ev : { ...ev, damage: ev.damage * part }, delay, shake);
   r.later(delay, () => {
     r.hitstop = Math.max(r.hitstop ?? 0, stop);
-    if (flash) r.effects.push({ kind: 'flash', life: TITAN_FLASH_TIME, max: TITAN_FLASH_TIME, color: flash });
+    // Plein écran : 20 % au plus (une couleur pâle à 35 % sur tout l'écran le blanchit), dessiné ici.
+    if (flash) add(scene, { dur: TITAN_FLASH_TIME, draw: (ctx, u) => screen(ctx, r, (w, h) => { ctx.globalAlpha = TITAN_SCREEN_FLASH * (1 - u); ctx.fillStyle = flash; ctx.fillRect(0, 0, w, h); }) });
   });
 }
 // Flash de couleur sur un membre de l'équipe (taille d'un personnage) : teinte ≤ 35 %, 0,15 s, sans blanc plein.
@@ -200,6 +202,7 @@ export const nightGroundLight = () => (1 - NIGHT_AMBIENT_DARK) * (1 - NIGHT_GROU
 // v10.19 (5.3) : ciel de l'Orage gris-bleu foncé ; les éclairs de fond ne l'éclaircissent qu'un peu.
 export const STORM_SKY = '#1c2638';
 export const STORM_FLICK_MAX = 0.15;
+const STORM_DEEP = '#3f6fd8'; // impact de l'attaque 4 (Ciel d'orage) : bleu franc, pas de tache pâle
 
 // ---------- SOLEIL (dimanche) ----------
 const GOLD = '#ffd23f';
@@ -336,8 +339,8 @@ function moonDisc(scene, ev) {
     if (Math.random() < 0.5) r.burst(x, y, SILVER, 1, 15);
   } });
   const tHit = 0.7 + 1.1 * 0.5 * ((hx - heroX()) / Math.max(1, hx - far));
-  r.later(tHit, () => vfx(r, 'hit_ice', heroX() + 6, G - 22, { size: 1.1 }));
-  r.later(1.8 - (tHit - 0.7), () => vfx(r, 'hit_ice', heroX() + 6, G - 22, { size: 1.1, flip: true }));
+  r.later(tHit, () => vfx(r, 'hit_ice', heroX() + 6, G - 22, { size: 1.1, tint: MOON_FLASH, alpha: 0.8 }));
+  r.later(1.8 - (tHit - 0.7), () => vfx(r, 'hit_ice', heroX() + 6, G - 22, { size: 1.1, flip: true, tint: MOON_FLASH, alpha: 0.8 }));
   strike(scene, ev, tHit, { part: 0.5, shake: 5 });
   strike(scene, ev, 1.8 - (tHit - 0.7), { part: 0.5, shake: 5 });
 }
@@ -783,8 +786,8 @@ function stormJavelin(scene, ev) {
     ctx.globalAlpha = 1;
   } });
   r.later(0.8, () => {
-    vfx(r, 'hit_thunder', tx, G - 14, { size: 1.5 });
-    for (let i = 0; i < 4; i++) r.burst(tx + rnd(-12, 12), G - 1, '#ffffff', 3, 70);
+    vfx(r, 'hit_thunder', tx, G - 14, { size: 1.2, tint: VOLT, alpha: 0.8 });
+    for (let i = 0; i < 4; i++) r.burst(tx + rnd(-12, 12), G - 1, VOLT, 3, 70);
   });
   strike(scene, ev, 0.8, { flash: VOLT });
 }
@@ -802,7 +805,7 @@ function stormChain(scene, ev) {
       bolt(ctx, cx, cy, x, G - 18, VOLT, 1.6, 5);
       ctx.globalAlpha = 1;
     } });
-    r.later(0.72 + i * 0.14, () => vfx(r, 'hit_thunder', x, G - 18, { size: 1.1 }));
+    r.later(0.72 + i * 0.14, () => vfx(r, 'hit_thunder', x, G - 18, { size: 1, tint: VOLT, alpha: 0.8 }));
   });
   strike(scene, ev, 0.72, { flash: VOLT });
 }
@@ -822,7 +825,7 @@ function stormThunder(scene, ev) {
       ctx.restore();
     } });
     add(scene, { delay: t0 + 0.7, dur: 0.25, draw: (ctx, u) => { ctx.globalAlpha = 1 - u; bolt(ctx, x + rnd(-6, 6), -10, x, G, VOLT, 2.2, 8); ctx.globalAlpha = 1; } });
-    r.later(t0 + 0.7, () => { vfx(r, 'hit_thunder', x, G - 8, { size: 1.3 }); r.shake = Math.max(r.shake, 4); r.burst(x, G - 2, '#ffffff', 5, 60); });
+    r.later(t0 + 0.7, () => { vfx(r, 'hit_thunder', x, G - 8, { size: 1, tint: VOLT, alpha: 0.8 }); r.shake = Math.max(r.shake, 4); r.burst(x, G - 2, VOLT, 5, 60); });
   });
   strike(scene, ev, 0.1 + 0.12 + 0.7, { flash: VOLT });
 }
@@ -832,7 +835,7 @@ function stormClouds(scene, ev) {
   gesture(scene, 'embers');
   ambient(scene, 'storm');
   add(scene, { delay: 1, dur: 0.3, draw: (ctx, u) => { ctx.globalAlpha = 1 - u; bolt(ctx, heroX() + 4, -10, heroX(), r.groundY - 10, VOLT, 2.5, 9); ctx.globalAlpha = 1; } });
-  r.later(1, () => vfx(r, 'hit_thunder', heroX(), r.groundY - 14, { size: 1.1, tint: VOLT, alpha: 0.75 })); // v10.19 (5.1)
+  r.later(1, () => vfx(r, 'hit_thunder', heroX(), r.groundY - 14, { size: 1, tint: STORM_DEEP, alpha: 0.6 })); // v10.19 (5.1)
   tintFlash(scene, heroX(), VOLT, 1);
   strike(scene, ev, 1, { flash: VOLT, stop: 0.08 });
 }
@@ -849,7 +852,7 @@ function stormWrath(scene, ev) {
     bolt(ctx, cx, cy, heroX(), r.groundY - 18, '#ffe24a', 2.5, 7);
     ctx.globalAlpha = 1;
   } });
-  r.later(1.2, () => vfx(r, 'hit_thunder', heroX(), r.groundY - 18, { size: 1.7 }));
+  r.later(1.2, () => vfx(r, 'hit_thunder', heroX(), r.groundY - 18, { size: 1.2, tint: '#ffe24a', alpha: 0.8 }));
   strike(scene, ev, 1.2, { flash: VOLT, stop: 0.1, shake: 9 });
 }
 
@@ -991,7 +994,7 @@ export function drawTitanBack(scene, ctx) {
   if (sil?.back) sil.back(scene, ctx);
   // v10.19 (5.3) : Titan de l'Orage : ciel gris-bleu foncé dès le début du combat (avant les nuages de l'attaque 4).
   if (scene.fight.bossId === 'titan_storm' && s?.amb.storm === undefined) {
-    screen(ctx, r, (w) => { ctx.globalAlpha = 0.4; ctx.fillStyle = STORM_SKY; ctx.fillRect(0, 0, w, r.groundY - 10); });
+    screen(ctx, r, (w) => { ctx.globalAlpha = 0.6; ctx.fillStyle = STORM_SKY; ctx.fillRect(0, 0, w, r.groundY - 10); });
   }
   if (!s) return;
   if (!r.focus) drawAmbientBack(scene, ctx, s);
@@ -1092,7 +1095,7 @@ function drawAmbientBack(scene, ctx, s) {
     const u = clamp01(since(scene, 'storm') / 1.5);
     screen(ctx, r, (w, h) => {
       // v10.19 (5.3) : ciel gris-bleu foncé (plus jamais presque blanc) : les éclairs blancs ressortent.
-      ctx.globalAlpha = 0.5 * u; ctx.fillStyle = STORM_SKY; ctx.fillRect(0, 0, w, G - 10);
+      ctx.globalAlpha = 0.6 + 0.1 * u; ctx.fillStyle = STORM_SKY; ctx.fillRect(0, 0, w, G - 10);
       ctx.globalAlpha = 0.25 * u; ctx.fillRect(0, G - 10, w, h);
       ctx.globalAlpha = 0.85 * u; ctx.fillStyle = '#252a36';
       for (let i = 0; i < 9; i++) { const x = ((i * 70 + r.time * 6) % (w + 80)) - 40; ctx.beginPath(); ctx.ellipse(x, 8 + (i % 3) * 8, 46, 18, 0, 0, TAU); ctx.fill(); }

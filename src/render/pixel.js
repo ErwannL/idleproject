@@ -234,6 +234,9 @@ export function visualGear(equipment) {
   return { weapon: equipment.weapon ?? null, helmet: pick('helmet'), armor: pick('armor') };
 }
 
+// v10.19 (5.1, 7.4) : coup reçu par le héros : teinte rouge à 35 % au plus (avant : silhouette blanche pleine).
+export const HERO_HURT_TINT = '#ff5a4a';
+export const HERO_HURT_ALPHA = 0.35;
 export function heroComposite(frame, equipment, flash = false, cape = 'a', palette = null, flip = false) {
   equipment = visualGear(equipment);
   const gear = ['weapon', 'helmet', 'armor']
@@ -246,7 +249,7 @@ export function heroComposite(frame, equipment, flash = false, cape = 'a', palet
   if (flip) {
     canvas = mirrored(heroComposite(frame, equipment, flash, cape, palette));
   } else if (flash) {
-    canvas = tinted(heroComposite(frame, equipment, false, cape, palette), '#ffffff', 1);
+    canvas = tinted(heroComposite(frame, equipment, false, cape, palette), HERO_HURT_TINT, HERO_HURT_ALPHA); // v10.19 (5.1, 7.4) : plus de silhouette blanche
   } else if (palette?.skin && SPRITES[`skin_${palette.skin}_idle`]) {
     // v9.0.6 : skin de héros — personnage complet dessiné ; seule l'arme portée s'y ajoute.
     canvas = createCanvas(HERO_SIZE.w, HERO_SIZE.h);
@@ -302,7 +305,7 @@ export function heroSwim(step, equipment, palette = null, flash = false) {
   const key = `heroswim|${step}|${gear}|${flash}|${palette ? JSON.stringify(palette) : ''}`;
   let canvas = cache.get(key);
   if (canvas) return canvas;
-  if (flash) canvas = tinted(heroSwim(step, equipment, palette), '#ffffff', 1);
+  if (flash) canvas = tinted(heroSwim(step, equipment, palette), HERO_HURT_TINT, HERO_HURT_ALPHA);
   else {
     canvas = createCanvas(SWIM_SIZE.w, SWIM_SIZE.h);
     const ctx = canvas.getContext('2d', RF);

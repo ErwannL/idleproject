@@ -34,6 +34,8 @@ test('5.5 : bandeau « Attaque + nom » pour les 3 attaques et pour les 2 attaqu
 test('5.1 : flash des Titans de leur couleur (≤ 35 %, 0,15 s), jamais blanc ni plein écran opaque', () => {
   assert.match(SKILLS, /TITAN_FLASH_TIME = 0\.15/);
   assert.match(SKILLS, /TITAN_FLASH_ALPHA = 0\.35/);
+  assert.match(SKILLS, /TITAN_SCREEN_FLASH = 0\.2;/, 'plein écran : 20 % au plus');
+  assert.doesNotMatch(SKILLS, /'hit_thunder', [^;]*size: 1\.[3-9]/, 'impacts de foudre réduits');
   const flashes = [...SKILLS.matchAll(/flash: ([^,}\s]+)/g)].map((m) => m[1]);
   assert.ok(flashes.length >= 30);
   for (const f of flashes) assert.doesNotMatch(f, /'#(f{3}|f{6}|fff3a8|e0eaff)'/i, `flash blanc : ${f}`);
@@ -42,7 +44,7 @@ test('5.1 : flash des Titans de leur couleur (≤ 35 %, 0,15 s), jamais blanc ni
   for (const id of ['sun_rise', 'storm_clouds', 'void_cracks']) {
     const body = SKILLS.slice(SKILLS.indexOf(`function ${{ sun_rise: 'sunRise', storm_clouds: 'stormClouds', void_cracks: 'voidCracks' }[id]}(`));
     const fn = body.slice(0, body.indexOf('\n}\n'));
-    assert.match(fn, /tint: (GOLD|VOLT|VOID)/, `${id} : impact teinté de la couleur du Titan`);
+    assert.match(fn, /tint: (GOLD|VOLT|VOID|STORM_DEEP)/, `${id} : impact teinté de la couleur du Titan`);
   }
 });
 
@@ -92,4 +94,11 @@ test('5.6 : les chiffres de dégâts restent entiers dans le canvas', () => {
   assert.equal(clampTextX(400, 20, 150, 390), 390 - 2 - 10);
   const vfxSrc = readFileSync(new URL('../src/render/vfx.js', import.meta.url), 'utf8');
   assert.match(vfxSrc, /const cx = textCenterIn\(scene, ctx,/);
+});
+
+test('5.1 / 7.4 : coup reçu par le héros : teinte rouge ≤ 35 %, plus de silhouette blanche pleine', () => {
+  const px = readFileSync(new URL('../src/render/pixel.js', import.meta.url), 'utf8');
+  assert.match(px, /HERO_HURT_ALPHA = 0\.35;/);
+  assert.doesNotMatch(px, /cape, palette\), '#ffffff', 1\)/);
+  assert.doesNotMatch(px, /heroSwim\(step, equipment, palette\), '#ffffff', 1\)/);
 });
