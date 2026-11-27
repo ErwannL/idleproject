@@ -181,7 +181,8 @@ test('partie 2 : l\'atelier 2 ne propose jamais un renfort à +0 % — meilleur 
   assert.ok(!/fg-up-gain[^>]*>\+0(,0\d?)? %/.test(list));
   assert.match(list, /fg-up-gain muted num">presque sans effet</);
   // v10.13 : un seul bouton doré par écran (celui du détail de l'atelier) : les 4 boutons des ateliers sont sombres (jamais bleus).
-  assert.equal((list.match(/class="btn fg-btn"/g) ?? []).length, 4);
+  // v10.20 (4.3) : l'étape 1 n'a plus de bouton (le seul « Recycler » est dans la zone de l'étape) : 3 boutons d'atelier.
+  assert.equal((list.match(/class="btn fg-btn"/g) ?? []).length, 3);
   assert.equal((list.match(/btn-gold/g) ?? []).length, 1, 'un seul bouton doré visible dans la Forge');
   assert.ok(!list.includes('btn btn-primary fg-btn'));
 });

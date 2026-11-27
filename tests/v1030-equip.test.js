@@ -266,7 +266,9 @@ test('Forge : les 4 ateliers disent ce qu\'on peut faire maintenant (3 objets in
   assert.deepEqual([...html.matchAll(/class="fg-num">(\d)</g)].map((m) => m[1]), ['1', '2', '3', '4'], 'numérotés dans l\'ordre de la boucle');
   assert.equal((html.match(/class="fg-arrow"/g) ?? []).length, 3, 'reliés par des flèches');
   assert.equal((html.match(/class="fg-now /g) ?? []).length, 4, 'une ligne « maintenant » par atelier');
-  assert.ok(html.indexOf('data-action="recycle-useless"') > 0 && html.indexOf('data-action="recycle-useless"') < html.indexOf('data-action="forge-seg" data-value="upgrade">Renforcer'));
+  // v10.20 (4.3) : un seul bouton Recycler, dans la zone de l'étape (sous la ligne des 4 étapes), plus dans le cadre de l'étape 1.
+  assert.equal((html.match(/data-action="recycle-useless"/g) ?? []).length, 1, 'un seul bouton Recycler');
+  assert.ok(html.indexOf('data-action="recycle-useless"') > html.indexOf('class="fg-side"'), 'le bouton Recycler est dans la zone de l\'étape');
   assert.ok(!html.includes('forge_hall.png'), 'une seule illustration en tête (la bannière de l\'onglet)');
 });
 

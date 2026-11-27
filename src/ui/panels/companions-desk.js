@@ -45,7 +45,7 @@ function worldBackground(state) {
   return { style, name: zone.name };
 }
 
-function banner(ui, state, sel) {
+function banner(ui, state, sel, best = '') {
   const front = frontOf(state);
   const unit = (c, role) => {
     const rank = role === 'ally' ? (front === c.id ? '<span class="dc-rank front">Avant</span>' : `<button type="button" class="dc-rank" data-action="set-front" data-value="${c.id}" title="Mettre au rang avant">Arrière</button>`) : '<span class="dc-rank pet">Familier</span>';
@@ -60,7 +60,7 @@ function banner(ui, state, sel) {
   const petSlots = Array.from({ length: BALANCE.teamSlots.pet }, (_, i) => (pets[i] ? unit(pets[i], 'pet') : empty('Familier')));
   const bgd = worldBackground(state);
   const power = computeHeroStats(state).combatPower ?? 0;
-  return `<section class="dc-team" style="${bgd.style}" aria-label="Ton équipe"><span class="dc-team-lbl">Ton équipe</span><span class="dc-team-pw" title="Puissance de combat du héros et de son équipe">⚔ Puissance<span class="dc-pw-x"> d'équipe</span> <b>${e(formatNumber(power))}</b></span>
+  return `<section class="dc-team" style="${bgd.style}" aria-label="Ton équipe"><div class="dc-team-head"><span class="dc-team-lbl">Ton équipe</span>${best ? `<span class="dc-team-best" data-gold-top>${best}</span>` : ''}<span class="dc-team-pw" title="Puissance de combat du héros et de son équipe">⚔<span class="dc-pw-x"> Puissance d'équipe</span> <b>${e(formatNumber(power))}</b></span></div>
     <div class="dc-units">${hero}${ordered.map((c) => unit(c, 'ally')).join('')}${Array.from({ length: free }, () => empty('Libre')).join('')}${petSlots.join('')}</div></section>`;
 }
 
@@ -180,9 +180,11 @@ export function deskCompanions(ui, state, ctx) {
     <span class="dc-sep"></span>${fBtn}</div>${fMenu}`;
   const shown = list.filter((c) => (!ui.view.compRar || c.rarity === ui.view.compRar) && (!ui.view.compEl || unitElement(c.id) === ui.view.compEl));
   const grid = shown.length ? `<div class="dc-grid">${shown.map((c) => card(state, c, sel)).join('')}</div>` : '<p class="dc-note">Aucun compagnon ne correspond à ces filtres.</p>';
-  const main = `${banner(ui, state, sel)}
-    <div class="dc-presets">${presets}${upBtn}${bestBtn}</div>
+  // v10.20 (partie 5) : « Meilleure équipe » dans l'en-tête de « Ton équipe » ; les équipes enregistrées et « Améliorer l'équipe »
+  // en une ligne de petits boutons sous la grille (qui défile dans son cadre).
+  const main = `${banner(ui, state, sel, bestBtn)}
     ${modes}${grid}
+    <div class="dc-presets">${presets}${upBtn}</div>
     ${fold(ui, 'team-tips', 'Conseils : synergies et liens', tips, { extra: tipsExtra, cls: 'dc-tips' })}`;
   return `<div class="m-frame dc-frame">${mTitle('icon_paw', 'Compagnons', true)}<div class="d-cols2 dc-cols"><div class="dc-main">${main}</div>${sheet(ui, state, sel, { gold })}</div></div>`;
 }

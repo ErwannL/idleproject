@@ -523,3 +523,6 @@ PATTERNS.unshift(...patterns1019Ui(lookup));
 import { EXACT_1020, patterns1020 } from './ko-1020.js';
 for (const [k, v] of Object.entries(EXACT_1020)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.push(...patterns1020(lookup));
+// v10.20 (parties 4 et 5) : Forge et Compagnons sur PC (./ko-1020-pc.js).
+import { EXACT_1020_PC } from './ko-1020-pc.js';
+for (const [k, v] of Object.entries(EXACT_1020_PC)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
