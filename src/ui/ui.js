@@ -836,8 +836,15 @@ export class UI {
       requestAnimationFrame(fit); setTimeout(fit, 350); // le panneau peut encore s'ouvrir (largeur nulle) au premier passage
     }
     // v10.12 : sur téléphone la rangée défile : l'onglet choisi reste visible.
+    // v10.18 (3.1) : mesuré à l'écran (offsetLeft partait du panneau, pas de la rangée), et repris quand le panneau a sa largeur.
     const act = el.querySelector('.subtab.active');
-    if (act && el.scrollWidth > el.clientWidth) el.scrollLeft = Math.max(0, act.offsetLeft - (el.clientWidth - act.offsetWidth) / 2);
+    const center = () => {
+      if (!act?.isConnected || el.scrollWidth <= el.clientWidth) return;
+      const er = el.getBoundingClientRect(), ar = act.getBoundingClientRect();
+      el.scrollLeft = Math.max(0, el.scrollLeft + (ar.left - er.left) - (er.width - ar.width) / 2);
+    };
+    center();
+    if (act) { requestAnimationFrame(center); setTimeout(center, 350); }
   }
 
   // Aucun onglet ouvert par défaut : un clic ouvre l'onglet, un second clic le referme.
@@ -2188,7 +2195,7 @@ export class UI {
     const ze = ELEMENTS[zoneElement(ZONES.indexOf(zone))];
     // v10.13 (8.2) : titre en 3 morceaux (crâne, nom, pastille « ×2 ☾ ») : la carte de zone a trois lignes.
     const [labelBase, labelMult] = String(stageLabel(state.stage)).split(' ×');
-    this.$('zone-name').innerHTML = `<img class="px zn-skull" src="${icon('icon_skull', 2)}" alt=""><span class="zn-t">${zone.name} ${labelBase}</span>${labelMult || ze ? `<i class="zn-x">${labelMult ? `×${labelMult}` : ''}${ze ? ` ${ze.icon}` : ''}</i>` : ''}`;
+    this.$('zone-name').innerHTML = `<img class="px zn-skull" src="${icon('icon_skull', 2)}" alt=""><span class="zn-t">${zone.name} <span class="zn-n">${labelBase}</span></span>${labelMult || ze ? `<i class="zn-x">${labelMult ? `×${labelMult}` : ''}${ze ? ` ${ze.icon}` : ''}</i>` : ''}`;
     this.$('zone-name').title = ze ? `Ennemis de type ${ze.name}` : '';
     const every = BALANCE.stages.bossEvery;
     const first = Math.floor((state.stage - 1) / every) * every + 1;
@@ -2363,7 +2370,7 @@ export class UI {
     if (bar.dataset.skills !== skillKey) {
       bar.dataset.skills = skillKey;
       for (const old of bar.querySelectorAll('.skill-btn')) old.remove();
-      bar.insertAdjacentHTML('afterbegin', list.map((sk, i) => `<button class="skill-btn big" style="--sc:${skillColor(sk)}" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}<b class="sk-queued" aria-hidden="true">✓ en attente</b></button>`).join(''));
+      bar.insertAdjacentHTML('afterbegin', list.map((sk, i) => `<button class="skill-btn big" style="--sc:${skillColor(sk)}" data-action="cast-skill" data-skill="${sk.id}" title="${escapeHtml(sk.name)} (${i + 1})" aria-label="${escapeHtml(sk.name)}">${img(sk.icon)}<i class="cd"></i>${this.phone ? '' : `<kbd>${i + 1}</kbd>`}<b class="sk-queued" aria-hidden="true">✓</b></button>`).join(''));
       this.bindSkillPress?.(bar);
     }
     // v9.8 (E5) : un seul bouton Ultime (portraits empilés, compteur) ; un appui lance la première prête.
@@ -2392,7 +2399,8 @@ export class UI {
       btn.style.setProperty('--cd', Math.min(1, left / interactiveCooldown(sk, bonus)));
       btn.classList.toggle('ready', left <= 0.05);
       // v10.17 (B) : appui gardé (recharge, ou pas d'ennemi à portée) → « ✓ en attente » ; il part dès que possible.
-      btn.classList.toggle('queued', skillQueued(world, sk.id));
+      const q = skillQueued(world, sk.id); // v10.18 (2.1) : coche ronde (CSS) ; « en attente » reste dans l'aria-label
+      if (btn.classList.contains('queued') !== q) { btn.classList.toggle('queued', q); btn.setAttribute('aria-label', q ? `${sk.name} : en attente` : sk.name); }
       // v9.11 (1) : un sort de ralliement montre sa durée restante sur l'icône (le bonus reste visible).
       const buff = sk.type === 'buff' ? Math.ceil(world.buffs?.cry ?? 0) : 0;
       let tag = btn.querySelector('.buff-left');

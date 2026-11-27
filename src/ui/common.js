@@ -216,7 +216,7 @@ const REWARD_NAMES = { gold: 'Or', gems: 'Gemmes', keys: 'Clés', fragments: 'Fr
 const REWARD_ICONS = { gold: 'coin', gems: 'icon_gem', keys: 'icon_key', fragments: 'icon_fragment', shards: 'icon_shard', grimoire: 'icon_grimoire', ascension: 'icon_ascension', mastery: 'icon_mastery' };
 export function rewardIcons(reward, cls = '') {
   const parts = Object.entries(reward ?? {}).filter(([k, v]) => v > 0 && REWARD_ICONS[k])
-    .map(([k, v]) => `<span class="rw" data-gloss="${k}"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}${/rw-big|named/.test(cls) ? `<small class="rw-name">${REWARD_NAMES[k]}</small>` : ''}</span>`); // v9.8 (I8) : nom sous l'icône dans les écrans de résultat
+    .map(([k, v]) => `<span class="rw" data-gloss="${k}"><img class="px" src="${icon(REWARD_ICONS[k])}" alt="">${formatNumber(Math.floor(v))}${/rw-big|named/.test(cls) ? ` <small class="rw-name">${REWARD_NAMES[k]}</small>` : ''}</span>`); // v9.8 (I8) : nom sous l'icône dans les écrans de résultat
   if (!parts.length) return '';
   const text = rewardText(reward, formatNumber);
   // v10.1 (P1 §2.4) : coffre riche → deux lignes, « Progression » (or, gemmes, clés, fragments) et « Matériaux ».

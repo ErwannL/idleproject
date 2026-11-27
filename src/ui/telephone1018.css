@@ -1,0 +1,114 @@
+/* v10.18 (parties 2 et 3) : sur téléphone, tout rentre et rien ne bouge — écran de combat et fenêtres.
+   Chargé après les feuilles de la 10.17 ; tout est limité au téléphone (#app.m-phone) sauf mention contraire. */
+
+/* ===================== Partie 2 : écran de combat ===================== */
+
+/* 2.1 Appui gardé : une coche ronde de 18 px dans le coin haut droit de la touche et un contour vert (plus de pastille
+   « ✓ en attente » de 90 px sous une touche de 70 px). « en attente » reste dans l'aria-label (ui.js). Tous écrans. */
+#app #skill-bar .skill-btn .sk-queued { left: auto; right: -6px; top: -6px; bottom: auto; transform: none; width: 18px; height: 18px; padding: 0; box-sizing: border-box;
+  border-radius: 50%; border: 2px solid #0b1124; background: #2fae55; color: #fff; font-size: 11px; font-weight: 900; line-height: 14px; text-align: center; overflow: hidden; }
+#app #skill-bar .skill-btn.queued, #app #skill-bar .skill-btn.queued.ready { box-shadow: 0 0 0 2px #7fe07a, 0 0 8px #7fe07a99 !important; border-color: #7fe07a !important; }
+
+/* 2.2 Sceau (#next-action) : le titre tient sur une ligne (il défile s'il est plus long : src/ui/marquee.js), la raison sur
+   une ligne en 12 px. La colonne des touches garde sa largeur : c'est le Sceau qui rétrécit. */
+#app#app.m-phone #combat-console { grid-template-columns: max-content minmax(0, 1fr) 48px; }
+#app#app.m-phone #combat-console .cc-attacks { min-width: max-content; }
+#app#app.m-phone #combat-console #next-action { overflow: hidden; }
+#app#app.m-phone #combat-console #next-action .na-lines { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+#app#app.m-phone #combat-console #next-action #next-action-text { display: block; -webkit-line-clamp: unset; white-space: nowrap; overflow: hidden; font-size: 15px; line-height: 1.15; }
+#app#app.m-phone #combat-console #next-action #next-action-why { display: block; -webkit-line-clamp: unset; white-space: nowrap; overflow: hidden; font-size: 12px; line-height: 1.15; }
+
+/* 2.3 « ⚡ Boosts » entier : 66 px au moins (il était coupé à droite dans 58 px). */
+#app#app.m-phone #play.phone-band #boost-group { width: auto; flex: none; }
+#app#app.m-phone #play.phone-band #boost-toggle { width: auto; min-width: 66px; padding: 2px 8px; white-space: nowrap; }
+
+/* 2.4 « Avance auto » : une touche ronde ▶ / ❚❚ de 44 px, à droite de la carte d'objectif (Chemin du héros) ou du Carnet,
+   jamais dessous. Le texte complet reste le nom du bouton (lecteurs d'écran, title). */
+#app#app.m-phone #stage-area #auto-toggle { width: 44px; min-width: 44px; max-width: 44px; height: 44px; padding: 0; font-size: 0; line-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+#app#app.m-phone #stage-area #auto-toggle::before { content: '▶\FE0E'; font-size: 18px; line-height: 1; font-weight: 900; color: var(--hud-text, #fff); }
+#app#app.m-phone #stage-area #auto-toggle.off::before { content: '❚❚'; font-size: 15px; letter-spacing: -2px; }
+#app#app.m-phone #hud106.hq-phone #hq-left > #hq-path,
+#app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet { width: calc(100% - 50px); align-self: flex-start; }
+/* La 2ᵉ carte (Chemin du héros sous le Carnet) n'a rien à sa droite : elle reprend toute la largeur. */
+#app#app.m-phone #hud106.hq-phone #hq-left > #hq-carnet:not(.hidden) ~ #hq-path { width: auto; align-self: stretch; }
+/* Rien à côté quand la touche est cachée (donjon, Tour, défi) */
+#app#app.m-phone #stage-area:has(#auto-toggle.hidden) #hud106.hq-phone #hq-left > :is(#hq-path, #hq-carnet) { width: auto; align-self: stretch; }
+
+/* 2.5 Nom de zone : « 1-13 » ne se coupe jamais au milieu (ui.js : <span class="zn-n">). */
+#zone-name .zn-n { white-space: nowrap; }
+
+/* 2.6 La pastille des objectifs (« 0/2 · 0/5 · 2/150 ») passe sous la carte de zone, sans la chevaucher. */
+#app#app.m-phone #stage-area #goals-pill { margin-top: 6px; }
+
+/* 360 px de large (taille ajoutée aux audits) : les paires de statistiques ne débordent plus à droite ; le sous-titre de
+   la Carte (« Étape 1/20 · boss dans 4 : Chef de guerre gobelin ») passe sur 2 lignes entières au lieu d'être coupé. */
+#app#app.m-phone .m-stats2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#app#app.m-phone .m-stats2 > .m-stat { min-width: 0; }
+#app#app.m-phone .cb-frame .cb-head .cb-sub { max-height: none; overflow: visible; }
+
+/* ===================== Partie 3 : fenêtres ===================== */
+
+/* 3.1 et 3.2 Rangée des sous-onglets : elle s'arrête avant la croix ✕ (56 px réservés), défile sur le côté avec un dégradé
+   qui montre la suite ; en-tête opaque avec une petite ombre (le contenu qui défile ne passe plus dessous en transparence). */
+#app#app.m-phone #panel > header { box-sizing: border-box; justify-content: flex-end; background: #0d1427 !important; position: relative; z-index: 3; box-shadow: 0 4px 8px rgba(0, 0, 0, .45); }
+#app#app.m-phone #panel #panel-subtabs { max-width: calc(100vw - 48px); background: #0d1427 !important; position: relative; z-index: 3; box-shadow: 0 4px 8px rgba(0, 0, 0, .45);
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent); }
+#app#app.m-phone #panel #panel-subtabs:not(.m-many) { -webkit-mask-image: none; mask-image: none; }
+#app#app.m-phone #panel #panel-subtabs .subtab { scroll-margin-inline: 24px; }
+
+/* 3.3 Pied « Tout récupérer (6) | Voir » : l'icône du coffre est dans le bouton, le libellé tient (15 px) ; le bouton doré
+   prend la largeur dont il a besoin, « Voir » le reste. */
+#app#app.m-phone #panel .gold-dock > .mp-claimbar { flex: 1 1 auto; display: flex; gap: 8px; margin: 0; min-width: 0; }
+#app#app.m-phone #panel .mp-claimbar .m-btn-gold { flex: 0 0 auto; width: auto; max-width: none; min-width: 0; padding: 0 12px; gap: 6px; font-size: 15px; white-space: nowrap; overflow: visible; }
+#app#app.m-phone #panel .mp-claimbar .m-btn-gold img { position: static; flex: none; width: 22px; height: 22px; margin: 0; }
+#app#app.m-phone #panel .mp-claimbar button.m-btn { flex: 1 1 0; width: auto; min-width: 72px; }
+
+/* 3.4 Carnet de l'Apprenti : une ligne au-dessus du gros lot, puis 6 colonnes égales (portrait au-dessus du nom, 2 lignes au plus). */
+#app#app.m-phone .mp-fw .fw-prize-t { margin: 8px 0 4px; font-size: 13px; font-weight: 800; text-align: center; color: var(--m-gold, #f3d27a); line-height: 1.2; }
+#app#app.m-phone .mp-fw .fw-prize { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; margin: 0 0 8px; }
+#app#app.m-phone .mp-fw .fw-prize-c { min-width: 0; min-height: 0; height: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; padding: 4px 1px 3px; overflow: hidden; }
+#app#app.m-phone .mp-fw .fw-prize-c > :first-child { width: 100%; max-width: 40px; height: 40px; object-fit: contain; flex: none; }
+#app#app.m-phone .mp-fw .fw-prize-c small { display: block; width: 100%; font-size: 11px; line-height: 1.15; text-align: center; white-space: normal; overflow-wrap: normal; word-break: normal; hyphens: none; }
+#app#app.m-phone .mp-fw .fw-prize-c:disabled { opacity: 1; cursor: default; }
+#app#app.m-phone .mp-fw .fw-prize-c:disabled > :first-child { opacity: .85; }
+
+/* 3.6 Arène : l'en-tête du panneau (une seule croix ✕) reste visible ; le « ? » tient dans le ruban ; l'ordre est
+   cartes de mode → formation → étages ; « Combattre » est collé en bas, hors du défilement. */
+#app#app.m-phone #panel:has(.ar-frame) > header { display: flex; }
+#app#app.m-phone .ar-frame .m-title { height: 44px; margin: 0 0 6px; padding-right: 48px; }
+#app#app.m-phone .ar-frame .m-title .m-title-in { height: 40px; }
+#app#app.m-phone .ar-frame .m-title .m-help { width: 40px; height: 40px; top: 2px; right: 2px; }
+#app#app.m-phone .ar-frame .m-title .m-close { display: none; }
+#app#app.m-phone #panel .m-modes:has(> [data-action="arena-mode"]) > .m-mode { height: 64px !important; min-height: 64px; font-size: 14px; gap: 3px; }
+#app#app.m-phone #panel .m-modes:has(> [data-action="arena-mode"]) > .m-mode img { width: 30px !important; height: 30px !important; }
+#app#app.m-phone .ar-frame { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+#app#app.m-phone .ar-frame > .ar-scroll { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+#app#app.m-phone .ar-frame > .ar-scroll > * { flex: none; margin-top: 0; margin-bottom: 0; }
+#app#app.m-phone .ar-frame > .ar-scroll > * { order: 7; } /* Saison et le reste à la fin */
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.m-title) { order: 0; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.m-modes) { order: 1; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.ct-tip) { order: 2; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.cf-card) { order: 3; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.ct-head) { order: 4; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.ct-floors) { order: 5; }
+#app#app.m-phone .ar-frame > .ar-scroll > :is(.ct-floor-card) { order: 6; }
+#app#app.m-phone .ar-frame > .ct-go { flex: none; position: relative; z-index: 2; margin-top: 0; padding: 8px 0 2px; }
+#app#app.m-phone .ar-frame .ct-tip { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+#app#app.m-phone .ar-frame .ct-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+
+/* 3.7 Pages trop vides : la place entre le contenu et le bouton doré du bas reçoit une illustration (comme les Expéditions).
+   Bastion › Nouvel âge : la carte du Bastion de cet âge (camp.js, .mt-ann-art) ; Défis › Tour et Forge : une scène dessous. */
+#bs-announce > .m-sheet-body { display: flex; flex-direction: column; gap: 10px; }
+#bs-announce > .m-sheet-body > * { flex: none; }
+#bs-announce > .m-sheet-body > .mt-ann-art { flex: 1 1 auto !important; min-height: 120px; max-height: 460px; border-radius: 12px; border: 1px solid var(--m-card-line, #2a3a66); background: #0b1124 center / cover no-repeat; image-rendering: pixelated; }
+#bs-announce > .m-sheet-body > :is(.m-btn-gold, .gold-dock) { margin-top: auto; }
+#app#app.m-phone #panel .m-frame.m-fg { display: flex; flex-direction: column; flex: 1 0 auto; min-height: 100%; box-sizing: border-box; }
+#app#app.m-phone #panel .m-frame.m-fg > * { flex: none; min-width: 0; }
+#app#app.m-phone #panel .m-frame > .page-fill { display: block; flex: 1 1 0; min-height: 0; max-height: 420px; margin: 8px 0 0; border-radius: 12px; border: 1px solid var(--m-card-line, #2a3a66);
+  background: #0b1124 center / cover no-repeat; opacity: .75; image-rendering: pixelated; }
+#app#app.m-phone #panel .m-frame > .page-fill-tower { background-image: url(../../assets/ui/art104/scene_tower.png); background-size: contain; }
+#app#app.m-phone #panel .m-frame > .page-fill-forge { background-image: url(../../assets/ui/art104/forge_banner_wide.png); }
+#app:not(.m-phone) .page-fill { display: none; }
+
+/* 360 px : les titres de cadre longs (coréen : « Encyclopédie ») tiennent dans le ruban. */
+@media (max-width: 380px) { #app#app.m-phone .m-title b { font-size: 19px; } }

@@ -2155,3 +2155,7 @@ PATTERNS.unshift(...patterns1017Ui());
 import { EXACT_1018_BOSS, patterns1018Boss } from './en-1018-boss.js';
 for (const [k, v] of Object.entries(EXACT_1018_BOSS)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1018Boss());
+// v10.18 (parties 2 et 3) : écran de combat et fenêtres sur téléphone (./en-1018.js).
+import { EXACT_1018, patterns1018 } from './en-1018.js';
+for (const [k, v] of Object.entries(EXACT_1018)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1018(lookup));

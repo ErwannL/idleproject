@@ -842,7 +842,8 @@ function ageSheet(ui, state) {
   const mult = bastionMult(state, 'damage');
   return mSheet('Nouvel âge', `<div class="m-card mt-announce" style="--age:${a.color}"><small class="mt-ann-kicker">Âge ${a.roman}</small><b class="mt-ann-age">${escapeHtml(a.name)}</b>
       <span>Niveaux jusqu'à ${a.maxLevel}${mult > 1.001 ? ` · ×${dec(mult)} dégâts et vie` : ''}</span>
-      <small>${nx ? `Âge ${nx.roman} · ${escapeHtml(nx.name)} : étape ${nx.stage}${nx.bastionLevel ? `, Bastion niveau ${nx.bastionLevel}` : ''}` : 'Âge maximal'}</small></div>${mBtnGold('Continuer', { action: 'bastion-age-ok' })}`,
+      <small>${nx ? `Âge ${nx.roman} · ${escapeHtml(nx.name)} : étape ${nx.stage}${nx.bastionLevel ? `, Bastion niveau ${nx.bastionLevel}` : ''}` : 'Âge maximal'}</small></div>
+      <div class="mt-ann-art" aria-hidden="true" style="background-image:url(assets/ui/art108/bastion_map_age${Math.max(1, Math.min(5, age))}.png)"></div>${mBtnGold('Continuer', { action: 'bastion-age-ok' })}`,
     { id: 'bs-announce', icon: 'tab_expeditions', back: 'bastion-age-ok', close: 'bastion-age-ok' });
 }
 

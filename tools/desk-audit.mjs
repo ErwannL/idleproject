@@ -26,6 +26,7 @@ import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5
 import { ALL_TABS, PC_SIZES, makeOpt, parseSizes, parseList, startApp, openGame, openTab, listModes, clickMode, closeAll, slug } from './lib-1013.mjs';
 
 export const CHECKS = {
+  16: 'bouton recouvert au point de contact', 17: 'texte « Pas disponible pour l\'instant »', 18: 'sous-onglet sous la croix ✕', // v10.18 : tools/audit-1018.mjs
   15: 'bouton doré principal pas en bas du cadre', 13: 'plus de 4 styles de bouton (tous écrans confondus)', 14: 'texte long coupé sans défiler (textes injectés)', // v10.17 : tools/audit-1017.mjs, tools/text-fit-audit.mjs
   11: 'libellé terminé par un point d\'abréviation', 12: 'bouton désactivé sans explication', // v10.16 (B9) : tools/audit-1016.mjs
   1: 'défilement horizontal / contenu décentré', 2: 'chevauchement', 3: 'image d\'événement hors de son cadre', 4: 'cartouche / bouton doré',
@@ -185,6 +186,12 @@ export function inPage(kind) {
   // 11 et 12 (v10.16, B9) : libellés sans point d'abréviation ; chaque bouton désactivé a un texte d'explication.
   const extra = window.__audit1016?.(kind === 'tab' ? [panel, modal, document.querySelector('#tabs')].filter(Boolean) : [document.querySelector('#play') ?? document.body, document.querySelector('#tabs')].filter(Boolean), shown) ?? [];
   for (const x of extra) add(x.check === 'abbr' ? 11 : 12, x.msg);
+  // 16 à 18 (v10.18, partie 3.5 ; tools/audit-1018.mjs) : bouton recouvert au point de contact, texte générique
+  // « Pas disponible pour l'instant », sous-onglet sous la croix ✕.
+  const roots18 = (kind === 'tab' ? [panel, modal, document.querySelector('#tabs')] : [document.querySelector('#stage-area'), document.querySelector('#combat-console'), document.querySelector('#tabs')]).filter(Boolean);
+  for (const m of window.__touchCover?.(roots18) ?? []) add(16, m);
+  for (const m of window.__genericWhy?.([document.body]) ?? []) add(17, m);
+  if (kind === 'tab') for (const m of window.__subtabsUnderClose?.() ?? []) add(18, m);
   return issues;
 }
 

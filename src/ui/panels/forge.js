@@ -290,7 +290,7 @@ function phoneForge(ui, state) {
     .map((m) => ({ ...m, action: 'forge-seg', value: m.id })), seg, { size: 64 });
   const head = `<div class="m-stats2 m-fg-res2">${mStat('icon_shard', 'Éclats', formatNumber(state.materials.shards))}${mStat('coin', 'Or', formatNumber(state.gold))}</div>`;
   const body = seg === 'recycle' ? phoneRecycle(ui, state, now) : seg === 'upgrade' ? phoneUpgrade(ui, state, now) : seg === 'fuse' ? phoneFuse(ui, state, now.groups) : phoneCraft(ui, state);
-  return `<div class="m-frame m-hero m-fg${ui.view.forgeFx ? ' fx' : ''}">${mTitle('icon_anvil', 'Forge', true)}${head}${modes}<div class="m-fg-body">${body}</div></div>`;
+  return `<div class="m-frame m-hero m-fg${ui.view.forgeFx ? ' fx' : ''}">${mTitle('icon_anvil', 'Forge', true)}${head}${modes}<div class="m-fg-body">${body}</div><div class="page-fill page-fill-forge" aria-hidden="true"></div></div>`; // v10.18 (3.7) : illustration dans la place libre
 }
 
 export default {
