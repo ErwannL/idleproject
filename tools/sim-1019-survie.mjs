@@ -3,6 +3,9 @@
 // Usage : node tools/sim-1019-survie.mjs [--seeds 5] [--hours 3] [--look 5] [--json]
 // --look : le joueur regarde la barre toutes les N s (5 : attentif ; 120 : distrait, qui achète peu).
 // Avant/après : SURVIVAL_OFF=1 node tools/sim-1019-survie.mjs (désactive la section `survival` de balance.js).
+// --from N : première graine ; --off caps,product,stagger,wind,wall,late : coupe une mesure (recherche de cause).
+// Mesure sur 30 graines (1 à 30), avant → après : attentif morts 13-21 0,9 → 1,0 (écart apparié +0,17 ± 0,45),
+// étape 15 passée 28,0 → 26,6 min (−1,4 ± 0,4) ; distrait 33,7 → 31,7 (−2,0 ± 7,2), 68,9 → 66,7 min (−2,2 ± 6,1).
 import { createNewState } from '../src/core/state.js';
 import { createCombat, step } from '../src/core/combat.js';
 import { Rng } from '../src/core/rng.js';
@@ -93,14 +96,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
   const seeds = Number(opt('--seeds', 5)), hours = Number(opt('--hours', 3)), look = Number(opt('--look', 5));
   if (process.env.SURVIVAL_OFF && BALANCE.survival) BALANCE.survival = { ...BALANCE.survival, enabled: false };
+  // --off caps,product,stagger,wind,wall,late : désactive une mesure à la fois (recherche de cause).
+  const SV = BALANCE.survival;
+  for (const k of opt('--off', '').split(',').filter(Boolean)) {
+    if (k === 'caps') SV.hitCapPct = { normal: 1e9, boss: 1e9, heavy: 1e9 };
+    if (k === 'product') SV.productCap = Infinity;
+    if (k === 'stagger') SV.staggerSeconds = 0;
+    if (k === 'wind') SV.secondWind = null;
+    if (k === 'wall') SV.wallBoss = { ...SV.wallBoss, hp: 1, damage: 1 };
+    if (k === 'late') SV.lateMonsters = { ...SV.lateMonsters, damage: 1 };
+  }
+  const from = Number(opt('--from', 1));
   const runs = [];
-  for (let s = 1; s <= seeds; s++) {
+  for (let s = from; s < from + seeds; s++) {
     const r = runSurvival(s, { hours, look });
     runs.push(r);
     console.error(`graine ${s} : étape max ${r.maxStage}, étape 15 passée à ${r.pass15 ? (r.pass15 / 60).toFixed(1) + ' min' : '—'}, morts ${JSON.stringify(r.deaths)}`);
   }
   const sum = summarize(runs);
-  if (args.includes('--json')) console.log(JSON.stringify(sum));
+  if (args.includes('--json')) console.log(JSON.stringify({ ...sum, runs: runs.map((r) => ({ seed: r.seed, d: Object.entries(r.deaths).filter(([k]) => k >= 13 && k <= 21).reduce((a, [, v]) => a + v, 0), deaths: r.deaths, pass15: r.pass15, reach15: r.reach15, winds: r.winds })) }));
   else {
     console.log('| Étape | Morts (moyenne par partie) |\n|---|---|');
     for (const [k, v] of Object.entries(sum.per)) console.log(`| ${k} | ${v.toFixed(1)} |`);
