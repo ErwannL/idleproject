@@ -98,12 +98,13 @@ function whoColumn(state, ctx) {
   const { unit, tab } = ctx;
   const n = unit ? bestGearFor(state, unit.id).length : ctx.plan.changes.length;
   const teamGear = state.companions.equipped.some((id) => gearWaiting(state, id));
-  const quick = mBtn(`Équipement rapide${n ? ` (${n})` : ''}`, { action: 'eq-quick', value: ctx.who, disabled: !n, icon: 'icon_upgrade', cls: ctx.tab === 'gear' && n ? 'de-quick' : '' });
+  // v10.20 (2.3) : un bouton grisé dit lui-même pourquoi (« ✓ » : le meilleur est déjà porté) — plus de note glissée dessous, la rangée tient sur une ligne.
+  const quick = mBtn(`Équipement rapide${n ? ` (${n})` : ' ✓'}`, { action: 'eq-quick', value: ctx.who, disabled: !n, icon: 'icon_upgrade', cls: ctx.tab === 'gear' && n ? 'de-quick' : '' });
   const second = unit ? mBtn('Étoiles', { action: 'eq-tab', value: 'stars', icon: 'icon_star', cls: tab === 'stars' ? 'on' : '' }) : mBtn('Ensembles', { action: 'eq-tab', value: 'sets', icon: 'icon_book', cls: tab === 'sets' ? 'on' : '' });
   const third = unit ? mBtn('Compétences', { action: 'eq-tab', value: 'skills', icon: 'skill_quick', cls: tab === 'skills' ? 'on' : '' }) : '';
   return `<section class="de-col de-who" aria-label="Personnage">${whoRow(state, ctx)}${character(state, ctx)}${placeTiles(state, ctx)}${statsBlock(state, ctx)}
-    <div class="de-btns2">${quick}${second}</div>${third}
-    ${mBtn('Équipement rapide · toute l\'équipe', { action: 'gear-team', disabled: !teamGear, icon: 'icon_summon', cls: 'de-team' })}</section>`;
+    <div class="de-pcrow"><div class="de-btns2">${quick}${second}</div>${third}
+    ${mBtn(`Toute l'équipe${teamGear ? '' : ' ✓'}`, { action: 'gear-team', disabled: !teamGear, icon: 'icon_summon', cls: 'de-team', attrs: 'title="Équipement rapide · toute l&#39;équipe"' })}</div></section>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -146,7 +147,7 @@ function bagColumn(ui, state, ctx) {
     : mEmpty('Aucun objet avec ce filtre.', { icon: 'icon_chest' });
   const u = uselessPreview(state);
   return `<section class="m-card de-col de-bag" aria-label="Sac">${head}${slotRow}${rarRow}${sortRow}${list.length ? mGrid(tiles, 5) : empty}${full}
-    ${mBtn(`Recycler les objets inutiles (${u.list.length})`, { action: 'recycle-useless', disabled: !u.list.length, icon: 'icon_shard', cls: 'de-recycle' })}</section>`;
+    ${mBtn(`Recycler les objets inutiles (${u.list.length})`, { action: 'recycle-useless', disabled: !u.list.length, icon: 'icon_shard', cls: 'de-recycle', attrs: 'data-why="Rien à recycler : tes objets sont protégés ou utiles"' })}</section>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -233,8 +234,10 @@ function itemDetail(ui, state, ctx) {
   if (mode === 'up') panel = upPanel(state, item, wearer, pv, { headTag: true });
   else if (mode === 'reforge') panel = wearer ? '<p class="em-note">Les pièces d\'un compagnon ne se reforgent pas.</p>' : reforgePanel(ui, state, item);
   else panel = equipPanel(ui, state, ctx, item, flags);
-  // La tête reste en haut, les statistiques défilent seules si la fenêtre est basse ; les modes et le panneau (Améliorer, Reforger, Équiper) restent en bas, visibles.
-  return `<div class="de-fixtop">${detTitle('Détails de l\'équipement', `${lock}${more}`, menu)}${head}</div><div class="de-scroll">${stats}</div><div class="de-dock">${modes}<div class="de-panel de-panel-${mode}" role="tabpanel">${panel}</div></div>`;
+  // La tête reste en haut, les statistiques défilent seules si la fenêtre est basse ; le panneau (Améliorer, Reforger, Équiper) reste en bas, visible.
+  // v10.20 (2.2) : les 3 modes passent juste sous le nom de l'objet ; les lignes « avant » / « après » forment un tableau court (.de-cmp, 2 colonnes).
+  panel = panel.replace(/(?:<div class="em-ba">[\s\S]*?<\/div>)+/, (rows) => `<div class="m-card de-cmp">${rows}</div>`);
+  return `<div class="de-fixtop">${detTitle('Détails de l\'équipement', `${lock}${more}`, menu)}${head}</div><div class="de-modes-top">${modes}</div><div class="de-scroll">${stats}</div><div class="de-dock"><div class="de-panel de-panel-${mode}" role="tabpanel">${panel}</div></div>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

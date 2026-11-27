@@ -71,11 +71,16 @@ test('skill-fx.js : add() retient g0, drawSkillFx décale ; v10.16 gardé (thrus
   assert.ok(!/function crescent\(/.test(src));
 });
 
-test('PC : plus de page plein écran avec vignette (Héros, Équipe…) — la fenêtre s\'ouvre à droite de la colonne de combat', async () => {
+// v10.20 (1) : la v10.17 avait supprimé les pages PC (PC_SIDE_ONLY = true) ; elles reviennent. Héros et Équipe s'ouvrent en grande
+// page avec la vignette du combat, à toutes les largeurs PC ; Combat, Invocation et Boutique gardent la colonne de combat à gauche.
+test('PC : Héros et Équipe en grande page avec vignette ; Combat, Invocation, Boutique à droite de la colonne de combat', async () => {
   const { pageActive, PC_SIDE_ONLY } = await import('../src/ui/page.js');
-  assert.equal(PC_SIDE_ONLY, true);
+  assert.equal(PC_SIDE_ONLY, false);
+  for (const w of [1116, 1366, 1920]) {
+    for (const tab of ['inventory', 'companions', 'forge', 'camp', 'upgrades', 'skills', 'tree', 'expeditions']) assert.equal(pageActive({ tab, layout: 'tall', root: { clientWidth: w }, view: {} }), true, `${tab} ${w}`);
+    for (const tab of ['campaign', 'summon', 'shop']) assert.equal(pageActive({ tab, layout: 'tall', root: { clientWidth: w }, view: {} }), false, `${tab} ${w}`);
+  }
   for (const tab of ['inventory', 'companions', 'forge', 'camp', 'upgrades', 'skills', 'campaign', 'summon', 'shop']) {
-    assert.equal(pageActive({ tab, layout: 'tall', root: { clientWidth: 1920 }, view: {} }), false, tab);
     assert.equal(pageActive({ tab, layout: 'tall', root: { clientWidth: 412 }, view: {} }), true, `${tab} (téléphone)`);
   }
 });

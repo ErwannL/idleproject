@@ -56,10 +56,11 @@ test('socle : PAGE_TABS, PAGE_WHEN et pageActive suivent le contrat', () => {
   assert.ok(page.PAGE_TABS instanceof Set && page.PAGE_TABS.has('inventory') && page.PAGE_TABS.has('forge'));
   assert.equal(typeof page.PAGE_WHEN, 'object');
   const ui = (tab, layout = 'tall', view = {}) => ({ tab, layout, view });
-  // v10.17 (A) : sur PC, plus aucune page plein écran (colonne de combat à gauche, fenêtre à droite) ; sur téléphone,
-  // tout est en page. Le contrat PAGE_TABS / PAGE_WHEN reste pour les fenêtres étroites.
-  assert.equal(page.PC_SIDE_ONLY, true);
-  for (const t of ['inventory', 'forge', 'upgrades', 'contracts']) assert.equal(page.pageActive(ui(t)), false, `PC : ${t} dans la fenêtre de droite`);
+  // v10.20 (1) : sur PC, les grandes pages reviennent (PC_SIDE_ONLY = false) : PAGE_TABS en page, les autres (Missions…)
+  // gardent la fenêtre à droite de la colonne de combat ; sur téléphone, tout est en page.
+  assert.equal(page.PC_SIDE_ONLY, false);
+  for (const t of ['inventory', 'forge', 'upgrades']) assert.equal(page.pageActive(ui(t)), true, `PC : ${t} en grande page`);
+  assert.equal(page.pageActive(ui('contracts')), false, 'PC : Missions dans la fenêtre de droite');
   const phone = (tab, layout = 'tall') => ({ tab, layout, view: {}, root: { clientWidth: 412 } });
   assert.equal(page.pageActive(phone('inventory')), true);
   assert.equal(page.pageActive(phone('inventory', 'mini')), false, 'petite fenêtre : pas de page');

@@ -226,7 +226,7 @@ function deskLeft(ui, state, cells, activeIds, armed) {
     <div class="dsk-hero" style="${world.style}"><span class="dsk-lbl">Ta barre de combat</span><img class="px dsk-hero-img" src="${heroImg}" alt="Ton héros"></div>
     <div class="dsk-slots${size > 3 ? ' n4' : ''}">${slots}</div><p class="dsk-cap">${hint}</p>
     <h3 class="dsk-sec">Boosts actifs</h3>${mGrid(boosts, 5)}
-    ${mBtn('↺ Répartir les points', { action: 'distribute-skills', disabled: skillPointsAvailable(state) <= 0, cls: 'dsk-spread' })}</div>`;
+    ${mBtn('↺ Répartir les points', { action: 'distribute-skills', disabled: skillPointsAvailable(state) <= 0, cls: 'dsk-spread', attrs: 'data-why="Aucun point à répartir"' })}</div>`;
 }
 
 function deskCenter(ui, state, cells, activeIds, sel, mode) {
@@ -266,7 +266,7 @@ function deskDetail(ui, state, c, activeIds, armed) {
   if (c.kind === 's' && c.level > 0 && !c.locked) {
     const at = activeIds.indexOf(c.id);
     const size = loadoutSize(state);
-    if (at >= 0) second = mBtn(`Retirer de la barre (place ${at + 1})`, { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: activeIds.length <= 1 });
+    if (at >= 0) second = mBtn(`Retirer de la barre (place ${at + 1})`, { action: 'skill-loadout', disabled: activeIds.length <= 1, attrs: `data-key="${escapeHtml(c.id)}" data-why="Garde au moins une attaque sur la barre"` });
     else {
       const slot = armed ?? (activeIds.length < size ? activeIds.length : size - 1);
       second = mBtn(activeIds.length >= size && armed == null ? `Mettre dans la barre (place ${slot + 1})` : 'Mettre dans la barre', { action: 'skill-slot-set', value: `${c.id}|${slot}` });

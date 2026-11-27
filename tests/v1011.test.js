@@ -54,9 +54,10 @@ test('10.11 (4) : grand écran — combat recentré, rangée d\'actions et barre
 test('10.11 (5, 6) : même forme dans un menu (pages dès 1300 px), contenu centré 1600 px, téléphone tout en plein écran', async () => {
   const P = await import('../src/ui/page.js');
   const ui = (w, tab) => ({ tab, layout: 'tall', root: { clientWidth: w }, view: {} });
-  // v10.17 (A) : PC — même forme pour tous les onglets : fenêtre à droite de la colonne de combat (plus de page plein écran).
-  for (const t of ['skills', 'tree', 'companions', 'expeditions', 'inventory', 'upgrades', 'forge', 'camp']) assert.equal(P.pageActive(ui(1920, t)), false, t);
-  assert.equal(P.pageActive(ui(1116, 'skills')), false);
+  // v10.20 (1) : PC — retour des grandes pages (PC_SIDE_ONLY = false) ; même forme pour tous les onglets de Héros et Équipe,
+  // à toutes les largeurs PC (plus de seuil à 1300 px : la vignette du combat ne change pas d'un onglet à l'autre).
+  for (const t of ['skills', 'tree', 'companions', 'expeditions', 'inventory', 'upgrades', 'forge', 'camp']) assert.equal(P.pageActive(ui(1920, t)), true, t);
+  assert.equal(P.pageActive(ui(1116, 'skills')), true);
   for (const t of ['summon', 'shop', 'daybook', 'companions']) assert.ok(P.pageActive(ui(390, t)), `téléphone ${t}`);
   const css = src('src/ui/layout109.css');
   assert.match(css, /calc\(\(100% - 1600px\) \/ 2\)/);

@@ -1,0 +1,224 @@
+/* v10.20 (parties 1 à 3) : PC — retour des grandes pages (PC_SIDE_ONLY = false dans src/ui/page.js), et une page qui ne défile jamais.
+   RÈGLE : tout est sous `#app.page-ui:not(.m-phone):not(.page-narrow)` (page PC). Le téléphone (#app.m-phone) et la fenêtre étroite
+   (.page-narrow) ne sont jamais touchés. Chargé en dernier.
+   - Le cadre .m-frame d'Équipement et d'Améliorations prend exactement la hauteur de #panel-body : seules les listes (grille du Sac,
+     colonne de détails, colonnes d'améliorations) défilent dans leur cadre.
+   - Barre de défilement de ces listes : 4 px, --ui-gold à 40 %, visible seulement au survol. */
+
+/* ---------- 1. Barre de défilement des listes (page PC) ---------- */
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr) {
+  scrollbar-width: thin; scrollbar-color: transparent transparent; overscroll-behavior: contain;
+}
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr):hover {
+  scrollbar-color: color-mix(in srgb, var(--ui-gold, #f2c14e) 40%, transparent) transparent;
+}
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr)::-webkit-scrollbar { width: 4px; height: 4px; }
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr)::-webkit-scrollbar-thumb { background: transparent; border-radius: 2px; }
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr):hover::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ui-gold, #f2c14e) 40%, transparent); }
+
+/* ---------- 1. Le cadre tient dans #panel-body ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel#panel #panel-body:has(> .m-frame:is(.de, .d-upg, .m-dsk, .m-tr)) { overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.de, .d-upg, .m-dsk, .m-tr) {
+  height: 100%; min-height: 0 !important; margin: 0; display: flex; flex-direction: column; padding-top: 72px; padding-bottom: 10px;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.de, .d-upg) > :not(.m-title) { flex: 1 1 auto; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.m-dsk, .m-tr) > * { flex: none; }
+
+/* Fenêtre haute et étroite (1116 × 993, 1170 × 1350…) : le cadre passe SOUS la vignette, sur toute la largeur (3 colonnes lisibles). */
+@media (max-width: 1299px) and (min-height: 900px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel#panel #panel-body:has(> .m-frame:is(.de, .d-upg, .m-dsk, .m-tr)) { padding: calc(var(--pg-mini-h, 158px) - 40px) 12px 16px 12px !important; }
+}
+
+/* ---------- Héros › Compétences : la grille des compétences et la fiche défilent dans leur cadre ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-dsk > .sk-pts-big { margin: 0 0 10px; padding-top: 4px; padding-bottom: 4px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame.m-dsk > .d-cols3b { flex: 1 1 auto; min-height: 0; align-items: stretch; grid-template-rows: auto minmax(0, 1fr); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-dsk > .d-cols3b > * { min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail { overflow-y: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > * { flex-shrink: 0; }
+@media (max-height: 900px) { #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-prev { height: 84px; min-height: 0; } }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center { display: flex; flex-direction: column; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center > * { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center > .dsk-grid { flex: 1 1 0; min-height: 0; overflow-y: auto; align-content: start; padding: 2px 4px 2px 2px; }
+@container mframe (min-width: 1090px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame.m-dsk > .d-cols3b { grid-template-rows: minmax(0, 1fr); }
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > :is(.m-btn-gold, .dsk-btns) { margin-top: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-btns { display: flex; flex-direction: column; justify-content: flex-end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-btns > .m-btn-gold { order: 9; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left .m-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px 4px; justify-items: center; }
+@media (max-width: 1299px) { #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left .m-tile.s56 { --m-s: 46px; } }
+/* ---------- Héros › Talents : en-tête compact ; ce qui dépasse défile dans le cadre (barre fine) ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr { overflow-y: auto; overscroll-behavior: contain; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr > .m-modes .m-mode { height: 56px; flex-direction: row; gap: 8px; flex: 0 1 auto; width: auto; min-width: 170px; padding: 0 16px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr > .m-modes .m-mode img { width: 28px; height: 28px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-bc .d-art { height: 96px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-bc .d-art img { max-height: 84px; width: auto; }
+
+/* Arbre avancé : la légende et les plis (Aide, Outils, Réinitialiser) passent au-dessus ; l'arbre et sa fiche (bouton doré « Apprendre »)
+   descendent en bas du cadre (règle du bouton doré en bas). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv { display: flex; flex-direction: column; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv > .d-cols2 { order: 5; }
+/* @@PARTIE2 */
+/* ---------- 2. Équipement : 3 colonnes (personnage · Sac · Détails) ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de > .de-cols {
+  display: grid; grid-template-columns: minmax(270px, 330px) minmax(0, 1fr) minmax(290px, 1.15fr); gap: 12px; align-items: stretch;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de > .de-cols > * { grid-column: auto !important; grid-row: auto !important; min-height: 0; max-height: none; position: static; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de .de-col { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.de .de-col.m-card { padding: 10px 12px; }
+
+/* Colonne personnage : rangée « qui », portrait, places, stats en 2×2, puis une seule ligne de boutons. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who { gap: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who > * { margin: 0 !important; flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-whos { gap: 6px; height: auto !important; min-height: 0 !important; padding: 0 !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .em-who { width: 46px; height: 46px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char { grid-template-columns: 96px minmax(0, 1fr); gap: 10px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-art { width: 96px; height: 104px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-id { gap: 4px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow { padding: 2px 8px; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow > span { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow img { width: 22px; height: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-lv { gap: 2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .m-power { font-size: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-grid { gap: 8px; justify-content: space-between; grid-template-columns: repeat(3, 60px); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-tile.s96 { --m-s: 60px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-slots .m-tilewrap { gap: 2px; font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat { min-height: 0; height: 34px; padding: 2px 8px; display: flex; align-items: center; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat :is(.m-k) { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat img { width: 18px; height: 18px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat .m-v { font-size: 14px; margin-left: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .m-stats2 .m-stat:nth-child(n + 5) { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow { display: flex; gap: 6px; margin-top: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn { flex: 1 1 0; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn.de-team { flex-grow: 1.6; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow > :is(.de-btns2, .de-btns2 > *) { display: contents; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn { min-height: 44px; height: auto; padding: 2px 6px; font-size: 12px; line-height: 1.1; white-space: normal; text-align: center; gap: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-pcrow .m-btn img { display: none; }
+
+/* Colonne Sac : en-tête, filtres et « Recycler » fixes ; la grille défile dans son cadre. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > * { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > .m-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; margin: 6px 0 8px; grid-template-columns: repeat(auto-fill, 64px); justify-content: space-between; gap: 12px 6px; padding: 2px 4px 2px 2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag > .de-recycle { margin-top: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-bag .de-rars { flex-wrap: wrap; }
+
+/* Colonne Détails : nom, puis les 3 modes juste dessous ; les statistiques et le panneau du mode défilent ; le bouton doré reste en bas. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det { gap: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-fixtop { flex: none; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-head .m-tile.s110 { --m-s: 72px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-mode { height: 48px; flex-direction: row; gap: 6px; font-size: 14px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-mode img { width: 24px; height: 24px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top.arrow { padding-bottom: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-dock { flex: none; max-height: none; min-height: 0; overflow: visible; }
+/* « à la place de … » : tableau court sur 2 colonnes (Dégâts/s, Vie, Vitesse, Critique). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px 10px; margin: 0; padding: 6px 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > * { margin: 0 !important; min-height: 0 !important; padding: 2px 4px !important; font-size: 13px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 0 4px; align-items: baseline; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba > .em-ba-k { grid-column: 1 / -1; font-size: 12px; color: var(--m-soft); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-cmp > .em-ba > :not(.em-ba-k) { font-size: 13px; overflow-wrap: anywhere; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel { display: flex; flex-flow: row wrap; align-items: center; gap: 8px; padding: 8px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > * { flex: 1 1 100%; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > :is(.em-lvlup, .m-costs) { flex: 1 1 0; justify-content: center; order: -1; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > .em-lvlup { flex: 0 0 auto; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel > .m-costs { flex-wrap: nowrap; justify-content: space-evenly; }
+
+/* Panneau du mode (Améliorer, Équiper) : compact, le bouton doré en bas de la colonne. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .em-lvlup { margin: 0; font-size: 18px; padding: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-costs { gap: 8px; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost { --m-cs: 44px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-btn-gold { min-height: 48px; height: 48px; font-size: 18px; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-dock { padding: 0; border: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost { height: auto; min-height: 0; padding: 2px; font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost > :first-child { width: 40px; height: 40px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-panel .m-cost img { width: 26px; height: 26px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char { height: 128px; align-items: stretch; grid-template-rows: 128px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-id { height: 128px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-art { height: 128px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pow { min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-char .em-pills { margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-who .de-whos .em-who { width: 44px !important; height: 44px !important; min-height: 0; }
+
+/* Fenêtre basse (720 à 900 px) : la fiche se resserre (titre caché, cadenas en haut à droite, modes sans flèche). */
+@media (max-height: 900px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-det-top { position: absolute; top: 8px; right: 8px; z-index: 3; min-height: 0; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-det-title { display: none; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-col, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det { position: relative; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-old { padding: 2px 6px; font-size: 12px; min-height: 0; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-old .m-btn { min-height: 34px; height: 34px; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-modes { margin: 0; padding-bottom: 2px; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .de-det .de-modes-top .m-modes.arrow .m-mode::after { display: none; }
+}
+
+/* @@PARTIE3 */
+/* ---------- 3. Améliorations : 3 familles côte à côte, lignes de 44 px ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.d-upg > .upg-page107 { display: flex; flex-direction: column; gap: 6px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > * { flex: none; margin: 0 !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top-gold { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .gold-dock { display: none; }
+@media (max-height: 1000px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > .d-topline { display: none; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top-gold { display: inline-flex; }
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .forecast, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .boss-forecast { display: none; }
+}
+/* Haut : « Meilleur achat » en une ligne de 64 px, puis la carte or · Dégâts/s · quantités · Tout acheter. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-toprow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 10px; align-items: start; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy { display: grid !important; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; height: 64px; min-height: 0; padding: 6px 10px; margin: 0; box-sizing: border-box; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-medal { width: 48px !important; height: 48px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-medal canvas { width: 48px !important; height: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-badge { width: 22px; height: 22px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main { display: grid; gap: 0; line-height: 1.2; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main small { font-size: 12px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main b { font-size: 15px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-main b img { width: 20px; height: 20px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .upg-bb-why { font-size: 12px; line-height: 1.15; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy > :last-child { grid-column: auto !important; width: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-bestbuy .cost-missing { display: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; padding: 5px 10px; min-height: 64px; box-sizing: border-box; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-dps { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0; min-width: 0; flex: 1 1 220px; line-height: 1.2; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-top-gold { flex: none; height: 36px; min-height: 0; padding: 0 10px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-dps > b { font-size: 20px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-top .upg-surv { font-size: 13px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row { display: flex; align-items: center; gap: 6px; margin: 0 0 0 auto; flex-wrap: nowrap; justify-content: flex-end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .buy-amounts { margin: 0; gap: 4px; flex-wrap: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .chip-btn { min-height: 38px; height: 38px; padding: 0 8px; min-width: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .buy-all { position: static !important; width: auto; min-height: 40px; height: 40px; padding: 0 14px; font-size: 16px; margin: 0; white-space: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .upg-missing { font-size: 12px; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-buyall-row .upg-missing img { width: 18px; height: 18px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-toprow:not(:has(> .upg-bestbuy)) { grid-template-columns: minmax(0, 1fr); }
+
+/* Les 3 familles : chaque colonne défile à l'intérieur. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-page107 > .upg-cols3 {
+  flex: 1 1 auto !important; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-template-areas: none !important; gap: 10px; align-items: stretch;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-cols3 > .upg-group { grid-area: auto !important; grid-column: auto !important; display: flex; flex-direction: column; min-height: 0; margin: 0; gap: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group-head { flex: none; height: 30px; min-height: 0; margin: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group > .upg-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding-right: 4px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-group > .upg-list > * { flex: none; margin: 0; }
+/* Une amélioration = une ligne de 44 px : icône, nom + niveau, « avant → après » en vert, bouton prix à droite. */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card {
+  display: grid !important; grid-template-columns: 32px minmax(0, 1fr) auto !important; grid-template-rows: 44px !important; grid-template-areas: none !important; align-items: center; gap: 0 6px;
+  height: 44px; min-height: 0 !important; padding: 0 4px 0 4px !important; box-sizing: border-box; overflow: hidden;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card > * { grid-area: auto !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon { width: 32px !important; height: 32px !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; grid-row: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon img { width: 28px !important; height: 28px !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-icon { display: grid; place-items: center; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-main { min-width: 0; display: grid; gap: 0; line-height: 1.15; grid-column: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-name { font-size: 13px; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-level { display: inline !important; font-size: 12px; margin-left: 4px; color: var(--m-soft, #9fb0d8); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-name .tag,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-desc,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-gain,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-profit,
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card > :not(.upg-icon, .upg-main, .upg-buy) { display: none !important; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-effect { font-size: 12px; line-height: 1.15; white-space: nowrap; overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-main > * { margin: 0; display: block; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy { display: flex; align-items: center; margin: 0; grid-column: auto; grid-row: auto; justify-self: end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .cost-wrap { display: block; position: relative; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .btn { min-height: 34px !important; height: 34px !important; padding: 0 6px !important; font-size: 13px !important; min-width: 0 !important; width: auto !important; gap: 2px; white-space: nowrap; letter-spacing: -.2px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .upg-buy .btn img { width: 16px !important; height: 16px !important; }
+/* « Il manque … or » : dans l'infobulle de la ligne (gardé pour les lecteurs d'écran, sans place à l'écran). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-card .cost-missing { position: absolute; right: 0; top: 100%; opacity: 0; pointer-events: none; white-space: nowrap; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-list > .upg-rebirth, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .d-upg .upg-list > .fold { flex: none; }
