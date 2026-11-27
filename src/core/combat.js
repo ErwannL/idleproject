@@ -380,6 +380,8 @@ function spawnEnemy(state, world, rng, balance, enc, elite = false) {
     s.damage *= challengeRule(state, 'enemyDamage') ?? 1;
     s.attackInterval /= challengeRule(state, 'enemyAttackSpeed') ?? 1;
   }
+  // v10.19 (partie 4, 5 et 6) : mur de l'étape 15 du monde 1 adouci, monstres des étapes 16 à 20 un peu moins durs.
+  { const k = survivalStageMult(state, enc, boss, balance); s.hp *= k.hp; s.damage *= k.damage; }
   // v9.1.3 (doc4 lot 6) : paliers du boss du monde (×0,6 à ×1,3 des PV du boss de l'étape record).
   if (enc.world) s.hp *= enc.hpMult ?? 1;
   if (boss) {
@@ -446,6 +448,7 @@ export function changeStage(state, world, stage, balance = BALANCE) {
 export function resetWave(world, balance = BALANCE) {
   world.enemies = [];
   world.spawnTimer = 0.8;
+  world.secondWindUsed = false; // v10.19 (4.4)
   world.bossDelay = balance.stages.bossSpawnDelaySeconds;
 }
 
@@ -563,9 +566,11 @@ function behaviorTick(state, world, dt, rng, balance) {
   const stats = world.heroStats ?? computeHeroStats(state, balance);
   for (const e of boom) {
     e.exploded = true;
-    const hit = stats.maxHp * 0.12 * (world.parries?.kamikaze ? 0.5 : 1);
+    let hit = stats.maxHp * 0.12 * (world.parries?.kamikaze ? 0.5 : 1);
+    if (world.time < (world.hero.invulnUntil ?? -1)) hit = 0; // v10.19 (4.4) : invincible après le Second souffle
+    hit = secondWind(state, world, world.hero, stats, hit, e, balance);
     world.hero.hp -= hit;
-    emit(world, 'heroHit', { damage: hit, enemyId: e.id, x: e.x, boss: false, explode: true });
+    if (hit > 0) emit(world, 'heroHit', { damage: hit, enemyId: e.id, x: e.x, boss: false, explode: true });
     emit(world, 'kamikaze', { enemyId: e.id, x: e.x });
     killEnemy(state, world, e, rng, balance, stats, currentEncounter(state, balance));
   }
@@ -1060,6 +1065,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
           const e = world.enemies[world.enemies.length - 1];
           e.x = Math.max(V.spawnX, Math.min(world.viewEdgeX ?? 0, V.spawnX + 60)) + i * balance.world.enemyGap; // v9.3.9 : entre par le bord droit ; v9.7.1 : au plus 60 plus loin (grande scène : plus de longue marche)
           e.arrived = false;
+          if (balance.survival?.enabled) e.attackTimer += i * balance.survival.staggerSeconds; // v10.19 (4.3) : premiers coups étalés
           // Plancher de PV : au moins `floorSeconds` de dégâts du héros. Un héros fort combat au lieu d'attendre la
           // vague suivante ; rien ne change pour un héros plus faible, ni l'or (le rythme reste plafonné par minCycle).
           // Réglé tout seul (world.waveK) pour qu'une vague dure environ `targetSeconds`, équipe comprise.
@@ -1068,6 +1074,7 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         world.pendingElite = false;
         world.waveTimer = V.delaySeconds;
         world.waveStartT = world.time ?? 0;
+        world.secondWindUsed = false; // v10.19 (4.4) : Second souffle, une fois par vague
         emit(world, 'waveStart', { wave: waveIndex(state, balance), waves: waveCount(balance) });
       }
     }
@@ -1289,15 +1296,22 @@ export function step(state, world, dt, rng, balance = BALANCE) {
         emit(world, 'bossEnrage', { enemyId: attacker.id, kind: attacker.type });
       }
       // v9.2.8 : armure et Défense dans damageTakenFactor (même calcul pour la fiche et la simulation).
-      const damage = attacker.damage * rage * traitAtk.damage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
-        * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1) // v9.2.1 : Éclats de cristal
+      // v10.19 (4.1) : trait × comportement × coup lourd plafonné (×3) ; (4.2) puis plafond du coup en part des PV max.
+      const capped = survivalCapped(state, attacker, balance);
+      const mult = traitAtk.damage
         * behaviorHitMult(attacker, world.parries) // v9.6.0 : Tireur, Charge sans leur parade
         * (attacker.heavy ? (attacker.parried ? 1.25 : 2.5) : 1); // v9.6.3 : attaque lourde annoncée ; v9.7.1 : parée = moitié
+      const raw = attacker.damage * rage * damageTakenFactor(stats, attacker.boss, balance, lowHp) * (1 - shield / 100)
+        * dungeonDamageTaken(state, balance) * (stats.hurtMult ?? 1) // v9.2.1 : Éclats de cristal
+        * (capped ? Math.min(balance.survival.productCap, mult) : mult);
+      let damage = capped ? Math.min(raw, stats.maxHp * hitCapPct(attacker, balance) / 100) : raw;
       // v9.7.1 (lot 2) : seule une parade réussie affaiblit le boss (4 s) ; ignorée ou ratée : coup normal, rien de plus.
       if (attacker.heavy) {
         attacker.heavy = false;
         if (attacker.parried) { attacker.parried = false; attacker.weakUntil = world.time + 4; emit(world, 'bossWeak', { enemyId: attacker.id, x: attacker.x, parried: true }); }
       }
+      if (world.time < (hero.invulnUntil ?? -1)) return; // v10.19 (4.4) : invincible après le Second souffle (coup sans effet)
+      damage = secondWind(state, world, hero, stats, damage, attacker, balance);
       hero.hp -= damage;
       mutationOnHit(attacker, damage);
       emit(world, 'heroHit', { enemyId: attacker.id, damage, boss: attacker.boss });
@@ -1374,6 +1388,42 @@ export function playerUltimate(world, companionId) {
   (world.ultNow ??= new Set()).add(key);
   addCombo(world);
   return true;
+}
+
+// --- v10.19 (partie 4) : plus de mort « en un éclair » (BALANCE.survival) ---
+// Plafonds : campagne et donjons ; jamais dans la Tour, le défi « rage immédiate » ni contre le World Boss.
+export function survivalCapped(state, attacker, balance = BALANCE) {
+  if (!balance.survival?.enabled) return false;
+  if (state.tower || state.worldBossRun || attacker?.worldBoss) return false;
+  if (state.challenge && challengeRule(state, 'instantRage')) return false;
+  return true;
+}
+export function hitCapPct(attacker, balance = BALANCE) {
+  const c = balance.survival.hitCapPct;
+  return attacker.heavy && !attacker.parried ? c.heavy : attacker.boss ? c.boss : c.normal;
+}
+// Monde 1 de la campagne : boss de l'étape 15 (PV et dégâts) et monstres des étapes 16 à 20 (dégâts).
+export function survivalStageMult(state, enc, boss, balance = BALANCE) {
+  const sv = balance.survival;
+  const one = { hp: 1, damage: 1 };
+  if (!sv?.enabled || enc.world || enc.worldBoss || enc.dungeon || state.tower || state.challenge || state.worldRun || state.worldBossRun) return one;
+  const stage = state.stage;
+  if (boss && stage === sv.wallBoss.stage) return { hp: sv.wallBoss.hp, damage: sv.wallBoss.damage };
+  if (!boss && stage >= sv.lateMonsters.from && stage <= sv.lateMonsters.to) return { hp: 1, damage: sv.lateMonsters.damage };
+  return one;
+}
+// Second souffle : un coup qui tuerait un héros à plus de 50 % de ses PV le laisse à 1 PV, invincible 1,5 s.
+// Une fois par vague (monstres), une fois par boss (boss). Pas contre le World Boss.
+export function secondWind(state, world, hero, stats, damage, attacker, balance = BALANCE) {
+  const sw = balance.survival?.enabled && balance.survival.secondWind;
+  if (!sw || state.worldBossRun || attacker?.worldBoss) return damage;
+  if (hero.hp - damage > 0 || hero.hp <= stats.maxHp * sw.above) return damage;
+  const boss = Boolean(attacker?.boss);
+  if (boss ? attacker.secondWindUsed : world.secondWindUsed) return damage;
+  if (boss) attacker.secondWindUsed = true; else world.secondWindUsed = true;
+  hero.invulnUntil = world.time + sw.invulnSeconds;
+  emit(world, 'heroSecondWind', { enemyId: attacker?.id ?? null, boss, invulnSeconds: sw.invulnSeconds });
+  return Math.max(0, hero.hp - 1);
 }
 
 // v9.7.1 (lot 3) : boss des mondes 1 et 2 de la campagne sans chronomètre de rage.

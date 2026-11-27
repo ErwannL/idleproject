@@ -212,7 +212,7 @@ export default {
       .map((c) => { const on = (cat?.id ?? 'all') === c.id; return `<button class="btn chip-btn${on ? ' active' : ''}" data-action="upgrade-cat" data-value="${c.id}" aria-pressed="${on}">${img(c.icon)} ${escapeHtml(c.label)}</button>`; }).join('')}</div>`;
     const filters = `<div class="row upg-filters">
       <select data-action="upgrade-sort" aria-label="Trier"><option value="">Tri : par défaut</option><option value="profit" ${ui.view.upgradeSort === 'profit' ? 'selected' : ''}>Tri : rentabilité</option><option value="cost" ${ui.view.upgradeSort === 'cost' ? 'selected' : ''}>Tri : coût</option></select></div>`;
-    let forecast = state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()));
+    let forecast = state.dungeon || state.tower || state.challenge ? '' : forecastHtml(bossForecast(state, () => ui.invalidate()), state);
     // v10.7 (4) : le bandeau ne conseille jamais une ligne grisée.
     if (weakOf('damage')) forecast = forecast.replace('Améliore tes Dégâts.', advised ? `Achète d'abord : ${escapeHtml(UPGRADE_NAMES[advised] ?? advised)}.` : 'Renforce ton arme à la Forge.');
     // v9.1.3 (A6) : Dégâts/s en en-tête (même calcul que la Fiche, déjà fait pour les lignes : aucun coût en plus) ;

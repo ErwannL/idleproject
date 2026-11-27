@@ -275,6 +275,19 @@ export const BALANCE = {
   // (`reach` unités au-delà de sa distance de frappe) : on voit les coups et la mort au lieu d'un ennemi tué hors champ.
   rush: { oneShot: 1, speedMult: 4, reach: 8 },
 
+  // v10.19 (partie 4) : plus de mort « en un éclair » (core/combat.js). Campagne et donjons seulement : ni la Tour, ni le
+  // défi « rage immédiate », ni le World Boss (core/world-boss.js) ne sont plafonnés.
+  survival: {
+    enabled: true,
+    productCap: 3, // trait × comportement × coup lourd : ×3 au plus
+    hitCapPct: { normal: 25, boss: 45, heavy: 60 }, // plafond d'un coup, en % des PV max (rage comprise, avant plafond)
+    staggerSeconds: 0.25, // premier coup d'une vague étalé de 0,25 s par monstre
+    secondWind: { above: 0.5, invulnSeconds: 1.5 }, // un coup mortel au-dessus de 50 % des PV laisse à 1 PV (1 fois par vague / par boss)
+    wallBoss: { stage: 15, hp: 0.8, damage: 0.8 }, // boss de l'étape 15 du monde 1 (Épouvantail maudit)
+    lateMonsters: { from: 16, to: 20, damage: 0.9 }, // monstres des étapes 16 à 20 du monde 1
+    forecast: { stagesBefore: 3, graceSeconds: 300 }, // prévision « trop fort » : à moins de 3 étapes du boss, pas les 5 premières minutes
+  },
+
   spawn: {
     intervalSeconds: 1.4,
     maxAlive: 3,

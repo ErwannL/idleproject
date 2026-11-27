@@ -5,6 +5,7 @@ import { AFFIXES, SLOTS } from '../data/items.js';
 import { EFFECT_LABELS } from '../data/powers.js';
 import { forecastSteps, nextBossStage } from '../core/guide.js';
 import { stageLabel } from '../core/combat.js';
+import { BALANCE } from '../data/balance.js'; // v10.19 (4.7)
 import { setById } from '../core/sets.js';
 import { simSpeed } from '../core/cheats.js';
 import { formatDecimal, formatNumber } from '../core/format.js';
@@ -152,8 +153,15 @@ export function bossForecast(state, onReady = null) {
   return forecastCache.value?.stage === nextBossStage(state) ? { ...forecastCache.value, stale: true } : { pending: true };
 }
 
-export function forecastHtml(f) {
+export function forecastHtml(f, state = null, balance = BALANCE) {
   if (!f) return '';
+  // v10.19 (4.7) : rien les 5 premières minutes ; loin du boss, seulement son étape (pas de « trop fort pour toi »).
+  const fc = balance.survival?.enabled ? balance.survival.forecast : null;
+  if (fc && state) {
+    if ((state.playSeconds ?? 0) < fc.graceSeconds) return '';
+    const boss = f.stage ?? nextBossStage(state);
+    if (boss - state.stage >= fc.stagesBefore) return `<div class="forecast muted">⚔ Prochain boss à l'étape ${stageLabel(boss)}.</div>`;
+  }
   if (f.paused) return '<div class="forecast muted">⚔ Prévision du prochain boss en pause à grande vitesse (×10 et plus).</div>';
   if (f.pending) return ''; // v9.11 (6) : plus de « calcul en cours… » qui reste affiché ; la ligne apparaît une fois prête
   // Résultat périmé (équipement ou améliorations changés) : on le montre grisé, avec « mise à jour… ».

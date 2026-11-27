@@ -2159,3 +2159,7 @@ PATTERNS.unshift(...patterns1018Boss());
 import { EXACT_1018, patterns1018 } from './en-1018.js';
 for (const [k, v] of Object.entries(EXACT_1018)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1018(lookup));
+// v10.19 (partie 4) : Second souffle et prévision du prochain boss (./en-1019-survie.js).
+import { EXACT_1019_SURVIE, patterns1019Survie } from './en-1019-survie.js';
+for (const [k, v] of Object.entries(EXACT_1019_SURVIE)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.unshift(...patterns1019Survie());

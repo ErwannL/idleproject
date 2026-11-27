@@ -652,6 +652,13 @@ export class SceneRenderer {
       case 'heroRespawn':
         this.hero.respawn = 1;
         break;
+      case 'heroSecondWind': { // v10.19 (4.4) : Second souffle — petit bouclier doré autour du héros, le temps de l'invincibilité
+        const life = event.invulnSeconds ?? 1.5;
+        this.effects.push({ kind: 'secondWind', x: heroX + 10, y: this.groundY - 16, life, max: life });
+        this.effects.push({ kind: 'callout', text: 'Second souffle !', x: heroX + 10, y: this.groundY - 54, color: '#ffd23f', life: 1.4, max: 1.4 });
+        this.burst(heroX + 10, this.groundY - 16, '#ffd23f', 10, 40);
+        break;
+      }
       default:
         break;
     }
@@ -2640,6 +2647,16 @@ export class SceneRenderer {
             else { fx.x0 = src.sx + fx.dx0; fx.y0 = src.sy + fx.dy0; }
           }
           drawBreath(ctx, fx, t, this.time);
+          break;
+        }
+        case 'secondWind': { // v10.19 (4.4) : bouclier doré (liseré qui pulse), sans aplat
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, t * 3) * (0.75 + 0.25 * Math.sin(this.time * 18));
+          ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(Math.round(fx.x), Math.round(fx.y), 15, 19, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = '#fff2b0'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.ellipse(Math.round(fx.x), Math.round(fx.y), 12, 16, 0, Math.PI * 1.1, Math.PI * 1.6); ctx.stroke();
+          ctx.restore();
           break;
         }
         case 'vfx': // v9.2.6 : effet dessiné par PixelLab (vfx.js)
