@@ -2246,6 +2246,7 @@ export class UI {
     const focusBoss = enc.boss && pref('bossFocus') !== false ? world.enemies.find((e) => e.boss) : null;
     const focus = !enc.boss || pref('bossFocus') === false ? ''
       : (BOSSES[focusBoss?.type]?.tier === 'mega' || (!state.tower && !state.dungeon && !state.challenge && bossTierForStage(state.stage) === 'mega')) ? 'mega' : 'boss';
+    this.bossFight = Boolean(enc.boss && world.enemies.some((e) => e.boss)); // v10.20 (7.1) : « Moment fort » en attente
     if (this.root.dataset.bossFocus !== focus) { if (focus) this.root.dataset.bossFocus = focus; else delete this.root.dataset.bossFocus; }
     if (enc.boss) {
       const b = world.enemies.find((e) => e.boss);
@@ -2513,12 +2514,12 @@ export class UI {
     if (!q) return;
     const modal = typeof document !== 'undefined' && document.getElementById('modal');
     const panelOpen = Boolean(this.tab) || Boolean(modal && !modal.classList.contains('hidden'));
-    const { stop, start } = q.tick(Date.now(), { panelOpen });
+    const { stop, start } = q.tick(Date.now(), { panelOpen, bossFight: Boolean(this.bossFight) }); // v10.20 (7.1)
     if (stop?.cine) stopCinematic();
     if (stop?.box) stop.box.remove();
     if (start?.kind === 'danger') showBossWarning(start.plan);
     else if (start?.kind === 'moment') {
-      if (start.cine) playCinematic({ ...start.cine, light: true, duration: start.ms });
+      if (start.cine) playCinematic({ ...start.cine, light: true, banner: true, duration: start.ms });
       else if (start.render) q.current.box = start.box = start.render();
     }
     if (!q.busy && !q.size) { clearInterval(this.announceTimer); this.announceTimer = null; }
@@ -2531,7 +2532,7 @@ export class UI {
     if (!st?.ui || (st.ui.hints ?? []).includes(`cele-${id}`) || typeof document === 'undefined') return;
     st.ui.hints = [...(st.ui.hints ?? []), `cele-${id}`].slice(-150);
     if (navigator.webdriver) return; // vérifications automatiques : pas de rideau par-dessus le jeu
-    this.queueAnnounce({ kind: 'moment', ms: 2100, render: () => this.celebrateNow(title, sub) }); // v10.16 : par la file
+    this.queueAnnounce({ kind: 'moment', ms: 2100, banner: true, render: () => this.celebrateNow(title, sub) }); // v10.16 : par la file
   }
   celebrateNow(title, sub) {
     const el = document.createElement('div');

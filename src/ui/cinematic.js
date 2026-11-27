@@ -5,12 +5,12 @@ import { ZONE_INTRO } from '../data/lore.js';
 let current = null;
 
 // v10.16 : `light` : sans bandes noires ni assombrissement (« Moment fort », passé par la file d'annonces).
-export function playCinematic({ kicker = '', title, line = '', zone = null, duration = 4200, light = false }) {
+export function playCinematic({ kicker = '', title, line = '', zone = null, duration = 4200, light = false, banner = false }) {
   const host = document.getElementById('stage-area');
   if (!host || document.querySelector('#app.layout-strip')) return;
   current?.remove();
   const el = document.createElement('div');
-  el.className = `cinematic${zone ? ` zone-${zone}` : ''}${light ? ' light' : ''}`;
+  el.className = `cinematic${zone ? ` zone-${zone}` : ''}${light ? ' light' : ''}${banner ? ' banner' : ''}`; // v10.20 (7.1) : bandeau fin en haut
   el.innerHTML = `${light ? '' : '<i class="cine-bar top"></i><i class="cine-bar bottom"></i>'}
     <div class="cine-text">${kicker ? `<small>${kicker}</small>` : ''}<h1></h1><p>${line}</p></div>`;
   if (light) el.style.background = 'none';
@@ -18,7 +18,7 @@ export function playCinematic({ kicker = '', title, line = '', zone = null, dura
   current = el;
   const h1 = el.querySelector('h1');
   // Titre « tapé » lettre par lettre.
-  let i = 0;
+  let i = banner ? title.length - 1 : 0; // v10.20 (7.1) : bandeau de 3 s : titre écrit d'un coup
   const type = setInterval(() => {
     i += 1;
     h1.textContent = title.slice(0, i);

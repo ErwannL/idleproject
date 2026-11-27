@@ -6,7 +6,8 @@
 //   - moments forts : jamais par-dessus une fenêtre (onglet, modale) ouverte : ils attendent sa fermeture.
 export const URGENT = ['portal', 'danger'];
 export const PORTAL_MS = 1300; // durée de l'arrivée d'un boss (ARRIVE_SECONDS_BY_MODE, src/render/arrival.js)
-export const MOMENT_MS = 4200; // cinématique « Moment fort » (cinematic.js)
+export const MOMENT_MS = 3000; // v10.20 (7.1) : « Moment fort » en bandeau fin, 3 s au plus (avant 4,2 s)
+export const MOMENT_MAX_MS = 3000;
 const isUrgent = (item) => URGENT.includes(item.kind);
 
 export class AnnounceQueue {
@@ -29,16 +30,19 @@ export class AnnounceQueue {
 
   // À appeler régulièrement. `panelOpen` : une fenêtre est ouverte. Renvoie { stop, start } : l'annonce à arrêter
   // (moment fort interrompu par une annonce urgente) et celle à lancer (au plus une), ou null.
-  tick(now, { panelOpen = false } = {}) {
+  // v10.20 (7.1) : `bossFight` : un combat de boss est en cours : les moments forts attendent sa fin (en file).
+  tick(now, { panelOpen = false, bossFight = false } = {}) {
     let stop = null;
     if (this.current && now >= this.current.until) this.current = null;
-    if (this.current?.kind === 'moment' && (this.items.some(isUrgent) || panelOpen)) { stop = this.current; this.current = null; }
+    if (this.current?.kind === 'moment' && (this.items.some(isUrgent) || panelOpen || bossFight)) { stop = this.current; this.current = null; }
     let start = null;
     if (!this.current) {
-      const i = this.items.findIndex((x) => isUrgent(x) || !panelOpen);
+      const i = this.items.findIndex((x) => isUrgent(x) || (!panelOpen && !bossFight));
       if (i >= 0) {
         start = this.items.splice(i, 1)[0];
-        this.current = { ...start, until: now + (start.ms ?? (start.kind === 'portal' ? PORTAL_MS : MOMENT_MS)) };
+        const ms = start.kind === 'moment' ? Math.min(MOMENT_MAX_MS, start.ms ?? MOMENT_MS) : (start.ms ?? (start.kind === 'portal' ? PORTAL_MS : MOMENT_MS));
+        start = { ...start, ms };
+        this.current = { ...start, until: now + ms };
       }
     }
     return { stop, start };

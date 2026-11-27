@@ -56,7 +56,8 @@ function follow(sim, now) {
   }
 }
 
-export function runSurvival(seed, { hours = 3, until = 21, look = 5 } = {}) {
+// v10.20 : `hook(sim, now)` (facultatif) : appelé après chaque regard du joueur (ex. tools/sim-1020-boss.mjs, joueur pressé).
+export function runSurvival(seed, { hours = 3, until = 21, look = 5, hook = null } = {}) {
   const dt = BALANCE.simulation.tickSeconds;
   const sim = { state: createNewState(T0, seed), rng: new Rng(seed * 97), log: [] };
   sim.state.unlocks = { done: [], base: { ...sim.state.records } }; // partie neuve du jeu (main.js) : mini-quêtes, courbe de campagne
@@ -73,7 +74,7 @@ export function runSurvival(seed, { hours = 3, until = 21, look = 5 } = {}) {
       if (ev.type === 'heroSecondWind') winds += 1;
     }
     sim.world.events.length = 0;
-    if (i % every === 0) follow(sim, T0 + t * 1000);
+    if (i % every === 0) { follow(sim, T0 + t * 1000); hook?.(sim, T0 + t * 1000); }
     if (reach15 === null && sim.state.maxStage >= 15) reach15 = t;
     if (pass15 === null && sim.state.maxStage > 15) pass15 = t;
     if (sim.state.maxStage > until) break;

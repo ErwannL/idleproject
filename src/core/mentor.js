@@ -8,7 +8,7 @@ import { UPGRADE_NAMES, bestOpenUpgrade, companionToPlace } from './guide.js';
 import { isUpgrade } from './inventory.js';
 import { computeHeroStats } from './stats.js';
 import { upgradeProfits } from './profit.js';
-import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, suggestedTalent } from './rebirth.js';
+import { canRebirth, rebirthAdviceOpen, rebirthBlocked, rebirthGain, rebirthReward, suggestedTalent } from './rebirth.js';
 import { COMPANIONS } from '../data/companions.js';
 import { currentEncounter } from './combat.js';
 import { formatNumber } from './format.js';
@@ -42,7 +42,7 @@ export function mentorTips(state, { element = null, wall = false } = {}, balance
   const place = companionToPlace(state, balance);
   if (place) out.push({ id: 'place', icon: 'tab_companions', title: 'Place libre dans l\'équipe', text: `Place ${place.name}`, tab: 'companions', point: `[data-action="companion-sel"][data-value="${place.id}"]` });
   if (suggestedTalent(state)) out.push({ id: 'talent', icon: 'tab_talents', title: 'Talent à apprendre', text: 'Tes fragments achètent un talent', tab: 'tree', point: '[data-action="talent-best"]' });
-  if (canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0 && (wall || out.length < 3)) {
+  if (canRebirth(state) && rebirthAdviceOpen(state) && !rebirthBlocked(state) && rebirthReward(state) > 0 && (wall || out.length < 3)) { // v10.20 (7.3)
     out.unshift({ id: 'rebirth', icon: 'icon_star', title: 'Le mur est atteint', text: `Renaître : +${Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100)} % de dégâts pour toujours`,
       tab: 'tree', view: { treeSeg: 'rebirth' }, point: '[data-action="rebirth"], .rebirth-card .btn-gold' });
   }

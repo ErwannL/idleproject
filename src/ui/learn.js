@@ -98,13 +98,15 @@ export function resourceAmount(st, key) {
 export const RESOURCE_SYSTEM = { gems: 'summon', tickets: 'summon', shards: 'forge', keys: 'dungeons', grimoire: 'companion', ascension: 'companion', mastery: 'companion', fragments: 'talents' };
 export const resourceScreenOpen = (st, key) => !RESOURCE_SYSTEM[key] || isUnlocked(st, RESOURCE_SYSTEM[key])
   || (RESOURCE_SYSTEM[key] === 'summon' && menusGated(st) && menuOpen(st, 'summon')); // v10.19 (6.3) : l'Invocation s'ouvre à l'étape 7
+// v10.20 (7.4) : « Nouveau : Gemmes » arrivait à 36 s de jeu : elle attend le premier boss vaincu.
+export const resourceBubbleReady = (st, key) => key !== 'gems' || (st?.records?.bossesDefeated ?? 0) >= 1;
 // Première fois qu'une ressource arrive (hors or, montré par le prologue) : une bulle, une seule fois par ressource.
 export function firstResourceBubble(ui, st) {
   if (!st?.ui || typeof document === 'undefined' || document.querySelector('.res-bubble, .howto-card, .learn-card, #prologue, .best-card, #tuto-layer .tuto-bubble')) return; // v10.2 (4.2) ; v10.11 (7) : jamais avec une bulle de tutoriel
   if (!firstWaveDone(st)) return; // v10.19 (6.4) : « Nouveau : Gemmes » attend la fin de la 1re vague
   const seen = (st.ui.seenRes ??= []);
   for (const key of Object.keys(RESOURCES)) {
-    if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0) || !resourceScreenOpen(st, key)) continue; // v10.4 : en attente tant que l'écran est fermé
+    if (key === 'gold' || seen.includes(key) || !(resourceAmount(st, key) > 0) || !resourceScreenOpen(st, key) || !resourceBubbleReady(st, key)) continue; // v10.4 : en attente tant que l'écran est fermé
     seen.push(key);
     if (st.unlocks?.legacy || (st.records?.bossesDefeated ?? 0) > 30) continue; // partie avancée : déjà connu
     const r = RESOURCES[key];
