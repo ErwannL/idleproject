@@ -91,6 +91,7 @@ export default {
     ok: 'Merci ! Votre préinscription est enregistrée.',
     errEmail: 'Renseignez votre adresse email.',
     errInvalid: 'Adresse email invalide.',
+    errMasked: 'Cette adresse est masquée (étoiles) : écris ton adresse email complète.',
     errConsent: 'Cochez la case de consentement pour vous préinscrire.',
     errRate: 'Trop de tentatives, réessayez plus tard.',
     errNet: 'Connexion impossible, réessayez.',

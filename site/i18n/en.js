@@ -92,6 +92,7 @@ export default {
     ok: 'Thank you! Your pre-registration is confirmed.',
     errEmail: 'Please enter your email address.',
     errInvalid: 'Invalid email address.',
+    errMasked: 'This address is masked (asterisks): please type your full email address.',
     errConsent: 'Please tick the consent box to pre-register.',
     errRate: 'Too many attempts, please try again later.',
     errNet: 'Connection failed, please try again.',

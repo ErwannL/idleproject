@@ -159,6 +159,7 @@ form.addEventListener('submit', async (event) => {
   track('form', 'submit');
   if (!email) { track('form', 'error', 'email'); return say('form.errEmail'); }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { track('form', 'error', 'invalid'); return say('form.errInvalid'); }
+  if (/\*{2,}/.test(email)) { track('form', 'error', 'masked'); return say('form.errMasked'); } // adresse recopiée masquée (« m****s@… »)
   if (!consent) { track('form', 'error', 'consent'); return say('form.errConsent'); }
   status.className = 'status';
   status.textContent = t('form.sending');

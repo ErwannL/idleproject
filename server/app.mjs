@@ -158,6 +158,8 @@ function temporaryPassword() {
   return randomBytes(9).toString('base64url');
 }
 const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
+// Adresse masquée recopiée telle quelle (« m*********s@hotmail.fr ») : deux étoiles ou plus d'affilée, jamais une vraie adresse.
+export const MASKED_EMAIL_RE = /\*{2,}/;
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
 
 // Contrôles anti-triche côté serveur. Ils ne peuvent pas tout voir (le navigateur reste modifiable) :
@@ -707,6 +709,7 @@ export function createApp({
       if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email.trim())) {
         throw new HttpError(400, 'Adresse email invalide');
       }
+      if (MASKED_EMAIL_RE.test(email)) throw new HttpError(400, 'Adresse email masquée : écris ton adresse complète');
       if (consent !== true) throw new HttpError(400, 'Le consentement est requis');
       // v10.8 (site) : code de parrainage court, lien de confirmation, parrain (jamais soi-même : même email ou même IP dans l'heure).
       const mail = email.trim().toLowerCase();

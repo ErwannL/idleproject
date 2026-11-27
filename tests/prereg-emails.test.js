@@ -123,3 +123,16 @@ test('emails : sans BREVO_API_KEY rien ne part (journal seulement) ; aucun secre
   assert.match(site, /api\/preregister\/unsubscribe/);
   assert.match(readFileSync('site/confidentialite.html', 'utf8'), /Brevo/);
 });
+
+test('préinscription : une adresse masquée recopiée (« m*********s@hotmail.fr ») est refusée, sans email ni inscription', async (t) => {
+  const s = await setup(); t.after(() => s.close());
+  const r = await s.call('POST', '/api/preregister', { email: 'm*********s@hotmail.fr', consent: true, lang: 'fr' });
+  assert.equal(r.status, 400);
+  assert.equal(s.sent.length, 0);
+  assert.equal(s.db.prepare('SELECT COUNT(*) AS n FROM preregistrations').get().n, 0);
+  const ok = await s.call('POST', '/api/preregister', { email: 'a*b@exemple.fr', consent: true, lang: 'fr' });
+  assert.equal(ok.status, 202, 'une seule étoile reste autorisée (adresse valide)');
+  const site = readFileSync(new URL('../site/site.js', import.meta.url), 'utf8');
+  assert.match(site, /form\.errMasked/);
+  for (const l of ['fr', 'en']) assert.match(readFileSync(new URL(`../site/i18n/${l}.js`, import.meta.url), 'utf8'), /errMasked:/);
+});
