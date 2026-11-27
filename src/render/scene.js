@@ -1962,8 +1962,10 @@ export class SceneRenderer {
     if (anim0) anim0.reach = Math.max(0, Math.min(70, (tx - ax) * 0.65));
     // v10.16 (A6) : grand boss — un compagnon ne passe jamais devant le héros ni sur lui : il garde au moins
     // BIG_BOSS_GAP px d'écart (le héros reste devant et visible) ; le coup part de là.
-    if (anim0 && this.bigBoss && slot && this.layout?.heroLeft !== undefined) {
-      anim0.room = Math.max(0, this.layout.heroLeft - BIG_BOSS_GAP - (slot.x + 2 * (slot.cx - slot.x)));
+    // v10.18 (1.4) : partout (pas seulement face aux grands boss) : familier et compagnons gardent leur case de teamLayout,
+    // geste de soin de la prêtresse compris — jamais devant le héros (sauf vitrine et Arène, sans héros au centre).
+    if (anim0 && slot && this.layout?.heroLeft !== undefined && (this.bigBoss || (!this.soloUnit && !Number.isFinite(this.fixedShift)))) {
+      anim0.room = Math.max(0, this.layout.heroLeft - (this.bigBoss ? BIG_BOSS_GAP : 3) - (slot.x + 2 * (slot.cx - slot.x)));
       anim0.reach = Math.min(anim0.reach, anim0.room);
     }
     const [hdx, hdy] = handOf(companion.id);

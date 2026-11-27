@@ -123,10 +123,11 @@ test('10.13.1 (téléphone, t07) : carte de zone, événements, Carnet, console 
   assert.match(c, /classList\.contains\('m-phone'\)/); // le PC ne bouge pas
 });
 
-test('10.13.1 (téléphone, § 7) : la mini-scène des onglets est une petite caméra (renderMini), téléphone seulement', () => {
-  const p = src('src/ui/page.js'), r = src('src/render/scene.js');
-  assert.match(p, /bw \/ bh > 2\.4 && r\?\.renderMini && document\.getElementById\('app'\)\?\.classList\.contains\('m-phone'\)/);
-  assert.match(r, /renderMini\(ctx, cv, cssW, cssH, dpr\)/);
-  assert.match(r, /\* 0\.65\)/); // ≈ 0,65 de l'échelle du combat
-  assert.doesNotMatch(r.slice(r.indexOf('renderMini('), r.indexOf('  // Décor de la zone')), /drawEffects/); // pas de chiffres flottants
+test('10.13.1 (téléphone, § 7) → v10.18 (1) : la bande des onglets recopie la vraie scène 1:1 (même zoom, même x), plus de seconde caméra', () => {
+  const p = src('src/ui/page.js'), css = src('src/ui/page.css');
+  assert.doesNotMatch(p, /r\.renderMini\(/); // plus de petite caméra à ≈ 0,65 : le héros changeait de taille et de place
+  assert.match(p, /classList\.contains\('page-narrow'\) && r\?\.scale\) \{\s*copyBand\(/);
+  assert.match(p, /ctx2d\.drawImage\(src, Math\.round\(ox \* px\), Math\.round\(top \* py\), pw, ph, 0, 0, pw, ph\)/); // même taille source et cible
+  assert.match(p, /export const SCENE_TABS = new Set\(\);/); // l'Arène passe en page
+  assert.match(css, /page-ui:not\(\.page-narrow\) #main-col \{ position: fixed/); // la scène n'est plus réduite au tiers sur téléphone
 });

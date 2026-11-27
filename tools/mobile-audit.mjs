@@ -10,6 +10,8 @@
 // dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. v10.17 : 18 au plus 4 styles de
 // bouton sur l'ensemble des écrans (tools/audit-1017.mjs) · 19 textes les plus longs injectés : ils défilent s'ils ne tiennent pas
 // (tools/text-fit-audit.mjs ; --no-fit pour sauter). v10.17.1 : 20 le bouton doré principal visible est dans le dernier quart du cadre, ou épinglé en bas (tools/audit-1017.mjs).
+// v10.18 (1.5) : 21 même cadrage : les 6 menus du bas ouverts/fermés et Carte › Donjons › Arène › Défis, héros au même x (±2 px) et même
+// hauteur (tools/frame-1018.mjs ; --no-frame pour sauter).
 // Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
@@ -19,10 +21,11 @@ import { startServer } from './serve.mjs';
 import { audit1016Init } from './audit-1016.mjs'; // v10.16 (B9) : contrôles 16 et 17
 import { audit1017Init, BTN_EXCLUDE, MAX_BTN_STYLES } from './audit-1017.mjs'; // v10.17 (D) : contrôle 18
 import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5) : contrôle 19
+import { frameCheck } from './frame-1018.mjs'; // v10.18 (1.5) : contrôle 21
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'scène téléphone : cadrage du héros qui change (onglet ouvert/fermé)' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -310,6 +313,10 @@ for (const game of games) {
     });
     await page.addStyleTag({ content: '[class*="tuto"], .tour { display: none !important; }' }); // bulles du tutoriel de la partie neuve : hors sujet ici
     await closeAll();
+    if (game === 'endgame' && !process.argv.includes('--no-frame')) { // v10.18 (1.5) : contrôle 21
+      const fc = await frameCheck(page);
+      report.push({ game, size: `${width}x${height}`, tab: '(cadrage de la scène)', issues: fc.issues, skipped: null });
+    }
     for (const tab of tabs) {
       const rec = { game, size: `${width}x${height}`, tab, issues: [], skipped: null };
       if (tab === 'combat') { // écran de combat (panneau fermé) : pastilles d'événements du HUD
