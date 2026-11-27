@@ -252,3 +252,40 @@
 #app.m-phone .m-sheet .em-rcard .m-btn, #app.m-phone .m-sheet .em-rcard .m-btn-gold, #app.m-phone .m-sheet .em-ab-btns .m-btn, #app.m-phone .m-sheet .em-ab-btns .m-btn-gold, #app.m-phone .m-sheet .em-effects + .m-btn { margin: 0; }
 /* Les statistiques défilent sous l'en-tête : un fondu en bas montre qu'il y en a d'autres (jamais une ligne coupée net) */
 #app.m-phone .em-sheet-scroll { -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent); padding-bottom: 18px; }
+
+/* ---------- v10.19 (3) : Équipement tout sur un écran (téléphone ; le PC ne change pas) ----------
+   Ordre : cartouche, modes, ressources, avatars 44 px, une ligne personnage (mini-portrait 56 px), 6 places sur une rangée,
+   « ⬆ Équiper le meilleur (N) », Sac / Réserve, stats en 2 colonnes. Le haut du Sac se voit sans défiler à 405×896 et 360×800. */
+#app.m-phone .em19 > .m-modes { margin: 0 0 6px; }
+#app.m-phone .em19 .em-res { height: 28px; margin: 0 0 4px; }
+#app.m-phone .em19 .em-res .m-chip { min-height: 28px; }
+#app.m-phone .em19 .em-whos { height: 52px; margin: 0 0 6px; }
+#app.m-phone .em19 .em-whos-row { height: 52px; padding: 4px 4px; gap: 6px; }
+#app.m-phone .em19 .em-who { width: 44px; height: 44px; border-radius: 10px; }
+#app.m-phone .em19 .em-who canvas, #app.m-phone .em19 .em-who img.still { width: 38px; height: 38px; }
+#app.m-phone .em-line { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 10px; height: 56px; margin: 0 0 8px; }
+#app.m-phone .em-mini { --m-rc: var(--m-r-common); width: 56px; height: 56px; box-sizing: border-box; display: grid; place-items: center; border: 2px solid var(--m-gold); border-radius: 12px; background: linear-gradient(160deg, #2a3558, #0b1124); overflow: hidden; }
+#app.m-phone .em-mini canvas, #app.m-phone .em-mini img { width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated; }
+#app.m-phone .em-line-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#app.m-phone .em-line .em-cname { font-size: 15px; line-height: 1.1; max-height: none; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+#app.m-phone .em-line .em-cname small { display: block; margin-top: 1px; font-size: 12px; font-weight: 800; color: var(--m-soft); text-shadow: none; }
+#app.m-phone .em-line-pow { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: var(--m-soft); white-space: nowrap; }
+#app.m-phone .em-line-pow img { width: 18px; height: 18px; }
+#app.m-phone .em-line-pow .m-power { font-size: 15px; line-height: 1.1; color: var(--m-gold-hi); }
+#app.m-phone .em-better { max-width: 92px; font-size: 12px; font-weight: 900; line-height: 1.2; color: var(--m-ok); text-align: right; }
+#app.m-phone .em-better.done { color: var(--m-soft); font-weight: 800; }
+#app.m-phone .em19 .em-slots { margin: 0 0 8px; }
+#app.m-phone .em19 .em-slots .m-grid { grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr)); justify-content: stretch; gap: 6px; }
+#app.m-phone .em19 .em-slots .m-tilewrap > small { font-size: 11px; white-space: nowrap; }
+#app.m-phone .em-best { margin: 0 0 8px; }
+#app.m-phone .em-best .m-btn-gold { width: 100%; min-height: 48px; font-size: 16px; }
+#app.m-phone .em19 > .m-stats2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 8px 0 0; }
+#app.m-phone .em19 > .m-modes .m-mode { height: 54px; min-width: 64px; }
+#app.m-phone .em19 > .m-modes .m-mode img { width: 24px; height: 24px; }
+#app.m-phone .em19 .em-bag-tabs .m-chip { flex: none; }
+#app.m-phone .m-frame.em19 { padding-bottom: 72px; } /* place sous les stats : le pied doré (Améliorer) ne les recouvre pas, et fermer une fiche ne fait pas sauter le défilement */
+#app.m-phone .em19 .em-bag-head { gap: 6px; }
+#app.m-phone .em19 .em-bag-tabs { gap: 4px; }
+#app.m-phone .em19 .em-bag-tabs .m-chip { padding: 0 8px; gap: 4px; font-size: 12px; }
+#app.m-phone .em19 button.m-btn.em-ico-btn { width: 40px; min-width: 40px; }
+@media (max-width: 380px) { #app.m-phone .em19 .em-bag-tabs .m-chip > img { display: none; } } /* 360 px : « Sac » et « Réserve » tiennent à côté du filtre et du tri */

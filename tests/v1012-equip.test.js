@@ -49,7 +49,7 @@ test('10.12 (équipement) : mobile-equip.css est limité au téléphone et charg
 
 test('10.12 (équipement) : le rendu téléphone est bâti avec le kit (cadre, cartouche, modes, fiche, un seul bouton doré)', () => {
   const js = src('src/ui/panels/equip-phone.js');
-  assert.match(js, /class="m-frame em">\$\{mTitle\('icon_gear', 'Équipement', true\)\}/);
+  assert.match(js, /class="m-frame em em19">\$\{mTitle\('icon_gear', 'Équipement', true\)\}/);
   assert.match(js, /mModes\(/);
   assert.match(js, /mSheet\(/);
   assert.match(js, /'Détails de l\\'équipement'/);

@@ -3179,6 +3179,9 @@ body:has(.summon-fx) #banner { visibility: hidden; }
 .tuto-bubble { position: fixed; pointer-events: none; background: var(--ui-panel, #222a3a); color: #fff; border: 2px solid var(--ui-gold, #f5c542);
   border-radius: 12px; padding: 8px 10px; font-size: 14px; box-shadow: 0 6px 18px #0008; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .tuto-bubble .tuto-ok { min-height: 44px; min-width: 44px; pointer-events: auto; }
+/* v10.19 (7.5) : bulle posée au-dessus de la barre du bas (téléphone), petite flèche vers la cible (src/ui/tutorial.js). */
+.tuto-bubble.tuto-down::after { content: ''; position: absolute; left: var(--ax, 50%); bottom: -9px; width: 0; height: 0; margin-left: -8px;
+  border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid var(--ui-gold, #f5c542); }
 @keyframes tuto-tap { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .tuto-finger { animation: none; } }
 

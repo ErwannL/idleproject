@@ -82,7 +82,8 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
       const el = root.querySelector(sel);
       if (visible(el) && !el.closest(NAV)) { shownOn.set(screen, st.id); return { step: st, el }; }
     }
-    if (st.finger) {
+    // v10.19 (7.5) : le détour par un menu de la barre du bas ne se montre jamais quand une fenêtre est ouverte.
+    if (st.finger && !panelOpen) {
       for (const sel of st.targets) {
         if (!isNav(sel)) continue;
         const el = root.querySelector(sel);
@@ -202,4 +203,20 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     bubble.style.bottom = below ? '' : `${Math.round(innerHeight - r.top + 8)}px`;
   }
   { const bl = parseFloat(bubble.style.left); if (Number.isFinite(bl) && bl + bw > innerWidth - 8) bubble.style.left = `${Math.max(8, Math.round(innerWidth - 8 - bw))}px`; }
+  // v10.19 (7.5) : jamais sur la barre du bas (téléphone) : la bulle se pose au-dessus, sa flèche vers la cible.
+  const bar0 = !side ? document.querySelector('#tabs')?.getBoundingClientRect() : null;
+  const barTop = bar0 && bar0.width > bar0.height && bar0.top / Z > innerHeight / 2 ? bar0.top / Z : null;
+  bubble.classList.remove('tuto-down');
+  if (barTop != null) {
+    const bTop = parseFloat(bubble.style.top);
+    const bBottom = bubble.style.top ? bTop + h : innerHeight - (parseFloat(bubble.style.bottom) || 0);
+    if (bottomBar || bBottom > barTop - 6) {
+      const left = Math.round(Math.max(8, Math.min(innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)));
+      bubble.style.left = `${left}px`;
+      bubble.style.top = '';
+      bubble.style.bottom = `${Math.round(innerHeight - Math.min(barTop, r.top) + (step.finger && !bottomBar ? 40 : 12))}px`;
+      bubble.style.setProperty('--ax', `${Math.round(Math.max(14, Math.min(bw - 14, r.left + r.width / 2 - left)))}px`);
+      bubble.classList.add('tuto-down');
+    }
+  }
 }

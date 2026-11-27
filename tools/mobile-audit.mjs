@@ -14,6 +14,7 @@
 // hauteur (tools/frame-1018.mjs ; --no-frame pour sauter).
 // v10.18 (2.6, 3.5 ; tools/audit-1018.mjs) : 21 aucun bouton recouvert par un autre au point de contact · 22 aucun texte « Pas disponible
 // pour l'instant » · 23 aucun sous-onglet sous la croix ✕ · 24 écran de combat : aucun bloc de #stage-area / #combat-console n'en chevauche un autre.
+// v10.19 (3.7) : 26 Équipement (mode Équipement) : le haut du Sac (sa ligne « Sac / Réserve / filtre / tri ») est visible sans défiler.
 // Tailles par défaut : 412x915, 405x896, 390x844, 360x800.
 // Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
@@ -29,7 +30,7 @@ import { frameCheck } from './frame-1018.mjs'; // v10.18 (1.5) : contrôle 25
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'bouton recouvert au point de contact', 22: 'texte « Pas disponible pour l\'instant »', 23: 'sous-onglet sous la croix ✕', 24: 'blocs de l\'écran de combat qui se chevauchent', 25: 'scène téléphone : cadrage du héros qui change (onglet ouvert/fermé)' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'bouton recouvert au point de contact', 22: 'texte « Pas disponible pour l\'instant »', 23: 'sous-onglet sous la croix ✕', 24: 'blocs de l\'écran de combat qui se chevauchent', 25: 'scène téléphone : cadrage du héros qui change (onglet ouvert/fermé)', 26: 'Équipement : haut du Sac pas visible sans défiler' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
@@ -37,6 +38,21 @@ const sizes = opt('sizes', '412x915,405x896,390x844,360x800').split(',').map((s)
 const tabs = opt('tabs', ALL_TABS.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const out = opt('out', 'docs/screenshots/v10.12');
 const games = opt('games', 'endgame,fresh').split(',').map((s) => s.trim());
+
+// v10.19 (3.7) : contrôle 26 : Équipement en mode Équipement, défilement remis en haut : la ligne d'en-tête du Sac (Sac / Réserve,
+// filtre, tri) est entièrement au-dessus de la barre du bas.
+function bagTop(page) {
+  return page.evaluate(() => {
+    const body = document.querySelector('#panel-body');
+    const head = body?.querySelector('.m-frame.em .em-bag-head');
+    if (!head || document.querySelector('#panel .m-sheet')) return [];
+    const keep = body.scrollTop; body.scrollTop = 0;
+    const bottom = document.querySelector('#tabs')?.getBoundingClientRect().top ?? window.innerHeight;
+    const r = head.getBoundingClientRect();
+    body.scrollTop = keep;
+    return r.bottom <= bottom + 0.5 ? [] : [{ check: 26, msg: `en-tête du Sac à ${Math.round(r.top)}–${Math.round(r.bottom)} px, barre du bas à ${Math.round(bottom)} px (il faut défiler)` }];
+  });
+}
 
 // --- Contrôles exécutés dans la page (1 à 5 et 7) -----------------------------------------------------------------------
 function inPage(isCombat) {
@@ -345,6 +361,7 @@ for (const game of games) {
       else {
         rec.issues.push(...await page.evaluate(inPage, false));
         rec.issues.push(...await stability(page));
+        if (tab === 'inventory') rec.issues.push(...await bagTop(page)); // v10.19 (3.7)
         const st = await page.evaluate((ex) => window.__btnStyles?.([document.querySelector('#panel'), document.querySelector('#modal:not(.hidden)')].filter(Boolean), (el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden', ex) ?? {}, BTN_EXCLUDE);
         for (const [k, v] of Object.entries(st)) if (!btnStyles.has(k)) btnStyles.set(k, `${rec.size} ${tab} : ${v}`);
       }

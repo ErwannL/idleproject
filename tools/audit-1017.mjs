@@ -39,6 +39,7 @@ export function audit1017Init() {
       const c = host ? host.getBoundingClientRect() : clip;
       const top = Math.max(c.top, clip.top), bottom = Math.min(c.bottom, clip.bottom), h = bottom - top;
       if (h < 80) continue;
+      if (g.closest('[data-gold-top]')) continue; // v10.19 (3.5) : « ⬆ Équiper le meilleur (N) » est voulu au-dessus du Sac (Équipement, téléphone)
       const r = g.getBoundingClientRect();
       const mid = (r.top + r.bottom) / 2;
       let pinned = false;
