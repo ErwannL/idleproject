@@ -201,6 +201,19 @@ export const DAMAGE_COLORS = {
 };
 
 // Dessin d'un chiffre : bond vers le haut, petite retombée, puis montée lente ; critique : jaillit en ×2 puis ×1,5 (écran de téléphone : un chiffre plus gros masquait le combat).
+// v10.19 (5.6) : un chiffre de dégâts reste entier dans le canvas (téléphone : plus de « 2,1… » coupé à droite).
+// Bornes visibles dans le repère courant (décalage horizontal du calque compris), marge de 2 px.
+export function clampTextX(cx, w, left, right, margin = 2) {
+  const lo = left + margin + w / 2, hi = right - margin - w / 2;
+  return hi < lo ? (left + right) / 2 : Math.min(hi, Math.max(lo, cx));
+}
+function textCenterIn(scene, ctx, cx, w) {
+  const m = ctx.getTransform?.();
+  const width = scene.width;
+  if (!m || !(width > 0) || !(m.a > 0)) return cx;
+  const left = -m.e / m.a;
+  return clampTextX(cx, w, left, left + width);
+}
 export function drawDamageText(scene, ctx, fx) {
   const age = fx.max - fx.life;
   const c = textCanvas(fx.text, fx.color, fx.light);
@@ -223,7 +236,7 @@ export function drawDamageText(scene, ctx, fx) {
   ctx.globalAlpha = Math.min(1, t * 2.5);
   const w = c.width * s;
   const h = c.height * s;
-  const cx = fx.cx + (scene.focus ? 0 : (fx.drift ?? 0) * age); // v10.16 (A5) : dérive latérale
+  const cx = textCenterIn(scene, ctx, fx.cx + (scene.focus ? 0 : (fx.drift ?? 0) * age), w); // v10.16 (A5) : dérive latérale
   ctx.drawImage(c, Math.round((cx - w / 2) * 2) / 2, Math.round((fx.y0 + dy - h / 2) * 2) / 2, w, h);
   ctx.globalAlpha = 1;
   return true;

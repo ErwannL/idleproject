@@ -179,7 +179,10 @@ export function openWorldBoss(state, actions) {
     if (p.layer > 0) { q('.wb-layer').classList.remove('hidden'); q('.wb-layer b').textContent = `×${p.layer + 1}`; }
     if (fight.phase > ctx.shownPhase && fight.phase > 0) {
       const ph = fight.cfg.phases[fight.phase - 1];
-      if (!calm) banner(`<small><span>Phase</span> <b class="num">${fight.phase}</b></small><b>${escapeHtml(ph.name)}</b>`, PHASE_COLORS[fight.phase]);
+      // v10.19 (5.5) : Titan du jour : les attaques de phase (4 et 5) ont aussi le bandeau « ATTAQUE + nom ».
+      const titanPhase = String(fight.bossId ?? '').startsWith('titan_');
+      if (!calm) banner(titanPhase ? `<small><span>Attaque</span> · <span>Phase</span> <b class="num">${fight.phase}</b></small><b>${escapeHtml(ph.name)}</b>`
+        : `<small><span>Phase</span> <b class="num">${fight.phase}</b></small><b>${escapeHtml(ph.name)}</b>`, PHASE_COLORS[fight.phase]);
     }
     ctx.shownPhase = fight.phase;
     if (p.layer > ctx.shownLayer) {

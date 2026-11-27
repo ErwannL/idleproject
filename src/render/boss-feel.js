@@ -15,25 +15,28 @@ export const TINT_ALPHA = 0.3; // ≤ 0,35
 export const JITTER_TIME = 0.08;
 const WHITE = new Set(['#ffffff', '#fff', '#e8e0c8', '#f0e6d0']);
 export const TINT_DEFAULT = '#ffd8b0'; // coup sans élément : teinte chaude légère
+// v10.19 (7.4) : ennemi ordinaire : plus de silhouette blanche pleine ; flash de la couleur du coup (≤ 35 %) en 0,15 s.
+export const HIT_FLASH_TIME = 0.15;
+const tintColorOf = (color) => (color && !WHITE.has(color.toLowerCase()) ? color : TINT_DEFAULT);
 
-// Marque un coup sur l'ennemi : flash blanc (fx.hit) pour un ennemi ordinaire ; contre un boss, flash seulement sur
-// un critique espacé, sinon teinte + tremblement. Renvoie 'flash' ou 'tint'.
+// Marque un coup sur l'ennemi : ennemi ordinaire : flash de couleur (≤ 35 %, 0,15 s, v10.19) ; contre un boss, flash
+// blanc très court seulement sur un critique espacé, sinon teinte + tremblement. Renvoie 'flash', 'color' ou 'tint'.
 export function markHit(fx, time, { boss = false, crit = false, color = null } = {}) {
-  if (!boss) { fx.hit = crit ? 0.13 : 0.08; return 'flash'; }
+  if (!boss) { fx.tint = fx.tintMax = HIT_FLASH_TIME; fx.tintColor = tintColorOf(color); return 'color'; }
   if (crit && time - (fx.flashAt ?? -9) >= BOSS_FLASH_GAP) {
     fx.hit = BOSS_FLASH_TIME; fx.flashAt = time; fx.jit = JITTER_TIME;
     if (globalThis.__feelStats) globalThis.__feelStats.flashes = (globalThis.__feelStats.flashes ?? 0) + 1; // v10.18 : mesure
     return 'flash';
   }
-  fx.tint = TINT_TIME;
-  fx.tintColor = color && !WHITE.has(color.toLowerCase()) ? color : TINT_DEFAULT;
+  fx.tint = fx.tintMax = TINT_TIME;
+  fx.tintColor = tintColorOf(color);
   fx.jit = JITTER_TIME;
   return 'tint';
 }
 // Décalage du tremblement (±1 px), alterné à chaque image.
 export const jitterOf = (fx, frame) => (fx.jit > 0 ? (frame % 2 ? 1 : -1) : 0);
 // Opacité de la teinte (0 à TINT_ALPHA), qui s'efface.
-export const tintAlpha = (fx) => (fx.tint > 0 ? TINT_ALPHA * Math.min(1, fx.tint / TINT_TIME) : 0);
+export const tintAlpha = (fx) => (fx.tint > 0 ? TINT_ALPHA * Math.min(1, fx.tint / (fx.tintMax || TINT_TIME)) : 0);
 
 // --- A2 : impact propre à chaque compagnon ---
 const SHIELD = new Set(['squire', 'lancer', 'azure_paladin', 'paladin', 'grombar', 'sylvan_guardian', 'jade_turtle', 'golem']);
