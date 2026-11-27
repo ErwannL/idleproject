@@ -1,6 +1,18 @@
 <!-- Convention : la dernière version reste dépliée, toutes les autres sont dans <details> (repliées). -->
 
-## Ascendrya v10.17.0 — Tout le jeu propre, sur PC et téléphone
+## Ascendrya v10.17.1 — Finitions
+
+- **Face aux géants et au World Boss**, le héros est plus grand (×1,4) et l'équipe se range derrière lui. Sur téléphone, le souffle des géants ne le cache plus, et plus aucun arc blanc ne part de son épée.
+- **Équipement** : le grand coffre « sac vide » laisse place à une ligne « Sac vide › Aller combattre ».
+- **Forge** : la colonne de droite est écrite en clair et plus gros.
+- **Compagnons (PC)** : un seul bouton « Filtrer » remplace les deux rangées de filtres.
+- **Arène** : cartes de mode plus grandes, « ✓ Formation prête » en badge vert.
+- **Apparences (téléphone)** : la fiche d'une apparence montre le héros en grand, sans vide.
+- **Bouton principal doré** : toujours en bas du cadre (pleine largeur sur téléphone).
+- **PC, fenêtre ouverte** : les événements passent sous la carte de zone au lieu d'être cachés ; plus de texte coupé en bas de la colonne de combat.
+- **Téléphone** : boutons secondaires un peu plus compacts (40 px).
+
+<details><summary>Ascendrya v10.17.0 — Tout le jeu propre, sur PC et téléphone</summary>
 
 - **Ouvrir une fenêtre ne bouge plus le combat** : le zoom et le cadrage restent les mêmes quand on ouvre ou ferme un onglet, et les compétences en cours restent sur leur cible (plus d'effets « dans le ciel » ou « en arrière »). Sur PC, tous les onglets s'ouvrent de la même façon : le combat dans une colonne à gauche, la fenêtre à droite.
 - **Les touches d'attaque répondent à chaque appui** : sur téléphone, le bouton « Boosts » ne vole plus les appuis. Un appui entre deux vagues est gardé (« ✓ en attente ») et part dès qu'un ennemi arrive. La touche s'enfonce et vibre légèrement à chaque appui.
@@ -12,6 +24,8 @@
 - **Talents** : « Il manque 1 fragment › Où en trouver ».
 - **Bastion** : « Ton Bastion se met au travail » devient une notification qui se ferme seule ; le bandeau d'âge tient sur 2 lignes.
 - **Expéditions** : texte lisible sur l'image. **Objectifs, Paramètres, Classement, Statistiques** : une bannière illustrée en haut.
+
+</details>
 
 <details><summary>Ascendrya v10.16.1 — Les Titans se réveillent</summary>
 
