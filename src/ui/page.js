@@ -16,7 +16,7 @@ import { isPhone } from './prefs.js';
 export const PAGE_TABS = new Set(['inventory', 'forge', 'camp', 'upgrades']); // v10.6 (5) : les Améliorations en page // v10.4 (6) : le Bastion
 // v10.11 (6) : onglets qui se jouent dans la scène (jamais en page sur téléphone).
 // v10.17 (A) : interrupteur (false = anciennes pages plein écran sur PC).
-export const PC_SIDE_ONLY = true;
+export const PC_SIDE_ONLY = false; // v10.20 (1) : retour des grandes pages sur PC
 // v10.18 (1) : l'Arène passe en page comme les autres (sa formation se joue dans la fenêtre, la bande du haut garde la scène).
 export const SCENE_TABS = new Set();
 // Conditions par panneau : (ui) => booléen.
@@ -39,7 +39,10 @@ export const pageNarrow = (ui) => (ui?.root?.clientWidth ?? 9999) <= 600 || isPh
 
 // v10.11 (5) : même forme dans un menu — à partir de 1300 px, tous les onglets des menus Héros et Équipe en page.
 const WIDE_PAGES = ['skills', 'tree', 'companions', 'expeditions'];
-for (const id of WIDE_PAGES) PAGE_WHEN[id] = (ui) => (ui?.root?.clientWidth ?? 0) >= 1300 && !pageNarrow(ui);
+// v10.20 (1.2) : plus de seuil à 1300 px sur PC — tous les onglets de Héros et Équipe s'ouvrent en grande page, la vignette du
+// combat garde donc la même taille et le même cadrage d'un onglet à l'autre (sinon, sous 1300 px, Compétences ou Compagnons
+// rouvraient la colonne de combat et la scène « sautait »).
+for (const id of WIDE_PAGES) PAGE_WHEN[id] = (ui) => !pageNarrow(ui);
 
 // v10.4 (partie 4) : la page du donjon est une page plein écran sur PC ; sur téléphone, c'est la feuille du bas (calque #dg-host).
 PAGE_WHEN.dungeons = (ui) => Boolean(ui.view?.dungeonSheet) && !pageNarrow(ui);

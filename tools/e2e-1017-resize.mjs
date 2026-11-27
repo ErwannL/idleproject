@@ -8,6 +8,10 @@
 //    (héros + 40, sol − 16) à l'écran ; on compare à la position de ce point calculée avec le cadrage actuel (la cible).
 //    Les pièces de la vraie compétence encore en vol doivent avoir le même décalage (groundY − g0) que la pièce témoin.
 // Sur téléphone, les onglets couvrent le combat (page plein écran) : la scène cachée ne doit pas bouger du tout.
+// v10.20 (1) : sur PC, les grandes pages sont revenues (PC_SIDE_ONLY = false) : un onglet en page (Équipement, Compagnons…) met la
+// scène derrière la page et montre le combat dans la vignette #page-mini. Le contrôle devient : la vignette garde la même place et
+// la même taille d'un onglet en page à l'autre, et une fois la page refermée (scène revenue, 3 s), le héros est à 2 px près à
+// sa place d'avant. Les onglets hors page (Carte, Invocation, Boutique, Options) gardent le contrôle « le héros ne bouge pas ».
 import { makeOpt, parseSizes, parseList, startApp, openGame, closeAll } from './lib-1013.mjs';
 
 const opt = makeOpt(process.argv.slice(2));
@@ -36,7 +40,7 @@ const measure = (page) => page.evaluate(() => {
   const shift = Math.round(r.viewShift ?? 0);
   const target = { x: c.left + (84 + 40 + shift) * r.scale, y: c.top + (r.groundY - 16) * r.scale };
   const live = (r.skillFx ?? []).filter((e) => Number.isFinite(e.g0)).map((e) => r.groundY - e.g0);
-  return { visible: c.width > 0 && c.bottom > 0 && c.top < innerHeight && c.right > 0 && c.left < innerWidth && getComputedStyle(r.canvas).visibility !== 'hidden', hx: c.left + (r.heroScreenX ?? 0), hy: c.top + r.groundY * r.scale, probe: window.__probe, target, live: live.length, k: r.k, t: r.time, page: document.getElementById('app').classList.contains('page-narrow') };
+  return { visible: c.width > 0 && c.bottom > 0 && c.top < innerHeight && c.right > 0 && c.left < innerWidth && getComputedStyle(r.canvas).visibility !== 'hidden', hx: c.left + (r.heroScreenX ?? 0), hy: c.top + r.groundY * r.scale, probe: window.__probe, target, live: live.length, k: r.k, t: r.time, page: document.getElementById('app').classList.contains('page-narrow'), pageUi: document.getElementById('app').classList.contains('page-ui'), mini: (() => { const m = document.getElementById('page-mini')?.getBoundingClientRect(); return m && m.width ? [m.left, m.top, m.width, m.height].map(Math.round).join(',') : ''; })() };
 });
 
 const app = await startApp();
@@ -45,7 +49,7 @@ for (const [w, h] of sizes) {
   const { page } = g;
   await page.waitForTimeout(800);
   const base = await measure(page);
-  let worstHero = 0, worstFx = 0, n = 0;
+  let worstHero = 0, worstFx = 0, n = 0, mini = null;
   for (const tab of tabs) {
     await arm(page);
     await page.waitForTimeout(120);
@@ -56,11 +60,16 @@ for (const [w, h] of sizes) {
     const during = await measure(page);
     await page.evaluate(() => __idle.ui.closePanel());
     await closeAll(page);
-    await page.waitForTimeout(300);
+    // v10.20 (1) : après une grande page, la scène revient en glissant (≈ 1 à 3 s) : on mesure une fois revenue.
+    await page.waitForTimeout(during.pageUi ? 3000 : 300);
     const after = await measure(page);
     for (const [when, m] of [['ouvert', during], ['refermé', after]]) {
       n++;
       if (!m.visible || m.page) { say(m.k === base.k, `${w}x${h} ${tab} ${when} : scène cachée par la page, zoom ×${m.k} (avant ×${base.k})`); continue; }
+      // v10.20 (1) : sur PC, Héros et Équipe s'ouvrent de nouveau en grande page : la scène passe derrière la page (le héros y est
+      // recadré, c'est voulu) et le combat se suit dans la vignette #page-mini. Ce qui compte alors : la vignette a la même place
+      // et la même taille pour tous les onglets en page (le combat ne « saute » pas d'un onglet à l'autre).
+      if (m.pageUi && when === 'ouvert') { mini ??= m.mini; say(Boolean(m.mini) && m.mini === mini, `${w}x${h} ${tab} ouvert en page : vignette ${m.mini || 'absente'} (attendu ${mini})`); continue; }
       const dh = Math.max(Math.abs(m.hx - before.hx), Math.abs(m.hy - before.hy));
       worstHero = Math.max(worstHero, dh);
       say(dh <= 2, `${w}x${h} ${tab} ${when} : héros déplacé de ${dh.toFixed(1)} px`);

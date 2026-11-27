@@ -1,0 +1,60 @@
+/* v10.20 (parties 1 à 3) : PC — retour des grandes pages (PC_SIDE_ONLY = false dans src/ui/page.js), et une page qui ne défile jamais.
+   RÈGLE : tout est sous `#app.page-ui:not(.m-phone):not(.page-narrow)` (page PC). Le téléphone (#app.m-phone) et la fenêtre étroite
+   (.page-narrow) ne sont jamais touchés. Chargé en dernier.
+   - Le cadre .m-frame d'Équipement et d'Améliorations prend exactement la hauteur de #panel-body : seules les listes (grille du Sac,
+     colonne de détails, colonnes d'améliorations) défilent dans leur cadre.
+   - Barre de défilement de ces listes : 4 px, --ui-gold à 40 %, visible seulement au survol. */
+
+/* ---------- 1. Barre de défilement des listes (page PC) ---------- */
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr) {
+  scrollbar-width: thin; scrollbar-color: transparent transparent; overscroll-behavior: contain;
+}
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr):hover {
+  scrollbar-color: color-mix(in srgb, var(--ui-gold, #f2c14e) 40%, transparent) transparent;
+}
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr)::-webkit-scrollbar { width: 4px; height: 4px; }
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr)::-webkit-scrollbar-thumb { background: transparent; border-radius: 2px; }
+#app.page-ui:not(.m-phone):not(.page-narrow) :is(.de-bag .m-grid, .de-scroll, .de-dock, .upg-list, .pc-list, .dsk-grid, .dsk-detail, .dsk-left, .m-frame.m-tr):hover::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ui-gold, #f2c14e) 40%, transparent); }
+
+/* ---------- 1. Le cadre tient dans #panel-body ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel#panel #panel-body:has(> .m-frame:is(.de, .d-upg, .m-dsk, .m-tr)) { overflow: hidden; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.de, .d-upg, .m-dsk, .m-tr) {
+  height: 100%; min-height: 0 !important; margin: 0; display: flex; flex-direction: column; padding-top: 72px; padding-bottom: 10px;
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.de, .d-upg) > :not(.m-title) { flex: 1 1 auto; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame:is(.m-dsk, .m-tr) > * { flex: none; }
+
+/* Fenêtre haute et étroite (1116 × 993, 1170 × 1350…) : le cadre passe SOUS la vignette, sur toute la largeur (3 colonnes lisibles). */
+@media (max-width: 1299px) and (min-height: 900px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel#panel #panel-body:has(> .m-frame:is(.de, .d-upg, .m-dsk, .m-tr)) { padding: calc(var(--pg-mini-h, 158px) - 40px) 12px 16px 12px !important; }
+}
+
+/* ---------- Héros › Compétences : la grille des compétences et la fiche défilent dans leur cadre ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-dsk > .sk-pts-big { margin: 0 0 10px; padding-top: 4px; padding-bottom: 4px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame.m-dsk > .d-cols3b { flex: 1 1 auto; min-height: 0; align-items: stretch; grid-template-rows: auto minmax(0, 1fr); }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-dsk > .d-cols3b > * { min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left, #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail { overflow-y: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > * { flex-shrink: 0; }
+@media (max-height: 900px) { #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-prev { height: 84px; min-height: 0; } }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center { display: flex; flex-direction: column; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center > * { flex: none; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-center > .dsk-grid { flex: 1 1 0; min-height: 0; overflow-y: auto; align-content: start; padding: 2px 4px 2px 2px; }
+@container mframe (min-width: 1090px) {
+  #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel #panel-body > .m-frame.m-dsk > .d-cols3b { grid-template-rows: minmax(0, 1fr); }
+}
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > :is(.m-btn-gold, .dsk-btns) { margin-top: auto; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-btns { display: flex; flex-direction: column; justify-content: flex-end; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-detail > .dsk-btns > .m-btn-gold { order: 9; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left .m-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 6px 4px; justify-items: center; }
+@media (max-width: 1299px) { #app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-dsk .dsk-left .m-tile.s56 { --m-s: 46px; } }
+/* ---------- Héros › Talents : en-tête compact ; ce qui dépasse défile dans le cadre (barre fine) ---------- */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr { overflow-y: auto; overscroll-behavior: contain; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr > .m-modes .m-mode { height: 56px; flex-direction: row; gap: 8px; flex: 0 1 auto; width: auto; min-width: 170px; padding: 0 16px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr > .m-modes .m-mode img { width: 28px; height: 28px; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-bc .d-art { height: 96px; min-height: 0; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-bc .d-art img { max-height: 84px; width: auto; }
+
+/* Arbre avancé : la légende et les plis (Aide, Outils, Réinitialiser) passent au-dessus ; l'arbre et sa fiche (bouton doré « Apprendre »)
+   descendent en bas du cadre (règle du bouton doré en bas). */
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv { display: flex; flex-direction: column; }
+#app#app.page-ui:not(.m-phone):not(.page-narrow) #panel .m-frame.m-tr .d-adv > .d-cols2 { order: 5; }

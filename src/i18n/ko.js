@@ -519,3 +519,7 @@ for (const [k, v] of Object.entries(EXACT_1019_DEBUT)) if (!Object.hasOwn(EXACT,
 import { EXACT_1019_UI, patterns1019Ui } from './ko-1019-ui.js';
 for (const [k, v] of Object.entries(EXACT_1019_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1019Ui(lookup));
+// v10.20 (parties 1 à 3) : PC — Équipement et Améliorations en grande page (./ko-1020.js). Ajoutés à la fin : les motifs existants restent prioritaires.
+import { EXACT_1020, patterns1020 } from './ko-1020.js';
+for (const [k, v] of Object.entries(EXACT_1020)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
+PATTERNS.push(...patterns1020(lookup));
