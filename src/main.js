@@ -1762,6 +1762,9 @@ function killCoinsFx(event) {
   const d = renderer.deaths?.get(event.enemyId);
   const target = document.querySelector('#topbar [data-currency="gold"]');
   if (!d || !target?.offsetWidth) return;
+  // v10.19 (7.3) : les pièces passent derrière les fenêtres : rien ne vole par-dessus une fenêtre ouverte (modale, ou panneau
+  // sur téléphone, qui couvre le chemin de la scène au compteur d'or ; ex. « Niv. 32 » dans Équipement).
+  if (document.querySelector('#modal:not(.hidden)') || (ui.root.classList.contains('m-phone') && ui.root.classList.contains('panel-open'))) return;
   killFlyAt = now;
   const r = renderer.canvas.getBoundingClientRect();
   flyTo('gold', [r.left + (d.x * r.width) / renderer.width, r.top + (d.y * r.height) / renderer.height], target, event.boss ? 8 : 2);

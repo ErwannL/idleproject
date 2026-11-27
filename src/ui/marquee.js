@@ -1,7 +1,8 @@
 // v10.17 (C) : aucun texte coupé — un texte plus large que son cadre défile lentement (pause 1,5 s au début et à la fin,
 // 30 px/s, en boucle) ; il ne bouge pas s'il tient. Avec « Réduire les animations », il passe sur 2 lignes à la place.
 // Cibles : toutes les règles CSS « white-space: nowrap » + « overflow: hidden » ou « text-overflow: ellipsis » (relevées
-// une fois dans les feuilles de style), plus la classe `.mq`. Le DOM du jeu est reconstruit souvent : un MutationObserver
+// une fois dans les feuilles de style), plus la classe `.mq`. v10.19 (7.1) : toujours depuis le début du texte, même après
+// une fenêtre ouverte par-dessus (isCovered). Le DOM du jeu est reconstruit souvent : un MutationObserver
 // et un ResizeObserver relancent une passe (au plus toutes les 300 ms), qui ne mesure que les cibles visibles.
 import { reduceMotion } from './prefs.js';
 
@@ -116,6 +117,20 @@ function fit(el, calm) {
   el.classList.add('mq-on');
 }
 
+// Le centre du cadre est-il sous un autre élément (fenêtre ouverte par-dessus) ?
+function isCovered(el) {
+  const r = el.getBoundingClientRect();
+  const x = r.left + Math.min(r.width / 2, 20), y = r.top + r.height / 2;
+  if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return true;
+  const top = document.elementFromPoint(x, y);
+  return !!top && !el.contains(top) && !top.contains(el);
+}
+
+// v10.19 (7.1) : remet tous les textes qui défilent au début (pause de 1,5 s comprise).
+export function marqueeRestart(root = document) {
+  for (const s of root.querySelectorAll('.mq-on > .mq-in')) for (const a of s.getAnimations()) a.currentTime = 0;
+}
+
 export function marqueePass(root = document) {
   last = performance.now();
   timer = 0;
@@ -130,6 +145,13 @@ export function marqueePass(root = document) {
     const key = `${el.textContent}|${el.clientWidth}|${(span ?? el).scrollWidth}|${calm}`;
     const st = state.get(el);
     if (st?.hidden) { st.hidden = false; if (st.anim) st.anim.currentTime = 0; } // de nouveau visible : reprend au début
+    // v10.19 (7.1, 7.2) : un texte qui défile caché sous une fenêtre (panneau, fiche, bulle) reprend au début, avec sa pause
+    // de 1,5 s, quand il redevient visible : le joueur ne le découvre jamais coupé en plein milieu.
+    if (st?.anim) {
+      const covered = isCovered(el);
+      if (st.covered && !covered) st.anim.currentTime = 0;
+      st.covered = covered;
+    }
     if (st && st.key === key && st.span === span && (st.anim ? el.classList.contains('mq-on') : true)) continue;
     fit(el, calm);
     const s2 = state.get(el); s2.key = key; s2.span = el.firstElementChild?.classList.contains('mq-in') ? el.firstElementChild : null;
@@ -149,6 +171,6 @@ export function initMarquee() {
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true });
   window.addEventListener('resize', schedule);
   document.fonts?.ready?.then(() => { marqueePass(); }); // v10.18 (5.6) : remesure une fois les polices chargées
-  window.__marquee = { pass: marqueePass, refresh: () => { selector = collectSelectors(); marqueePass(); } };
+  window.__marquee = { pass: marqueePass, restart: marqueeRestart, refresh: () => { selector = collectSelectors(); marqueePass(); } };
   schedule();
 }
