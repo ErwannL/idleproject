@@ -272,10 +272,12 @@ export default {
         ${beginner ? '<p class="m-note">D\'autres améliorations s\'ouvrent au fil des boss.</p>' : nextUp ? `<p class="m-note">Prochaine ligne : ${escapeHtml(nextUp.label)}, dans 2 boss</p>` : ''}</div>`;
     }
     if (pcFrame) {
+      // v10.18 (partie 5.2) : sur PC, « Tout acheter » reste dans le flux, sous « ×1 ×10 ×100 Max » (data-nodock : pas de pied
+      // doré épinglé, qui recouvrait à moitié ces boutons en 1920).
       // v10.13 : cadre du kit PC (cartouche dedans), bande d'illustration + or, puis « Meilleur achat » et le haut, les 3 familles en colonnes.
       const col = (g) => { const body = g.keys.filter((k) => byKey[k]).map((k) => byKey[k]).join('') || '<p class="muted upg-all-max">Tout est au maximum ✓</p>'; return `<section class="upg-group g-${g.id}"><h4 class="upg-group-head" style="background-image:url(assets/ui/art106/${g.art}.png)"><span>${g.title}</span></h4><div class="upg-list">${body}</div>${g.id === 'earn' ? rebirthRow(state, false) : ''}</section>`; };
       return `<div class="m-frame d-upg">${mTitle('icon_upgrade', 'Améliorations', true)}<div class="upg-page107 d-up"><div class="d-topline"><span class="d-chip" title="Ton or">${coin()}<b class="num">${formatNumber(state.gold)}</b></span><img class="px d-topart" src="assets/ui/art101/banner_upgrades.png" alt="" aria-hidden="true"></div>
-      <div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll}</div></div>
+      <div class="upg-toprow">${bestCard}<div class="card upg-top">${top}${buyAll ? `<div class="upg-buyall-row" data-nodock>${buyAll}</div>` : ''}</div></div>
         <div class="upg-cols3">${GROUPS.map(col).join('')}</div>${weakFold}${done.length ? fold(ui, 'upg-done', `Terminées (${done.length})`, `<div class="upg-list">${done.join('')}</div>`) : ''}</div></div>`;
     }
     return `${heroCard}<div class="card upg-top">${top}${buyAll}</div>

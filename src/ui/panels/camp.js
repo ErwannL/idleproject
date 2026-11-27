@@ -948,8 +948,10 @@ function renderBastionDesk(ui, state, now, view) {
   const left = view === 'workers'
     ? `${deskFree(state, false)}<div class="d-bs-rows">${deskWorkerRows(ui, state)}</div>`
     : `${villageMap(ui, state, now, false)}${deskFree(state, false)}`;
-  return `<div class="m-frame d-bs d-bs-${view}" data-view="${view}">${mTitle('tab_expeditions', 'Bastion', true)}${modes}${deskResources(state, canFill)}${kickRibbon(ui)}
-      <div class="d-cols2 d-bs-cols"><div class="d-stack d-bs-left">${left}</div><aside class="bs-side is-open d-bs-side" id="bs-detail" data-sel="${escapeHtml(v.bastionSel ?? '')}">${side}</aside></div></div>`;
+  // v10.18 (partie 5.3) : la notification sort du cadre (.m-frame est un conteneur CSS : une position fixe y restait collée en
+  // haut du cadre, par-dessus l'âge et la carte) ; elle s'affiche en toast en bas de la fenêtre (src/ui/pc1018.css).
+  return `<div class="m-frame d-bs d-bs-${view}" data-view="${view}">${mTitle('tab_expeditions', 'Bastion', true)}${modes}${deskResources(state, canFill)}
+      <div class="d-cols2 d-bs-cols"><div class="d-stack d-bs-left">${left}</div><aside class="bs-side is-open d-bs-side" id="bs-detail" data-sel="${escapeHtml(v.bastionSel ?? '')}">${side}</aside></div></div>${kickRibbon(ui)}`;
 }
 
 function renderBastion(ui, state) {

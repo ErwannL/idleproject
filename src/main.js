@@ -121,6 +121,7 @@ import { ackBastionNews, assignWorker, bastionSealShown, bastionTick, buildingDe
 import { maybeBastionCard } from './ui/bastion-cards.js';
 import { collectAway, kickoffBastion, markTip, noteAway, placedLine } from './core/bastion-start.js'; // v10.4 (6)
 import { maybeBastionAway } from './ui/bastion-away.js'; // v10.4 (6)
+import { combatColumn } from './ui/pc-layout.js'; // v10.18 (partie 5.5)
 
 const SIM_INTERVAL_MS = 100;
 // v9.1.0 : codes de triche chargés seulement dans la version dev (fichier absent de la version publique).
@@ -202,7 +203,7 @@ function syncCombatColumn() {
   const app = document.getElementById('app');
   if (!app || !renderer.scale) return;
   const meet = renderer.meetPx ?? 0; // héros + premier ennemi, en px d'écran (scene.js resize)
-  const col = Math.round(Math.max(420, Math.min(app.clientWidth - 600, Math.max(meet + 24, app.clientWidth * 0.5))));
+  const col = combatColumn(app.clientWidth, meet); // v10.18 (5.5) : fenêtre d'au moins max(480 px, 30 %)
   app.style.setProperty('--combat-col', `${col}px`);
 }
 new ResizeObserver(resizeScene).observe(stageArea);

@@ -27,7 +27,7 @@ let last = 0;
 
 // Sélecteurs des règles « une ligne + coupé » des feuilles de style chargées.
 function collectSelectors() {
-  const out = new Set(['.mq', '.mq-box', '.hb-name', '#panel-subtabs .subtab > span', '#tabs button > span']); // nowrap et overflow posés par deux règles différentes
+  const out = new Set(['.mq', '.mq-box', '.hb-name', '#panel-subtabs .subtab > span', '#tabs button > span', '#app:not(.m-phone) #zone-name .zn-t']); // nowrap et overflow posés par deux règles différentes
   const walk = (rules) => {
     for (const r of rules) {
       if (r.cssRules && !r.selectorText) { try { walk(r.cssRules); } catch { /* règle étrangère */ } continue; }
@@ -99,7 +99,9 @@ function fit(el, calm) {
       return;
     }
   }
-  const dist = Math.ceil(span.getBoundingClientRect().width - box);
+  // v10.18 (5.6) : largeur sans transformation (offsetWidth) : pendant l'éclair du fil (#news.flash, scale) la mesure
+  // gonflée faisait partir le texte trop loin.
+  const dist = Math.ceil(span.offsetWidth - box);
   if (dist <= 1) { stop(el, st); return; }
   if (st.anim && st.span === span && Math.abs(st.dist - dist) < 2) return;
   st.anim?.cancel();
@@ -109,6 +111,7 @@ function fit(el, calm) {
     { transform: 'translateX(0)', offset: offsets[0] }, { transform: 'translateX(0)', offset: offsets[1] },
     { transform: x, offset: offsets[2] }, { transform: x, offset: offsets[3] }, { transform: 'translateX(0)', offset: offsets[4] },
   ], { duration: total, iterations: Infinity, easing: 'linear' });
+  st.anim.currentTime = 0; // v10.18 (5.6) : toujours depuis le début du texte, 1,5 s de pause
   st.dist = dist;
   el.classList.add('mq-on');
 }
@@ -120,10 +123,13 @@ export function marqueePass(root = document) {
   let list;
   try { list = root.querySelectorAll(selector); } catch { selector = '.mq'; list = root.querySelectorAll(selector); }
   for (const el of list) {
-    if (!el.isConnected || el.closest('.mq-in, .sr-only') || !el.getClientRects().length) continue;
+    if (!el.isConnected || el.closest('.mq-in, .sr-only')) continue;
+    if (!el.getClientRects().length) { const h = state.get(el); if (h) h.hidden = true; continue; }
     const span = el.firstElementChild?.classList.contains('mq-in') ? el.firstElementChild : null; // contenu remplacé par le jeu : à refaire
-    const key = `${el.textContent}|${el.clientWidth}|${calm}`;
+    // v10.18 (5.6) : la largeur du texte est dans la clé (polices chargées après la 1re mesure : le nom de zone restait coupé).
+    const key = `${el.textContent}|${el.clientWidth}|${(span ?? el).scrollWidth}|${calm}`;
     const st = state.get(el);
+    if (st?.hidden) { st.hidden = false; if (st.anim) st.anim.currentTime = 0; } // de nouveau visible : reprend au début
     if (st && st.key === key && st.span === span && (st.anim ? el.classList.contains('mq-on') : true)) continue;
     fit(el, calm);
     const s2 = state.get(el); s2.key = key; s2.span = el.firstElementChild?.classList.contains('mq-in') ? el.firstElementChild : null;
@@ -142,6 +148,7 @@ export function initMarquee() {
   selector = collectSelectors();
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true });
   window.addEventListener('resize', schedule);
+  document.fonts?.ready?.then(() => { marqueePass(); }); // v10.18 (5.6) : remesure une fois les polices chargées
   window.__marquee = { pass: marqueePass, refresh: () => { selector = collectSelectors(); marqueePass(); } };
   schedule();
 }

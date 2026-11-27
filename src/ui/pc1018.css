@@ -1,0 +1,31 @@
+/* v10.18 (partie 5) : finitions PC. Tout est sous #app:not(.m-phone) : le téléphone ne change pas. */
+
+/* 5.2 Améliorations : « Tout acheter » dans le flux, sous « ×1 ×10 ×100 Max » (plus de pied doré épinglé par-dessus). */
+#app:not(.m-phone) .d-upg .upg-buyall-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+#app:not(.m-phone) .d-upg .upg-buyall-row > .buy-all { flex: 1 1 100%; min-height: 48px; }
+
+/* 5.3 Bastion : « Ton Bastion se met au travail » en toast en bas de la fenêtre, fermé seul au bout de 6 s (camp.js). */
+#app#app:not(.m-phone) .bs-kick.bs-toast { top: auto !important; bottom: 96px !important; right: 24px !important; animation-name: bs-toast-life-up; }
+@keyframes bs-toast-life-up { 0% { opacity: 0; transform: translateY(8px); } 6% { opacity: 1; transform: none; } 88% { opacity: 1; } 100% { opacity: 0; } }
+.calm #app#app:not(.m-phone) .bs-kick.bs-toast, #app#app.calm:not(.m-phone) .bs-kick.bs-toast { animation: none; }
+@media (prefers-reduced-motion: reduce) { #app#app:not(.m-phone) .bs-kick.bs-toast { animation: none; } }
+
+/* 5.4 Forge et Améliorations : une seule bannière (l'illustration du haut de la fenêtre, avec sa phrase), puis le contenu.
+   Le ruban titre du cadre et la 2ᵉ illustration (déjà dits par l'en-tête et la bannière) disparaissent. */
+#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ :is(.d-upg, .d-forge) { padding-top: 22px; }
+#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ :is(.d-upg, .d-forge) > .m-title { display: none; }
+#app#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ .d-upg .d-topart,
+#app#app#app:not(.m-phone) #panel-body > .art-banner-wrap ~ .d-forge .fg-top > .fg-top-art { display: none; }
+
+/* 5.5 Fenêtre de droite : au moins max(480 px, 30 %) de l'écran (main.js syncCombatColumn plafonne aussi la colonne de combat). */
+#app.bottom-ui.side-ui.panel-open:not(.m-phone) #panel,
+#app.bottom-ui.side-ui.panel-open.panel-tall:not(.m-phone) #panel,
+#app.bottom-ui.side-ui.panel-open:not(.m-phone) #panel:has(#panel-body > .eq),
+#app.bottom-ui.side-ui.panel-open:not(.m-phone) #panel:has(#panel-body > .fg) {
+  width: max(480px, 30%, calc(100% - var(--combat-col, 520px))) !important;
+}
+
+/* 5.1 Nom de zone (PC) : format court — lettres un peu resserrées et pastille « ×3 » collée ; « Plaines verdoyantes 1-5 » tient
+   dans le cadre de 1366 px. Un nom plus long (étape à 2 chiffres, donjon, Tour) défile (src/ui/marquee.js). */
+#app:not(.m-phone) #zone-name .zn-t { letter-spacing: -0.4px; }
+#app:not(.m-phone) #zone-name { column-gap: 4px; }
