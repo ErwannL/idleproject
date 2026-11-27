@@ -125,7 +125,8 @@ import { quickHuntReady } from '../core/quick-hunt.js'; // v9.8 (H3)
 import { duelOutcome } from '../core/ranks.js'; // v9.8 (H6)
 import { betterForSlot, betterItems, isUpgrade, teamUpgradeFor } from '../core/inventory.js';
 import { canEquip as canEquipHero } from '../core/classes.js';
-import { mentorTips } from '../core/mentor.js'; // v9.9 (K4)
+import { mentorTips, sealMentorTip } from '../core/mentor.js'; // v9.9 (K4) ; v10.19 (6.2)
+import { firstWaveDone, menuOpen, menusGated, syncMenus } from '../core/menu-gates.js'; // v10.19 (6.3, 6.4) : menus un par un ; « Tout récupérer » après la 1re vague
 import { teamChips } from './team-chips.js'; // v9.9 (K16)
 import { boonById, rarityOf } from '../core/boons.js'; // v9.9 (K7)
 import { TITAN_TIERS, titanToday, titanTriesLeft } from '../core/titan.js'; // v9.8 (H7)
@@ -2558,7 +2559,7 @@ export class UI {
     // v10.1 : consignes mises de côté (revenues 3 fois sans être faites) pendant 10 min.
     const nowMs = Date.now();
     const aside = new Set(Object.entries(this.sealAside ?? {}).filter(([, t]) => t > nowMs).map(([id]) => id));
-    const nctx = { claims: this.claims, visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab, learned: state.unlocks && !state.unlocks.legacy ? (state.ui.learned ?? []) : null };
+    const nctx = { claims: firstWaveDone(state) ? this.claims : [], visible: this.tabVisible, fusionReady: this.tabBadges.forge === 1, aside, tab: this.tab, learned: state.unlocks && !state.unlocks.legacy ? (state.ui.learned ?? []) : null };
     this.nctx = nctx;
     this.next = nextAction(state, nctx);
     this.hereAction = nctx.here ?? null; // v10.13 (9) : conseil dont l'écran est déjà ouvert (le doigt du tutoriel s'y règle)
@@ -2640,7 +2641,7 @@ export class UI {
     // v9.9 (K2/K4) : plus de progrès depuis 10 minutes → la première carte du Conseil du mentor.
     const stalled = st && ((st.playSeconds ?? 0) - (st.recordAt ?? st.playSeconds ?? 0) > 600 || (st.playSeconds ?? 0) - (st.ui?.wallAt ?? -1e9) < 1800);
     if (stalled && n && ['goal', 'advance', 'claim', 'rebirth'].includes(n.id)) {
-      const t = mentorTips(st, { wall: true })[0];
+      const t = sealMentorTip(st, (st.ui.mentorSummon ??= {})); // v10.19 (6.2) : « compagnon de Feu » au plus une fois / 10 min, 2 fois sans effet au plus
       if (t) n = { id: 'mentor', text: t.text, tab: t.tab, view: t.view, point: t.point };
     }
     return n;
@@ -2930,7 +2931,18 @@ export class UI {
       this.userAt = performance.now(); this.openGearFor(n.value);
       Object.assign(this.view ?? {}, { selectedItemId: n.itemId, sheetOpen: 'item', itemPop: null, itemTab: 'equip' }); this.invalidate?.(); return;
     }
-    if (n.action === 'equip-best') { this.userAt = performance.now(); this.openBetterItem(); return; } // v10.9 (7 ter) : ouvre la fenêtre de l'objet, le joueur équipe
+    if (n.action === 'equip-best') { // v10.9 (7 ter) : ouvre la fenêtre de l'objet, le joueur équipe
+      this.userAt = performance.now();
+      // v10.19 (6.1) : la fiche de cet objet est déjà ouverte : le Sceau touché une 2e fois équipe (plus de conseil qui revient 53 fois).
+      const best = this.betterOne();
+      // Sur téléphone, la fiche cache le Sceau : touché de nouveau (fiche refermée) pour le même objet déjà montré, il équipe aussi.
+      if (best && ((this.tab === 'inventory' && this.view?.sheetOpen === 'item' && this.view.selectedItemId === best.item.id) || this.sealShownItem === best.item.id)) {
+        this.sealShownItem = null;
+        this.actions.equip(best.item.id); Object.assign(this.view, { itemPop: null, sheetOpen: null, selectedItemId: null }); this.invalidate?.(); return;
+      }
+      this.sealShownItem = best?.item.id ?? null;
+      this.openBetterItem(); return;
+    }
     if (n.id === 'quest' && n.action === 'cast-first') { this.userAt = performance.now(); (document.querySelector('#skill-bar .skill-btn:not(.cooling)') ?? document.querySelector('#skill-bar .skill-btn'))?.click(); return; } // v10.1
     if (n.id === 'quest') { if (n.tab) { this.openTab(n.tab, n.view ?? null); this.setRing(n); } return; } // v9.9 (K2) : ouvre le bon écran
     if (n.id === 'mentor') { this.followTip(n); return; }
@@ -3057,13 +3069,24 @@ export class UI {
   }
 
   // v10.9 (7 ter) : ouvre l'équipement sur le meilleur objet qui attend (fenêtre de l'objet avec son verdict et « Équiper »).
+  // v10.19 (6.1) : l'objet que le Sceau propose d'équiper : le meilleur gain, sinon le premier « meilleur » du conseil (isUpgrade,
+  // même règle que le texte « Équiper X ») ; avant, un tel objet sans gain de Puissance ouvrait le Sac sans fiche, sans fin.
+  betterOne() {
+    const st = this.state;
+    if (!st) return null;
+    const b = betterItems(st)[0];
+    if (b) return b;
+    const it = st.inventory?.find((i) => isUpgrade(st, i));
+    return it ? { item: it, pct: 0 } : null;
+  }
+
   openBetterItem() {
-    const best = this.state ? betterItems(this.state)[0] : null;
+    const best = this.betterOne();
     this.closeModal?.();
     this.openTab('inventory');
     if (!best) return;
     const v = this.view ?? {};
-    Object.assign(v, { eqTab: 'gear', selectedItemId: best.item.id, sheetOpen: 'item', eqSlot: null, eqChange: false, eqQuick: null, itemPop: best.item.id });
+    Object.assign(v, { eqTab: 'gear', selectedItemId: best.item.id, sheetOpen: 'item', eqSlot: null, eqChange: false, eqQuick: null, itemPop: best.item.id, itemTab: 'equip' }); // v10.19 (6.1) : la fiche s'ouvre sur « Équiper » (bouton doré)
     this.invalidate?.();
   }
 
@@ -3145,7 +3168,7 @@ export class UI {
       tower: q('challenges') && best >= TOWER_UNLOCK || (state.towerBest ?? 0) > 0 || Boolean(state.tower) || challengeUnlocked(state) || Boolean(state.challenge), // v10.3 (audit 2.1) : l'Arène a son propre onglet, elle n'ouvre plus Défis
       boss: boss || Object.keys(state.powers).length > 0,
       companions: Object.keys(state.companions.owned).length > 0 || (q('summon') && boss),
-      summon: q('summon') && (boss || Object.keys(state.companions.owned).length > 0), // v9.7.1 : aucun tirage avant la fin du monde 1
+      summon: q('summon') && (boss || Object.keys(state.companions.owned).length > 0) || (menusGated(state) && menuOpen(state, 'summon')), // v9.7.1 : aucun tirage avant la fin du monde 1 ; v10.19 (6.3) : partie neuve, à l'étape 7
       shop: boss || Object.keys(state.companions.owned).length > 0, // v9.2.8 : avec l'invocation
       event: best > 40, // v9.3.5 : après le monde 2
       expeditions: Object.keys(state.companions.owned).length >= 5 || state.expeditions.slots.some(Boolean) || state.expeditions.done > 0, // v9.3.5 : stable (5 compagnons)
@@ -3161,7 +3184,9 @@ export class UI {
     };
     this.$('top-shop')?.classList.add('hidden'); // v9.9 (K6) : la Boutique est un des 5 onglets du bas
     this.$('top-profile')?.classList.add('hidden'); // v9.9 (K6) : Profil dans le tiroir ☰
-    const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}`;
+    syncMenus(state); // v10.19 (6.3) : menus du bas ouverts un par un (partie neuve)
+    const menusKey = MENUS.map((m) => (menuOpen(state, m.id) ? 1 : 0)).join('');
+    const key = `${JSON.stringify(visible)}|${this.tab}|${[...this.newTabs].join()}|${menusKey}`;
     if (this.lastHud.tabs === key) return;
     const firstPass = this.lastHud.tabsInit === undefined;
     this.lastHud.tabsInit = true;
@@ -3180,7 +3205,7 @@ export class UI {
     this.root.querySelectorAll('#tabs button').forEach((b) => {
       const menu = MENUS.find((m) => m.id === b.dataset.menu);
       if (!menu) return; // v9.3.5 : bouton Combat (toujours visible)
-      b.classList.remove('hidden');
+      b.classList.toggle('hidden', !menuOpen(state, menu.id)); // v10.19 (6.3) : pas encore ouvert (partie neuve) : caché
       b.classList.toggle('locked', !menu.tabs.some((t) => this.tabVisible[t] !== false)); // v9.9 (K6) : cadenas, plus de menu caché
       b.querySelector('.badge-new')?.classList.toggle('hidden', !menu.tabs.some((t) => this.newTabs.has(t)));
     });

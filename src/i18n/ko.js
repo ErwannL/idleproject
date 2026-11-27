@@ -504,3 +504,6 @@ PATTERNS.unshift(...patterns1018Boss());
 import { EXACT_1018, patterns1018 } from './ko-1018.js';
 for (const [k, v] of Object.entries(EXACT_1018)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1018(lookup));
+// v10.19 (partie 6) : début de partie, bulles des menus ouverts un par un (./ko-1019-debut.js).
+import { EXACT_1019_DEBUT } from './ko-1019-debut.js';
+for (const [k, v] of Object.entries(EXACT_1019_DEBUT)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;

@@ -730,6 +730,9 @@ export function sanitizeState(input, balance = BALANCE, now = Date.now()) {
     // v9.1.3 : portes du sac déjà ouvertes (Coffre et Forge restent visibles).
     if (Array.isArray(raw.ui.invUsed)) state.ui.invUsed = raw.ui.invUsed.filter((t) => ['stash', 'forge'].includes(t));
     if (Array.isArray(raw.ui.seenTabs)) state.ui.seenTabs = raw.ui.seenTabs.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 32);
+    // v10.19 (6.3) : menus du bas ouverts un par un (partie neuve seulement ; sans cette liste, tous les menus sont ouverts).
+    if (Array.isArray(raw.ui.menusOpen)) state.ui.menusOpen = raw.ui.menusOpen.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 12);
+    if (Array.isArray(raw.ui.menusNew)) state.ui.menusNew = raw.ui.menusNew.filter((t) => typeof t === 'string' && /^[a-z]{2,16}$/.test(t)).slice(0, 12);
     if (raw.ui.guide && typeof raw.ui.guide === 'object') {
       state.ui.guide = Object.fromEntries(Object.entries(raw.ui.guide).filter(([k, v]) => /^[a-z]{2,16}$/.test(k) && v === true).slice(0, 32));
     }

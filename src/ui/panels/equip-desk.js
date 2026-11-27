@@ -17,7 +17,7 @@ import { elementBadge, unitElement } from '../../core/elements.js';
 import { formatStat } from '../../core/format.js';
 import { WEAK_GAIN_PCT, canReforge, canRetype, canTargetReroll, reforgeCost, retypeCost, targetRerollChoices, targetRerollCost, upgradeGainPct, upgradePreview, weakLabel } from '../../core/forge.js';
 import { heroById } from '../../core/heroes.js';
-import { KEEP_AFFIX_LABELS } from '../../core/inventory.js';
+import { KEEP_AFFIX_LABELS, isUpgrade } from '../../core/inventory.js';
 import { xpForLevel } from '../../core/level.js';
 import { itemBase, recycleLevelOf, recycleMaterials, recycleValue } from '../../core/loot.js';
 import { setById, setCounts } from '../../core/sets.js';
@@ -29,7 +29,7 @@ import { mBar, mBtn, mBtnGold, mChip, mEmpty, mGrid, mModes, mStat, mTile, mTitl
 import { majorLine, unitTodo } from './equip-sheet.js';
 import { companionStill } from './expeditions.js';
 import { uselessPreview } from './forge.js';
-import { ICON_FUNNEL, ICON_MORE, ICON_SORT, PLURAL, SIL, SORT_LABELS, STAT_ICONS, bigArt, costOnly, equipPanel, filterBody, pill, quickRows, rarPill, ratio, setsList, skillsPanel, starsPanel, statsBlock, stashView, upPanel, verdict as verdictLine } from './equip-phone.js';
+import { ICON_FUNNEL, ICON_MORE, ICON_SORT, PLURAL, SIL, SORT_LABELS, STAT_ICONS, bigArt, betterEquipBtn, costOnly, equipPanel, filterBody, pill, quickRows, rarPill, ratio, setsList, skillsPanel, starsPanel, statsBlock, stashView, upPanel, verdict as verdictLine } from './equip-phone.js';
 import { heroTodo, unitPower, visibleItems } from './inventory.js';
 
 const e = escapeHtml;
@@ -196,7 +196,7 @@ function itemDetail(ui, state, ctx) {
   const worn = heroWorn || Boolean(wearer);
   const wearUnit = wearer ? companionById(wearer) : null;
   const forHero = !wearer && canEquip(state, item);
-  const flags = { heroWorn, wearUnit, forHero };
+  const flags = { heroWorn, wearUnit, forHero, better: !worn && forHero && isUpgrade(state, item) }; // v10.19 (6.1)
   const mode = ['up', 'reforge', 'equip'].includes(v.itemTab) ? v.itemTab : worn ? 'up' : 'equip';
   const pv = wearer ? gearUpgradePreview(state, item, skillKillGold(state)) : upgradePreview(state, item);
   const ups = item.upgrades ?? 0;
@@ -213,7 +213,7 @@ function itemDetail(ui, state, ctx) {
   const oldTag = weak ? `<div class="de-old" role="note"><b>${e(weakLabel(state, item))}</b>${mBtn('Trouver mieux ›', { action: 'find-better', value: hslot, cls: 'auto' })}</div>` : '';
   const head = `<div class="de-head">${mTile(item, { size: 110, plus: ups ? `+${ups}` : '' })}
       <div class="de-hid"><b class="de-name r-${item.rarity}">${e(item.name)}</b><div class="em-pills">${rarPill(item.rarity)}${pill('slot', unit && wearUnit ? slotName(wearUnit, eqSlot(item)) : HERO_SLOTS[hslot] ?? '')}${base.signature ? pill('anc', 'Ancestral') : ''}</div>
-        ${pv.max ? `<div class="em-lvl"><span>Renfort +${pv.level} <small>/ ${pv.max}</small></span>${mBar(ratio(pv.level, pv.max))}</div>` : ''}</div></div>${oldTag}`;
+        ${pv.max ? `<div class="em-lvl"><span>Renfort +${pv.level} <small>/ ${pv.max}</small></span>${mBar(ratio(pv.level, pv.max))}</div>` : ''}</div></div>${oldTag}${betterEquipBtn(item, flags, mode)}`;
   // Statistiques : la principale en grand, puis les autres, les effets spéciaux (avec leur icône) et le grand effet.
   const entries = Object.entries(item.stats);
   const mainKey = item.stats.damage != null ? 'damage' : item.stats.maxHp != null ? 'maxHp' : entries[0]?.[0];

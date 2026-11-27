@@ -3,15 +3,24 @@
 // Une étape à la fois ; toucher la cible (ou « OK ») la termine pour de bon (state.ui.hints, déjà sauvegardé).
 import { adviceScreen } from '../core/guide.js';
 import { isUpgrade } from '../core/inventory.js';
+import { MENU_GATES, firstWaveDone, menuOpen, menuSeen, menusGated } from '../core/menu-gates.js'; // v10.19 (6.3, 6.4)
+import { isUnlocked } from '../core/unlock-quests.js';
 const has = (state, id) => (state.ui?.hints ?? []).includes(id);
 
 // v9.3.5 : actions guidées dans l'ordre des premières minutes — équiper le premier objet, acheter Dégâts, apprendre
 // Frappe rapide ; après le premier mini-boss : première invocation, puis placer le compagnon.
 const MENU = (m) => `#tabs button[data-menu="${m}"]`;
+// v10.19 (6.3) : un menu du bas qui vient de s'ouvrir (partie neuve) : « Nouveau : Héros », le doigt sur le bouton du menu.
+// Ces bulles passent avant les autres (un menu à la fois) ; toucher le menu (ou 25 s sans le toucher) les termine.
+export const MENU_STEPS = MENU_GATES.map((g) => ({ id: `menu-${g.id}`, menu: g.id, finger: true, text: `Nouveau : ${g.label}`,
+  when: (s) => (s.ui?.menusNew ?? []).find((m) => !has(s, `menu-${m}`)) === g.id, targets: [MENU(g.id)] }));
 export const TUTO_STEPS = [
+  ...MENU_STEPS,
+  // v10.19 (6.1) : le doigt montre le bouton doré « Équiper » de la fiche (objet du Sac meilleur que celui porté) ; la bulle
+  // disparaît dès qu'un objet est équipé (records.equips).
   { id: 'tuto-item', finger: true, text: 'Nouvel objet : touche « Équiper »',
-    when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3 && s.inventory.some((i) => isUpgrade(s, i)), // v10.13 (9) : seulement s'il y a un objet à équiper
-    targets: ['.eq-sheet [data-action="equip"]', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
+    when: (s) => (s.inventory?.length ?? 0) > 0 && (s.records?.bossesDefeated ?? 0) < 3 && (s.records?.equips ?? 0) < 1 && s.inventory.some((i) => isUpgrade(s, i)), // v10.13 (9) : seulement s'il y a un objet à équiper
+    targets: ['.em-better-equip', '#eq-sheet [data-action="equip"]', '[data-action="select-item"]:has(.m-up)', '[data-action="select-item"]', '[data-sub="inventory"]', MENU('hero')] },
   { id: 'tuto-damage', finger: true, text: 'Touche ici : plus de Dégâts',
     when: (s) => (s.upgrades?.damage ?? 0) < 1,
     targets: ['button[data-action="buy"][data-key="damage"]', '[data-sub="upgrades"]', MENU('hero')] },
@@ -21,7 +30,7 @@ export const TUTO_STEPS = [
   { id: 'tuto-summon', finger: true, text: 'Invoque ton premier compagnon',
     // v10.1 : seulement quand l'Invocation est débloquée (plus de doigt sur un menu verrouillé) ; l'Invocation a son menu.
     when: (s) => (s.records?.bossesDefeated ?? 0) >= 1 && !Object.keys(s.companions?.owned ?? {}).length && (s.gems ?? 0) >= 100
-      && (!s.unlocks || s.unlocks.legacy || (s.unlocks.done ?? []).includes('summon')),
+      && (menusGated(s) ? menuOpen(s, 'summon') : isUnlocked(s, 'summon')), // v10.19 (6.3) : partie neuve, menu Invocation à l'étape 7
     targets: ['[data-action="summon"]:not([disabled])', '[data-sub="summon"]', MENU('summon')] },
   { id: 'tuto-companion', finger: true, text: 'Place ton compagnon dans l\'équipe',
     when: (s) => Object.keys(s.companions?.owned ?? {}).length > 0 && !(s.companions?.equipped ?? []).length,
@@ -32,7 +41,7 @@ export const TUTO_STEPS = [
   { id: 'tip-boost', finger: false, dot: true, text: 'Bonus du moment : plus d\'or et d\'expérience. Touche pour le détail.',
     when: () => true, targets: ['#boost-chip'] },
   { id: 'tip-claim', finger: false, text: 'Récupère d\'un coup toutes les récompenses prêtes.',
-    when: () => true, targets: ['[data-action="claim-everything"]'] },
+    when: (s) => firstWaveDone(s), targets: ['[data-action="claim-everything"]'] }, // v10.19 (6.4) : jamais avant la fin de la 1re vague
 ];
 
 // v10.13 (9) : l'écran que chaque étape du doigt fait ouvrir. Le doigt ne s'affiche que s'il mène au même écran que le Sceau
@@ -66,7 +75,7 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
     if (has(state, st.id) || !st.when(state, full)) continue;
     if (!stepAgrees(st, advice)) continue; // v10.13 (9) : le Sceau conseille autre chose : lui seul parle
     if (!st.finger && panelOpen) continue; // v9.8 : les bulles d'info ne se montrent que sur la scène (plus sur chaque écran)
-    if (already && already !== st.id) return null;
+    if (already && already !== st.id && !st.menu) return null; // v10.19 (6.3) : la bulle d'un nouveau menu passe toujours
     // v9.8 (0.1) : cible directe d'abord ; sinon le menu ou l'onglet qui y mène (seul chemin vers la cible).
     for (const sel of st.targets) {
       if (isNav(sel)) continue;
@@ -86,8 +95,20 @@ export function pickStep(state, root, full, panelOpen = false, screen = panelOpe
 }
 
 export function markDone(state, id) {
-  if (!state.ui) return;
+  if (!state?.ui) return;
   if (!has(state, id)) state.ui.hints = [...(state.ui.hints ?? []), id].slice(-150);
+  if (id?.startsWith('menu-')) menuSeen(state, id.slice(5)); // v10.19 (6.3)
+}
+
+// v10.19 (6.6) : aucune bulle ne reste plus de 30 s à l'écran : au bout de BUBBLE_MAX_MS d'affichage (cumulé), l'étape est
+// terminée pour de bon (le joueur l'a vue ; le Sceau reste là pour guider).
+export const BUBBLE_MAX_MS = 25000;
+const shownMs = new Map(); // étape → { total, since }
+export function bubbleExpired(id, now, visibleNow) {
+  const m = shownMs.get(id) ?? { total: 0, since: null };
+  if (visibleNow) { if (m.since == null) m.since = now; } else if (m.since != null) { m.total += now - m.since; m.since = null; }
+  shownMs.set(id, m);
+  return m.total + (m.since != null ? now - m.since : 0) >= BUBBLE_MAX_MS;
 }
 
 // Dessine (ou retire) le doigt et la bulle. Appelé avec le rafraîchissement des pastilles (2 fois par seconde).
@@ -98,6 +119,9 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
   let layer = document.getElementById('tuto-layer');
   const screen = panelOpen ? `panel:${root.querySelector('#panel h2')?.textContent ?? ''}` : 'scene';
   const pick = state.settings?.tutorial === false ? null : pickStep(state, root, full, panelOpen, screen, advice);
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  for (const id of shownMs.keys()) if (id !== pick?.step.id) bubbleExpired(id, now, false); // les autres étapes ne comptent plus
+  if (pick && !pick.step.dot && bubbleExpired(pick.step.id, now, true)) { markDone(state, pick.step.id); layer?.remove(); return; } // v10.19 (6.6)
   if (!pick) { layer?.remove(); return; }
   if (!layer) {
     layer = document.createElement('div');
@@ -134,7 +158,7 @@ export function updateTutorial(state, root, full, panelOpen = false, translate =
     el.dataset.tuto = step.id;
     el.addEventListener('click', () => {
       // Les onglets du menu ne sont qu'un détour : l'étape continue sur le vrai bouton.
-      if (!el.matches('#tabs button, [data-sub], [data-action="select-item"], [data-action="skill-sel"], [data-action="companion-sel"]')) markDone(state, step.id); // détours
+      if (step.menu || !el.matches('#tabs button, [data-sub], [data-action="select-item"], [data-action="skill-sel"], [data-action="companion-sel"]')) markDone(state, step.id); // détours (le bouton d'un nouveau menu, lui, termine sa bulle)
       document.getElementById('tuto-layer')?.remove();
     }, { once: true });
   }
