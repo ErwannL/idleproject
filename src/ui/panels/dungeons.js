@@ -196,7 +196,7 @@ function phoneBanner(state, d, rec = false) {
   const nm = nightmareBest(state, d.id);
   const act = locked ? `<span class="dgm-lock">${img('icon_lock', 'ico-lock')} Étape ${stageLabel(d.unlockStage)}</span>` : mBtn('Entrer', { action: 'dungeon-sel', value: d.id, cls: `dgm-enter${rec ? ' dgm-rec' : ''}` });
   const sweep = !locked && stars && n > 0 ? mChip(`Balayer ×${n}`, { action: 'sweep-n', value: `${d.id}|${diff}|${n}` }) : '';
-  return `<div class="m-card dgm${locked ? ' locked' : ''}" data-d="${d.id}" style="--dgm-bg:url(assets/ui/art101/dungeon_${d.id}.png)">
+  return `<div class="m-card dgm${locked ? ' locked' : ''}" data-d="${d.id}">
     <div class="dgm-info"><b class="dgm-name">${escapeHtml(d.name)}</b><span class="dgm-sub">${escapeHtml(BOSSES[d.boss].name)} ${elemTag(zoneElement(d.zone))}</span>
       <span class="dgm-row"><span class="dg-stars" role="img" aria-label="${stars} étoiles sur 3">${stars3(stars)}</span>${nm ? `<small>Cauchemar ${roman(nm)}</small>` : ''}${g ? `<span class="dgm-gain" title="${escapeHtml(g.label)}">${img(GAIN_ICON[g.key])}<span>${escapeHtml(g.label)}</span></span>` : ''}</span>${sweep}</div>
     <div class="dgm-side"><img class="px dgm-boss" src="assets/ui/art102/${BOSS_ART[d.id]}.png" alt="">${act}</div></div>`;

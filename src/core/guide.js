@@ -17,7 +17,7 @@ import { upgradeOpen } from './unlocks.js';
 import { bulkPlan, upgradeCost } from './economy.js';
 import { skillPointCost, skillPointsAvailable } from './skills.js';
 import { SKILLS } from '../data/skills.js';
-import { canRebirth, rebirthBlocked, rebirthGain, rebirthReward, rebirthWorth } from './rebirth.js';
+import { canRebirth, rebirthAdviceOpen, rebirthBlocked, rebirthGain, rebirthReward, rebirthWorth } from './rebirth.js';
 import { COMPANION_RULES } from '../data/companions.js';
 import { DUNGEONS } from '../data/dungeons.js';
 import { TOWER, climbsLeft, dayKey } from './tower.js'; // v9.6.2 (dayKey : même jour que le Carnet)
@@ -233,7 +233,7 @@ function* actionCandidates(state, ctx = {}, balance = BALANCE) {
   // v9.3.8 : Renaissance aussi quand la progression ralentit (plus de 10 min de jeu sans nouveau record).
   const slowing = (state.playSeconds ?? 0) - (state.recordAt ?? state.playSeconds ?? 0) > 600
     || (state.playSeconds ?? 0) - (state.ui?.wallAt ?? -1e9) < 1800; // v9.8 (I5) : mur détecté (retour automatique)
-  if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) {
+  if ((blocked || slowing || rebirthWorth(state)) && open('tree') && canRebirth(state) && rebirthAdviceOpen(state) && !rebirthBlocked(state) && rebirthReward(state) > 0) { // v10.20 (7.3)
     yield { id: 'rebirth', text: `Renaître (+${Math.round((PRESTIGE.rebirthMultiplier ** rebirthGain(state) - 1) * 100)} % de dégâts)`, tab: 'tree', view: { treeSeg: 'rebirth' } };
   }
   if (blocked) {

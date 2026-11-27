@@ -245,6 +245,13 @@ export function rebirthCatchUp(state) {
 export function rebirthMult(state) {
   return PRESTIGE.rebirthMultiplier ** rebirthGain(state);
 }
+// v10.20 (7.3) : le conseil « Renaître » (Mentor, Sceau) ne vient qu'à partir de l'étape 60 ou après 2 h de jeu tant que le
+// joueur n'est jamais reparti (avant : dès 8 min). Le bouton de la Renaissance reste là où il était.
+export const REBIRTH_ADVICE = { minStage: 60, minPlaySeconds: 2 * 3600 };
+export function rebirthAdviceOpen(state) {
+  if ((state.records?.rebirths ?? 0) > 0) return true;
+  return Math.max(state.maxStage ?? 0, state.records?.bestStage ?? 0) >= REBIRTH_ADVICE.minStage || (state.playSeconds ?? 0) >= REBIRTH_ADVICE.minPlaySeconds;
+}
 export function rebirthWorth(state) {
   const r = rebirthReward(state);
   if (r <= 0) return false;

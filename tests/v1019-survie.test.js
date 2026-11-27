@@ -91,7 +91,7 @@ test('4.4 : le Second souffle se déclenche une seule fois par boss (1 PV, 1,5 s
   const { state, world } = arena();
   const rng = new Rng(3);
   const maxHp = world.heroStats.maxHp;
-  world.hero.hp = maxHp * 0.55;
+  world.hero.hp = maxHp * (SV.secondWind.above + 0.05); // v10.20 : coup lourd plafonné à 40 %, seuil 30 %
   const boss = striker(world, { damage: 1e12, boss: true, heavy: true });
   world.events.length = 0;
   step(state, world, 0.01, rng);
@@ -105,17 +105,18 @@ test('4.4 : le Second souffle se déclenche une seule fois par boss (1 PV, 1,5 s
   world.events.length = 0;
   step(state, world, 0.01, rng);
   assert.equal(world.events.filter((e) => e.type === 'heroHit').length, 0);
-  // Après : PV remontés au-dessus de 50 %, le même boss ne le redonne pas.
-  world.time += 2; world.hero.hp = maxHp * 0.55; boss.heavy = true; boss.attackTimer = 0.001;
+  // Après : PV remontés au-dessus du seuil, le même boss ne le redonne pas.
+  world.time += 2; world.hero.hp = maxHp * (SV.secondWind.above + 0.05); boss.heavy = true; boss.attackTimer = 0.001;
   world.events.length = 0;
   step(state, world, 0.01, rng);
   assert.equal(winds(), 0);
   assert.ok(world.events.some((e) => e.type === 'heroDeath'));
 });
 
-test('4.4 : pas de Second souffle sous 50 % des PV', () => {
+// v10.20 (7.2) : seuil abaissé à 30 % (secondWind.above 0,5 → 0,3).
+test('4.4 : pas de Second souffle sous le seuil (30 % des PV depuis la 10.20)', () => {
   const { state, world } = arena();
-  world.hero.hp = world.heroStats.maxHp * 0.4;
+  world.hero.hp = world.heroStats.maxHp * (SV.secondWind.above - 0.1);
   striker(world, { damage: 1e12, boss: true, heavy: true });
   world.events.length = 0;
   step(state, world, 0.01, new Rng(2));

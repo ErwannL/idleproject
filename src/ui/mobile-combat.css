@@ -46,8 +46,15 @@
 #app.m-phone .cb-frame .dgm-head .m-costs { margin: 0; justify-content: flex-start; }
 #app.m-phone .cb-frame .dgm {
   position: relative; height: 120px; display: grid; grid-template-columns: minmax(0, 1fr) 108px; gap: 8px; padding: 8px 8px 8px 12px; overflow: hidden; border-color: var(--m-gold);
-  background: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), var(--dgm-bg) center / cover no-repeat; background-color: var(--m-card);
+  background: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)) center / cover no-repeat; background-color: var(--m-card);
 }
+/* v10.20 (7.5) : l'image venait d'une variable posée dans le HTML (--dgm-bg:url(assets/…)) et résolue depuis src/ui/ (404).
+   Elle est maintenant écrite ici, directement dans background-image. */
+#app.m-phone .cb-frame .dgm[data-d="crypt"] { background-image: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), url(../../assets/ui/art101/dungeon_crypt.png); }
+#app.m-phone .cb-frame .dgm[data-d="sanctuary"] { background-image: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), url(../../assets/ui/art101/dungeon_sanctuary.png); }
+#app.m-phone .cb-frame .dgm[data-d="furnace"] { background-image: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), url(../../assets/ui/art101/dungeon_furnace.png); }
+#app.m-phone .cb-frame .dgm[data-d="glacier"] { background-image: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), url(../../assets/ui/art101/dungeon_glacier.png); }
+#app.m-phone .cb-frame .dgm[data-d="citadel"] { background-image: linear-gradient(90deg, rgba(11, 17, 36, .95) 0, rgba(11, 17, 36, .72) 62%, rgba(11, 17, 36, .45)), url(../../assets/ui/art101/dungeon_citadel.png); }
 #app.m-phone .cb-frame .dgm.locked { filter: grayscale(.7) brightness(.8); }
 #app.m-phone .cb-frame .dgm-info { display: flex; flex-direction: column; justify-content: space-between; gap: 2px; min-width: 0; }
 #app.m-phone .cb-frame .dgm-name { font-size: 17px; font-weight: 900; line-height: 1.1; text-shadow: 0 2px 0 #000; }
