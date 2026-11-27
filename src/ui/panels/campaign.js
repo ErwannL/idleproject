@@ -38,7 +38,7 @@ function summary(ui, state) {
         <div class="muted">Étape ${pos} / ${len}${boss ? ` · ${next === state.stage ? 'boss en cours' : `prochain boss dans ${next - state.stage} étape${next - state.stage > 1 ? 's' : ''}`} : <b>${escapeHtml(boss.name)}</b> (${TIER_LABELS[tier]})` : ''}</div></div>
         <div class="adv-auto">${state.autoAdvance ? '<span class="good">▶ Avance automatique</span>' : '<button class="btn btn-primary small" data-action="advance">Avancer ▶</button>'}</div></div>
       ${progressBar(pos / len, `${pos} / ${len}`)}
-      ${forecastHtml(bossForecast(state, () => ui.invalidate()))}
+      ${forecastHtml(bossForecast(state, () => ui.invalidate()), state)}
       ${retryBox(state)}
     </div>`;
 }
@@ -203,7 +203,7 @@ function phoneView(ui, state, c) {
     ${rv ? mBtn('Face-à-face', { action: 'revenge' }) : '<span class="cb-mini-r" title="Le face-à-face avec le Colosse a lieu à la fin du monde.">fin du monde</span>'}</div>`;
   const arena = arenaUnlocked(state) ? `<button type="button" class="m-card cb-mini cb-arena" data-action="open-tab" data-value="arena"><span class="cb-mini-t"><b>Arène à cartes</b><span class="cb-mini-s">Étage ${cardArena(state).best + 1} · ${totalStars(state)} ★</span></span><span class="cb-mini-r">›</span></button>` : '';
   const cycles = maxCycle > 0 ? `<div class="m-chips">${Array.from({ length: maxCycle + 1 }, (_, i) => mChip(`×${i + 1}`, { action: 'cycle-pick', value: i, on: i === cycle })).join('')}</div>` : '';
-  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Carte', true)}${head}${retry === null ? forecastHtml(bossForecast(state, () => ui.invalidate())) : ''}${main}
+  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Carte', true)}${head}${retry === null ? forecastHtml(bossForecast(state, () => ui.invalidate()), state) : ''}${main}
     <div class="cb-mapbox"><div class="mini-map"><img class="px" src="assets/ui/worldmap.png" alt="">${markers}</div></div>
     <div class="world-picker cb-picker"><button type="button" class="m-btn" data-action="zone-sel" data-value="${sel - 1}" ${sel > 0 ? '' : 'disabled'} aria-label="Monde précédent"><span>◀</span></button>
       <b class="world-name">${sel + 1}. ${escapeHtml(ZONES[sel].name)}</b>
