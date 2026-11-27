@@ -19,6 +19,7 @@ import { WALLET } from '../../data/economy.js';
 import { COMPANIONS } from '../../data/companions.js';
 import { ZONES } from '../../data/zones.js';
 import { grandBoss } from '../../data/grand-bosses.js';
+import { pageNarrow } from '../page.js'; // v10.20 (6.3)
 const isPhoneUi = () => true; // v10.13 : le PC emploie le même kit (cadre, cartouche, tuiles) que le téléphone ; desk-activities.css lui donne ses tailles
 
 const dateText = (ms) => { const d = new Date(ms); return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`; };
@@ -200,7 +201,7 @@ function phoneGrand(ui, state, ev) {
     : '<div class="m-card good">Carte terminée.</div>';
   const items = shop.map((i) => `<div class="m-card ev-item"><span class="ev-give">${give(i.give)}</span><span class="cb-sub num">${(rec.bought[i.id] ?? 0)}/${i.stock}</span>
       <button type="button" class="m-btn" data-action="event-buy" data-value="${i.id}" ${rec.coins >= i.price && (rec.bought[i.id] ?? 0) < i.stock ? '' : 'disabled'}>${walletIcon('eventCoins')}<span>${i.price}</span></button></div>`).join('');
-  return `${head}<div class="m-card ev-mapcard"><div class="ev-map">${regions}</div></div>${fight}
+  return `${head}${SPLIT}<div class="m-card ev-mapcard"><div class="ev-map">${regions}</div></div>${fight}
     ${last ? `<div class="cb-sub">${last}</div>` : ''}<div class="cb-sub cb-help">Combat automatique : ${G.fightSeconds} s de dégâts du héros contre les PV du gardien. Étape ${G.fragmentStage} : fragment Légendaire universel.</div>
     ${wb ? phoneBoss(state, wb) : ''}<b class="ev-h">${walletIcon('eventCoins')} Boutique des écus</b><div class="ev-shop-grid">${items}</div>`;
 }
@@ -236,13 +237,19 @@ function phoneSmall(state, ev) {
   const head = poster('ev-small', `background-image:url(${E.art.key})`,
     `<span class="ev-poster-l"><b class="ev-t">${escapeHtml(E.title)}</b><span class="ev-sub" title="${escapeHtml(E.tagline)}">encore ${left} j</span><span class="ev-wallet">${cur}<b class="num">${wallet.have}</b> ${E.currency}</span></span>
      <span class="ev-poster-r"><img class="px" src="${E.art.prize}" alt="${escapeHtml(E.prize.label)}"><small>Grand prix · ${escapeHtml(E.prize.label)}</small></span>`);
-  return `${head}<div class="lt-map ev-lanterns"><div class="ev-lanes" style="background-image:url(${E.art.path})"><svg class="lt-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${dots}"/></svg>${nodes}</div></div>
+  return `${head}${SPLIT}<div class="lt-map ev-lanterns"><div class="ev-lanes" style="background-image:url(${E.art.path})"><svg class="lt-road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="${dots}"/></svg>${nodes}</div></div>
     ${ready > 1 ? mBtnGold(`Tout récupérer (${ready})`, { action: 'lights-all' }) : ''}
     <b class="ev-h">Allume des lanternes</b>${tiles}<b class="ev-h">Échoppe des Lueurs</b><div class="ev-shop-grid">${shop}</div>`;
 }
 
+// v10.20 (6.3) : sur téléphone, tout ce qui suit l'affiche défile dans le cadre (.ev-scroll) ; titre et affiche restent fixes.
+// Ailleurs (PC), la marque de coupure est simplement retirée : rendu inchangé.
+const SPLIT = '<!--ev-split-->';
 function phoneEvent(ui, state, ev, news) {
-  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${ev.kind === 'grand' ? phoneGrand(ui, state, ev) : phoneSmall(state, ev)}</div>`;
+  const html = ev.kind === 'grand' ? phoneGrand(ui, state, ev) : phoneSmall(state, ev);
+  const i = html.indexOf(SPLIT);
+  const inner = i < 0 ? html : pageNarrow(ui) ? `${html.slice(0, i)}<div class="ev-scroll">${html.slice(i + SPLIT.length)}</div>` : html.replace(SPLIT, '');
+  return `<div class="m-frame cb-frame">${mTitle('icon_map', 'Événement', true)}${news}${inner}</div>`;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

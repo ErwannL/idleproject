@@ -1,6 +1,7 @@
 // Équipe > Composition : le héros + 2 compagnons + 1 familier ; collection, niveaux, capacités.
 // v9.1.0 : expéditions dans leur propre onglet, builds dans Équipement, synergies repliées (actives visibles).
 import { teamChips } from '../team-chips.js'; // v9.9 (K16)
+import { pageNarrow } from '../page.js'; // v10.20 (6.3)
 import { BONDS } from '../../data/bonds.js'; // v9.7.1 (lot 6)
 import { BALANCE } from '../../data/balance.js';
 import { COMPANION_RULES } from '../../data/companions.js';
@@ -308,9 +309,10 @@ export default {
       const filters = `<div class="mt-filters">${mModes([{ id: 'ally', label: `Compagnons ${nOwn(allies)}`, action: 'comp-tab', value: 'ally' }, { id: 'pet', label: `Familiers ${nOwn(pets)}`, action: 'comp-tab', value: 'pet' }], tab)}
         ${mBtn(`Préréglages ${presetsOpen ? '▴' : '▾'}`, { action: 'm-set', value: presetsOpen ? '' : '1', cls: `mt-filter${presetsOpen ? ' on' : ''}`, attrs: `data-key="mPresets" aria-expanded="${presetsOpen}"` })}</div>`;
       const presets = presetsOpen ? `<div class="m-card mt-presets"><b class="mt-sub">Équipes enregistrées</b><div class="mt-pre-row">${ls.length ? ls.map((l, i) => (l.team ? mBtn(l.name, { action: 'apply-build', value: i }) : mBtn('+ Enregistrer', { action: 'save-loadout', value: i }))).join('') : '<span class="muted">Aucune place d\'équipe enregistrée.</span>'}</div></div>` : '';
-      const frame = `<div class="m-frame mt-frame mt-comp">${mTitle('icon_paw', 'Compagnons', true)}${banner}${bestBtn || upBtn ? `<div class="mt-actions">${best ? bestBtn : upBtn}${best ? upBtn : ''}</div>` : ''}${filters}${presets}
+      const narrow = pageNarrow(ui); // v10.20 (6.3) : téléphone : la grille défile dans son cadre, l'équipe et les filtres restent fixes
+      const frame = `<div class="m-frame mt-frame mt-comp">${mTitle('icon_paw', 'Compagnons', true)}${banner}${bestBtn || upBtn ? `<div class="mt-actions">${best ? bestBtn : upBtn}${best ? upBtn : ''}</div>` : ''}${filters}${narrow ? '<div class="mt-scroll">' : ''}${presets}
         <div class="mt-grid3">${list.map(card).join('')}</div><p class="mt-hint">Touche un portrait : fiche plein écran.</p>
-        ${fold(ui, 'team-tips', 'Conseils : synergies et liens', tips, { extra: tipsExtra })}</div>`;
+        ${fold(ui, 'team-tips', 'Conseils : synergies et liens', tips, { extra: tipsExtra })}${narrow ? '</div>' : ''}</div>`;
       return `${frame}${ui.view.sheetOpen === 'companion' ? companionSheet(ui, state, sel, owned, equipped, upgradeLine) : ''}`;
     }
     // v10.13 (lot 6) : PC « vrai jeu » (maquette m06) : bandeau, préréglages, grille 7 colonnes, fiche toujours visible (companions-desk.js).

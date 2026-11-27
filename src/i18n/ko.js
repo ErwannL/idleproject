@@ -519,3 +519,6 @@ for (const [k, v] of Object.entries(EXACT_1019_DEBUT)) if (!Object.hasOwn(EXACT,
 import { EXACT_1019_UI, patterns1019Ui } from './ko-1019-ui.js';
 for (const [k, v] of Object.entries(EXACT_1019_UI)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
 PATTERNS.unshift(...patterns1019Ui(lookup));
+// v10.20 (partie 6) : téléphone, sections repliables des Objectifs (./ko-1020-tel.js).
+import { EXACT_1020_TEL } from './ko-1020-tel.js';
+for (const [k, v] of Object.entries(EXACT_1020_TEL)) if (!Object.hasOwn(EXACT, k)) EXACT[k] = v;
