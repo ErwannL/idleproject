@@ -25,7 +25,11 @@ function simulate(boss) {
   let i = 0;
   for (let t = 0; t < 10; t += dt) {
     fx.hit = Math.max(0, fx.hit - dt); fx.tint = Math.max(0, (fx.tint ?? 0) - dt);
-    while (i < hits.length && hits[i].t <= t) { markHit(fx, t, { boss, crit: hits[i].crit, color: hits[i].color }); i++; }
+    while (i < hits.length && hits[i].t <= t) {
+      if (boss) markHit(fx, t, { boss, crit: hits[i].crit, color: hits[i].color });
+      else fx.hit = hits[i].crit ? 0.13 : 0.08; // ancienne règle (avant v10.16), reproduite ici
+      i++;
+    }
     frames++; if (fx.hit > 0) white++;
   }
   return white / frames;
@@ -48,7 +52,8 @@ test('A1 : flash seulement sur un critique, au plus toutes les 0,25 s ; sinon te
   assert.equal(markHit(fx, 1.1, { boss: true, crit: true }), 'flash');
   assert.equal(markHit(fx, 1.1 + BOSS_FLASH_GAP - 0.01, { boss: true, crit: true }), 'tint', 'deux flashs trop rapprochés');
   assert.equal(markHit(fx, 1.1 + BOSS_FLASH_GAP, { boss: true, crit: true }), 'flash');
-  assert.equal(markHit({ hit: 0 }, 0, { boss: false }), 'flash', 'ennemi ordinaire : inchangé');
+  const f0 = { hit: 0 }; // v10.19 (7.4) : ennemi ordinaire : flash de couleur, jamais blanc plein
+  assert.equal(markHit(f0, 0, { boss: false }), 'color'); assert.equal(f0.hit, 0);
   // Coup blanc (sans élément) : teinte chaude, pas une silhouette blanche.
   const f2 = { hit: 0 }; markHit(f2, 0, { boss: true, color: '#ffffff' });
   assert.notEqual(f2.tintColor, '#ffffff');

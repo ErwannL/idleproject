@@ -35,6 +35,7 @@ export const EXACT_1016_TITANS = {
   // 폭풍
   'Javelot de foudre': '번개 투창', 'Un éclair lancé en ligne droite, très rapide.': '일직선으로 아주 빠르게 던지는 번개.',
   "Chaîne d'éclairs": '연쇄 번개', "L'éclair saute du héros à chaque compagnon.": '번개가 영웅에게서 동료에게로 차례로 튄다.',
+  "Ciel d'orage": '폭풍 하늘', 'Fissures du vide': '공허의 균열',
   'Tonnerre': '천둥', 'Quatre éclairs tombent sur des cercles électriques.': '전기 원 위로 번개 네 줄기가 떨어진다.',
   'Des nuages noirs couvrent le ciel, la pluie tombe.': '먹구름이 하늘을 덮고 비가 내린다.',
   'Colère du ciel': '하늘의 분노', "Son corps se charge d'arcs électriques, les éclairs illuminent la scène.": '몸에 전기가 휘감기고 번개가 전장을 밝힌다.',

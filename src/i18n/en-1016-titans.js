@@ -35,6 +35,7 @@ export const EXACT_1016_TITANS = {
   // Orage
   'Javelot de foudre': 'Lightning Javelin', 'Un éclair lancé en ligne droite, très rapide.': 'A bolt thrown in a straight line, very fast.',
   "Chaîne d'éclairs": 'Chain Lightning', "L'éclair saute du héros à chaque compagnon.": 'The lightning jumps from the hero to each companion.',
+  "Ciel d'orage": 'Storm sky', 'Fissures du vide': 'Void cracks',
   'Tonnerre': 'Thunder', 'Quatre éclairs tombent sur des cercles électriques.': 'Four bolts strike down on electric circles.',
   'Des nuages noirs couvrent le ciel, la pluie tombe.': 'Black clouds cover the sky and rain falls.',
   'Colère du ciel': 'Wrath of the Sky', "Son corps se charge d'arcs électriques, les éclairs illuminent la scène.": 'His body crackles with electric arcs and lightning lights up the scene.',

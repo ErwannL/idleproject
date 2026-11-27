@@ -146,13 +146,13 @@ export const DAY_TITANS = [
     ['storm_javelin', 'Javelot de foudre', 'Un éclair lancé en ligne droite, très rapide.'],
     ['storm_chain', "Chaîne d'éclairs", "L'éclair saute du héros à chaque compagnon."],
     ['storm_thunder', 'Tonnerre', 'Quatre éclairs tombent sur des cercles électriques.'],
-    ['storm_clouds', 'Tonnerre', 'Des nuages noirs couvrent le ciel, la pluie tombe.'],
+    ['storm_clouds', "Ciel d'orage", 'Des nuages noirs couvrent le ciel, la pluie tombe.'],
     ['storm_wrath', 'Colère du ciel', "Son corps se charge d'arcs électriques, les éclairs illuminent la scène."]]),
   titan('titan_void', 'dark', 'Titan du Néant', 'Titan du samedi', 'grayscale(1) brightness(0.6) sepia(1) hue-rotate(230deg) saturate(3)', ['#b04dff', '#e0a8ff'], [
     ['void_orb', 'Orbe du vide', 'Un petit trou noir avale la lumière puis implose.'],
     ['void_step', 'Pas du néant', 'Il disparaît en fumée violette, réapparaît plus près et frappe aussitôt.'],
     ['void_rift', 'Faille', "Une déchirure derrière l'équipe aspire tout vers elle."],
-    ['void_cracks', 'Faille', 'Des fissures violettes restent ouvertes dans le décor.'],
+    ['void_cracks', 'Fissures du vide', 'Des fissures violettes restent ouvertes dans le décor.'],
     ['void_eclipse', 'Éclipse', 'Un soleil noir se lève, puis une déchirure traverse la cible.']]),
 ];
 for (const t of DAY_TITANS) GRAND_BOSSES[t.id] = t;
