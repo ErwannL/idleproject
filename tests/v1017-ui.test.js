@@ -72,8 +72,8 @@ test('10.17 (E) : points de compétence en grand et sur « Héros », fragments 
 
 test('10.17 : textes en anglais et en coréen, branchés à la fin de en.js et ko.js', () => {
   assert.deepEqual(Object.keys(EN).sort(), Object.keys(KO).sort());
-  assert.match(src('src/i18n/en.js'), /import \{ EXACT_1017_UI, patterns1017Ui \} from '\.\/en-1017-ui\.js';\s*for[^\n]*\nPATTERNS\.unshift\(\.\.\.patterns1017Ui\(\)\);\s*$/);
-  assert.match(src('src/i18n/ko.js'), /import \{ EXACT_1017_UI, patterns1017Ui \} from '\.\/ko-1017-ui\.js';\s*for[^\n]*\nPATTERNS\.unshift\(\.\.\.patterns1017Ui\(\)\);\s*$/);
+  assert.match(src('src/i18n/en.js'), /import \{ EXACT_1017_UI, patterns1017Ui \} from '\.\/en-1017-ui\.js';\s*for[^\n]*\nPATTERNS\.unshift\(\.\.\.patterns1017Ui\(\)\);/); // v10.18 : d'autres branchements suivent
+  assert.match(src('src/i18n/ko.js'), /import \{ EXACT_1017_UI, patterns1017Ui \} from '\.\/ko-1017-ui\.js';\s*for[^\n]*\nPATTERNS\.unshift\(\.\.\.patterns1017Ui\(\)\);/); // v10.18 : d'autres branchements suivent
   assert.equal(en('points à dépenser'), 'points to spend');
   assert.equal(en('🔒 Achats bientôt disponibles'), '🔒 Purchases coming soon');
   assert.equal(en('152 points de compétence à dépenser'), '152 skill points to spend');

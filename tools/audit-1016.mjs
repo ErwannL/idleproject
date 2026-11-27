@@ -26,10 +26,12 @@ export function audit1016Init() {
     for (const r of roots) {
       for (const b of r.querySelectorAll('button:disabled, button[aria-disabled="true"], [role="button"][aria-disabled="true"]')) {
         if (!shown(b) || b.closest('#tabs') || b.closest('.m-chips, .mp-chips')) continue;
-        if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step, .stage-grid button, .world-picker .m-btn')) continue; // cases graphiques (carte, arbre, places) : le cadenas dit l'état (comme src/ui/why-off.js)
+        if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step, .stage-grid button, .world-picker .m-btn, .fw-prize-c')) continue; // cases graphiques (carte, arbre, places, gros lot) : le cadenas ou la ligne au-dessus dit l'état (comme src/ui/why-off.js)
         const own = (b.textContent ?? '').replace(/\s+/g, ' ').trim();
         const desc = b.getAttribute('aria-describedby') && document.getElementById(b.getAttribute('aria-describedby'))?.textContent?.trim();
-        if (desc || SAYS.test(own) || hasNote(b.parentElement, b) || hasNote(b.parentElement?.parentElement, b)) continue;
+        // v10.18 (3.5) : comme src/ui/why-off.js — une explication dans la carte .m-card, ou juste au-dessus (frères précédents), compte aussi.
+        const before = (el) => { for (let s = el?.previousElementSibling, k = 0; s && k < 3; s = s.previousElementSibling, k++) { const t = (s.textContent ?? '').trim(); if (t && (s.matches(NOTE) || s.querySelector(NOTE) || SAYS.test(t))) return true; } return false; };
+        if (desc || SAYS.test(own) || hasNote(b.parentElement, b) || hasNote(b.parentElement?.parentElement, b) || hasNote(b.closest('.m-card'), b) || before(b) || before(b.parentElement) || before(b.parentElement?.parentElement)) continue;
         push('why', `${name(b)} « ${own.slice(0, 30)} » désactivé sans explication`);
       }
     }

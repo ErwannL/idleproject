@@ -111,11 +111,14 @@ function phoneSheet(ui, state, dur) {
 function renderPhone(ui, state, now, ready, again, dur, map) {
   const free = state.expeditions.slots.some((r) => !r) && availableForExpedition(state).length;
   const slots = state.expeditions.slots.map((run, i) => phoneSlot(ui, state, run, i, now, dur)).join('');
+  // v10.18 (3.8) : « Tout récupérer » et « Repartir » n'apparaissent que lorsqu'ils servent (grisés, ils dépassaient derrière « Tout envoyer »).
+  const pairBtns = [ready ? mBtn(`Tout récupérer (${ready})`, { action: 'claim-all-expeditions' }) : '', again ? mBtn(`Repartir (${again})`, { action: 'relaunch-expeditions' }) : ''].filter(Boolean);
+  const pair = pairBtns.length ? `<div class="mt-pair${pairBtns.length === 1 ? ' one' : ''}">${pairBtns.join('')}</div>` : '';
   return `<div class="m-frame mt-frame mt-exp">${mTitle('icon_chest', 'Expéditions', true)}
     <div class="mt-exp-head">${map}</div>
     <div class="m-chips mt-center" role="tablist" aria-label="Durée">${EXPEDITION_TYPES.map((t) => mChip(`${t.hours} h`, { action: 'exp-dur', value: t.id, on: t.id === dur })).join('')}${mChip('Par place', { action: 'exp-per-slot', on: Boolean(ui.view.expPerSlot) })}</div>
     <div class="mt-exp-list">${slots}</div>
-    <div class="mt-pair">${mBtn(`Tout récupérer${ready ? ` (${ready})` : ''}`, { action: 'claim-all-expeditions', disabled: !ready })}${mBtn(`Repartir${again ? ` (${again})` : ''}`, { action: 'relaunch-expeditions', disabled: !again })}</div>
+    ${pair}
     ${mBtnGold('Tout envoyer', { action: 'send-all-expeditions', value: dur, icon: 'icon_expedition', disabled: !free })}</div>${phoneSheet(ui, state, dur)}`;
 }
 

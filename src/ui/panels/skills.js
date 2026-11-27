@@ -353,7 +353,7 @@ function phoneDetail(state, c, activeIds, armed) {
   let bar = '';
   if (c.kind === 's' && c.level > 0 && !c.locked) {
     const at = activeIds.indexOf(c.id);
-    if (at >= 0) bar = mBtn(`Retirer (place ${at + 1})`, { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}"`, disabled: activeIds.length <= 1 });
+    if (at >= 0) bar = mBtn(`Retirer (place ${at + 1})`, { action: 'skill-loadout', attrs: `data-key="${escapeHtml(c.id)}" data-why="Garde au moins une compétence active"`, disabled: activeIds.length <= 1 }); // v10.18 (3.5) : raison précise au lieu du texte générique
     else { const slot = armed ?? (activeIds.length < size ? activeIds.length : size - 1); bar = mBtn(`Mettre en place ${slot + 1}`, { action: 'skill-slot-set', value: `${c.id}|${slot}` }); }
   } else if (c.kind === 'r' && !c.locked) {
     bar = c.active > 0 ? `<p class="m-sk-state good">Actif ${time(c.active)}</p>` : c.cd > 0 ? `<p class="m-sk-state">Prêt dans ${time(c.cd)}</p>` : mBtn('Utiliser', { action: 'rush', value: c.id });

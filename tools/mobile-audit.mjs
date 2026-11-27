@@ -10,6 +10,9 @@
 // dépasse le bouton · 15 aucune zone verticale vide de plus de 120 px dans un .m-frame / .m-card. v10.17 : 18 au plus 4 styles de
 // bouton sur l'ensemble des écrans (tools/audit-1017.mjs) · 19 textes les plus longs injectés : ils défilent s'ils ne tiennent pas
 // (tools/text-fit-audit.mjs ; --no-fit pour sauter). v10.17.1 : 20 le bouton doré principal visible est dans le dernier quart du cadre, ou épinglé en bas (tools/audit-1017.mjs).
+// v10.18 (2.6, 3.5 ; tools/audit-1018.mjs) : 21 aucun bouton recouvert par un autre au point de contact · 22 aucun texte « Pas disponible
+// pour l'instant » · 23 aucun sous-onglet sous la croix ✕ · 24 écran de combat : aucun bloc de #stage-area / #combat-console n'en chevauche un autre.
+// Tailles par défaut : 412x915, 405x896, 390x844, 360x800.
 // Code de sortie 1 au moindre défaut.
 // Une capture JPEG par onglet : <taille>-<onglet>.jpg (partie de fin de jeu) ou <taille>-neuve-<onglet>.jpg (partie neuve).
 import { createRequire } from 'node:module';
@@ -18,15 +21,16 @@ import { join } from 'node:path';
 import { startServer } from './serve.mjs';
 import { audit1016Init } from './audit-1016.mjs'; // v10.16 (B9) : contrôles 16 et 17
 import { audit1017Init, BTN_EXCLUDE, MAX_BTN_STYLES } from './audit-1017.mjs'; // v10.17 (D) : contrôle 18
+import { audit1018Init } from './audit-1018.mjs'; // v10.18 (2.6, 3.5) : contrôles 21 à 24
 import { textFitAudit, textFitLists } from './text-fit-audit.mjs'; // v10.17 (C5) : contrôle 19
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const ALL_TABS = ['combat', 'inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
-const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre' };
+const CHECKS = { 1: 'défilement horizontal', 2: 'boutons qui se chevauchent', 3: 'bouton trop bas (principal < 44 px, autre < 40 px)', 4: 'cartouche / bouton doré', 5: '<select> visible', 6: 'stabilité (fiche, modes)', 7: 'mot coupé', 8: "image d'événement hors de son cadre", 9: 'image manquante / non chargée', 10: 'texte sous 11 px', 11: 'texte tronqué', 12: 'plusieurs boutons visuellement dorés', 13: 'HUD de combat par-dessus un panneau', 14: 'onglet dont le texte dépasse le bouton', 15: 'zone vide de plus de 120 px dans un cadre', 16: 'libellé terminé par un point d\'abréviation', 17: 'bouton désactivé sans explication', 18: 'plus de 4 styles de bouton (tous écrans confondus)', 19: 'texte long coupé sans défiler (textes injectés)', 20: 'bouton doré principal pas en bas du cadre', 21: 'bouton recouvert au point de contact', 22: 'texte « Pas disponible pour l\'instant »', 23: 'sous-onglet sous la croix ✕', 24: 'blocs de l\'écran de combat qui se chevauchent' };
 
 const argv = process.argv.slice(2);
 const opt = (name, def) => { const i = argv.indexOf(`--${name}`); return i >= 0 && argv[i + 1] ? argv[i + 1] : def; };
-const sizes = opt('sizes', '390x844,412x915').split(',').map((s) => s.trim().split('x').map(Number));
+const sizes = opt('sizes', '412x915,405x896,390x844,360x800').split(',').map((s) => s.trim().split('x').map(Number));
 const tabs = opt('tabs', ALL_TABS.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const out = opt('out', 'docs/screenshots/v10.12');
 const games = opt('games', 'endgame,fresh').split(',').map((s) => s.trim());
@@ -242,6 +246,13 @@ function inPage(isCombat) {
   const panelOpen = panel && !panel.classList.contains('hidden');
   const roots = [isCombat || !panelOpen ? document.querySelector('#play') : panel, document.querySelector('#modal:not(.hidden)'), tabsBar].filter(Boolean);
   for (const x of window.__audit1016?.(roots, shownLoose) ?? []) add(x.check === 'abbr' ? 16 : 17, x.msg);
+  // 21 à 24 (v10.18, parties 2.6 et 3.5 ; tools/audit-1018.mjs) : bouton recouvert au point de contact, texte générique
+  // « Pas disponible pour l'instant », sous-onglet sous la croix ✕, blocs de l'écran de combat qui se chevauchent.
+  const roots18 = (isCombat ? [document.querySelector('#stage-area'), document.querySelector('#combat-console'), tabsBar] : [panel, document.querySelector('#modal:not(.hidden)'), tabsBar]).filter(Boolean);
+  for (const m of window.__touchCover?.(roots18) ?? []) add(21, m);
+  for (const m of window.__genericWhy?.([document.body]) ?? []) add(22, m);
+  if (!isCombat) for (const m of window.__subtabsUnderClose?.() ?? []) add(23, m);
+  if (isCombat) for (const m of window.__hudOverlap?.() ?? []) add(24, m);
   return issues;
 }
 
@@ -292,6 +303,7 @@ for (const game of games) {
     const page = await ctx.newPage();
     await page.addInitScript(audit1016Init); // v10.16 (B9)
     await page.addInitScript(audit1017Init); // v10.17 (D)
+    await page.addInitScript(audit1018Init); // v10.18 (2.6, 3.5)
     const jsErrors = [];
     page.on('pageerror', (e) => jsErrors.push(e.message));
     if (game === 'endgame') {

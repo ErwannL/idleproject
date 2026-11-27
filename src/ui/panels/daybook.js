@@ -63,6 +63,7 @@ function phoneFirstWeek(ui, state, goldFree) {
     <div class="m-chips mp-chips">${days}</div>
     <ul class="fw-steps">${steps}</ul>
     <div class="mp-fw-claim">${rewardIcons(day.reward, 'named')}${claim}</div>
+    ${prizeReady(state) ? '' : '<p class="fw-prize-t">Gros lot du jour 7 : un compagnon Épique au choix</p>'}
     <div class="fw-prize">${prize}</div>${prizeReady(state) ? '<p class="gold-text">Les 7 jours sont finis : choisis ton compagnon !</p>' : ''}
     ${mBtn('Tout récupérer', { action: 'fw-all' })}</div>`;
   return { html, gold: useGold };

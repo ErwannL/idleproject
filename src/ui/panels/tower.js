@@ -111,7 +111,8 @@ function phoneView(ui, state, parts, tab, tile = '') {
   const modes = parts.map(([id, l, ic]) => ({ id, label: id === 'challenge' ? 'Défi de la semaine' : l, icon: ic, action: 'defi-tab', value: id }));
   const body = tab === 'challenge' ? phoneChallenge(state) : phoneTower(ui, state);
   const sheet = ui.view.towerInfo ? phoneSheet(state, tab) : '';
-  return `<div class="m-frame cb-frame">${mTitle('icon_tower', 'Défis', true)}${modes.length > 1 ? mModes(modes, tab, { size: 64 }) : ''}${tile}${body}${sheet}</div>`;
+  const fill = tab === 'challenge' ? '' : '<div class="page-fill page-fill-tower" aria-hidden="true"></div>'; // v10.18 (3.7) : illustration dans la place libre au-dessus de « Monter »
+  return `<div class="m-frame cb-frame">${mTitle('icon_tower', 'Défis', true)}${modes.length > 1 ? mModes(modes, tab, { size: 64 }) : ''}${tile}${body}${fill}${sheet}</div>`;
 }
 
 function phoneTower(ui, state) {

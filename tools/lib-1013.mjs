@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { startServer } from './serve.mjs';
 import { audit1016Init } from './audit-1016.mjs'; // v10.16 (B9)
 import { audit1017Init } from './audit-1017.mjs'; // v10.17 (D) : styles de bouton
+import { audit1018Init } from './audit-1018.mjs'; // v10.18 (2.6, 3.5)
 export const { chromium } = createRequire(import.meta.url)('playwright');
 
 export const ALL_TABS = ['inventory', 'upgrades', 'skills', 'tree', 'forge', 'companions', 'camp', 'expeditions', 'campaign', 'dungeons', 'arena', 'tower', 'event', 'summon', 'shop', 'daybook', 'contracts', 'encyclopedia', 'looks', 'boss', 'ranking', 'guild', 'stats', 'options'];
@@ -30,6 +31,7 @@ export async function openGame(app, game, width, height) {
   const page = await ctx.newPage();
   await page.addInitScript(audit1016Init); // v10.16 (B9) : contrôles des libellés et des boutons grisés
   await page.addInitScript(audit1017Init); // v10.17 (D) : styles de bouton
+  await page.addInitScript(audit1018Init); // v10.18 (2.6, 3.5) : boutons recouverts, texte générique, sous-onglets sous ✕
   const jsErrors = [];
   page.on('pageerror', (e) => jsErrors.push(e.message));
   if (game === 'endgame') {

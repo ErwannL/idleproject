@@ -20,11 +20,13 @@ export function explainDisabled(root) {
   if (!root?.querySelectorAll) return 0;
   let n = 0;
   const near = (box, b) => box && [...box.querySelectorAll(NOTE)].some((x) => x !== b && !x.contains(b) && (x.textContent ?? '').trim());
+  // v10.18 (3.5) : une explication déjà écrite juste au-dessus (frères précédents du bouton ou de son parent) compte aussi.
+  const before = (el) => { for (let s = el?.previousElementSibling, k = 0; s && k < 3; s = s.previousElementSibling, k++) { const t = (s.textContent ?? '').trim(); if (t && (s.matches(NOTE) || s.querySelector(NOTE) || SAYS.test(t))) return true; } return false; };
   for (const b of root.querySelectorAll('button:disabled, button[aria-disabled="true"]')) {
     if (b.closest('.m-chips, .mp-chips, #tabs') || b.nextElementSibling?.classList.contains('why-auto')) continue;
-    if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step, .stage-grid button, .world-picker .m-btn')) continue; // cases graphiques (carte, arbre, places, étapes, flèches de monde) : le cadenas ou la case dit déjà l'état
+    if (b.matches('.map-dot, .lt-node, .fg-slot, .m-tile, .mp-step, .stage-grid button, .world-picker .m-btn, .fw-prize-c')) continue; // cases graphiques (carte, arbre, places, étapes, flèches de monde, compagnons du gros lot) : le cadenas, la case ou la ligne au-dessus dit déjà l'état
     const text = b.textContent ?? '';
-    if (SAYS.test(text) || near(b.parentElement, b) || near(b.parentElement?.parentElement, b)) continue;
+    if (SAYS.test(text) || near(b.parentElement, b) || near(b.parentElement?.parentElement, b) || near(b.closest('.m-card'), b) || before(b) || before(b.parentElement) || before(b.parentElement?.parentElement)) continue;
     const s = document.createElement('small');
     s.className = 'why-off why-auto';
     s.setAttribute('role', 'note');

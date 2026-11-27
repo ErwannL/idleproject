@@ -100,7 +100,8 @@ export default {
     if (isPhoneUi(ui)) {
       // v10.12 : l'Arène se joue dans la scène (panneau mi-hauteur) mais prend le même cadre, cartouche et modes que les autres écrans.
       const modes = [['cards', 'Cartes', 'icon_paw'], ['survival', 'Survie', 'icon_skull'], ['global', 'Boss commun', 'icon_boss']].map(([id, label, ic]) => ({ id, label, icon: ic, action: 'arena-mode', value: id }));
-      const head = `${mTitle('icon_paw', 'Arène', true, { close: 'close-panel' })}${mModes(modes, mode, { size: 64 })}`;
+      // v10.18 (3.6) : une seule croix ✕ par écran, celle de l'en-tête du panneau (comme les autres onglets).
+      const head = `${mTitle('icon_paw', 'Arène', true)}${mModes(modes, mode, { size: 64 })}`;
       return `<div class="m-frame cb-frame ar-frame">${mode === 'cards' ? cardTowerHtml(ui, state, head)
         : `<div class="ar-scroll">${head}${mode === 'global' ? globalHtml(ui, state) : survivalHtml(ui, state)}</div>`}</div>`;
     }
